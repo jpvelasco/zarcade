@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2a2250">
+  <title>Sundown Rally — race the sunset</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-label="Sundown Rally 3D view"></canvas>
+
+  <!-- Browsers refuse ES modules from file://, so explain how to run it. -->
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>This 3D game has to be served by a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/sundown-rally/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div class="hud-track"><span id="hud-track-name"></span><span id="hud-time">0:00.0</span></div>
+      <div class="progress"><div id="hud-progress"></div><span class="flag">🏁</span></div>
+      <div class="hud-stats"><span>🪙 <b id="hud-coins">0</b></span><span>🧟 <b id="hud-kills">0</b></span></div>
+    </div>
+    <div id="hud-combo" class="combo"></div>
+    <div id="hud-toast" class="toast"></div>
+    <div id="hud-center" class="center-text"></div>
+    <div class="hud-bottom">
+      <div class="meters">
+        <div class="meter"><span class="meter-label">❤️</span><div class="bar"><div id="hud-hp" class="fill hp"></div></div></div>
+        <div class="meter"><span class="meter-label">🔥</span><div class="bar"><div id="hud-nitro" class="fill nitro"></div></div></div>
+      </div>
+      <div class="speedo"><b id="hud-speed">0</b><span>km/h</span></div>
+      <div id="hud-weapon" class="weapon"></div>
+    </div>
+    <button id="btn-pause" class="icon-btn pause-btn" aria-label="Pause">❚❚</button>
+  </div>
+
+  <div id="touch" class="hidden">
+    <div class="touch-left">
+      <button class="tbtn" data-key="left" aria-label="Steer left">◀</button>
+      <button class="tbtn" data-key="right" aria-label="Steer right">▶</button>
+    </div>
+    <div class="touch-right">
+      <button class="tbtn small" data-key="fire" aria-label="Fire rockets">🚀</button>
+      <button class="tbtn small" data-key="nitro" aria-label="Nitro">🔥</button>
+      <button class="tbtn" data-key="brake" aria-label="Brake">⏹</button>
+    </div>
+  </div>
+
+  <section id="screen-title" class="overlay left hidden">
+    <div class="card title-card">
+      <h1 class="logo">Sundown<br><span>Rally</span></h1>
+      <p class="tagline">Race the sunset. Outrun the undead.</p>
+      <div class="row">
+        <button id="btn-play" class="btn primary">Play</button>
+        <button id="btn-garage" class="btn">Garage</button>
+      </div>
+      <p class="controls">
+        <b>Drive</b> ←↑→↓ / WASD &nbsp;·&nbsp; <b>Nitro</b> Shift &nbsp;·&nbsp; <b>Rockets</b> Space &nbsp;·&nbsp; <b>Pause</b> Esc
+      </p>
+      <p id="title-coins" class="muted"></p>
+    </div>
+  </section>
+
+  <section id="screen-tracks" class="overlay hidden">
+    <div class="card wide">
+      <h2>Choose a track</h2>
+      <div id="track-list" class="track-list"></div>
+      <div class="row"><button class="btn" data-back>← Back</button></div>
+    </div>
+  </section>
+
+  <section id="screen-garage" class="overlay right hidden">
+    <div class="card">
+      <h2>Garage</h2>
+      <p class="coins-line">🪙 <b id="garage-coins">0</b> coins</p>
+      <div id="upgrade-list" class="upgrade-list"></div>
+      <h3>Paint</h3>
+      <div id="paint-list" class="paint-list"></div>
+      <div class="row">
+        <button class="btn" data-back>← Back</button>
+        <button id="garage-race" class="btn primary">Race →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="row">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart</button>
+        <button id="btn-mute" class="btn">Sound: on</button>
+        <button id="btn-quit" class="btn">Quit</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay left hidden">
+    <div class="card">
+      <h2 id="res-title"></h2>
+      <div id="res-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <p id="res-time" class="big"></p>
+      <div id="res-lines" class="res-lines"></div>
+      <div id="res-buttons" class="row"></div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

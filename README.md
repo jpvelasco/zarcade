@@ -18,21 +18,24 @@ Current games:
 | Game | Folder | Pitch |
 | --- | --- | --- |
 | Glowloop | [`games/glowloop`](games/glowloop) | Lasso fireflies, match colors, light up the night |
+| Sundown Rally | [`games/sundown-rally`](games/sundown-rally) | 3D jeep racer: outrun cartoon zombies across the desert at dusk |
 
 ## Conventions
 
-- **No build step, no dependencies.** Games are plain HTML/CSS/JS, so every
-  `index.html` works when opened straight from disk.
-- **Self-contained games.** A game only references files inside its own folder,
-  so games can be added, moved, or removed without affecting each other.
+- **No build step, no npm dependencies.** Games are plain HTML/CSS/JS. Simple
+  games work opened straight from disk; games that use ES modules (like the 3D
+  ones) need `npm run serve`.
+- **Self-contained games.** A game only references files inside its own folder
+  (libraries are vendored there, e.g. `games/sundown-rally/vendor/three`), so
+  games can be added, moved, or removed without affecting each other.
 - **Namespaced storage.** All games share one origin when served together, so
   prefix `localStorage` keys with the game slug (for example `glowloop.v1`).
-- **Testable rules.** Keep pure game logic in a DOM-free file that tests can
-  `require`.
+- **Testable rules.** Keep pure game logic in DOM-free files that Node tests
+  can import.
 
 ## Commands
 
 ```sh
 npm test         # run every game's tests
-npm run serve    # serve the repo at http://localhost:8000
+npm run serve    # serve the repo at http://localhost:8000 (no caching, so edits show on reload)
 ```
