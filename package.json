@@ -1,0 +1,9 @@
+{
+  "name": "gamer",
+  "private": true,
+  "description": "A collection of browser games, plus an arcade page to pick between them.",
+  "scripts": {
+    "test": "node --test 'games/*/tests/*.test.js'",
+    "serve": "python3 -m http.server 8000"
+  }
+}
