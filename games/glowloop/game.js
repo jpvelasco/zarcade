@@ -21,6 +21,18 @@
   const MIN_LOOP_AREA = 250; // px², ignores accidental squiggles
   const HUD_TOP = 84;
   const JAR = { x: 18, y: 14, w: 40, h: 54 };
+  const QUEEN_SHELL_REGROW = 6; // seconds a cracked queen stays catchable
+
+  const TWIST_INFO = {
+    wind: { label: 'WINDY', tip: 'Windy night! Gusts push the fireflies around' },
+    blackout: { label: 'BLACKOUT', tip: 'Blackout! Fireflies only show when they blink' },
+    swarm: { label: 'SWARM', tip: 'Swarm night! Way more fireflies, a little faster' },
+  };
+  const FRESH_TIPS = {
+    shy: 'New: shy fireflies (dotted ring) flee your trail. Worth double!',
+    twins: 'New: twin fireflies. Catch both in the same loop!',
+    queen: 'New: the Queen! Loop her once to crack her shell, then again',
+  };
 
   // ---------- persistence ----------
   const SAVE_KEY = 'glowloop.v1';
@@ -84,6 +96,34 @@
     },
     fizzle() { this.tone(320, 0, 0.12, 'triangle', 0.05, 200); },
     tick() { this.tone(1400, 0, 0.05, 'square', 0.04); },
+    warn() {
+      this.tone(620, 0, 0.1, 'triangle', 0.07);
+      this.tone(620, 0.13, 0.1, 'triangle', 0.07);
+    },
+    crack() {
+      this.tone(1800, 0, 0.06, 'square', 0.05, 900);
+      this.tone(1047, 0.05, 0.35, 'sine', 0.1);
+    },
+    whoosh() {
+      if (!this.ctx) return;
+      const t0 = this.ctx.currentTime, dur = 1.6;
+      const buf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * dur), this.ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      const band = this.ctx.createBiquadFilter();
+      band.type = 'bandpass';
+      band.frequency.setValueAtTime(300, t0);
+      band.frequency.exponentialRampToValueAtTime(900, t0 + dur * 0.5);
+      band.frequency.exponentialRampToValueAtTime(250, t0 + dur);
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.12, t0 + dur * 0.4);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      src.connect(band).connect(gain).connect(this.master);
+      src.start(t0);
+    },
     fanfare(stars) {
       [0, 4, 7, 12, 16].slice(0, 2 + stars)
         .forEach((s, i) => this.tone(523.25 * Math.pow(2, s / 12), i * 0.12, 0.6, 'sine', 0.14));
@@ -244,20 +284,21 @@
     lastTick: 0,
     time: 0,
     mixedHintShown: false,
+    danger: false,       // the loop being drawn would close around a thornbug
+    queenSpawned: false,
+    wind: { active: false, timer: 4, dir: 0, power: 0 },
+    windLines: [],
   };
-  window.Glowloop = { state }; // handy for poking at the game from the console
+  window.Glowloop = { state, startNight }; // handy for poking at the game from the console
 
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const wantFlies = () => Math.round(state.cfg.fireflies * areaScale);
 
-  function spawnFly(allowSpecial) {
-    const palette = COLORS.slice(0, state.cfg.colors);
-    const c = palette[Math.floor(Math.random() * palette.length)];
-    const r = Math.random();
-    const kind = allowSpecial && r < 0.04 ? 'gold' : allowSpecial && r < 0.09 ? 'rainbow' : 'normal';
-    state.flies.push({
-      x: 40 + Math.random() * (W - 80),
-      y: HUD_TOP + Math.random() * (H - HUD_TOP - 40),
+  const isWild = (f) => f.kind === 'gold' || f.kind === 'rainbow';
+
+  function makeFly(kind, c, x, y) {
+    const f = {
+      x, y,
       vx: 0, vy: 0,
       wander: Math.random() * Math.PI * 2,
       phase: Math.random() * 10,
@@ -265,7 +306,43 @@
       kind,
       alpha: 0,
       panic: 0,
-    });
+      flee: 0,
+      partner: null, // twins only
+      hits: 0,       // queen only: 1 once her shell is cracked
+      shell: 0,      // queen only: seconds until a cracked shell regrows
+    };
+    state.flies.push(f);
+    return f;
+  }
+
+  // `special` allows the rare gold/rainbow kinds (not in the opening swarm).
+  function spawnFly(special) {
+    const cfg = state.cfg;
+    const palette = COLORS.slice(0, cfg.colors);
+    const c = palette[Math.floor(Math.random() * palette.length)];
+    const r = Math.random();
+    let kind = 'normal';
+    if (special && r < 0.04) kind = 'gold';
+    else if (special && r < 0.09) kind = 'rainbow';
+    else if (cfg.shy && r < 0.21) kind = 'shy';
+    else if (cfg.twins && r < 0.31) kind = 'twin';
+    const x = 40 + Math.random() * (W - 80);
+    const y = HUD_TOP + Math.random() * (H - HUD_TOP - 40);
+    const f = makeFly(kind, c, x, y);
+    if (kind === 'twin') {
+      const mate = makeFly('twin', c, clamp(x + 26, 6, W - 6), y);
+      f.partner = mate;
+      mate.partner = f;
+    }
+  }
+
+  function spawnQueen() {
+    const palette = COLORS.slice(0, state.cfg.colors);
+    const q = makeFly('queen', palette[Math.floor(Math.random() * palette.length)], W / 2, H * 0.55);
+    q.alpha = 0;
+    state.queenSpawned = true;
+    addText(W / 2, H * 0.55 - 50, 'The Queen has arrived!', GOLD, 24, 2);
+    audio.fanfare(0);
   }
 
   function spawnBug() {
@@ -282,10 +359,13 @@
   }
 
   function nightTip(n) {
+    const cfg = state.cfg;
     if (n === 1) return 'Draw a loop around fireflies of one color';
-    if (n === 2) return 'A thornbug appeared. Don’t lasso it!';
+    if (n === 2) return 'A thornbug appeared. Your trail turns red if you’re about to catch one!';
     if (n === 3) return 'A fourth color joins the meadow';
-    return `Fill the jar with ${state.cfg.target} glow`;
+    if (FRESH_TIPS[cfg.fresh]) return FRESH_TIPS[cfg.fresh];
+    if (cfg.twist) return TWIST_INFO[cfg.twist].tip;
+    return `Fill the jar with ${cfg.target} glow`;
   }
 
   // ---------- flow ----------
@@ -303,8 +383,12 @@
     state.flashes = [];
     state.flies = [];
     state.bugs = [];
-    for (let i = 0; i < wantFlies(); i++) spawnFly(false);
-    const bugs = Math.round(state.cfg.thornbugs * Math.min(1, areaScale * 1.4));
+    state.danger = false;
+    state.queenSpawned = false;
+    state.wind = { active: false, timer: 4, dir: 0, power: 0 };
+    state.windLines = [];
+    while (state.flies.length < wantFlies()) spawnFly(false);
+    const bugs = Math.max(state.cfg.thornbugs ? 1 : 0, Math.round(state.cfg.thornbugs * Math.min(1, areaScale)));
     for (let i = 0; i < bugs; i++) spawnBug();
     state.intro = INTRO;
     state.lastTick = 0;
@@ -379,8 +463,11 @@
 
   function updateBest() {
     $('best').textContent = save.bestNight
-      ? `Best: reached night ${save.bestNight} · ${save.bestTotal} total glow`
+      ? `Best: cleared night ${save.bestNight} · ${save.bestTotal} total glow`
       : '';
+    const cont = $('btn-continue');
+    cont.classList.toggle('hidden', save.bestNight < 1);
+    cont.textContent = `Continue at night ${save.bestNight + 1}`;
   }
 
   function updateMuteButton() {
@@ -445,7 +532,7 @@
   function handleLoop(poly) {
     if (G.polygonArea(poly) < MIN_LOOP_AREA) return;
     const c = G.centroid(poly);
-    const caught = state.flies.filter((f) => f.alpha > 0.3 && G.pointInPolygon(f, poly));
+    let caught = state.flies.filter((f) => f.alpha > 0.3 && G.pointInPolygon(f, poly));
     const bugsIn = state.bugs.filter((b) => G.pointInPolygon(b, poly));
 
     if (bugsIn.length) {
@@ -465,9 +552,31 @@
       return;
     }
 
+    // A twin looped without its partner slips away.
+    const inLoop = new Set(caught);
+    const lonelyTwins = caught.filter((f) => f.kind === 'twin' && f.partner && !inLoop.has(f.partner));
+    for (const f of lonelyTwins) {
+      f.vx = (f.partner.x - f.x) * 4;
+      f.vy = (f.partner.y - f.y) * 4;
+      f.panic = 0.5;
+    }
+    if (lonelyTwins.length) addText(c.x, c.y + 28, 'Twins stick together!', lonelyTwins[0].hex, 17, 1.6);
+
+    // The first loop only cracks the queen's shell.
+    const queen = caught.find((f) => f.kind === 'queen' && f.hits === 0);
+    if (queen) {
+      queen.hits = 1;
+      queen.shell = QUEEN_SHELL_REGROW;
+      queen.panic = 0.8;
+      sparkle(queen.x, queen.y, '#ffffff', 14);
+      addText(queen.x, queen.y - 36, 'Crack! Loop her again!', GOLD, 20, 1.8);
+      audio.crack();
+    }
+    caught = caught.filter((f) => f !== queen && !lonelyTwins.includes(f));
+
     if (!caught.length) {
       state.flashes.push({ poly, color: '#fff4d6', life: 0.25, max: 0.25 });
-      audio.fizzle();
+      if (!queen && !lonelyTwins.length) audio.fizzle();
       return;
     }
 
@@ -476,8 +585,8 @@
     state.score += res.points;
     state.timeLeft += res.bonusTime;
 
-    const normal = caught.find((f) => f.kind === 'normal');
-    const tint = res.harmony ? (normal ? normal.hex : GOLD) : '#fff4d6';
+    const colored = caught.find((f) => !isWild(f));
+    const tint = res.harmony ? (colored ? colored.hex : GOLD) : '#fff4d6';
     state.flashes.push({ poly, color: tint, life: 0.6, max: 0.6 });
 
     const caughtSet = new Set(caught);
@@ -491,21 +600,62 @@
       sparkle(f.x, f.y, f.kind === 'gold' ? GOLD : f.hex, 6);
     }
 
-    const n = caught.length;
+    const n = caught.reduce((sum, f) => sum + G.weightOf(f.kind), 0);
+    const royal = caught.some((f) => f.kind === 'queen');
+    if (royal) state.shake = Math.max(state.shake, 0.6);
     if (res.harmony) {
-      const word = n >= 7 ? 'Supernova!' : n >= 5 ? 'Radiant!' : 'Harmony!';
+      const word = royal ? 'Royal Harmony!' : n >= 7 ? 'Supernova!' : n >= 5 ? 'Radiant!' : 'Harmony!';
       addText(c.x, c.y, `+${res.points} ${word}`, tint, 24 + Math.min(n, 8) * 2, 1.4);
       if (res.multiplier > 1) addText(c.x, c.y + 30, `streak ×${res.multiplier}`, '#fff4d6', 16, 1.2);
       if (n >= 5) state.shake = Math.max(state.shake, 0.35);
     } else {
-      addText(c.x, c.y, `+${res.points}`, '#fff4d6', 22);
+      addText(c.x, c.y, royal ? `+${res.points} Queen caught!` : `+${res.points}`, royal ? GOLD : '#fff4d6', royal ? 28 : 22);
       if (!state.mixedHintShown && state.night <= 2 && n >= 2) {
         state.mixedHintShown = true;
         addText(c.x, c.y + 30, 'Tip: one color per loop = bonus!', '#7ec8ff', 16, 2.4);
       }
     }
     if (res.bonusTime) addText(c.x, c.y - 32, `+${res.bonusTime}s`, GOLD, 22, 1.4);
-    audio.chime(n, state.streak, res.harmony);
+    audio.chime(Math.round(n), state.streak, res.harmony);
+  }
+
+  // Warns before a loop closes around a thornbug: the trail turns red and the
+  // bug puffs up, so a penalty is never a surprise.
+  function updateDanger() {
+    const poly = state.drawing ? G.pendingLoop(state.trail, 90, 6) : null;
+    let danger = false;
+    for (const b of state.bugs) {
+      b.alert = !!poly && G.pointInPolygon(b, poly);
+      danger = danger || b.alert;
+    }
+    if (danger && !state.danger) audio.warn();
+    state.danger = danger;
+  }
+
+  function updateWind(dt) {
+    const w = state.wind;
+    if (state.cfg.twist !== 'wind') { w.power = 0; return; }
+    w.timer -= dt;
+    if (w.timer <= 0) {
+      w.active = !w.active;
+      if (w.active) {
+        w.timer = 2.5;
+        w.dir = (Math.random() < 0.5 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.6;
+        audio.whoosh();
+      } else {
+        w.timer = 3.5 + Math.random() * 3;
+      }
+    }
+    w.power += ((w.active ? 1 : 0) - w.power) * Math.min(1, dt * 2);
+    if (w.power > 0.2 && Math.random() < w.power * dt * 40) {
+      state.windLines.push({ x: Math.cos(w.dir) > 0 ? -60 : W + 60, y: Math.random() * H, len: 40 + Math.random() * 80, life: 1.4 });
+    }
+    const speed = 700 * Math.cos(w.dir);
+    state.windLines = state.windLines.filter((l) => {
+      l.x += speed * dt;
+      l.life -= dt;
+      return l.life > 0;
+    });
   }
 
   // ---------- simulation ----------
@@ -530,7 +680,10 @@
         }
       }
       while (state.trail.length > 2 && state.time - state.trail[0].t > TRAIL_LIFE) state.trail.shift();
+      if (state.cfg.queen && !state.queenSpawned && state.intro <= 0 && state.timeLeft < state.cfg.duration * 0.7) spawnQueen();
     }
+    updateDanger();
+    updateWind(dt);
 
     state.spawnTimer -= dt;
     if (state.flies.length < wantFlies() && state.spawnTimer <= 0) {
@@ -560,7 +713,7 @@
           const d = Math.sqrt(d2);
           ax -= (dx / d) * 320;
           ay -= (dy / d) * 320;
-        } else if (f.kind === 'normal' && o.kind === 'normal' && o.color === f.color && d2 < 200 * 200) {
+        } else if (!isWild(f) && !isWild(o) && o.color === f.color && d2 < 200 * 200) {
           cx += o.x; cy += o.y; cn++;
         }
       }
@@ -576,6 +729,30 @@
           ax += (dx / d) * k;
           ay += (dy / d) * k;
         }
+      }
+
+      f.flee = Math.max(0, f.flee - dt);
+      if (f.kind === 'shy' && state.drawing && state.trail.length) {
+        const tip = state.trail[state.trail.length - 1];
+        const dx = f.x - tip.x, dy = f.y - tip.y, d = Math.hypot(dx, dy);
+        if (d < 140 && d > 0.1) {
+          const k = (1 - d / 140) * 1100;
+          ax += (dx / d) * k;
+          ay += (dy / d) * k;
+          f.flee = 0.3;
+        }
+      }
+      if (f.kind === 'twin' && f.partner) {
+        const dx = f.partner.x - f.x, dy = f.partner.y - f.y, d = Math.hypot(dx, dy);
+        if (d > 34) { ax += dx * 2.5; ay += dy * 2.5; }
+      }
+      if (f.kind === 'queen' && f.hits > 0 && (f.shell -= dt) <= 0) {
+        f.hits = 0;
+        addText(f.x, f.y - 36, 'Her shell grew back', '#fff4d6', 16, 1.4);
+      }
+      if (state.wind.power > 0) {
+        ax += Math.cos(state.wind.dir) * state.wind.power * 260;
+        ay += Math.sin(state.wind.dir) * state.wind.power * 260;
       }
 
       // Near an edge, turn the wander heading back toward the meadow's middle,
@@ -596,7 +773,10 @@
 
       f.vx += ax * dt;
       f.vy += ay * dt;
-      const max = state.cfg.speed * (f.panic > 0 ? 3.5 : 1) * (f.kind === 'gold' ? 1.3 : 1);
+      let max = state.cfg.speed * (f.panic > 0 ? 3.5 : 1) * (1 + state.wind.power * 1.5);
+      if (f.kind === 'gold') max *= 1.3;
+      if (f.flee > 0) max *= 1.7;
+      if (f.kind === 'queen') max *= f.hits > 0 ? 1.5 : 0.75;
       const sp = Math.hypot(f.vx, f.vy);
       if (sp > max) { f.vx *= max / sp; f.vy *= max / sp; }
       f.x = clamp(f.x + f.vx * dt, 6, W - 6);
@@ -609,8 +789,8 @@
       b.angry = Math.max(0, b.angry - dt);
       b.heading += Math.sin(state.time * 0.8 + b.seed) * 0.9 * dt;
       const s = state.cfg.bugSpeed * (b.angry > 0 ? 1.8 : 1);
-      b.x += Math.cos(b.heading) * s * dt;
-      b.y += Math.sin(b.heading) * s * dt;
+      b.x += (Math.cos(b.heading) * s + Math.cos(state.wind.dir) * state.wind.power * 50) * dt;
+      b.y += (Math.sin(b.heading) * s + Math.sin(state.wind.dir) * state.wind.power * 50) * dt;
       b.spin += dt * (b.angry > 0 ? 8 : 1.5);
       if (b.x < b.r) { b.x = b.r; b.heading = Math.PI - b.heading; }
       if (b.x > W - b.r) { b.x = W - b.r; b.heading = Math.PI - b.heading; }
@@ -717,47 +897,117 @@
     return sprites[f.color];
   }
 
+  // Blackout nights: fireflies only show while blinking, or near your trail tip.
+  function visibility(f) {
+    if (state.cfg.twist !== 'blackout') return 1;
+    let lit = clamp((Math.sin(state.time * 1.4 + f.phase * 1.7) - 0.1) * 3, 0, 1);
+    if (state.drawing && state.trail.length) {
+      const tip = state.trail[state.trail.length - 1];
+      lit = Math.max(lit, clamp(1.6 - G.dist(f, tip) / 90, 0, 1));
+    }
+    return 0.1 + 0.9 * lit;
+  }
+
   function drawFlies() {
     const t = state.time;
+    for (const f of state.flies) f.vis = f.alpha * visibility(f);
+
+    // Twin tethers, drawn once per pair.
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    for (const f of state.flies) {
+      if (f.kind !== 'twin' || !f.partner || f.x > f.partner.x) continue;
+      ctx.globalAlpha = 0.85 * Math.min(f.vis, f.partner.vis);
+      ctx.strokeStyle = f.hex;
+      ctx.setLineDash([1, 6]);
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.lineTo(f.partner.x, f.partner.y);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
     ctx.globalCompositeOperation = 'lighter';
     for (const f of state.flies) {
-      const R = (f.kind === 'gold' ? 50 : 40) * (0.8 + 0.2 * Math.sin(t * 3 + f.phase));
-      ctx.globalAlpha = f.alpha * 0.9;
+      const size = f.kind === 'queen' ? 80 : f.kind === 'gold' ? 50 : 40;
+      const R = size * (0.8 + 0.2 * Math.sin(t * 3 + f.phase));
+      ctx.globalAlpha = f.vis * 0.9;
       ctx.drawImage(flySprite(f), f.x - R, f.y - R, R * 2, R * 2);
     }
     ctx.globalCompositeOperation = 'source-over';
+
     for (const f of state.flies) {
-      ctx.globalAlpha = f.alpha;
-      const flap = 2.6 + Math.abs(Math.sin(t * 18 + f.phase)) * 2.2;
+      ctx.globalAlpha = f.vis;
+      const queen = f.kind === 'queen';
+      const scale = queen ? 1.5 : 1;
+      const flap = (2.6 + Math.abs(Math.sin(t * 18 + f.phase)) * 2.2) * scale;
       ctx.fillStyle = 'rgba(230,240,255,0.35)';
       for (const side of [-1, 1]) {
         ctx.beginPath();
-        ctx.ellipse(f.x + side * 7, f.y - 5, 7, flap, side * 0.6, 0, Math.PI * 2);
+        ctx.ellipse(f.x + side * 7 * scale, f.y - 5 * scale, 7 * scale, flap, side * 0.6, 0, Math.PI * 2);
         ctx.fill();
       }
       const gold = f.kind === 'gold';
       ctx.fillStyle = gold ? GOLD : f.kind === 'rainbow' ? `hsl(${(t * 140 + f.phase * 50) % 360},95%,72%)` : f.hex;
       ctx.beginPath();
-      ctx.arc(f.x, f.y, gold ? 10 : 9, 0, Math.PI * 2);
+      ctx.arc(f.x, f.y, queen ? 14 : gold ? 10 : 9, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = 'rgba(12,14,40,0.6)';
-      drawGlyph(f.kind === 'normal' ? f.glyph : 'star', f.x, f.y, 4.2);
+      drawGlyph(isWild(f) ? 'star' : f.glyph, f.x, f.y, queen ? 6 : 4.2);
+
+      if (f.kind === 'shy') {
+        ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 14, t * 2, t * 2 + Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else if (queen) {
+        drawCrown(f.x, f.y - 22);
+        // Shell: a solid ring until cracked, then a flickering broken ring.
+        ctx.strokeStyle = f.hits ? `rgba(255,255,255,${0.3 + 0.3 * Math.sin(t * 20)})` : 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = 3;
+        if (f.hits) ctx.setLineDash([6, 8]);
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 21, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
     }
     ctx.globalAlpha = 1;
+  }
+
+  function drawCrown(x, y) {
+    ctx.fillStyle = GOLD;
+    ctx.beginPath();
+    ctx.moveTo(x - 9, y + 5);
+    ctx.lineTo(x - 10, y - 5);
+    ctx.lineTo(x - 4, y);
+    ctx.lineTo(x, y - 8);
+    ctx.lineTo(x + 4, y);
+    ctx.lineTo(x + 10, y - 5);
+    ctx.lineTo(x + 9, y + 5);
+    ctx.closePath();
+    ctx.fill();
   }
 
   function drawBugs() {
     for (const b of state.bugs) {
       ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = b.angry > 0 ? 0.9 : 0.5;
-      ctx.drawImage(sprites.thorn, b.x - 40, b.y - 40, 80, 80);
+      ctx.globalAlpha = b.angry > 0 || b.alert ? 0.95 : 0.5;
+      const glow = b.alert ? 110 : 80;
+      ctx.drawImage(sprites.thorn, b.x - glow / 2, b.y - glow / 2, glow, glow);
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
 
+      // Alerted bugs puff up so the player sees the danger before closing the loop.
+      b.puff = (b.puff || 0) + ((b.alert ? 1 : 0) - (b.puff || 0)) * 0.25;
+      const spikeLen = 8 + b.puff * 7;
       ctx.beginPath();
       const spikes = 9;
       for (let i = 0; i < spikes * 2; i++) {
-        const a = b.spin + (i * Math.PI) / spikes, rr = i % 2 === 0 ? b.r + 8 : b.r - 1;
+        const a = b.spin + (i * Math.PI) / spikes, rr = i % 2 === 0 ? b.r + spikeLen : b.r - 1;
         ctx.lineTo(b.x + Math.cos(a) * rr, b.y + Math.sin(a) * rr);
       }
       ctx.closePath();
@@ -783,22 +1033,33 @@
         ctx.arc(ox + ex * 1.4, oy + ey * 1.4, 1.9, 0, Math.PI * 2);
         ctx.fill();
       }
+      if (b.alert) {
+        ctx.font = '900 22px ui-rounded, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(7,11,36,0.9)';
+        ctx.strokeText('!', b.x, b.y - b.r - 22);
+        ctx.fillStyle = THORN;
+        ctx.fillText('!', b.x, b.y - b.r - 22);
+      }
     }
   }
 
-  function drawTrailPoints(pts, fade) {
+  function drawTrailPoints(pts, fade, danger) {
     if (pts.length < 2) return;
+    const rgb = danger ? '255,77,109' : '255,248,225';
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.globalCompositeOperation = 'lighter';
     tracePath(pts, false);
-    ctx.strokeStyle = `rgba(255,220,140,${0.2 * fade})`;
-    ctx.lineWidth = 14;
+    ctx.strokeStyle = danger ? `rgba(255,77,109,${0.35 * fade})` : `rgba(255,220,140,${0.2 * fade})`;
+    ctx.lineWidth = danger ? 18 : 14;
     ctx.stroke();
     ctx.globalCompositeOperation = 'source-over';
     for (let i = 1; i < pts.length; i++) {
       const k = i / (pts.length - 1);
-      ctx.strokeStyle = `rgba(255,248,225,${(0.15 + 0.85 * k) * fade})`;
+      ctx.strokeStyle = `rgba(${rgb},${(0.15 + 0.85 * k) * fade})`;
       ctx.lineWidth = 1.5 + 3 * k;
       ctx.beginPath();
       ctx.moveTo(pts[i - 1].x, pts[i - 1].y);
@@ -809,7 +1070,7 @@
 
   function drawTrail() {
     if (state.ghost) drawTrailPoints(state.ghost.points, state.ghost.life / 0.35);
-    drawTrailPoints(state.trail, 1);
+    drawTrailPoints(state.trail, 1, state.danger);
     if (state.drawing && state.trail.length) {
       const tip = state.trail[state.trail.length - 1];
       ctx.globalCompositeOperation = 'lighter';
@@ -896,7 +1157,8 @@
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = 'rgba(255,244,214,0.65)';
     ctx.font = '700 12px ui-rounded, system-ui, sans-serif';
-    ctx.fillText(`NIGHT ${state.night}`, tx, y + 18);
+    const twist = state.cfg.twist ? ` · ${TWIST_INFO[state.cfg.twist].label}` : '';
+    ctx.fillText(`NIGHT ${state.night}${twist}`, tx, y + 18);
     ctx.font = '800 24px ui-rounded, system-ui, sans-serif';
     ctx.fillStyle = fill >= 1 ? GOLD : '#fff4d6';
     const scoreText = String(state.score);
@@ -933,9 +1195,50 @@
     ctx.fillText(String(Math.ceil(state.timeLeft)), cx, cy + 1);
   }
 
+  function wrapLines(text, maxWidth) {
+    const lines = [];
+    let line = '';
+    for (const word of text.split(' ')) {
+      const next = line ? `${line} ${word}` : word;
+      if (line && ctx.measureText(next).width > maxWidth) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = next;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function drawWind() {
+    if (!state.windLines.length) return;
+    ctx.strokeStyle = 'rgba(200,220,255,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    const dx = Math.cos(state.wind.dir), dy = Math.sin(state.wind.dir);
+    for (const l of state.windLines) {
+      ctx.globalAlpha = Math.min(1, l.life) * state.wind.power;
+      ctx.beginPath();
+      ctx.moveTo(l.x, l.y);
+      ctx.lineTo(l.x - dx * l.len, l.y - dy * l.len * 0.2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
   function drawBanner() {
     const age = INTRO - state.intro;
     ctx.globalAlpha = clamp(Math.min(age / 0.3, state.intro / 0.5), 0, 1);
+    // Dark band so the text stays readable over glowing fireflies.
+    const top = H * 0.42 - 70, height = 170;
+    const band = ctx.createLinearGradient(0, top, 0, top + height);
+    band.addColorStop(0, 'rgba(7,11,36,0)');
+    band.addColorStop(0.3, 'rgba(7,11,36,0.75)');
+    band.addColorStop(0.7, 'rgba(7,11,36,0.75)');
+    band.addColorStop(1, 'rgba(7,11,36,0)');
+    ctx.fillStyle = band;
+    ctx.fillRect(0, top, W, height);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(255,201,77,0.7)';
@@ -946,7 +1249,7 @@
     ctx.shadowBlur = 0;
     ctx.font = `700 ${Math.round(clamp(W * 0.03, 16, 22))}px ui-rounded, system-ui, sans-serif`;
     ctx.fillStyle = 'rgba(255,244,214,0.85)';
-    ctx.fillText(nightTip(state.night), W / 2, H * 0.42 + 52);
+    wrapLines(nightTip(state.night), W - 48).forEach((line, i) => ctx.fillText(line, W / 2, H * 0.42 + 52 + i * 28));
     ctx.globalAlpha = 1;
   }
 
@@ -958,6 +1261,11 @@
     }
     ctx.drawImage(scenery, 0, 0, W, H);
     drawSkyStars();
+    if (state.cfg.twist === 'blackout' && state.mode !== 'title') {
+      ctx.fillStyle = 'rgba(2,3,12,0.6)';
+      ctx.fillRect(-20, -20, W + 40, H + 40);
+    }
+    drawWind();
     drawFlashes();
     drawFlies();
     drawBugs();
@@ -970,6 +1278,12 @@
   }
 
   // ---------- wiring ----------
+  $('btn-continue').addEventListener('click', () => {
+    audio.unlock();
+    state.total = 0;
+    state.totalBefore = 0;
+    startNight(save.bestNight + 1);
+  });
   $('btn-play').addEventListener('click', () => {
     audio.unlock();
     state.total = 0;

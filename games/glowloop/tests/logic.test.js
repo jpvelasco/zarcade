@@ -78,10 +78,60 @@ test('a single firefly is never a harmony', () => {
 test('nightConfig ramps difficulty and starsFor thresholds', () => {
   assert.equal(G.nightConfig(1).thornbugs, 0);
   assert.equal(G.nightConfig(2).thornbugs, 1);
-  assert.equal(G.nightConfig(99).thornbugs, 6);
+  assert.equal(G.nightConfig(3).thornbugs, 1);
+  assert.equal(G.nightConfig(6).thornbugs, 3);
+  assert.equal(G.nightConfig(99).thornbugs, 5);
   assert.ok(G.nightConfig(3).target > G.nightConfig(2).target);
   assert.equal(G.starsFor(249, 250), 0);
   assert.equal(G.starsFor(250, 250), 1);
   assert.equal(G.starsFor(375, 250), 2);
   assert.equal(G.starsFor(500, 250), 3);
+});
+
+test('weighted kinds count as more fireflies and keep their color', () => {
+  const shy = { color: 'mint', kind: 'shy' };
+  const r = G.scoreLoop([shy], 0); // one shy firefly counts as two
+  assert.equal(r.harmony, true);
+  assert.equal(r.points, 40);
+
+  const queen = G.scoreLoop([{ color: 'rose', kind: 'queen' }, { color: 'rose', kind: 'normal' }], 0);
+  assert.equal(queen.points, 360); // n = 6
+
+  const mixed = G.scoreLoop([{ color: 'rose', kind: 'queen' }, { color: 'sky', kind: 'shy' }], 0);
+  assert.equal(mixed.harmony, false); // queen and shy are not wildcards
+  assert.equal(mixed.points, 70);
+});
+
+test('twins score 1.5 each', () => {
+  const twin = { color: 'amber', kind: 'twin' };
+  assert.equal(G.scoreLoop([twin, twin], 0).points, 90); // n = 3
+});
+
+test('every night from 4 to 9 introduces something new', () => {
+  const fresh = [4, 5, 6, 7, 8, 9].map((n) => G.nightConfig(n).fresh);
+  assert.deepEqual(fresh, ['shy', 'wind', 'twins', 'blackout', 'queen', 'swarm']);
+  assert.equal(G.nightConfig(3).fresh, null);
+  assert.equal(G.nightConfig(4).shy, true);
+  assert.equal(G.nightConfig(5).twins, false);
+  assert.equal(G.nightConfig(8).queen, true);
+});
+
+test('twists: none early, scheduled mid-game, rotating after night 10', () => {
+  assert.equal(G.twistFor(3), null);
+  assert.equal(G.twistFor(4), null); // shy night has no twist
+  assert.equal(G.twistFor(5), 'wind');
+  assert.equal(G.twistFor(7), 'blackout');
+  assert.deepEqual([10, 11, 12, 13].map(G.twistFor), ['wind', 'blackout', 'swarm', 'wind']);
+  assert.ok(G.nightConfig(9).fireflies > G.nightConfig(8).fireflies); // swarm
+  assert.equal(G.nightConfig(1).target, 250);
+});
+
+test('pendingLoop predicts the loop about to close', () => {
+  const trail = [p(0, 0), p(50, 0), p(100, 0), p(100, 50), p(100, 100), p(50, 100), p(0, 100), p(0, 50), p(5, 10)];
+  const poly = G.pendingLoop(trail, 30, 6);
+  assert.ok(poly);
+  assert.deepEqual(poly[0], p(0, 0)); // nearest earlier point to the tip
+  assert.equal(G.pointInPolygon(p(50, 50), poly), true);
+  assert.equal(G.pendingLoop(trail.slice(0, 5), 30, 6), null); // too short
+  assert.equal(G.pendingLoop([p(0, 0), p(50, 0), p(100, 0), p(150, 0), p(200, 0), p(250, 0), p(300, 0), p(350, 0)], 30, 6), null);
 });

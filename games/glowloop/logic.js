@@ -60,6 +60,21 @@
     return null;
   }
 
+  // Predicts the loop the player is about to close: if the trail's tip has come
+  // back within `reach` of an earlier point (at least `minGap` points back),
+  // returns the trail from that point onward as a polygon, else null.
+  function pendingLoop(points, reach, minGap) {
+    const n = points.length;
+    if (n < minGap + 2) return null;
+    const tip = points[n - 1];
+    let best = -1, bestD = reach;
+    for (let i = 0; i < n - minGap; i++) {
+      const d = dist(points[i], tip);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return best < 0 ? null : points.slice(best);
+  }
+
   // Drops points from the start of the trail until its length fits maxLength.
   function trimToLength(points, maxLength) {
     let total = 0;
@@ -71,12 +86,20 @@
     return points;
   }
 
-  // Scores one closed loop. `catches` is [{ color, kind }] where kind is
-  // 'normal' | 'gold' | 'rainbow'. Gold and rainbow fireflies are wildcards.
+  const isWild = (kind) => kind === 'gold' || kind === 'rainbow';
+
+  // How many fireflies one catch counts as.
+  const WEIGHTS = { shy: 2, twin: 1.5, queen: 5 };
+  function weightOf(kind) {
+    return WEIGHTS[kind] || 1;
+  }
+
+  // Scores one closed loop. `catches` is [{ color, kind }]. Gold and rainbow
+  // fireflies are wildcards; every other kind contributes its color.
   function scoreLoop(catches, streak) {
-    const n = catches.length;
-    if (n === 0) return { points: 0, harmony: false, streak, multiplier: 1, bonusTime: 0 };
-    const colors = new Set(catches.filter((c) => c.kind === 'normal').map((c) => c.color));
+    if (catches.length === 0) return { points: 0, harmony: false, streak, multiplier: 1, bonusTime: 0 };
+    const n = catches.reduce((sum, c) => sum + weightOf(c.kind), 0);
+    const colors = new Set(catches.filter((c) => !isWild(c.kind)).map((c) => c.color));
     const bonusTime = 5 * catches.filter((c) => c.kind === 'gold').length;
     const harmony = n >= 2 && colors.size <= 1;
     const nextStreak = harmony ? streak + 1 : 0;
@@ -85,15 +108,33 @@
     return { points: Math.round(base * multiplier), harmony, streak: nextStreak, multiplier, bonusTime };
   }
 
+  const TWISTS = ['wind', 'blackout', 'swarm'];
+  // Nights 4-9 each introduce one new creature or twist; from night 10 on,
+  // every night rotates through the twists.
+  const SCHEDULE = { 4: 'shy', 5: 'wind', 6: 'twins', 7: 'blackout', 8: 'queen', 9: 'swarm' };
+  const TARGET_SCALE = { wind: 0.9, blackout: 0.8, swarm: 1.2 };
+
+  function twistFor(n) {
+    if (n >= 10) return TWISTS[(n - 10) % TWISTS.length];
+    return TWISTS.includes(SCHEDULE[n]) ? SCHEDULE[n] : null;
+  }
+
   function nightConfig(n) {
+    const twist = twistFor(n);
+    const swarm = twist === 'swarm';
     return {
       duration: 60,
-      target: 250 + 150 * (n - 1),
-      fireflies: Math.min(30, 16 + 2 * (n - 1)),
+      target: Math.round(((250 + 150 * (n - 1)) * (TARGET_SCALE[twist] || 1)) / 10) * 10,
+      fireflies: Math.round(Math.min(30, 16 + 2 * (n - 1)) * (swarm ? 1.6 : 1)),
       colors: n < 3 ? 3 : 4,
-      thornbugs: Math.min(6, n - 1),
-      speed: Math.min(95, 45 + 6 * (n - 1)),
+      thornbugs: Math.min(5, Math.round((n - 1) * 0.6)),
+      speed: Math.min(95, 45 + 6 * (n - 1)) * (swarm ? 1.15 : 1),
       bugSpeed: Math.min(120, 55 + 8 * (n - 1)),
+      twist,
+      shy: n >= 4,
+      twins: n >= 6,
+      queen: n >= 8,
+      fresh: SCHEDULE[n] || null, // what this night introduces, for the banner
     };
   }
 
@@ -106,7 +147,7 @@
 
   const Glow = {
     dist, segmentIntersection, pointInPolygon, polygonArea, centroid,
-    findLoop, trimToLength, scoreLoop, nightConfig, starsFor,
+    findLoop, pendingLoop, trimToLength, weightOf, scoreLoop, twistFor, nightConfig, starsFor,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Glow;
