@@ -156,12 +156,25 @@ export function paintTerrain(ctx, mapIndex, view, w, h, { background = true } = 
   // pond water: overlapping blobs, then lily pads
   const water = [];
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (map.layout[y][x] === 'w') water.push({ x, y });
-  for (const [r, c] of [[0.64, '#6fb7c9'], [0.56, '#86d0e0'], [0.36, '#a5e3ee']]) {
+  const isWater = (x, y) => water.some((t) => t.x === x && t.y === y);
+  for (const [r, c] of [[0.6, '#6fb7c9'], [0.52, '#86d0e0'], [0.3, '#a5e3ee']]) {
+    ctx.fillStyle = c;
+    const R = ts * r;
     for (const t of water) {
+      const cx = view.x(t.x + 0.5, t.y + 0.5), cy = view.y(t.x + 0.5, t.y + 0.5);
       ctx.beginPath();
-      ctx.arc(view.x(t.x + 0.5, t.y + 0.5), view.y(t.x + 0.5, t.y + 0.5), ts * r, 0, TAU);
-      ctx.fillStyle = c;
+      ctx.arc(cx, cy, R, 0, TAU);
       ctx.fill();
+      // bridge to right / lower neighbours and fill 2x2 blocks so the pond is one smooth shape
+      for (const [dx, dy] of [[1, 0], [0, 1]]) {
+        if (!isWater(t.x + dx, t.y + dy)) continue;
+        const nx = view.x(t.x + dx + 0.5, t.y + dy + 0.5), ny = view.y(t.x + dx + 0.5, t.y + dy + 0.5);
+        ctx.fillRect(Math.min(cx, nx) - (cx === nx ? R : 0), Math.min(cy, ny) - (cy === ny ? R : 0), Math.abs(nx - cx) + (cx === nx ? 2 * R : 0), Math.abs(ny - cy) + (cy === ny ? 2 * R : 0));
+      }
+      if (isWater(t.x + 1, t.y) && isWater(t.x, t.y + 1) && isWater(t.x + 1, t.y + 1)) {
+        const nx = view.x(t.x + 1.5, t.y + 1.5), ny = view.y(t.x + 1.5, t.y + 1.5);
+        ctx.fillRect(Math.min(cx, nx), Math.min(cy, ny), Math.abs(nx - cx), Math.abs(ny - cy));
+      }
     }
   }
   for (const t of water) {
@@ -470,7 +483,7 @@ export class Renderer {
       const a = Math.min(1, p.life / 0.6);
       const x = SX(p.x, p.y), y = SY(p.x, p.y);
       const r = p.r * ts * 0.85;
-      ctx.globalAlpha = 0.85 * a;
+      ctx.globalAlpha = 0.75 * a;
       ctx.beginPath();
       for (let k = 0; k <= 12; k++) {
         const ang = (k / 12) * TAU;
@@ -485,7 +498,7 @@ export class Renderer {
       ctx.fillStyle = '#ffc233';
       ctx.fill();
       ctx.beginPath();
-      ctx.ellipse(x - r * 0.35, y - r * 0.28, r * 0.25, r * 0.1, -0.4, 0, TAU);
+      ctx.ellipse(x - r * 0.35, y - r * 0.28, r * 0.16, r * 0.06, -0.4, 0, TAU);
       ctx.fillStyle = '#fff3c4';
       ctx.fill();
       ctx.globalAlpha = 1;
