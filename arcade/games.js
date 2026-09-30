@@ -44,6 +44,26 @@
       accent: '#8f7bff',
       needsServer: true,
     },
+    {
+      slug: 'comet-crush',
+      title: 'Comet Crush',
+      tagline: 'Smash crystal bricks. Save the constellations.',
+      description: 'Bounce a comet off your paddle-ship through 36 neon breakout levels shaped like rockets, whales and cats, then take on a boss in every constellation.',
+      genre: 'Arcade',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ff4fd8',
+      needsServer: true,
+    },
+    {
+      slug: 'garden-guardians',
+      title: 'Garden Guardians',
+      tagline: 'Plant defenders. Shoo the bug parade. Save the picnic.',
+      description: "A cozy tower defense: plant sunflower cannons, pea pods and mushroom mages along winding garden paths to stop snack-hungry bugs before they reach Grandma's picnic.",
+      genre: 'Strategy',
+      controls: ['mouse', 'touch', 'keyboard'],
+      accent: '#8fcb60',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
