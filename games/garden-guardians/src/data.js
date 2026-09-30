@@ -118,4 +118,4 @@ export const SELL_REFUND = 0.7;
 export const MIN_DAMAGE_FRACTION = 0.2; // armor can never block more than 80% of a hit
 export const SLIME_BOOST = 0.35; // bugs on snail slime move 35% faster
 export const WAVE_BREAK = 22; // seconds between the end of a wave's spawns and the next wave
-export const EARLY_BONUS_PER_SECOND = 1.5;
+export const EARLY_BONUS_PER_SECOND = 1;
