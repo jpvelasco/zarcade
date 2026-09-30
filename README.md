@@ -19,6 +19,7 @@ Current games:
 | --- | --- | --- |
 | Glowloop | [`games/glowloop`](games/glowloop) | Lasso fireflies, match colors, light up the night |
 | Sundown Rally | [`games/sundown-rally`](games/sundown-rally) | 3D jeep racer: outrun cartoon zombies across the desert at dusk |
+| Starhopper | [`games/starhopper`](games/starhopper) | Cockpit space shooter: hop across an endless galaxy, with a Space Burger drive-thru |
 
 ## Conventions
 
@@ -32,6 +33,8 @@ Current games:
   prefix `localStorage` keys with the game slug (for example `glowloop.v1`).
 - **Testable rules.** Keep pure game logic in DOM-free files that Node tests
   can import.
+- **Hide the pointer while playing.** Games hide the mouse pointer after a
+  moment without movement during play, and show it again on any movement.
 
 ## Commands
 
