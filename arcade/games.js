@@ -17,8 +17,8 @@
     {
       slug: 'neon-nighthawk',
       title: 'Neon Nighthawk',
-      tagline: 'Hover-bike courier after curfew.',
-      description: 'Drift a hover-bike through the rain-slick city of Vanta, dodge patrol drones, and deliver the packages that keep the lights on.',
+      tagline: 'Deliver after dark. Light the city back up.',
+      description: "HALO switched off every light on Lantern Festival night. Ride a hover-bike through five districts of story jobs, dodge scanner drones, and relight Vanta street by street.",
       genre: 'Action',
       controls: ['keyboard', 'touch', 'gamepad'],
       accent: '#3fe5ff',

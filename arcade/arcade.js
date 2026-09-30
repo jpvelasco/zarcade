@@ -115,7 +115,9 @@
       const panel = el('div', 'cab-panel');
       panel.append(el('span', 'stick'), el('span', 'knob a'), el('span', 'knob b'), el('span', 'cab-genre', game.genre));
 
-      cab.append(el('div', 'cab-marquee', game.title), screen, panel, el('p', 'cab-tag', game.tagline));
+      const marquee = el('div', 'cab-marquee', game.title);
+      if (game.title.length > 14) marquee.classList.add('long');
+      cab.append(marquee, screen, panel, el('p', 'cab-tag', game.tagline));
       cab.addEventListener('mouseenter', () => select(i, { focus: false, sound: false }));
       cab.addEventListener('focus', () => select(i, { focus: false, sound: false }));
       cab.addEventListener('click', (e) => {

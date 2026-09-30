@@ -462,6 +462,8 @@ main {
   text-overflow: ellipsis;
 }
 
+.cab-marquee.long { font-size: 15px; letter-spacing: 0; padding-top: 12px; padding-bottom: 10px; }
+
 .cab-screen {
   position: relative;
   aspect-ratio: 16 / 10;
