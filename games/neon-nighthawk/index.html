@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07101c">
+  <title>Neon Nighthawk — courier after curfew</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="scene" aria-label="Neon Nighthawk city view"></canvas>
+
+  <main id="hud" class="hud hidden" aria-live="polite">
+    <header class="hud-top">
+      <div class="wordmark"><span>NEON</span> NIGHTHAWK <small>COURIER NETWORK</small></div>
+      <div class="hud-run"><span id="hud-job">JOB 01 / 05</span><b id="hud-clock">21:00</b></div>
+      <button id="btn-pause" class="icon-button" aria-label="Pause" title="Pause (Esc)">Ⅱ</button>
+    </header>
+
+    <section class="objective">
+      <div class="eyebrow" id="hud-phase">ROUTE ACQUIRED</div>
+      <strong id="hud-objective">Reach the pickup beacon</strong>
+      <span id="hud-location">—</span>
+    </section>
+
+    <div id="toast" class="toast"></div>
+
+    <section class="hud-bottom">
+      <div class="meter-stack">
+        <div class="meter-row">
+          <span id="integrity-label">BIKE</span>
+          <div class="meter"><i id="hud-integrity"></i></div>
+          <b id="integrity-value">100%</b>
+        </div>
+        <div class="meter-row charge">
+          <span>CHARGE</span>
+          <div class="meter"><i id="hud-charge"></i></div>
+          <b id="charge-value">32</b>
+        </div>
+        <div class="meter-row heat">
+          <span>HEAT</span>
+          <div class="meter"><i id="hud-heat"></i></div>
+          <b id="heat-value">LOW</b>
+        </div>
+      </div>
+      <canvas id="minimap" width="180" height="180" aria-label="Route minimap"></canvas>
+    </section>
+
+    <div id="scan-warning" class="scan-warning hidden">SCANNER LOCK</div>
+    <div id="combo" class="combo"></div>
+  </main>
+
+  <div id="touch" class="touch hidden">
+    <div id="touch-steer" class="touch-steer" aria-label="Steer by dragging"><span>STEER</span><i></i></div>
+    <div class="touch-actions">
+      <button class="touch-button pulse" data-hold="pulse">PULSE</button>
+      <button class="touch-button echo" data-hold="echo">ECHO</button>
+      <button class="touch-button dash" data-hold="dash">DASH</button>
+      <button class="touch-button brake" data-hold="brake">BRAKE</button>
+    </div>
+  </div>
+
+  <section id="screen-title" class="overlay title-screen">
+    <div class="title-card">
+      <p class="eyebrow">CITY OF VANTA · 21:00–DAWN</p>
+      <h1>NEON<br><span>NIGHTHAWK</span></h1>
+      <p class="tagline">Courier after curfew.</p>
+      <p class="intro">Turn the city’s prediction of you into the route that lets you escape.</p>
+      <div class="title-actions">
+        <button id="btn-start" class="button primary">Start a shift <span>→</span></button>
+        <button id="btn-garage" class="button">Garage</button>
+      </div>
+      <label class="shift-code">
+        <span>SHIFT CODE</span>
+        <input id="shift-code" maxlength="10" autocomplete="off" spellcheck="false" placeholder="RANDOM">
+      </label>
+      <p id="title-stats" class="muted"></p>
+      <p class="controls"><b>Steer</b> WASD / arrows · <b>Brake</b> S · <b>Dash</b> Shift / Space · <b>Pulse</b> E · <b>Echo</b> Q · <b>Pause</b> Esc</p>
+    </div>
+  </section>
+
+  <section id="screen-briefing" class="overlay hidden">
+    <div class="card briefing-card">
+      <p class="eyebrow" id="briefing-job">JOB 01 / 05</p>
+      <h2 id="briefing-title">GLASSHOUSE: Sample Run</h2>
+      <p id="briefing-client" class="client">Lantern Clinic</p>
+      <p id="briefing-blurb"></p>
+      <div class="briefing-route">
+        <div><span>PICKUP</span><b id="briefing-pickup">Hearth Terminal</b></div>
+        <i>→</i>
+        <div><span>DROP</span><b id="briefing-drop">Vesper Quay</b></div>
+      </div>
+      <div class="briefing-details">
+        <span id="briefing-condition">FRAGILE CARGO</span>
+        <span id="briefing-time">02:10 WINDOW</span>
+      </div>
+      <div class="row">
+        <button id="btn-launch" class="button primary">Take the contract <span>→</span></button>
+        <button id="btn-briefing-garage" class="button">Garage</button>
+      </div>
+      <p class="tip">Build charge by drifting and close passes. <b>Echo</b> replays your trail and pulls patrols off route.</p>
+    </div>
+  </section>
+
+  <section id="screen-debrief" class="overlay hidden">
+    <div class="card result-card">
+      <p class="eyebrow">DELIVERY CONFIRMED</p>
+      <h2 id="result-title">Clean handoff.</h2>
+      <p id="result-earned" class="credits">+ 000 credits</p>
+      <div id="result-lines" class="result-lines"></div>
+      <p id="result-total" class="muted"></p>
+      <div class="row">
+        <button id="btn-next" class="button primary">Next contract <span>→</span></button>
+        <button id="btn-result-garage" class="button">Garage</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-failed" class="overlay hidden">
+    <div class="card result-card fail-card">
+      <p class="eyebrow">CONTRACT LOST</p>
+      <h2 id="failure-title">The city caught up.</h2>
+      <p id="failure-copy">—</p>
+      <div class="row">
+        <button id="btn-retry" class="button primary">Run it again <span>↻</span></button>
+        <button id="btn-fail-title" class="button">End shift</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-complete" class="overlay hidden">
+    <div class="card result-card complete-card">
+      <p class="eyebrow">DAWN OVER VANTA</p>
+      <h2>You made it through the night.</h2>
+      <p id="complete-total" class="credits">000 credits moved</p>
+      <p id="complete-copy"></p>
+      <div class="row">
+        <button id="btn-new-shift" class="button primary">Run another shift <span>→</span></button>
+        <button id="btn-complete-title" class="button">Title</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-garage" class="overlay hidden">
+    <div class="card garage-card">
+      <div class="garage-heading">
+        <div>
+          <p class="eyebrow">STREETLINE GARAGE</p>
+          <h2>The Nighthawk</h2>
+        </div>
+        <p class="credit-line"><b id="garage-credits">0</b> credits</p>
+      </div>
+      <div id="upgrade-list" class="upgrade-list"></div>
+      <h3>Signal paint</h3>
+      <div id="paint-list" class="paint-list"></div>
+      <div class="row">
+        <button id="btn-garage-back" class="button primary">Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay hidden">
+    <div class="card pause-card">
+      <p class="eyebrow">CHANNEL HELD</p>
+      <h2>Paused</h2>
+      <div class="row">
+        <button id="btn-resume" class="button primary">Resume</button>
+        <button id="btn-restart" class="button">Restart contract</button>
+        <button id="btn-mute" class="button">Sound: on</button>
+        <button id="btn-quit" class="button">End shift</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

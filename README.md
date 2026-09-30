@@ -18,6 +18,7 @@ Current games:
 | Game | Folder | Pitch |
 | --- | --- | --- |
 | Glowloop | [`games/glowloop`](games/glowloop) | Lasso fireflies, match colors, light up the night |
+| Neon Nighthawk | [`games/neon-nighthawk`](games/neon-nighthawk) | Top-down hover-bike courier: drift through Vanta, evade patrols, and deliver after curfew |
 | Sundown Rally | [`games/sundown-rally`](games/sundown-rally) | 3D jeep racer: outrun cartoon zombies across the desert at dusk |
 | Starhopper | [`games/starhopper`](games/starhopper) | Cockpit space shooter: hop across an endless galaxy, with a Space Burger drive-thru |
 
