@@ -159,7 +159,14 @@ export class World {
     this.contract = null;
     this.route = [];
     this.routeIndex = 0;
-    this.prepareContract(clamp(job | 0, 0, CONTRACT_COUNT - 1), this.contractStart);
+    // Starting mid-chapter (debug links) still builds the job from where the
+    // previous one ends, so it matches the contract players get.
+    const first = clamp(job | 0, 0, CONTRACT_COUNT - 1);
+    let from = this.contractStart;
+    for (let earlier = 0; earlier < first; earlier++) {
+      from = makeContract(this.seed, this.chapter, earlier, from).legs.at(-1)[0];
+    }
+    this.prepareContract(first, from);
   }
 
   emit(type, data = {}) {

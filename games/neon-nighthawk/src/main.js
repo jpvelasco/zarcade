@@ -236,6 +236,7 @@ function showBriefing() {
 
 function launchContract() {
   audio.unlock();
+  state.padLatch = true;
   state.world.startContract();
   state.paused = false;
   showScreen(null);
@@ -411,6 +412,7 @@ function togglePause(force) {
     $('#btn-mute').textContent = `Sound: ${state.save.muted ? 'off' : 'on'}`;
     showScreen('screen-pause');
   } else {
+    state.padLatch = true;
     showScreen(null);
     showPlayUi();
     revealCursor();
@@ -549,6 +551,8 @@ function gamepadInput() {
   if (b(15)) x = 1;
   if (b(12)) y = -1;
   if (b(13)) y = 1;
+  // The A press that closed a menu should not also dash as play begins.
+  if (state.padLatch && !b(0)) state.padLatch = false;
   const start = b(9);
   if (start && !state.padStart) {
     if (state.world.active || state.paused) togglePause();
@@ -557,11 +561,55 @@ function gamepadInput() {
   return {
     x,
     y,
-    dash: b(0) || b(7),
+    dash: (b(0) && !state.padLatch) || b(7),
     pulse: b(1),
     echo: b(2),
     drift: b(5) || b(6) || b(4),
   };
+}
+
+// Menus with a gamepad: d-pad or stick moves between buttons, A presses the
+// focused one. The first reading only latches what is already held, so a
+// button still down from the last screen does not press anything.
+let menuPrev = null;
+let menuRepeat = 0;
+function menuPad() {
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  const pad = [...pads].find(Boolean);
+  const overlay = state.screen && $(`#${state.screen}`);
+  if (!pad || !overlay) {
+    menuPrev = null;
+    return;
+  }
+  const b = (i) => !!pad.buttons[i]?.pressed;
+  const ax = pad.axes[0] || 0;
+  const ay = pad.axes[1] || 0;
+  const held = {
+    back: b(12) || b(14) || ay < -0.5 || ax < -0.5,
+    next: b(13) || b(15) || ay > 0.5 || ax > 0.5,
+    press: b(0),
+  };
+  if (!menuPrev) {
+    menuPrev = held;
+    return;
+  }
+  const now = performance.now();
+  const controls = [...overlay.querySelectorAll('button:not(:disabled), a[href], input, summary')]
+    .filter((el) => el.offsetParent !== null);
+  const index = controls.indexOf(document.activeElement);
+  for (const dir of ['back', 'next']) {
+    if (held[dir] && (!menuPrev[dir] || now > menuRepeat)) {
+      const step = dir === 'next' ? 1 : -1;
+      const target = controls[(index + step + controls.length) % controls.length] || controls[0];
+      target?.focus();
+      menuRepeat = now + (menuPrev[dir] ? 150 : 400);
+    }
+  }
+  if (held.press && !menuPrev.press) {
+    const focused = controls.includes(document.activeElement) ? document.activeElement : overlay.querySelector('.button.primary');
+    focused?.click();
+  }
+  menuPrev = held;
 }
 
 function playerInput() {
@@ -593,10 +641,12 @@ function frame(now) {
   state.lastFrame = now;
   if (state.attract) {
     if (state.world.active) state.world.step(dt, aiInput(state.world));
+    menuPad();
   } else if (state.world.active && !state.paused && !state.screen) {
     state.world.step(dt, playerInput());
-  } else if (!state.attract) {
+  } else {
     gamepadInput(); // still watch Start so a paused game can resume
+    menuPad();
   }
   processEvents();
   reconcileWorld();

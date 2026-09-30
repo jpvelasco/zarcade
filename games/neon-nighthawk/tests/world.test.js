@@ -286,3 +286,19 @@ test('a fresh route from mid-block leads in along the bike\'s own street', () =>
     }
   }
 });
+
+test('starting at a later job builds the same contract as playing up to it', () => {
+  const played = new World(77, { chapter: 1 });
+  for (let job = 0; job < 2; job++) {
+    played.startContract();
+    for (const leg of played.contract.legs) {
+      for (const stop of leg) {
+        if (played.runner && !played.runner.caught) visit(played, played.runner);
+        else visit(played, stop);
+      }
+    }
+    played.nextContract();
+  }
+  const jumped = new World(77, { chapter: 1, job: 2 });
+  assert.deepEqual(jumped.contract.legs, played.contract.legs);
+});
