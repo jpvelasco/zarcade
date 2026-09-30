@@ -1,14 +1,19 @@
 # Gamer
 
-A collection of small browser games. The plan is to add an arcade page at the
-repo root where players pick a game, play it, and come back to pick another.
+A collection of small browser games for all ages, gathered in **Starlight
+Arcade**: the page at the repo root where players pick a game, play it, and
+come back to pick another. Every game has a `← Arcade` link on its title screen
+and a *Back to arcade* button in its pause menu.
 
 ## Layout
 
 ```
+index.html          Starlight Arcade, the game picker
+arcade/             arcade styles, script, game manifest (games.js) and tests
 games/
   <slug>/           one self-contained game per folder
     index.html      entry point, opens directly or from the arcade
+    cover.svg       800×500 card art shown in the arcade
     README.md       how to play
     tests/          node:test unit tests (*.test.js)
 ```
@@ -18,9 +23,17 @@ Current games:
 | Game | Folder | Pitch |
 | --- | --- | --- |
 | Glowloop | [`games/glowloop`](games/glowloop) | Lasso fireflies, match colors, light up the night |
-| Neon Nighthawk | [`games/neon-nighthawk`](games/neon-nighthawk) | Top-down hover-bike courier: drift through Vanta, evade patrols, and deliver after curfew |
+| Neon Nighthawk | [`games/neon-nighthawk`](games/neon-nighthawk) | Hover-bike story campaign: deliver across Vanta and switch the city's lights back on |
 | Sundown Rally | [`games/sundown-rally`](games/sundown-rally) | 3D jeep racer: outrun cartoon zombies across the desert at dusk |
 | Starhopper | [`games/starhopper`](games/starhopper) | Cockpit space shooter: hop across an endless galaxy, with a Space Burger drive-thru |
+| Comet Crush | [`games/comet-crush`](games/comet-crush) | Neon breakout: 36 picture levels and a boss in every constellation |
+| Garden Guardians | [`games/garden-guardians`](games/garden-guardians) | Cozy tower defense: plant defenders and shoo the bug parade from Grandma's picnic |
+| Moonshot Mini Golf | [`games/moonshot-golf`](games/moonshot-golf) | Cartoon mini golf on the Moon, Mars and Saturn's rings |
+| Jelly Jam | [`games/jelly-jam`](games/jelly-jam) | Squishy match-3 across 44 reef levels |
+| Pip's Peak | [`games/pips-peak`](games/pips-peak) | Bouncy platformer: help a little sprout climb to the sunrise |
+
+To add a game, give it a folder with a `cover.svg` and arcade links, then add an
+entry to `arcade/games.js`. The arcade tests check that every folder is listed.
 
 ## Conventions
 

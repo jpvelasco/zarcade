@@ -84,6 +84,16 @@
       accent: '#4ef0d0',
       needsServer: true,
     },
+    {
+      slug: 'pips-peak',
+      title: "Pip's Peak",
+      tagline: "A sprout's bouncy climb to the sunrise.",
+      description: 'Help Pip the little sprout hop up a mountain of floating islands across twelve handmade levels. Gather seeds, find three hidden golden acorns a level, and bloom flowers so a fall never costs you much.',
+      genre: 'Platformer',
+      controls: ['keyboard', 'touch', 'gamepad'],
+      accent: '#ffd166',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
