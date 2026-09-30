@@ -1042,9 +1042,8 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// Small jelly portrait for the goal chips in the HUD.
-export function drawJellyIcon(canvas, color) {
-  const size = 26;
+// Small jelly portrait for the goal chips and the title screen.
+export function drawJellyIcon(canvas, color, size = 26) {
   const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   canvas.width = size * dpr;
   canvas.height = size * dpr;
@@ -1052,17 +1051,22 @@ export function drawJellyIcon(canvas, color) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const art = bakeJelly(size * 0.86, color, null);
   ctx.drawImage(art.canvas, (size - art.size) / 2, (size - art.size) / 2, art.size, art.size);
-  const r = size * 0.2;
-  ctx.fillStyle = '#fff';
+  const r = size * 0.45;
+  const cx = size / 2, cy = size / 2;
   for (const side of [-1, 1]) {
     ctx.beginPath();
-    ctx.arc(size / 2 + side * r * 0.5, size / 2 - r * 0.1, r * 0.34, 0, Math.PI * 2);
+    ctx.ellipse(cx + side * r * 0.3, cy - r * 0.12, r * 0.17, r * 0.17, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
     ctx.fill();
-  }
-  ctx.fillStyle = '#1b2a3a';
-  for (const side of [-1, 1]) {
     ctx.beginPath();
-    ctx.arc(size / 2 + side * r * 0.5, size / 2 - r * 0.08, r * 0.17, 0, Math.PI * 2);
+    ctx.arc(cx + side * r * 0.3, cy - r * 0.1, r * 0.09, 0, Math.PI * 2);
+    ctx.fillStyle = '#1b2a3a';
     ctx.fill();
   }
+  ctx.strokeStyle = 'rgba(30, 44, 60, 0.85)';
+  ctx.lineWidth = Math.max(1, r * 0.09);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(cx, cy + r * 0.16, r * 0.24, 0.25 * Math.PI, 0.75 * Math.PI);
+  ctx.stroke();
 }

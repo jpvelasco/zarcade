@@ -157,6 +157,24 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 
 .tagline { margin: 0 auto 14px; max-width: 34ch; color: var(--muted); font-size: 15px; }
 
+.jelly-row { display: flex; justify-content: center; gap: 6px; margin: 2px 0 16px; }
+.jelly-row canvas {
+  width: 46px;
+  height: 46px;
+  animation: bob 2.6s ease-in-out infinite;
+}
+.jelly-row canvas:nth-child(2) { animation-delay: 0.18s; }
+.jelly-row canvas:nth-child(3) { animation-delay: 0.36s; }
+.jelly-row canvas:nth-child(4) { animation-delay: 0.54s; }
+.jelly-row canvas:nth-child(5) { animation-delay: 0.72s; }
+.jelly-row canvas:nth-child(6) { animation-delay: 0.9s; }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  45% { transform: translateY(-7px) scale(0.96, 1.05); }
+  70% { transform: translateY(0) scale(1.06, 0.94); }
+}
+
 .howto { list-style: none; margin: 0 0 16px; padding: 0; text-align: left; display: grid; gap: 8px; }
 .howto li { display: flex; gap: 10px; align-items: center; font-size: 14.5px; }
 .howto .ico { font-size: 20px; width: 26px; text-align: center; }
@@ -484,6 +502,6 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #sea, .card, .stars.big i.on, .combo, .moves-box.low span { animation: none !important; }
+  #sea, .card, .stars.big i.on, .combo, .moves-box.low span, .jelly-row canvas { animation: none !important; }
   .btn { transition: none; }
 }

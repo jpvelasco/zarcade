@@ -52,8 +52,21 @@ function show(next) {
   if (next !== 'play') document.body.classList.remove('no-cursor');
 }
 
+let titleJelliesDrawn = false;
+function drawTitleJellies() {
+  if (titleJelliesDrawn) return;
+  titleJelliesDrawn = true;
+  const row = $('jelly-row');
+  for (let color = 0; color < COLOR_NAMES.length; color++) {
+    const canvas = document.createElement('canvas');
+    row.appendChild(canvas);
+    drawJellyIcon(canvas, color, 46);
+  }
+}
+
 function toTitle() {
   show('title');
+  drawTitleJellies();
   const stars = totalStars(save);
   const cleared = Object.keys(save.stars).length;
   $('title-progress').textContent = cleared
