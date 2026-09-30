@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b2b4a">
+  <meta name="description" content="Help Pip the little sprout bounce up a mountain of floating islands to the sunrise at the top.">
+  <title>Pip's Peak — a bouncy sprout platformer</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game" aria-label="Pip's Peak. A sprout climbing a mountain of floating islands."></canvas>
+
+    <main id="hud" class="hud hidden" aria-live="off">
+      <header class="hud-top">
+        <div class="hud-level">
+          <span id="hud-zone">MEADOW</span>
+          <b id="hud-name">First Steps</b>
+        </div>
+        <div class="hud-stats">
+          <span class="chip seed-chip"><i class="ico-seed"></i><b id="hud-seeds">0/0</b></span>
+          <span class="chip acorn-chip" id="hud-acorns" aria-label="Golden acorns"></span>
+          <span class="chip time-chip"><b id="hud-time">0:00.00</b></span>
+        </div>
+        <div class="hud-buttons">
+          <button id="btn-mute" class="icon-button" aria-label="Toggle sound" title="Sound (M)">♪</button>
+          <button id="btn-pause" class="icon-button" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+        </div>
+      </header>
+      <div id="petals" class="petals" aria-label="Petals left"></div>
+      <div id="banner" class="banner"></div>
+      <div id="toast" class="toast"></div>
+    </main>
+
+    <section id="screen-title" class="overlay">
+      <div class="card title-card">
+        <a class="arcade-link" href="../../index.html">← Arcade</a>
+        <p class="eyebrow">A bouncy little climb</p>
+        <h1 class="logo">Pip's<span>Peak</span></h1>
+        <p class="tagline">Help Pip the sprout hop up a mountain of floating islands to the sunrise at the top.</p>
+        <div class="row">
+          <button id="btn-play" class="button primary">Climb<span>→</span></button>
+          <button id="btn-map" class="button">Level map</button>
+          <button id="btn-title-mute" class="button quiet">Sound: on</button>
+        </div>
+        <p id="title-progress" class="muted"></p>
+        <ul class="howto">
+          <li><b>Move</b> Arrows / A D<span class="sep">·</span><b>Jump</b> Space, Z or Up</li>
+          <li><b>Hold jump</b> to go higher<span class="sep">·</span><b>Bounce</b> on beetles and mushrooms</li>
+          <li>Gather seeds, find <b>3 golden acorns</b> a level, bloom flowers to save your spot</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="screen-map" class="overlay hidden">
+      <div class="card map-card">
+        <div class="map-head">
+          <div>
+            <p class="eyebrow">The mountain</p>
+            <h2>Level map</h2>
+          </div>
+          <p id="map-totals" class="muted"></p>
+        </div>
+        <div id="map-zones" class="map-zones"></div>
+        <div class="row">
+          <button id="btn-map-back" class="button primary">Back</button>
+          <a class="button" href="../../index.html">Back to arcade</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-pause" class="overlay hidden">
+      <div class="card small">
+        <p class="eyebrow">Take a breath</p>
+        <h2>Paused</h2>
+        <div class="row stack">
+          <button id="btn-resume" class="button primary">Resume</button>
+          <button id="btn-restart" class="button">Restart level</button>
+          <button id="btn-pause-map" class="button">Level map</button>
+          <button id="btn-pause-mute" class="button">Sound: on</button>
+          <a class="button" href="../../index.html">Back to arcade</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-complete" class="overlay hidden">
+      <div class="card small result-card">
+        <p class="eyebrow" id="result-zone">MEADOW</p>
+        <h2 id="result-title">Made it!</h2>
+        <div id="result-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+        <p id="result-time" class="big">0:00.00</p>
+        <p id="result-record" class="record hidden">New best time!</p>
+        <div class="result-lines">
+          <div><span>Seeds</span><b id="result-seeds">0/0</b></div>
+          <div><span>Acorns</span><b id="result-acorns">0/3</b></div>
+        </div>
+        <div class="row">
+          <button id="btn-next" class="button primary">Next climb<span>→</span></button>
+          <button id="btn-replay" class="button">Replay</button>
+          <button id="btn-result-map" class="button">Level map</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="touch" class="touch hidden">
+    <div class="touch-move">
+      <button class="touch-button" data-hold="left" aria-label="Left">◀</button>
+      <button class="touch-button" data-hold="right" aria-label="Right">▶</button>
+    </div>
+    <div class="touch-act">
+      <button class="touch-button down" data-hold="down" aria-label="Duck">▼</button>
+      <button class="touch-button jump" data-hold="jump" aria-label="Jump">JUMP</button>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
