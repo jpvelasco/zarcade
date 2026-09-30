@@ -36,7 +36,8 @@ export const PHYS = Object.freeze({
   wallJumpX: 158,
   wallJumpY: 326,
   wallLock: 0.11,
-  wallStick: 3, // how far past the wall we probe for a grab
+  wallStick: 3,      // how far past the wall we probe for a grab
+  wallGrace: 0.13,   // a kick still lands just after leaving the wall
 
   mushroomVel: 524,
   enemyBounce: 306,
@@ -63,6 +64,8 @@ export function createPlayer(x, y) {
     wallDir: 0,
     wallSlide: false,
     wallLock: 0,
+    wallTouch: 0,
+    wallGrace: 0,
     facing: 1,
     squash: 0, // >0 squashed (landing), <0 stretched (rising)
     airTime: 0,
@@ -249,14 +252,23 @@ export function stepPlayer(p, input, terrain, dt, opts = {}) {
   }
   p.vx += windAx * dt;
 
-  // --- wall slide -------------------------------------------------------
+  // --- walls ------------------------------------------------------------
+  // Touching a wall is tracked on both sides, so a kick still works if you
+  // have already tilted away from it. Sliding needs you to lean in.
   let wall = 0;
   if (abilities.wallJump && !p.onGround) {
     const probe = { y: p.y + 2, w: p.w, h: p.h - 4 };
-    if (dir > 0 && boxHitsSolid(terrain, { ...probe, x: p.x + PHYS.wallStick })) wall = 1;
-    else if (dir < 0 && boxHitsSolid(terrain, { ...probe, x: p.x - PHYS.wallStick })) wall = -1;
+    if (boxHitsSolid(terrain, { ...probe, x: p.x + PHYS.wallStick })) wall = 1;
+    else if (boxHitsSolid(terrain, { ...probe, x: p.x - PHYS.wallStick })) wall = -1;
   }
-  const sliding = wall !== 0 && p.vy > -40;
+  if (wall !== 0) {
+    p.wallTouch = wall;
+    p.wallGrace = PHYS.wallGrace;
+  } else {
+    p.wallGrace = Math.max(0, p.wallGrace - dt);
+    if (p.wallGrace === 0) p.wallTouch = 0;
+  }
+  const sliding = wall !== 0 && dir === wall && p.vy > -40;
   if (sliding && !p.wallSlide) out.startedWallSlide = true;
   p.wallSlide = sliding;
   p.wallDir = wall;
@@ -272,10 +284,13 @@ export function stepPlayer(p, input, terrain, dt, opts = {}) {
       p.launched = false;
       p.squash = -0.8;
       out.jumped = 'ground';
-    } else if (sliding) {
+    } else if (!p.onGround && p.wallGrace > 0 && p.wallTouch !== 0) {
+      const from = p.wallTouch;
       p.vy = -PHYS.wallJumpY;
-      p.vx = -wall * PHYS.wallJumpX;
-      p.facing = -wall;
+      p.vx = -from * PHYS.wallJumpX;
+      p.facing = -from;
+      p.wallGrace = 0;
+      p.wallTouch = 0;
       p.wallLock = PHYS.wallLock;
       p.buffer = 0;
       p.rising = true;

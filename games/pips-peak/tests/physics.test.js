@@ -156,6 +156,35 @@ test('a wall slide caps the fall and kicks off sideways', () => {
   assert.ok(p.vx < -100, 'and away from the wall');
 });
 
+test('kicks chain up a chimney, even when leaning away from the wall', () => {
+  // A three-tile-wide chimney: walls at column 0 and column 4.
+  const rows = [];
+  for (let i = 0; i < 24; i += 1) rows.push('#   #');
+  rows.push('#####');
+  const terrain = terrainOf(rows);
+  const abilities = { doubleJump: false, wallJump: true };
+  const p = createPlayer(2 * TILE + 8, 24 * TILE);
+  settle(p, terrain, { abilities });
+  const floor = p.y;
+  let highest = p.y;
+  let dir = 1;
+  let held = false;
+  for (let i = 0; i < 600; i += 1) {
+    let press = false;
+    if (p.onGround) press = true;
+    else if (p.wallSlide) {
+      press = true;
+      dir = -p.wallDir; // lean away as we kick, like a player would
+    }
+    if (press) held = true;
+    if (p.vy > 0) held = false;
+    stepPlayer(p, { left: dir < 0, right: dir > 0, jump: held, jumpPressed: press }, terrain, DT, { abilities });
+    highest = Math.min(highest, p.y);
+  }
+  const climbed = (floor - highest) / TILE;
+  assert.ok(climbed > 8, `expected to climb the chimney, got ${climbed.toFixed(1)} tiles`);
+});
+
 test('one-way planks catch a fall but let Pip rise through', () => {
   const terrain = terrainOf(['     ', '     ', '-----', '     ', '#####']);
   const dropped = createPlayer(8, 0);
