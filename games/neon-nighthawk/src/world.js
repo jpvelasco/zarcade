@@ -856,7 +856,11 @@ export class World {
     const target = this.target;
     if (!target) return;
     const cell = `${nearestStreet(target.x)},${nearestStreet(target.y)}`;
-    if (target !== this.routeFor || cell !== this.routeCell) this.planRoute();
+    const next = this.route[this.routeIndex];
+    // Off the suggested streets (a detour, a shove from traffic): re-plan so
+    // the guide line never cuts through buildings.
+    const strayed = next && Math.abs(next.x - this.player.x) > 60 && Math.abs(next.y - this.player.y) > 60;
+    if (strayed || target !== this.routeFor || cell !== this.routeCell) this.planRoute();
   }
 
   advanceRoute() {

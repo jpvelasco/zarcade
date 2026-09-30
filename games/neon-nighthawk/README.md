@@ -43,7 +43,7 @@ cars at speed builds charge.
 The story uses one fixed city. A Shift Code (under the title screen's Shift
 code toggle) deterministically rebuilds the city layout, stops, sparks,
 sentries, traffic and weather while keeping the same story. Append
-`?seed=CODE` to load one directly, `?chapter=N` to jump to a chapter, and
+`?seed=CODE` to load one directly, `?chapter=N` (and `&job=N`) to jump to a chapter or job, and
 `?autopilot` to watch the courier AI ride hands-free.
 
 ```sh

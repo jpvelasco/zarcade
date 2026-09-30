@@ -258,3 +258,15 @@ test('the autopilot finishes every job in the story', () => {
     }
   }
 });
+
+test('the guide route re-plans when the bike leaves it', () => {
+  const world = startedWorld();
+  world.player.x = BLOCK * 7;
+  world.player.y = -BLOCK * 6 + 20;
+  world.step(DT, {});
+  let previous = world.player;
+  for (const corner of world.route.slice(world.routeIndex)) {
+    assert.ok(Math.abs(corner.x - previous.x) < 61 || Math.abs(corner.y - previous.y) < 61, 'each leg follows a street');
+    previous = corner;
+  }
+});

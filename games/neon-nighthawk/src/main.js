@@ -78,9 +78,9 @@ function applyPaint() {
   if (state.world) state.world.paint = paint.color;
 }
 
-function makeWorld(seed, chapter, { attract = false } = {}) {
+function makeWorld(seed, chapter, { attract = false, job = 0 } = {}) {
   const paint = paintFor(state.save);
-  state.world = new World(seed, { chapter, stats: statsFor(state.save.upgrades), paint: paint.color });
+  state.world = new World(seed, { chapter, job, stats: statsFor(state.save.upgrades), paint: paint.color });
   state.attract = attract;
   renderer.camera.ready = false;
   applyPaint();
@@ -183,11 +183,11 @@ function fillDialogue(parent, lines) {
   parent.replaceChildren(...lines.map(speakerLine));
 }
 
-function startChapter(chapter) {
+function startChapter(chapter, job = 0) {
   audio.unlock();
   state.chapter = chapter;
   const seed = seedFromCode($('#shift-code').value || query.get('seed'));
-  makeWorld(seed, chapter);
+  makeWorld(seed, chapter, { job });
   const def = CHAPTERS[chapter];
   $('#story-eyebrow').textContent = `CHAPTER ${chapter + 1} · ${state.world.contract.district.name.toUpperCase()}`;
   $('#story-title').textContent = def.title;
@@ -728,5 +728,7 @@ for (const button of document.querySelectorAll('[data-hold]')) {
 
 applyPaint();
 showTitle();
-if (query.has('chapter')) startChapter(clamp(Number(query.get('chapter')) - 1 || 0, 0, CHAPTERS.length - 1));
+if (query.has('chapter')) {
+  startChapter(clamp(Number(query.get('chapter')) - 1 || 0, 0, CHAPTERS.length - 1), clamp(Number(query.get('job')) - 1 || 0, 0, 2));
+}
 requestAnimationFrame(frame);
