@@ -450,7 +450,7 @@ export class JourneyView {
       const rollAnim = p.roll > 0 ? (1 - p.roll / PLAYER.rollTime) * Math.PI * 2 * p.rollDir : 0;
       this.camera.quaternion.multiply(_q.setFromAxisAngle(AXIS_Y, -clamp(p.vu * 0.004, -0.12, 0.12)));
       this.camera.quaternion.multiply(_q2.setFromAxisAngle(AXIS_X, clamp(p.vw * 0.004, -0.08, 0.08)));
-      this.camera.quaternion.multiply(_q.setFromAxisAngle(AXIS_Z, -clamp(p.vu * 0.012, -0.35, 0.35) - rollAnim));
+      this.camera.quaternion.multiply(_q.setFromAxisAngle(AXIS_Z, -clamp(p.vu * 0.005, -0.18, 0.18) - rollAnim));
     }
     cam.shake = Math.max(0, cam.shake - dt * 2.5);
     if (cam.shake > 0) {

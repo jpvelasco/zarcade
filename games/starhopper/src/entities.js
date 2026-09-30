@@ -11,7 +11,7 @@ export const PLAYER = {
   cruise: 70,
   boost: 115,
   brake: 42,
-  lateral: 30,
+  lateral: 34,
   boltSpeed: 330,        // added to the jet's own speed
   missileSpeed: 150,
   missileDamage: 10,

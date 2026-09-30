@@ -87,6 +87,35 @@ test('steering stays inside the lane', () => {
   assert.ok(w.player.u > LANE.halfU - 1);
 });
 
+test('letting go of the stick stops the slide quickly', () => {
+  const w = quietWorld();
+  for (let i = 0; i < 60; i++) w.step(DT, { x: 1 });
+  const u0 = w.player.u;
+  for (let i = 0; i < 30; i++) w.step(DT, {});
+  assert.ok(Math.abs(w.player.vu) < 2, `still sliding at ${w.player.vu.toFixed(1)} m/s`);
+  assert.ok(w.player.u - u0 < 4, `slid ${(w.player.u - u0).toFixed(1)} m after release`);
+});
+
+test('the lane edge is soft: holding into it never bounces you back', () => {
+  const w = quietWorld();
+  let minAfterEdge = Infinity, reached = false;
+  for (let i = 0; i < 240; i++) {
+    w.step(DT, { x: 1 });
+    if (w.player.u > LANE.halfU - 0.5) reached = true;
+    if (reached) minAfterEdge = Math.min(minAfterEdge, w.player.u);
+    assert.ok(w.player.vu >= 0, 'never pushed back toward the center');
+  }
+  assert.ok(reached && minAfterEdge > LANE.halfU - 1);
+});
+
+test('pickups you nearly line up with drift into reach', () => {
+  const w = quietWorld();
+  w.pickups.push({ id: 5000, type: 'repair', s: w.player.s + 60, u: w.player.u + 7, w: w.player.w, alive: true });
+  let got = false;
+  for (let i = 0; i < 90 && !got; i++) { w.step(DT, {}); got = w.events.some((e) => e.type === 'pickup'); }
+  assert.ok(got);
+});
+
 test('aimed cannons destroy a fighter ahead', () => {
   const w = quietWorld();
   const e = w.addEnemy('fighter', { s: w.player.s + 120, u: 3, w: 1, vs: w.player.speed, state: 'engage', t: 0, engage: 99, hold: 120 });

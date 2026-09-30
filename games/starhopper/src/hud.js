@@ -15,7 +15,7 @@ export class Hud {
       root: $('hud'), planet: $('hud-planet'), progress: $('hud-progress'), score: $('hud-score'), dust: $('hud-dust'),
       hull: $('hud-hull'), shield: $('hud-shield'), boost: $('hud-boost'), cannon: $('hud-cannon'), missiles: $('hud-missiles'),
       center: $('hud-center'), toast: $('hud-toast'), combo: $('hud-combo'), lock: $('hud-lock'), boss: $('hud-boss'),
-      bossFill: $('hud-boss-fill'), flash: $('hud-flash'), radar: $('hud-radar'),
+      bossFill: $('hud-boss-fill'), flash: $('hud-flash'), radar: $('hud-radar'), reticle: $('hud-reticle'),
     };
     this.radar = this.el.radar.getContext('2d');
     this.cache = {};
@@ -105,6 +105,14 @@ export class Hud {
       const hp = parts.reduce((s, e) => s + Math.max(0, e.alive ? e.hp : 0), 0);
       const max = parts.reduce((s, e) => s + e.maxHp, 0);
       this.set('bossHp', Math.round((hp / max) * 100), (x) => { el.bossFill.style.width = `${x}%`; });
+    }
+
+    // The reticle marks where your shots go: 70 m straight ahead of the jet.
+    if (view) {
+      const aim = world.lane.toWorld(p.s + 70, p.u, p.w - 0.3);
+      this.v.set(aim.x, aim.y, aim.z).project(view.camera);
+      const x = Math.round((this.v.x * 0.5 + 0.5) * innerWidth), y = Math.round((-this.v.y * 0.5 + 0.5) * innerHeight);
+      this.set('reticle', `${x},${y}`, () => { el.reticle.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`; });
     }
 
     // Lock bracket over the targeted enemy.

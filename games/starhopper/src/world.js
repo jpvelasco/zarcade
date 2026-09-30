@@ -71,7 +71,7 @@ export class World {
     this.updateStatics(dt);
     this.updateBolts(dt);
     this.updateMissiles(dt);
-    this.checkPickups();
+    this.checkPickups(dt);
     this.checkBurger();
 
     if (p.hull <= 0 && this.status !== 'destroyed') {
@@ -96,20 +96,23 @@ export class World {
       p.roll = PLAYER.rollTime;
       p.rollDir = rollPress;
       p.rollCooldown = PLAYER.rollCooldown;
-      p.vu += rollPress * 26;
+      p.vu += rollPress * 16;
       this.emit('roll', { dir: rollPress });
     }
     p.rollHeld = !!rollPress;
     p.roll = Math.max(0, p.roll - dt);
     p.rollCooldown -= dt;
 
-    const k = Math.min(1, dt * 5);
-    p.vu += (clamp(ctl.x || 0, -1, 1) * st.lateral - p.vu) * k * (p.roll > 0 ? 0.3 : 1);
-    p.vw += (clamp(ctl.y || 0, -1, 1) * st.lateral * 0.8 - p.vw) * k;
+    // Snappy arcade steering: quick to speed up, quicker to stop when you
+    // let go, so you can line up with things without sliding past them.
+    p.vu = steer(p.vu, clamp(ctl.x || 0, -1, 1) * st.lateral, dt, p.roll > 0);
+    p.vw = steer(p.vw, clamp(ctl.y || 0, -1, 1) * st.lateral * 0.85, dt, false);
     p.u += p.vu * dt;
     p.w += p.vw * dt;
-    if (Math.abs(p.u) > LANE.halfU) { p.u = Math.sign(p.u) * LANE.halfU; p.vu *= -0.2; }
-    if (Math.abs(p.w) > LANE.halfW) { p.w = Math.sign(p.w) * LANE.halfW; p.vw *= -0.2; }
+    // Soft lane edges: outward motion eases off near the edge instead of
+    // bouncing you back toward the middle.
+    [p.u, p.vu] = softEdge(p.u, p.vu, LANE.halfU, dt);
+    [p.w, p.vw] = softEdge(p.w, p.vw, LANE.halfW, dt);
 
     let target = st.cruise;
     p.boosting = false;
@@ -654,10 +657,20 @@ export class World {
 
   // ------------------------------------------------------------ pickups, burger, hyperspace
 
-  checkPickups() {
+  checkPickups(dt = 1 / 60) {
     const p = this.player;
     for (const k of this.pickups) {
-      if (!k.alive || k.s < p.s - 10 || k.s > p.s + 10) continue;
+      if (!k.alive || k.s < p.s - 10 || k.s > p.s + 70) continue;
+      // Gentle magnet: things you're nearly lined up with drift into reach.
+      const du = p.u - k.u, dw = p.w - k.w, off = Math.hypot(du, dw);
+      if (k.s > p.s + 10) {
+        if (off < 11 && off > 0.01) {
+          const pull = Math.min(off, 22 * dt);
+          k.u += (du / off) * pull;
+          k.w += (dw / off) * pull;
+        }
+        continue;
+      }
       if (Math.hypot(k.s - p.s, k.u - p.u, k.w - p.w) > PICKUPS[k.type].r + PLAYER.radius) continue;
       k.alive = false;
       this.applyPickup(k.type);
@@ -732,6 +745,20 @@ export class World {
     const p = this.player;
     return { kills: p.kills, spawned: p.spawned, hull: p.hull, maxHull: p.maxHull, dust: p.dust, score: p.score };
   }
+}
+
+function steer(v, target, dt, rolling) {
+  const stopping = Math.abs(target) < Math.abs(v) || Math.sign(target) !== Math.sign(v);
+  const rate = rolling ? 2 : stopping ? 14 : 9;
+  return v + (target - v) * Math.min(1, dt * rate);
+}
+
+function softEdge(x, v, half, dt) {
+  const zone = 5;
+  const over = Math.abs(x) - (half - zone);
+  if (over > 0 && Math.sign(v) === Math.sign(x)) v *= Math.exp(-dt * 10 * (over / zone));
+  if (Math.abs(x) > half) { x = Math.sign(x) * half; if (Math.sign(v) === Math.sign(x)) v = 0; }
+  return [x, v];
 }
 
 function dist3(a, b) {
