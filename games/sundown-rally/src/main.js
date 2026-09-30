@@ -222,10 +222,24 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) pause
 
 // ------------------------------------------------------------ loop
 
+// Hide the mouse pointer while playing, like a video player: it vanishes
+// after a moment without movement and comes back as soon as the mouse moves.
+let pointerIdle = 0, pointerHidden = false;
+window.addEventListener('mousemove', () => { pointerIdle = 0; });
+function updatePointer(dt, playing) {
+  pointerIdle += dt;
+  const hide = playing && pointerIdle > 1.5;
+  if (hide !== pointerHidden) {
+    pointerHidden = hide;
+    document.body.classList.toggle('no-cursor', hide);
+  }
+}
+
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
+  updatePointer(dt, mode === 'race');
 
   if (mode === 'race') {
     if (input.consume('Escape') || input.consume('KeyP')) pause();

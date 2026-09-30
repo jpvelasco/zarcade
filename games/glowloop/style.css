@@ -167,3 +167,6 @@ h2 { margin: 0; font-size: 30px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* While playing, the pointer hides after a moment without mouse movement. */
+body.no-cursor, body.no-cursor * { cursor: none !important; }
