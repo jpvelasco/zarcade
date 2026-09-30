@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07101c"/>
+      <stop offset="1" stop-color="#150a2a"/>
+    </linearGradient>
+    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3fe5ff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#3fe5ff"/>
+    </linearGradient>
+    <filter id="neon" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="rain" width="40" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+      <path d="M10 0 v18" stroke="#9fdcff" stroke-width="1.5" opacity=".35"/>
+      <path d="M30 30 v14" stroke="#9fdcff" stroke-width="1.2" opacity=".25"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <!-- streets -->
+  <g fill="#0d1b2c">
+    <rect x="0" y="210" width="800" height="90"/>
+    <rect x="300" y="0" width="90" height="500"/>
+    <rect x="640" y="0" width="70" height="500"/>
+  </g>
+  <g stroke="#ffd35c" stroke-width="3" stroke-dasharray="18 16" opacity=".55">
+    <path d="M0 255 H800"/><path d="M345 0 V500"/>
+  </g>
+  <!-- rooftops -->
+  <g stroke-width="3" fill="#111a33">
+    <rect x="30" y="30" width="230" height="150" rx="6" stroke="#ff4fa3"/>
+    <rect x="430" y="30" width="180" height="150" rx="6" stroke="#8f7bff"/>
+    <rect x="740" y="30" width="70" height="150" rx="6" stroke="#3fe5ff"/>
+    <rect x="30" y="330" width="230" height="150" rx="6" stroke="#3fe5ff"/>
+    <rect x="430" y="330" width="180" height="150" rx="6" stroke="#ff4fa3"/>
+    <rect x="740" y="330" width="70" height="150" rx="6" stroke="#ffd35c"/>
+  </g>
+  <g fill="#1d2b4d">
+    <rect x="60" y="60" width="60" height="40" rx="4"/><rect x="150" y="100" width="80" height="50" rx="4"/>
+    <rect x="460" y="70" width="50" height="80" rx="4"/><rect x="530" y="60" width="50" height="40" rx="4"/>
+    <rect x="70" y="360" width="90" height="60" rx="4"/><rect x="470" y="370" width="100" height="70" rx="4"/>
+  </g>
+  <g filter="url(#neon)" font-family="Futura, Trebuchet MS, sans-serif" font-weight="800" font-size="30">
+    <text x="60" y="160" fill="#ff4fa3">NOODLES</text>
+    <text x="448" y="460" fill="#3fe5ff">24/7</text>
+  </g>
+  <!-- drone -->
+  <g transform="translate(560 250)" filter="url(#neon)">
+    <path d="M-120 -90 L0 0 L-120 90Z" fill="#ff3b5c" opacity=".12"/>
+    <circle r="18" fill="#2a1030" stroke="#ff3b5c" stroke-width="4"/>
+    <circle r="6" fill="#ff3b5c"/>
+    <path d="M-26 -26 l12 12 M26 -26 l-12 12 M-26 26 l12 -12 M26 26 l-12 -12" stroke="#ff3b5c" stroke-width="4"/>
+  </g>
+  <!-- package drop -->
+  <g transform="translate(680 120)" filter="url(#neon)">
+    <circle r="34" fill="none" stroke="#7cff9b" stroke-width="4" stroke-dasharray="10 8"/>
+    <rect x="-14" y="-14" width="28" height="28" rx="4" fill="#7cff9b"/>
+  </g>
+  <!-- bike and drift trail -->
+  <path d="M40 330 C140 300 210 300 280 270 S330 240 360 236" fill="none" stroke="url(#trail)" stroke-width="16" stroke-linecap="round" opacity=".7" filter="url(#neon)"/>
+  <g transform="translate(372 234) rotate(-14)" filter="url(#neon)">
+    <path d="M-30 -12 L28 -8 L40 0 L28 8 L-30 12 L-24 0Z" fill="#e9f8ff"/>
+    <path d="M-18 -6 L18 -4 L18 4 L-18 6Z" fill="#3fe5ff"/>
+    <circle cx="-30" cy="0" r="7" fill="#ff4fa3"/>
+  </g>
+  <rect width="800" height="500" fill="url(#rain)"/>
+</svg>

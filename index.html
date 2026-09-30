@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120a2e">
+  <meta name="description" content="Starlight Arcade: a cabinet row of small browser games for all ages.">
+  <title>Starlight Arcade</title>
+  <link rel="icon" type="image/svg+xml" href="arcade/favicon.svg">
+  <link rel="stylesheet" href="arcade/arcade.css">
+</head>
+<body>
+  <div class="carpet" aria-hidden="true"></div>
+  <div class="haze" aria-hidden="true"></div>
+
+  <header class="marquee">
+    <div class="sign">
+      <span class="bulbs" aria-hidden="true"></span>
+      <h1 class="logo">
+        <span class="logo-top">Starlight</span>
+        <span class="logo-main">Arcade</span>
+      </h1>
+      <p class="sign-sub"><span class="coin" aria-hidden="true"></span>Free play · All ages · <span id="game-count"></span></p>
+    </div>
+    <button id="btn-mute" class="mute" type="button" aria-pressed="false" aria-label="Mute arcade sounds">
+      <span class="mute-on" aria-hidden="true">♪</span><span class="mute-off" aria-hidden="true">✕</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="stage" id="stage" aria-label="Selected game">
+      <div class="crt">
+        <div class="crt-glass">
+          <img id="stage-cover" alt="" width="800" height="500">
+          <span class="scan" aria-hidden="true"></span>
+          <span class="press" aria-hidden="true">Press start</span>
+        </div>
+      </div>
+      <div class="stage-info">
+        <p class="stage-genre" id="stage-genre"></p>
+        <h2 class="stage-title" id="stage-title"></h2>
+        <p class="stage-desc" id="stage-desc"></p>
+        <ul class="stage-controls" id="stage-controls" aria-label="Controls"></ul>
+        <div class="stage-actions">
+          <a class="play" id="stage-play" href="#">
+            <span class="play-icon" aria-hidden="true">▶</span> Play
+          </a>
+          <p class="stage-meta" id="stage-meta"></p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="filters" id="filters" aria-label="Filter games by genre"></nav>
+
+    <ul class="row" id="row" aria-label="Games"></ul>
+  </main>
+
+  <footer class="footer">
+    <p class="keys">
+      <kbd>←</kbd><kbd>→</kbd> choose <span class="dot">·</span>
+      <kbd>Enter</kbd> play <span class="dot">·</span>
+      🎮 gamepads welcome <span class="dot">·</span>
+      every game has a <b>← Arcade</b> button to come back
+    </p>
+    <p class="offline hidden" id="offline">
+      Opened from disk, so only games marked <b>works offline</b> can start.
+      Run <code>npm run serve</code> and visit <code>http://localhost:8000</code> to play them all.
+    </p>
+  </footer>
+
+  <div class="toast hidden" id="toast" role="status"></div>
+  <div class="launch" id="launch" aria-hidden="true"><span></span></div>
+
+  <script src="arcade/games.js"></script>
+  <script src="arcade/logic.js"></script>
+  <script src="arcade/arcade.js"></script>
+</body>
+</html>

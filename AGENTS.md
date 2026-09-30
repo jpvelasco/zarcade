@@ -32,6 +32,13 @@ load ES modules, including `neon-nighthawk`, `starhopper`, and
 Glowloop can also open directly from disk. The Three.js games must be served
 over HTTP because browser ES module loading does not work from `file://`.
 
+## Arcade
+
+The root `index.html` is the arcade: a game picker built from the manifest
+in `arcade/games.js`, styled by `arcade/arcade.css`, and tested by
+`arcade/tests/`. The arcade may link to and show files from any game folder;
+games never depend on arcade files.
+
 ## Game conventions
 
 - Do not add a build step or npm dependency unless the task explicitly requires
@@ -46,6 +53,12 @@ over HTTP because browser ES module loading does not work from `file://`.
 - During active play, hide the pointer after a brief period without mouse
   movement and show it again when the pointer moves.
 - Respect `prefers-reduced-motion` when adding motion-heavy effects.
+- Every game links back to the arcade. Its title screen shows a `← Arcade`
+  link, and its pause menu has a `Back to arcade` button. Both go to
+  `../../index.html`. Escape (and gamepad Start, where the game supports
+  gamepads) pauses active play.
+- Every game ships a `cover.svg` (16:10, 800×500 viewBox) that the arcade
+  shows as its card art, and has an entry in `arcade/games.js`.
 - Keep third-party files and their licenses intact.
 
 ## Current game boundaries

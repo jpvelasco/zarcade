@@ -244,3 +244,22 @@ code { background: rgba(0, 0, 0, 0.35); padding: 2px 6px; border-radius: 6px; fo
 
 /* While playing, the pointer hides after a moment without mouse movement. */
 body.no-cursor, body.no-cursor * { cursor: none !important; }
+
+/* Way back to the arcade page. */
+a.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.arcade-link {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  z-index: 50;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font: 700 15px/1 system-ui, sans-serif;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+}
+.arcade-link:hover { background: rgba(255, 255, 255, 0.16); }
+.arcade-link:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }

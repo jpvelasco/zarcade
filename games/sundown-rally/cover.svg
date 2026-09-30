@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2250"/>
+      <stop offset=".45" stop-color="#b04a6e"/>
+      <stop offset=".75" stop-color="#ff8a3d"/>
+      <stop offset="1" stop-color="#ffc766"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff1a8"/>
+      <stop offset="1" stop-color="#ff7a3d"/>
+    </linearGradient>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9733e"/>
+      <stop offset="1" stop-color="#7a2f3a"/>
+    </linearGradient>
+    <clipPath id="sunClip"><rect width="800" height="300"/></clipPath>
+  </defs>
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <g clip-path="url(#sunClip)">
+    <circle cx="400" cy="290" r="130" fill="url(#sun)"/>
+    <g fill="#e46a48">
+      <rect x="260" y="250" width="280" height="6"/><rect x="260" y="268" width="280" height="9"/><rect x="260" y="286" width="280" height="12"/>
+    </g>
+  </g>
+  <path d="M0 300 L60 300 L80 220 L170 220 L190 300 L560 300 L590 240 L660 240 L690 300 L800 300 V500 H0Z" fill="#5a2442"/>
+  <path d="M0 300 H800 V500 H0Z" fill="url(#sand)"/>
+  <!-- road -->
+  <path d="M360 300 C340 360 200 380 130 500 H520 C520 420 430 360 440 300Z" fill="#3a1a2e"/>
+  <path d="M400 300 C390 360 300 400 320 500" fill="none" stroke="#ffd35c" stroke-width="6" stroke-dasharray="26 22"/>
+  <!-- cacti -->
+  <g fill="#3a5a3a">
+    <path d="M620 400 v-80 a12 12 0 0 1 24 0 v80z"/><path d="M620 360 h-18 v-26 a9 9 0 0 1 18 0z"/><path d="M644 350 h18 v-30 a9 9 0 0 0 -18 0z"/>
+    <path d="M90 360 v-50 a9 9 0 0 1 18 0 v50z"/>
+  </g>
+  <!-- zombie -->
+  <g transform="translate(520 360)">
+    <ellipse cx="0" cy="68" rx="30" ry="6" fill="#000" opacity=".25"/>
+    <rect x="-16" y="0" width="32" height="46" rx="10" fill="#5b8f6a"/>
+    <rect x="-14" y="44" width="10" height="22" rx="4" fill="#4a3a6a"/><rect x="4" y="44" width="10" height="22" rx="4" fill="#4a3a6a"/>
+    <circle cx="0" cy="-12" r="18" fill="#8fd18f"/>
+    <circle cx="-6" cy="-14" r="5" fill="#fff"/><circle cx="7" cy="-12" r="4" fill="#fff"/>
+    <circle cx="-5" cy="-14" r="2" fill="#222"/><circle cx="7" cy="-12" r="1.8" fill="#222"/>
+    <path d="M-8 -2 q8 5 16 0" stroke="#2a4a2a" stroke-width="3" fill="none"/>
+    <path d="M14 8 h30 M14 20 h26" stroke="#8fd18f" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <!-- jeep, airborne -->
+  <g transform="translate(250 390) rotate(-8)">
+    <ellipse cx="10" cy="80" rx="90" ry="10" fill="#000" opacity=".25"/>
+    <path d="M-80 20 L-60 -10 L20 -10 L40 -36 L80 -36 L90 -10 L110 -6 L110 30 L-80 30Z" fill="#ffd35c"/>
+    <path d="M30 -10 L46 -30 L74 -30 L80 -10Z" fill="#9fdcff"/>
+    <rect x="-70" y="8" width="170" height="6" fill="#e0a430"/>
+    <circle cx="-42" cy="36" r="24" fill="#2a1a2a"/><circle cx="-42" cy="36" r="10" fill="#aaa"/>
+    <circle cx="70" cy="36" r="24" fill="#2a1a2a"/><circle cx="70" cy="36" r="10" fill="#aaa"/>
+    <path d="M-90 16 h-40 M-86 0 h-26" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+  </g>
+  <g fill="#ffe8b0" opacity=".9">
+    <circle cx="120" cy="60" r="2"/><circle cx="250" cy="40" r="1.6"/><circle cx="640" cy="50" r="2"/><circle cx="720" cy="110" r="1.4"/>
+  </g>
+</svg>

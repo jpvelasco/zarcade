@@ -520,3 +520,23 @@ body.cursor-hidden, body.cursor-hidden * { cursor: none !important; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 }
+
+/* Way back to the arcade page. */
+a.button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.arcade-link {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  z-index: 50;
+  padding: 8px 14px;
+  border: 1px solid rgba(var(--accent-rgb), .45);
+  border-radius: 999px;
+  background: rgba(3, 10, 20, .6);
+  color: var(--paper);
+  font: 700 14px/1 system-ui, sans-serif;
+  letter-spacing: .06em;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+}
+.arcade-link:hover { background: rgba(var(--accent-rgb), .18); }
+.arcade-link:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
