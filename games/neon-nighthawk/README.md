@@ -1,16 +1,18 @@
 # Neon Nighthawk
 
-Courier after curfew.
+Light up Vanta.
 
-Ride a hover-bike through Vanta after dark, collect a package, and deliver it
-before the buyer closes their window. Drift and skim traffic to build charge;
-spend it on a phase dash, a scanner-jamming pulse, or an Echo that replays your
-recent trail and sends patrols after the wrong bike.
+It's Lantern Festival night, and HALO, the city's overprotective computer, has
+switched off every light for curfew. Ride Kit's hover-bike for Nighthawk
+Couriers and make deliveries across five districts. Every spark you grab
+lights the buildings beside it, and every drop-off sends a wave of light
+through the neighborhood.
 
-Five contracts take a shift from Lowrise to The Core. The city remembers how
-much attention you attract: heat brings more patrols, while credits pay for
-better fins, quieter cores, longer Echoes, flux shields, and stronger dash
-clamps.
+The story runs over five chapters of three jobs. Jobs mix it up: deliveries,
+lantern drops in any order, spark-cell hunts, chasing a runaway robot (or a
+cat), stealth runs where three scanner locks lose the cargo, express windows,
+and a finale in HALO's Core. Each job has three stars: finish it, grab 70% of
+the sparks, and keep the bike above 70%. Credits buy garage upgrades.
 
 ## Play
 
@@ -23,23 +25,26 @@ npm run serve
 
 | Action | Keyboard | Touch | Gamepad |
 | --- | --- | --- | --- |
-| Steer | A / D or ← / → | Drag the steering disc | Left stick |
-| Brake / drift | S or ↓ | BRAKE | Triggers |
-| Phase dash | Shift or Space | DASH | A |
+| Ride | Arrows / WASD | Drag the thumbstick | Left stick or d-pad |
+| Phase dash | Space | DASH | A or RT |
 | Signal pulse | E | PULSE | B |
 | Echo decoy | Q | ECHO | X |
-| Pause / mute | Esc / M | Pause button | Start |
+| Drift | Shift | DRIFT | LB / RB |
+| Pause / mute | Esc or P / M | Pause button | Start |
 
-Stay close to traffic for a charge-building near miss. The center of a street
-is safe from cars in curb lanes; move toward the road edge only when a shortcut
-or patrol demands it.
+Hold the direction you want to go on screen. The bike stays on its street
+between intersections, so holding a turn early takes the next corner for you,
+and a diagonal means "turn at the next crossing". Let go to coast to a stop.
+Traffic keeps to the curb lanes; the centre line is safe, and passing close to
+cars at speed builds charge.
 
 ## Shift codes and development
 
-The Shift Code on the title screen recreates a deterministic city, contract
-sequence, traffic pattern, and weather. Append `?seed=CODE` to the URL to load
-one directly. Append `?autopilot` to watch the cautious courier mode; it is
-also useful for checking a route hands-free.
+The story uses one fixed city. A Shift Code (under the title screen's Shift
+code toggle) deterministically rebuilds the city layout, stops, sparks,
+sentries, traffic and weather while keeping the same story. Append
+`?seed=CODE` to load one directly, `?chapter=N` to jump to a chapter, and
+`?autopilot` to watch the courier AI ride hands-free.
 
 ```sh
 npm test
@@ -48,10 +53,11 @@ npm test
 | Path | What it contains |
 | --- | --- |
 | `src/city.js` | Street grid, building data, traffic, route generation |
-| `src/contracts.js` | Deterministic districts, clients, cargo conditions |
-| `src/world.js` | DOM-free delivery simulation, patrols, abilities, scoring |
+| `src/story.js` | The story: chapters, jobs, dialogue, HALO's lines |
+| `src/contracts.js` | Deterministic districts, stops, sparks, sentries, time windows |
+| `src/world.js` | DOM-free simulation: grid-assisted steering, jobs, runners, drones, light, stars |
 | `src/ai.js` | A cautious controller used by autopilot and tests |
-| `src/progress.js` | Local save data, garage upgrades, paint |
+| `src/progress.js` | Local save data, story stars and unlocks, garage upgrades, paint |
 | `src/render.js` | Canvas city, rain, routes, vehicles, HUD minimap |
 | `src/main.js` | Screens, browser input, persistence, game loop |
 

@@ -44,6 +44,9 @@ export function defaultSave() {
     upgrades: { fins: 0, quiet: 0, echo: 0, flux: 0, clamps: 0 },
     paint: 'cyan',
     muted: false,
+    // Story progress: stars per job (0–3) for each chapter, and the highest
+    // chapter the player may start.
+    story: { unlocked: 0, stars: [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]], finished: false },
   };
 }
 
@@ -56,10 +59,21 @@ export function loadSave(storage) {
       ...base,
       ...raw,
       upgrades: { ...base.upgrades, ...(raw.upgrades || {}) },
+      story: cleanStory(raw.story, base.story),
     };
   } catch {
     return defaultSave();
   }
+}
+
+function cleanStory(raw, base) {
+  if (!raw || typeof raw !== 'object') return base;
+  const stars = base.stars.map((row, chapter) => row.map((_, job) => {
+    const value = raw.stars?.[chapter]?.[job];
+    return Number.isInteger(value) ? Math.max(0, Math.min(3, value)) : 0;
+  }));
+  const unlocked = Number.isInteger(raw.unlocked) ? Math.max(0, Math.min(base.stars.length - 1, raw.unlocked)) : 0;
+  return { unlocked, stars, finished: raw.finished === true };
 }
 
 export function writeSave(storage, save) {
@@ -115,4 +129,21 @@ export function recordDelivery(save, result) {
   save.credits += result.earned;
   save.bestScore = Math.max(save.bestScore, result.shiftTotal);
   save.bestContracts = Math.max(save.bestContracts, result.contractsDone);
+}
+
+export function recordJob(save, chapter, job, stars) {
+  const row = save.story.stars[chapter];
+  if (!row) return;
+  row[job] = Math.max(row[job] || 0, stars);
+}
+
+// Finishing a chapter unlocks the next one; the last one finishes the story.
+export function recordChapter(save, chapter) {
+  const last = save.story.stars.length - 1;
+  if (chapter >= last) save.story.finished = true;
+  save.story.unlocked = Math.max(save.story.unlocked, Math.min(last, chapter + 1));
+}
+
+export function chapterStars(save, chapter) {
+  return (save.story.stars[chapter] || []).reduce((sum, value) => sum + value, 0);
 }

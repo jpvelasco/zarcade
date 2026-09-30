@@ -46,6 +46,26 @@ export class Audio {
       case 'impact': this.tone(90, 0.17, { type: 'square', volume: 0.06, end: 48 }); break;
       case 'flux': this.tone(760, 0.18, { type: 'sine', volume: 0.04, end: 1200 }); break;
       case 'scan': this.tone(880, 0.22, { type: 'square', volume: 0.035, end: 510 }); break;
+      case 'spark': {
+        // Each spark in a run climbs a pentatonic step, then wraps.
+        const steps = [0, 2, 4, 7, 9, 12, 14, 16];
+        const note = 880 * 2 ** (steps[(event.pitch || 0) % steps.length] / 12);
+        this.tone(note, 0.09, { type: 'sine', volume: 0.03, end: note * 1.02 });
+        break;
+      }
+      case 'stop':
+        this.tone(520, 0.16, { type: 'triangle', volume: 0.05, end: 780 });
+        window.setTimeout(() => this.tone(780, 0.2, { type: 'triangle', volume: 0.04, end: 1040 }), 90);
+        break;
+      case 'caught':
+        this.tone(660, 0.12, { type: 'square', volume: 0.035, end: 990 });
+        window.setTimeout(() => this.tone(990, 0.22, { type: 'square', volume: 0.03, end: 1320 }), 100);
+        break;
+      case 'alert': this.tone(1200, 0.12, { type: 'square', volume: 0.03, end: 1500 }); break;
+      case 'radio': this.tone(1800, 0.04, { type: 'square', volume: 0.012, end: 1700 }); break;
+      case 'chapter-complete':
+        [523, 659, 784, 1047].forEach((note, i) => window.setTimeout(() => this.tone(note, 0.35, { type: 'triangle', volume: 0.05, end: note }), i * 130));
+        break;
       case 'failed': this.tone(180, 0.55, { type: 'sawtooth', volume: 0.06, end: 42 }); break;
       default: break;
     }

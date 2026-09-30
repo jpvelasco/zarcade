@@ -8,6 +8,7 @@ import {
   trafficPosition,
 } from './city.js';
 import { clamp, hashFloat, lerp, mod } from './math.js';
+import { SCAN_CONE, SCAN_RANGE } from './world.js';
 
 function roundedRect(context, x, y, width, height, radius) {
   const r = Math.min(radius, width / 2, height / 2);
@@ -86,8 +87,20 @@ export class Renderer {
     };
   }
 
-  draw(world) {
+  // The simulation clock stops between jobs, but light still spreading from
+  // the last drop should finish its wave. Keep a display clock that runs on.
+  displayTime(world, now) {
+    if (world !== this.clockWorld || world.time !== this.clockBase) {
+      this.clockWorld = world;
+      this.clockBase = world.time;
+      this.clockSince = now;
+    }
+    return world.time + (now - this.clockSince) / 1000;
+  }
+
+  draw(world, { now = performance.now() } = {}) {
     this.resize();
+    this.time = this.displayTime(world, now);
     const context = this.context;
     const { scale, camera, halfWidth, halfHeight } = this.view(world);
     const district = world.contract?.district;
@@ -105,18 +118,25 @@ export class Renderer {
     context.scale(scale, scale);
     context.translate(-camera.x, -camera.y);
     this.drawCity(context, world, camera, halfWidth, halfHeight);
+    this.drawLightWaves(context, world);
     this.drawRoute(context, world);
-    this.drawBeacon(context, world);
+    this.drawSparks(context, world, camera, halfWidth, halfHeight);
+    this.drawStops(context, world);
     this.drawTrail(context, world.player, world.paint);
     this.drawEchoes(context, world, camera, halfWidth, halfHeight);
     this.drawTraffic(context, world, camera, halfWidth, halfHeight);
     this.drawPatrols(context, world, camera, halfWidth, halfHeight);
+    this.drawRunner(context, world);
     this.drawPulse(context, world);
     this.drawPlayer(context, world.player, world.paint);
+    this.drawGuide(context, world, halfWidth, halfHeight);
     context.restore();
 
     this.drawRain(context, world);
     this.drawScreenEffects(context, world);
+    if (world.status === 'chapter-complete' || (world.status === 'debrief' && world.currentResult?.final)) {
+      this.drawFireworks(context, now / 1000);
+    }
   }
 
   drawCity(context, world, camera, halfWidth, halfHeight) {
@@ -142,14 +162,35 @@ export class Renderer {
         const size = BLOCK - ROAD;
         const inset = block.inset;
         const glow = districtGlow(world.seed, x, y);
+        const litAt = world.lit?.get(`${column},${row}`);
+        // 0 while HALO has the block dark, easing to 1 as the light arrives.
+        const light = litAt === undefined ? 0 : clamp((this.time - litAt) / 0.7, 0, 1);
 
-        context.fillStyle = `hsl(${block.hue} 24% ${8 + Math.round(block.height * 8)}%)`;
+        const saturation = Math.round(6 + light * 52);
+        context.fillStyle = `hsl(${block.hue} ${saturation}% ${7 + Math.round(block.height * 6 + light * 10)}%)`;
         context.fillRect(x, y, size, size);
-        context.fillStyle = `hsl(${block.hue} 25% ${5 + Math.round(block.height * 5)}%)`;
+        context.fillStyle = `hsl(${block.hue} ${saturation}% ${4 + Math.round(block.height * 4 + light * 8)}%)`;
         context.fillRect(x + inset, y + inset, size - inset * 2, size - inset * 2);
-        context.strokeStyle = alpha(accent, 0.06 + glow * 0.08);
-        context.lineWidth = 1.2;
-        context.strokeRect(x + inset, y + inset, size - inset * 2, size - inset * 2);
+        if (light > 0) {
+          const roof = context.createRadialGradient(x + size / 2, y + size / 2, 4, x + size / 2, y + size / 2, size * 0.7);
+          roof.addColorStop(0, `hsla(${block.hue} 90% 60% / ${0.2 * light})`);
+          roof.addColorStop(1, 'hsla(0 0% 0% / 0)');
+          context.fillStyle = roof;
+          context.fillRect(x, y, size, size);
+        }
+        if (light > 0) {
+          context.save();
+          context.strokeStyle = alpha(accent, 0.25 + light * 0.45);
+          context.shadowColor = accent;
+          context.shadowBlur = 16 * light;
+          context.lineWidth = 2;
+          context.strokeRect(x + inset, y + inset, size - inset * 2, size - inset * 2);
+          context.restore();
+        } else {
+          context.strokeStyle = 'rgba(120, 140, 170, .07)';
+          context.lineWidth = 1.2;
+          context.strokeRect(x + inset, y + inset, size - inset * 2, size - inset * 2);
+        }
 
         const columns = 3 + (block.seed % 3);
         const rows = 3 + ((block.seed >>> 4) % 3);
@@ -157,23 +198,27 @@ export class Renderer {
         const windowHeight = (size - inset * 2 - 18) / rows;
         for (let wx = 0; wx < columns; wx++) {
           for (let wy = 0; wy < rows; wy++) {
-            const lit = hashFloat(column * 12 + wx, row * 9 + wy, world.seed) > 0.37;
-            if (!lit) continue;
-            const warm = hashFloat(column * 4 + wx, row * 7 + wy, 32) > 0.65;
+            const chance = hashFloat(column * 12 + wx, row * 9 + wy, world.seed);
+            // In the dark only a few windows glow; lit blocks come alive.
+            if (chance < 0.37 || (light === 0 && chance < 0.86)) continue;
+            const warm = hashFloat(column * 4 + wx, row * 7 + wy, 32) > 0.55;
+            const strength = light === 0 ? 0.07 : 0.35 + glow * 0.4 * light;
             context.fillStyle = warm
-              ? `rgba(255, 189, 91, ${0.12 + glow * 0.16})`
-              : alpha(accent, 0.08 + glow * 0.11);
-            context.fillRect(x + inset + 8 + wx * windowWidth, y + inset + 9 + wy * windowHeight, windowWidth * 0.38, windowHeight * 0.16);
+              ? `rgba(255, 196, 102, ${strength})`
+              : alpha(accent, strength);
+            context.fillRect(x + inset + 8 + wx * windowWidth, y + inset + 9 + wy * windowHeight, windowWidth * 0.5, windowHeight * 0.22);
           }
         }
 
-        if (block.sign) {
+        if (block.sign && light > 0) {
           const side = (block.seed >>> 12) & 1;
+          const hue = ['#ff5fb7', '#3fe5ff', '#ffc857', '#6df0bd', '#c775ff'][(block.seed >>> 3) % 5];
           context.save();
+          context.globalAlpha = light;
           context.translate(x + size * (side ? 0.79 : 0.22), y + size * 0.48);
-          context.fillStyle = alpha(accent, 0.45);
-          context.shadowColor = accent;
-          context.shadowBlur = 14;
+          context.fillStyle = alpha(hue, 0.85);
+          context.shadowColor = hue;
+          context.shadowBlur = 20;
           roundedRect(context, -9, -22, 18, 44, 3);
           context.fill();
           context.fillStyle = 'rgba(5, 8, 15, .9)';
@@ -279,55 +324,235 @@ export class Renderer {
     context.restore();
   }
 
-  drawBeacon(context, world) {
-    const target = world.target;
-    if (!target) return;
-    const player = world.player;
-    const pickup = world.status === 'pickup';
-    const color = pickup ? '#65f5c1' : '#ffc857';
-    const pulse = 0.5 + Math.sin(world.time * 4) * 0.18;
+  drawStops(context, world) {
+    if (!world.contract) return;
+    const legs = world.contract.legs;
+    const current = Math.min(world.legIndex ?? 0, legs.length - 1);
+    for (let leg = current; leg < legs.length; leg++) {
+      for (const stop of legs[leg]) {
+        if (stop.done || stop.kind === 'runner') continue;
+        this.drawStop(context, world, stop, leg === current ? 1 : 0.28);
+      }
+    }
+  }
+
+  drawStop(context, world, stop, strength) {
+    const colors = { pickup: '#65f5c1', drop: '#ffc857', cell: '#6df0bd', piece: '#ff5fb7' };
+    const labels = { pickup: 'PICKUP', drop: 'DROP', cell: 'SPARK CELL', piece: 'PIECE' };
+    const color = colors[stop.kind] || '#ffc857';
+    const t = world.time;
+    const pulse = 0.5 + Math.sin(t * 4 + stop.x * 0.01) * 0.18;
     context.save();
-    context.translate(target.x, target.y);
-    context.strokeStyle = alpha(color, 0.22);
+    context.translate(stop.x, stop.y);
+    context.globalAlpha = strength;
+    context.strokeStyle = alpha(color, 0.3);
+    context.lineWidth = 3;
+    context.beginPath();
+    context.arc(0, 0, 30 + pulse * 14, 0, Math.PI * 2);
+    context.stroke();
+    context.strokeStyle = alpha(color, 0.85);
     context.lineWidth = 2;
     context.beginPath();
-    context.arc(0, 0, 28 + pulse * 12, 0, Math.PI * 2);
+    context.arc(0, 0, 21, -t * 2, -t * 2 + Math.PI * 1.45);
     context.stroke();
-    context.strokeStyle = alpha(color, 0.74);
-    context.lineWidth = 1.5;
-    context.beginPath();
-    context.arc(0, 0, 18, -world.time * 2, -world.time * 2 + Math.PI * 1.45);
-    context.stroke();
-    context.fillStyle = color;
     context.shadowColor = color;
     context.shadowBlur = 24;
-    context.beginPath();
-    context.arc(0, 0, 5.5, 0, Math.PI * 2);
-    context.fill();
-    context.shadowBlur = 0;
-    context.fillStyle = alpha(color, 0.85);
-    context.font = '600 11px ui-monospace, SFMono-Regular, Menlo, monospace';
-    context.textAlign = 'center';
-    context.fillText(pickup ? 'PICKUP' : 'DROP', 0, -47);
-    context.restore();
-
-    // Guide arrow appears only when the destination is outside the immediate
-    // play area; the actual route remains visible in the streets.
-    const dx = target.x - player.x;
-    const dy = target.y - player.y;
-    if (Math.hypot(dx, dy) > 680) {
-      context.save();
-      context.translate(player.x, player.y);
-      context.rotate(Math.atan2(dy, dx));
-      context.fillStyle = alpha(color, 0.8);
+    context.fillStyle = color;
+    if (stop.kind === 'cell') {
+      roundedRect(context, -7, -10, 14, 20, 3);
+      context.fill();
+      context.fillRect(-3, -13, 6, 3);
+      context.fillStyle = '#07111c';
       context.beginPath();
-      context.moveTo(62, 0);
-      context.lineTo(45, -9);
-      context.lineTo(45, 9);
+      context.moveTo(1, -7); context.lineTo(-4, 1); context.lineTo(0, 1); context.lineTo(-1, 7); context.lineTo(4, -1); context.lineTo(0, -1);
+      context.closePath();
+      context.fill();
+    } else if (stop.kind === 'piece') {
+      context.rotate(Math.sin(t * 2) * 0.2);
+      context.fillRect(-10, -7, 20, 14);
+      context.fillStyle = '#07111c';
+      context.beginPath();
+      context.moveTo(-10, -7); context.lineTo(0, 1); context.lineTo(10, -7);
+      context.lineWidth = 1.6;
+      context.strokeStyle = '#07111c';
+      context.stroke();
+    } else if (stop.kind === 'drop') {
+      // A little lantern waiting for its light.
+      context.beginPath();
+      context.ellipse(0, 0, 8, 10, 0, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = '#07111c';
+      context.fillRect(-4, -13, 8, 3);
+      context.fillRect(-4, 10, 8, 3);
+    } else {
+      roundedRect(context, -8, -8, 16, 16, 3);
+      context.fill();
+      context.fillStyle = '#07111c';
+      context.fillRect(-8, -1.5, 16, 3);
+    }
+    context.shadowBlur = 0;
+    if (strength >= 1) {
+      context.fillStyle = alpha(color, 0.95);
+      context.font = '700 11px ui-monospace, SFMono-Regular, Menlo, monospace';
+      context.textAlign = 'center';
+      context.fillText(stop.name ? stop.name.toUpperCase() : labels[stop.kind], 0, -50);
+    }
+    context.restore();
+  }
+
+  // Arrows at the edge of the view point at stops that are off screen.
+  drawGuide(context, world, halfWidth, halfHeight) {
+    if (!world.active || !world.contract) return;
+    const player = world.player;
+    const leg = world.contract.legs[Math.min(world.legIndex ?? 0, world.contract.legs.length - 1)];
+    for (const stop of leg) {
+      if (stop.done) continue;
+      const dx = stop.x - player.x;
+      const dy = stop.y - player.y;
+      if (Math.abs(dx) < halfWidth * 0.8 && Math.abs(dy) < halfHeight * 0.8) continue;
+      const angle = Math.atan2(dy, dx);
+      const reach = Math.min(Math.abs(halfWidth * 0.82 / (Math.cos(angle) || 1e-6)), Math.abs(halfHeight * 0.78 / (Math.sin(angle) || 1e-6)));
+      const color = stop.kind === 'runner' ? '#ff9e5c' : stop.kind === 'drop' ? '#ffc857' : '#65f5c1';
+      context.save();
+      context.translate(player.x + Math.cos(angle) * reach, player.y + Math.sin(angle) * reach);
+      context.rotate(angle);
+      context.fillStyle = alpha(color, 0.9);
+      context.shadowColor = color;
+      context.shadowBlur = 12;
+      context.beginPath();
+      context.moveTo(14, 0);
+      context.lineTo(-8, -11);
+      context.lineTo(-3, 0);
+      context.lineTo(-8, 11);
       context.closePath();
       context.fill();
       context.restore();
     }
+  }
+
+  drawSparks(context, world, camera, halfWidth, halfHeight) {
+    if (!world.contract) return;
+    const t = world.time;
+    context.save();
+    context.fillStyle = '#fff6c9';
+    context.shadowColor = '#ffd35c';
+    context.shadowBlur = 12;
+    for (const spark of world.contract.sparks) {
+      if (spark.taken || !inView(spark.x, spark.y, camera, halfWidth, halfHeight, 20)) continue;
+      const bob = Math.sin(t * 5 + spark.x * 0.05 + spark.y * 0.03);
+      const size = 4.5 + bob * 1.2;
+      context.beginPath();
+      context.moveTo(spark.x, spark.y - size * 1.5);
+      context.lineTo(spark.x + size, spark.y);
+      context.lineTo(spark.x, spark.y + size * 1.5);
+      context.lineTo(spark.x - size, spark.y);
+      context.closePath();
+      context.fill();
+    }
+    context.restore();
+  }
+
+  drawLightWaves(context, world) {
+    for (const wave of world.lightWaves || []) {
+      const age = this.time - wave.time;
+      if (age < 0 || age > 1.6) continue;
+      const progress = age / 1.6;
+      context.save();
+      context.strokeStyle = `rgba(255, 226, 150, ${(1 - progress) * 0.55})`;
+      context.lineWidth = 10 * (1 - progress) + 2;
+      context.shadowColor = '#ffd35c';
+      context.shadowBlur = 30;
+      context.beginPath();
+      context.arc(wave.x, wave.y, 20 + wave.radius * Math.sqrt(progress), 0, Math.PI * 2);
+      context.stroke();
+      context.restore();
+    }
+  }
+
+  drawRunner(context, world) {
+    const runner = world.runner;
+    if (!runner) return;
+    const t = world.time;
+    context.save();
+    context.translate(runner.x, runner.y);
+    const hop = runner.caught ? 0 : Math.abs(Math.sin(t * 12)) * 4;
+    context.translate(0, -hop);
+    if (!runner.caught) {
+      context.strokeStyle = 'rgba(255, 158, 92, .55)';
+      context.lineWidth = 2;
+      context.beginPath();
+      context.arc(0, hop, 30 + Math.sin(t * 6) * 4, 0, Math.PI * 2);
+      context.stroke();
+    }
+    context.shadowColor = runner.kind === 'cat' ? '#ffb35c' : '#c775ff';
+    context.shadowBlur = 16;
+    if (runner.kind === 'cat') {
+      context.fillStyle = '#ff9e4a';
+      context.beginPath();
+      context.arc(0, 0, 11, 0, Math.PI * 2);
+      context.fill();
+      context.beginPath();
+      context.moveTo(-10, -4); context.lineTo(-8, -16); context.lineTo(-2, -9);
+      context.moveTo(10, -4); context.lineTo(8, -16); context.lineTo(2, -9);
+      context.fill();
+      context.strokeStyle = '#ff9e4a';
+      context.lineWidth = 4;
+      context.lineCap = 'round';
+      context.beginPath();
+      context.moveTo(9, 7);
+      context.quadraticCurveTo(20, 8 + Math.sin(t * 9) * 6, 18, -4);
+      context.stroke();
+      context.shadowBlur = 0;
+      context.fillStyle = '#1b1024';
+      context.beginPath();
+      context.arc(-4, -1, 1.8, 0, Math.PI * 2);
+      context.arc(4, -1, 1.8, 0, Math.PI * 2);
+      context.fill();
+    } else {
+      context.fillStyle = '#d9c4ff';
+      roundedRect(context, -11, -10, 22, 18, 6);
+      context.fill();
+      context.strokeStyle = '#d9c4ff';
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(0, -10);
+      context.lineTo(0, -17);
+      context.stroke();
+      context.fillStyle = Math.floor(t * 6) % 2 ? '#ff5fb7' : '#ffd35c';
+      context.beginPath();
+      context.arc(0, -18, 3, 0, Math.PI * 2);
+      context.fill();
+      context.shadowBlur = 0;
+      context.fillStyle = '#1b1024';
+      context.fillRect(-6, -5, 4, 4);
+      context.fillRect(2, -5, 4, 4);
+      context.fillStyle = '#6df0bd';
+      context.fillRect(-5, 3, 10, 2);
+    }
+    context.restore();
+  }
+
+  drawFireworks(context, time) {
+    const colors = ['#ff5fb7', '#3fe5ff', '#ffc857', '#6df0bd', '#c775ff'];
+    context.save();
+    context.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 6; i++) {
+      const cycle = 2.2 + i * 0.37;
+      const phase = ((time + i * 0.71) % cycle) / cycle;
+      const seed = Math.floor((time + i * 0.71) / cycle) * 13 + i * 7;
+      const cx = this.width * (0.15 + hashFloat(seed, 1, 5) * 0.7);
+      const cy = this.height * (0.12 + hashFloat(seed, 2, 5) * 0.4);
+      const color = colors[(seed >>> 0) % colors.length];
+      const radius = Math.min(this.width, this.height) * 0.16 * Math.sqrt(phase);
+      context.fillStyle = alpha(color, (1 - phase) * 0.9);
+      for (let k = 0; k < 18; k++) {
+        const angle = (k / 18) * Math.PI * 2;
+        context.beginPath();
+        context.arc(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius + phase * phase * 30, 2.6 * (1 - phase) + 0.8, 0, Math.PI * 2);
+        context.fill();
+      }
+    }
+    context.restore();
   }
 
   drawTrail(context, player, paint) {
@@ -415,13 +640,16 @@ export class Renderer {
       context.save();
       context.translate(patrol.x, patrol.y);
       context.rotate(patrol.angle);
-      const scanColor = patrol.jammed ? '#9aa9bc' : patrol.chasingEcho ? world.paint : '#ff4f74';
+      const scanColor = patrol.jammed ? '#9aa9bc' : patrol.chasingEcho ? world.paint : patrol.alert > 0 ? '#ffb347' : '#ff4f74';
       if (!patrol.jammed) {
-        context.fillStyle = alpha(scanColor, patrol.chasingEcho ? 0.06 : 0.08);
+        const spread = Math.acos(SCAN_CONE);
+        const cone = context.createRadialGradient(0, 0, 10, 0, 0, SCAN_RANGE);
+        cone.addColorStop(0, alpha(scanColor, 0.2 + patrol.scan * 0.25));
+        cone.addColorStop(1, alpha(scanColor, 0));
+        context.fillStyle = cone;
         context.beginPath();
-        context.moveTo(10, 0);
-        context.lineTo(258, -76);
-        context.lineTo(258, 76);
+        context.moveTo(0, 0);
+        context.arc(0, 0, SCAN_RANGE, -spread, spread);
         context.closePath();
         context.fill();
       }
@@ -442,6 +670,16 @@ export class Renderer {
       context.fillStyle = flash ? '#4ba7ff' : '#ff4f74';
       context.fillRect(4, -11, 8, 3);
       context.restore();
+      if (patrol.mode === 'sentry' && patrol.alert > 0 && !patrol.jammed) {
+        context.save();
+        context.fillStyle = '#ffb347';
+        context.shadowColor = '#ffb347';
+        context.shadowBlur = 12;
+        context.font = '900 22px system-ui, sans-serif';
+        context.textAlign = 'center';
+        context.fillText('!', patrol.x, patrol.y - 26);
+        context.restore();
+      }
     }
   }
 
@@ -568,11 +806,15 @@ export class Renderer {
       context.lineTo(player.x + radius, coordinate);
       context.stroke();
     }
-    if (world.target) {
-      context.fillStyle = world.status === 'pickup' ? '#65f5c1' : '#ffc857';
-      context.beginPath();
-      context.arc(world.target.x, world.target.y, 32, 0, Math.PI * 2);
-      context.fill();
+    if (world.contract) {
+      const leg = world.contract.legs[Math.min(world.legIndex ?? 0, world.contract.legs.length - 1)];
+      for (const stop of leg) {
+        if (stop.done) continue;
+        context.fillStyle = stop.kind === 'runner' ? '#ff9e5c' : stop.kind === 'drop' ? '#ffc857' : '#65f5c1';
+        context.beginPath();
+        context.arc(stop.x, stop.y, 34, 0, Math.PI * 2);
+        context.fill();
+      }
     }
     for (const patrol of world.patrols) {
       context.fillStyle = patrol.chasingEcho ? world.paint : '#ff4f74';
