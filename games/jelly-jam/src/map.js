@@ -2,8 +2,8 @@
 import { LEVELS, AREAS, GOAL_ART } from './levels.js';
 
 const W = 360;
-const ROW = 66;
-const HEAD = 78;
+const ROW = 64;
+const HEAD = 94;
 
 export function nodePosition(level) {
   const area = AREAS[level.area];
@@ -68,8 +68,7 @@ export function renderMap(holder, save, onPick) {
     parts.push('<circle class="bubble" r="22"/>');
     parts.push(`<text class="num" y="7">${unlocked ? level.id : '🔒'}</text>`);
     for (let s = 0; s < 3; s++) {
-      const a = -0.75 + s * 0.75;
-      parts.push(`<circle class="pip${s < stars ? '' : ' off'}" cx="${Math.sin(a) * 27}" cy="${20 + Math.cos(a) * -6}" r="3.4"/>`);
+      parts.push(`<circle class="pip${s < stars ? '' : ' off'}" cx="${(s - 1) * 11}" cy="${s === 1 ? 29 : 27}" r="4.2"/>`);
     }
     const art = level.goals.map((g) => GOAL_ART[g.type]).join('');
     const side = x > W / 2 ? -1 : 1;

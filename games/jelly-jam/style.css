@@ -199,8 +199,8 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 
 .icon-btn {
   appearance: none;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   flex: none;
   border-radius: 14px;
   border: 1px solid var(--edge);
@@ -256,6 +256,8 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 
 .map-scroll {
   flex: 1;
+  width: min(100%, 560px);
+  margin: 0 auto;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -313,7 +315,7 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 #hud {
   flex: none;
   align-self: center;
-  width: 236px;
+  width: 246px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -326,8 +328,8 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 
 .hud-top { display: flex; align-items: center; gap: 8px; }
 .level-name { flex: 1; min-width: 0; line-height: 1.15; }
-.level-name b { display: block; font-size: 16px; }
-.level-name span { font-size: 12px; color: var(--muted); }
+.level-name b { display: block; font-size: 15px; white-space: nowrap; }
+.level-name span { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .moves-box {
   display: flex;
