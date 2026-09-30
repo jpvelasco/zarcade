@@ -162,7 +162,6 @@ class Sprite {
     this.blink = 2 + Math.random() * 4;
     this.mood = 0;       // 0 calm, 1 surprised
     this.hatch = -1;
-    this.spin = 0;
   }
 
   moveTo(x, y, dur) {
@@ -192,7 +191,6 @@ export class BoardView {
     this.cursor = -1;
     this.hover = -1;
     this.hint = null;
-    this.hintGlow = 0;
     this.pointer = null;
     this.tile = 48;
     this.game = null;
@@ -491,7 +489,6 @@ export class BoardView {
     this.timer = Math.max(0, this.timer - dt);
     this.shake *= Math.pow(0.0015, dt);
     this.flash = Math.max(0, this.flash - dt * 1.6);
-    this.hintGlow += dt;
 
     for (const [id, s] of this.sprites) {
       const [tx, ty] = s.target(this);
@@ -712,10 +709,8 @@ export class BoardView {
   drawSprite(ctx, s, t) {
     const cell = s.cell;
     if (!cell) return;
-    let x = this.px(s.x - 0);
-    let y = this.py(s.y - 0);
-    x = this.ox + (s.x + 0.5) * this.tile;
-    y = this.oy + (s.y + 0.5) * this.tile;
+    let x = this.ox + (s.x + 0.5) * this.tile;
+    let y = this.oy + (s.y + 0.5) * this.tile;
     if (s.bump) {
       const u = s.bump.el / s.bump.dur;
       const k = Math.sin(u * Math.PI * 2.5) * (1 - u);
