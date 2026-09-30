@@ -240,7 +240,7 @@ export class World {
       });
     }
     this.echoes.length = 0;
-    this.nextPatrolAt = this.time + 1.2;
+    this.nextPatrolAt = this.time + 4;
     this.currentResult = null;
     this.failure = null;
     this.status = 'briefing';

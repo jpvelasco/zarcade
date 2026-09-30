@@ -536,8 +536,8 @@ export class Renderer {
     const colors = ['#ff5fb7', '#3fe5ff', '#ffc857', '#6df0bd', '#c775ff'];
     context.save();
     context.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 6; i++) {
-      const cycle = 2.2 + i * 0.37;
+    for (let i = 0; i < 8; i++) {
+      const cycle = 1.9 + i * 0.29;
       const phase = ((time + i * 0.71) % cycle) / cycle;
       const seed = Math.floor((time + i * 0.71) / cycle) * 13 + i * 7;
       const cx = this.width * (0.15 + hashFloat(seed, 1, 5) * 0.7);
@@ -545,11 +545,16 @@ export class Renderer {
       const color = colors[(seed >>> 0) % colors.length];
       const radius = Math.min(this.width, this.height) * 0.16 * Math.sqrt(phase);
       context.fillStyle = alpha(color, (1 - phase) * 0.9);
-      for (let k = 0; k < 18; k++) {
-        const angle = (k / 18) * Math.PI * 2;
+      context.shadowColor = color;
+      context.shadowBlur = 14;
+      for (let k = 0; k < 28; k++) {
+        const angle = (k / 28) * Math.PI * 2;
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius + phase * phase * 40;
         context.beginPath();
-        context.arc(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius + phase * phase * 30, 2.6 * (1 - phase) + 0.8, 0, Math.PI * 2);
+        context.arc(x, y, 4 * (1 - phase) + 1, 0, Math.PI * 2);
         context.fill();
+        context.fillRect(x - Math.cos(angle) * radius * 0.25, y - Math.sin(angle) * radius * 0.25, 1.5, 1.5);
       }
     }
     context.restore();

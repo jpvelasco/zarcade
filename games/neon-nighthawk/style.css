@@ -705,7 +705,9 @@ a.button { display: inline-flex; align-items: center; justify-content: center; t
 @keyframes star-pop { from { transform: scale(0) rotate(-30deg); } }
 
 @media (max-width: 620px) {
-  .comms { max-width: calc(100vw - 28px); bottom: 190px; }
+  .comms { right: 14px; max-width: none; bottom: 12px; }
+  .hud-run { white-space: nowrap; }
+  .objective { max-width: 58vw; }
   .ability-row { display: none; }
   .district { grid-template-columns: 40px 1fr; }
   .district-stars { grid-column: 2; }
@@ -713,4 +715,16 @@ a.button { display: inline-flex; align-items: center; justify-content: center; t
 
 @media (prefers-reduced-motion: reduce) {
   .dialogue .line, .result-stars span.on { animation: none; }
+}
+
+#complete-total { color: #ffd35c !important; text-shadow: 0 0 22px rgba(255, 211, 92, .6); letter-spacing: .05em; }
+
+/* Phones: the thumbstick and buttons own the bottom of the screen, so the
+   meters move up beside the objective and chatter sits above the controls. */
+@media (max-width: 620px) and (pointer: coarse) {
+  .hud-bottom { top: 64px; bottom: auto; flex-direction: column-reverse; align-items: end; gap: 8px; }
+  .meter-stack { width: 148px; gap: 5px; padding: 8px; }
+  .meter-row { grid-template-columns: 44px 1fr 30px; font-size: 8px; }
+  #minimap { width: 84px; height: 84px; }
+  .comms { bottom: 200px; }
 }

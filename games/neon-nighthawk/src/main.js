@@ -667,6 +667,16 @@ window.addEventListener('blur', () => {
 });
 window.addEventListener('pointermove', revealCursor, { passive: true });
 
+// Pointer capture can throw for a pointer the browser has already released;
+// the control should still respond.
+function capture(element, pointerId) {
+  try {
+    element.setPointerCapture(pointerId);
+  } catch {
+    // Without capture the control still works while the finger stays on it.
+  }
+}
+
 // A floating thumbstick: touch anywhere in the pad and drag.
 const stick = $('#touch-stick');
 const stickKnob = $('#touch-stick i');
@@ -684,7 +694,7 @@ function updateStick(event) {
 }
 stick.addEventListener('pointerdown', (event) => {
   stickPointer = event.pointerId;
-  stick.setPointerCapture(event.pointerId);
+  capture(stick, event.pointerId);
   const rect = stick.getBoundingClientRect();
   stickOrigin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
   updateStick(event);
@@ -706,7 +716,7 @@ for (const button of document.querySelectorAll('[data-hold]')) {
   const key = button.dataset.hold;
   const press = (event) => {
     state.touch[key] = true;
-    button.setPointerCapture?.(event.pointerId);
+    capture(button, event.pointerId);
     event.preventDefault();
   };
   const release = () => { state.touch[key] = false; };
