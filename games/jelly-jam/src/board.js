@@ -17,7 +17,7 @@ export function jelly(color, special = null, ice = 0) {
 }
 
 export function coral(hits = 1) {
-  return { id: ++idCounter, kind: 'coral', color: null, special: null, ice: 0, hits };
+  return { id: ++idCounter, kind: 'coral', color: null, special: null, ice: 0, hits, max: hits };
 }
 
 export function egg() {

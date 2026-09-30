@@ -227,7 +227,7 @@ function goalCount(goal, layout) {
 
 export function goalLabel(goal) {
   switch (goal.type) {
-    case 'score': return `Score ${goal.amount.toLocaleString()}`;
+    case 'score': return 'Score';
     case 'collect': return `${COLOR_NAMES[goal.color]} jellies`;
     case 'sand': return 'Clear the sand';
     case 'coral': return 'Break the coral';

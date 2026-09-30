@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="sea" cx="35%" cy="25%">
+      <stop offset="0%" stop-color="#1b7fa8"/>
+      <stop offset="100%" stop-color="#04203a"/>
+    </radialGradient>
+    <linearGradient id="jelly" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffc2d4"/>
+      <stop offset="45%" stop-color="#ff5f8f"/>
+      <stop offset="100%" stop-color="#c4144f"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#sea)"/>
+  <circle cx="32" cy="34" r="20" fill="url(#jelly)"/>
+  <ellipse cx="25" cy="24" rx="9" ry="5.5" fill="#fff" opacity="0.75" transform="rotate(-24 25 24)"/>
+  <g fill="#fff">
+    <circle cx="25" cy="32" r="4.4"/>
+    <circle cx="39" cy="32" r="4.4"/>
+  </g>
+  <g fill="#1b2a3a">
+    <circle cx="26" cy="33" r="2.2"/>
+    <circle cx="40" cy="33" r="2.2"/>
+  </g>
+  <path d="M26 41q6 5 12 0" stroke="#1b2a3a" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <g fill="#fff" opacity="0.65">
+    <circle cx="52" cy="14" r="3.4"/>
+    <circle cx="11" cy="17" r="2.2"/>
+    <circle cx="14" cy="50" r="1.8"/>
+  </g>
+</svg>

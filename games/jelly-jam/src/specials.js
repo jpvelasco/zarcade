@@ -6,15 +6,15 @@ export const BIG_CROSS = 'bigCross'; // bomb + stripe
 export const MEGA = 'mega';         // bomb + bomb
 export const WHOLE = 'whole';       // pearl + pearl
 
+// Only the two-special combos get a banner; a lone special firing is quiet.
 export const SPECIAL_LABELS = {
-  [STRIPE_H]: 'Striped jelly',
-  [STRIPE_V]: 'Striped jelly',
-  [BOMB]: 'Bubble bomb',
-  [RAINBOW]: 'Rainbow pearl',
+  [RAINBOW]: 'Rainbow pearl!',
   [CROSS]: 'Double stripe!',
   [BIG_CROSS]: 'Bomb stripe!',
   [MEGA]: 'Mega bubble!',
   [WHOLE]: 'Pearl storm!',
+  pearlStripe: 'Pearl stripes!',
+  pearlBomb: 'Pearl bombs!',
 };
 
 export function dominantColor(board, rng) {

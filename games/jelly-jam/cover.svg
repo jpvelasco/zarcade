@@ -1,0 +1,220 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="water" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#37b6dd"/>
+      <stop offset="34%" stop-color="#0d7ba8"/>
+      <stop offset="72%" stop-color="#064b78"/>
+      <stop offset="100%" stop-color="#03243f"/>
+    </linearGradient>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe9b8"/>
+      <stop offset="100%" stop-color="#d8a86a"/>
+    </linearGradient>
+    <linearGradient id="ray" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="g-straw" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffc9da"/><stop offset="48%" stop-color="#ff5f8f"/><stop offset="100%" stop-color="#bd1149"/>
+    </linearGradient>
+    <linearGradient id="g-kiwi" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e2ffab"/><stop offset="48%" stop-color="#69d43f"/><stop offset="100%" stop-color="#27801c"/>
+    </linearGradient>
+    <linearGradient id="g-gum" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffd6ff"/><stop offset="48%" stop-color="#e46bff"/><stop offset="100%" stop-color="#8623ad"/>
+    </linearGradient>
+    <linearGradient id="g-mango" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff0b6"/><stop offset="48%" stop-color="#ffb02e"/><stop offset="100%" stop-color="#c06400"/>
+    </linearGradient>
+    <linearGradient id="g-blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cbf4ff"/><stop offset="48%" stop-color="#3aa7ff"/><stop offset="100%" stop-color="#0f4d9f"/>
+    </linearGradient>
+    <linearGradient id="g-grape" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e6dcff"/><stop offset="48%" stop-color="#9a72ff"/><stop offset="100%" stop-color="#4a26a0"/>
+    </linearGradient>
+    <radialGradient id="pearl" cx="36%" cy="30%">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="55%" stop-color="#dff6ff"/><stop offset="100%" stop-color="#84bcda"/>
+    </radialGradient>
+    <linearGradient id="turtle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7cf2c8"/><stop offset="100%" stop-color="#1c9c76"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="drop" x="-25%" y="-25%" width="150%" height="160%">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#021a2e" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#water)"/>
+
+  <!-- light rays -->
+  <g opacity="0.75">
+    <polygon points="120,-40 230,-40 90,500 -20,500" fill="url(#ray)"/>
+    <polygon points="360,-40 430,-40 330,500 250,500" fill="url(#ray)" opacity="0.7"/>
+    <polygon points="620,-40 730,-40 700,500 560,500" fill="url(#ray)" opacity="0.55"/>
+  </g>
+
+  <!-- distant reef -->
+  <g opacity="0.35">
+    <path d="M0 430q60-70 120-40t90-60 110 60 120-70 130 60 110-30 120 40v110H0z" fill="#052f4f"/>
+  </g>
+
+  <!-- kelp -->
+  <g stroke-linecap="round" fill="none" opacity="0.8">
+    <path d="M40 500q-22-90 14-150T44 210" stroke="#0f7a5f" stroke-width="16"/>
+    <path d="M86 500q14-80-16-140t8-120" stroke="#16a074" stroke-width="12"/>
+    <path d="M752 500q26-90-10-152t14-118" stroke="#0f7a5f" stroke-width="16"/>
+    <path d="M706 500q-16-80 14-142t-6-108" stroke="#16a074" stroke-width="11"/>
+  </g>
+
+  <!-- coral fans -->
+  <g stroke-linecap="round" fill="none">
+    <g stroke="#ff7a9e" stroke-width="22" opacity="0.95">
+      <path d="M150 470q-14-60 8-96"/>
+      <path d="M186 470q6-54 34-84"/>
+      <path d="M216 470q22-40 20-74"/>
+    </g>
+    <g stroke="#ffb066" stroke-width="18" opacity="0.9">
+      <path d="M600 470q16-52-4-86"/>
+      <path d="M634 470q-4-48-30-76"/>
+    </g>
+  </g>
+
+  <!-- sandy floor -->
+  <path d="M0 440q120-34 210-10t190 6 200-26 200 22v68H0z" fill="url(#sand)"/>
+  <g fill="#b8874f" opacity="0.45">
+    <circle cx="120" cy="478" r="5"/><circle cx="300" cy="470" r="4"/><circle cx="470" cy="482" r="6"/>
+    <circle cx="640" cy="472" r="4.5"/><circle cx="740" cy="486" r="5"/>
+  </g>
+
+  <!-- glow behind the jelly cluster -->
+  <ellipse cx="400" cy="250" rx="250" ry="180" fill="#63e6ff" opacity="0.2" filter="url(#soft)"/>
+
+  <!-- jelly cluster -->
+  <g filter="url(#drop)">
+    <!-- strawberry circle -->
+    <g transform="translate(300 214)">
+      <circle r="74" fill="url(#g-straw)"/>
+      <ellipse cx="-24" cy="-34" rx="30" ry="18" fill="#fff" opacity="0.8" transform="rotate(-26)"/>
+      <g fill="#fff"><circle cx="-24" cy="4" r="17"/><circle cx="24" cy="4" r="17"/></g>
+      <g fill="#1b2a3a"><circle cx="-20" cy="8" r="8.4"/><circle cx="28" cy="8" r="8.4"/></g>
+      <g fill="#fff"><circle cx="-23" cy="4" r="3"/><circle cx="25" cy="4" r="3"/></g>
+      <path d="M-20 34q20 18 40 0" stroke="#1b2a3a" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <g fill="#ff8caa" opacity="0.45"><ellipse cx="-46" cy="30" rx="13" ry="8"/><ellipse cx="50" cy="30" rx="13" ry="8"/></g>
+    </g>
+
+    <!-- kiwi rounded square -->
+    <g transform="translate(436 268) rotate(-6)">
+      <rect x="-62" y="-62" width="124" height="124" rx="40" fill="url(#g-kiwi)"/>
+      <ellipse cx="-20" cy="-30" rx="26" ry="15" fill="#fff" opacity="0.78" transform="rotate(-24)"/>
+      <g fill="#fff"><circle cx="-20" cy="2" r="15"/><circle cx="22" cy="2" r="15"/></g>
+      <g fill="#1b2a3a"><circle cx="-17" cy="6" r="7.4"/><circle cx="25" cy="6" r="7.4"/></g>
+      <ellipse cx="2" cy="32" rx="9" ry="11" fill="#1b2a3a" opacity="0.85"/>
+      <g fill="#ff8caa" opacity="0.4"><ellipse cx="-40" cy="28" rx="11" ry="7"/><ellipse cx="44" cy="28" rx="11" ry="7"/></g>
+    </g>
+
+    <!-- mango hexagon -->
+    <g transform="translate(206 300) rotate(8)">
+      <path d="M0-62 54-31 54 31 0 62-54 31-54-31Z" fill="url(#g-mango)" stroke="none" stroke-linejoin="round" transform="scale(1.02)"/>
+      <ellipse cx="-18" cy="-30" rx="24" ry="14" fill="#fff" opacity="0.8" transform="rotate(-22)"/>
+      <g fill="#fff"><circle cx="-18" cy="4" r="14"/><circle cx="20" cy="4" r="14"/></g>
+      <g fill="#1b2a3a"><circle cx="-15" cy="7" r="6.8"/><circle cx="23" cy="7" r="6.8"/></g>
+      <path d="M-16 32q18 14 34 0" stroke="#1b2a3a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    </g>
+
+    <!-- blueberry pentagon with stripes -->
+    <g transform="translate(556 198) rotate(4)">
+      <path d="M0-60 57-19 35 49-35 49-57-19Z" fill="url(#g-blue)"/>
+      <g fill="#fff" opacity="0.75">
+        <rect x="-44" y="-22" width="88" height="9" rx="4"/>
+        <rect x="-44" y="2" width="88" height="9" rx="4"/>
+        <rect x="-44" y="26" width="70" height="9" rx="4" transform="translate(9)"/>
+      </g>
+      <g fill="#fff"><circle cx="-17" cy="-2" r="13"/><circle cx="19" cy="-2" r="13"/></g>
+      <g fill="#1b2a3a"><circle cx="-14" cy="1" r="6.4"/><circle cx="22" cy="1" r="6.4"/></g>
+      <ellipse cx="3" cy="26" rx="7" ry="9" fill="#1b2a3a" opacity="0.85"/>
+    </g>
+
+    <!-- grape star -->
+    <g transform="translate(628 316) rotate(-10)">
+      <path d="M0-56 17-19 56-15 27 11 35 50 0 31-35 50-27 11-56-15-17-19Z" fill="url(#g-grape)" stroke-linejoin="round" stroke="#7d54e8" stroke-width="6"/>
+      <g fill="#fff"><circle cx="-14" cy="-2" r="11"/><circle cx="16" cy="-2" r="11"/></g>
+      <g fill="#1b2a3a"><circle cx="-11" cy="1" r="5.4"/><circle cx="19" cy="1" r="5.4"/></g>
+      <path d="M-12 20q14 11 26 0" stroke="#1b2a3a" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+    </g>
+
+    <!-- bubblegum triangle -->
+    <g transform="translate(360 362) rotate(-4)">
+      <path d="M0-54 56 34H-56Z" fill="url(#g-gum)" stroke="#e46bff" stroke-width="10" stroke-linejoin="round"/>
+      <g fill="#fff"><circle cx="-16" cy="2" r="12"/><circle cx="16" cy="2" r="12"/></g>
+      <g fill="#1b2a3a"><circle cx="-13" cy="5" r="5.8"/><circle cx="19" cy="5" r="5.8"/></g>
+      <path d="M-12 22q14 10 26 0" stroke="#1b2a3a" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+    </g>
+
+    <!-- rainbow pearl -->
+    <g transform="translate(492 372)">
+      <circle r="44" fill="url(#pearl)"/>
+      <g fill="none" stroke-width="7" opacity="0.85" stroke-linecap="round">
+        <path d="M-32-14a34 34 0 0 1 24-22" stroke="#ff5f8f"/>
+        <path d="M-4-40a34 34 0 0 1 32 16" stroke="#ffb02e"/>
+        <path d="M32-8a34 34 0 0 1-10 32" stroke="#69d43f"/>
+        <path d="M14 30a34 34 0 0 1-34-4" stroke="#3aa7ff"/>
+      </g>
+      <ellipse cx="-13" cy="-20" rx="15" ry="9" fill="#fff" opacity="0.9" transform="rotate(-24)"/>
+    </g>
+  </g>
+
+  <!-- baby turtle swimming free -->
+  <g transform="translate(680 116) rotate(-12)" filter="url(#drop)">
+    <g fill="#12876a">
+      <ellipse cx="-42" cy="-16" rx="18" ry="11" transform="rotate(-28 -42 -16)"/>
+      <ellipse cx="-40" cy="22" rx="17" ry="10" transform="rotate(28 -40 22)"/>
+      <ellipse cx="34" cy="20" rx="14" ry="9" transform="rotate(-24 34 20)"/>
+    </g>
+    <ellipse rx="46" ry="34" fill="url(#turtle)"/>
+    <g fill="#0f7f60" opacity="0.55">
+      <circle cx="-14" cy="-8" r="9"/><circle cx="12" cy="-10" r="8"/><circle cx="0" cy="12" r="9"/>
+      <circle cx="-26" cy="10" r="7"/><circle cx="26" cy="8" r="7"/>
+    </g>
+    <g transform="translate(46 -14)">
+      <circle r="19" fill="#8ef4cd"/>
+      <g fill="#123"><circle cx="4" cy="-4" r="3.6"/><circle cx="13" cy="-3" r="3.2"/></g>
+      <path d="M4 7q8 5 14-1" stroke="#123" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- egg resting in the sand -->
+  <g transform="translate(120 404)">
+    <ellipse cx="4" cy="42" rx="34" ry="9" fill="#00121f" opacity="0.25"/>
+    <ellipse rx="30" ry="38" fill="#fdf1d8"/>
+    <ellipse rx="30" ry="38" fill="none" stroke="#c9a978" stroke-width="3"/>
+    <g fill="#c9a978" opacity="0.6">
+      <circle cx="-10" cy="-12" r="4"/><circle cx="9" cy="-4" r="3.2"/><circle cx="-4" cy="14" r="3.6"/>
+    </g>
+    <ellipse cx="-9" cy="-16" rx="8" ry="5" fill="#fff" opacity="0.85" transform="rotate(-24 -9 -16)"/>
+  </g>
+
+  <!-- bubbles -->
+  <g fill="none" stroke="#ffffff">
+    <g opacity="0.55">
+      <circle cx="96" cy="120" r="15" stroke-width="3"/>
+      <circle cx="140" cy="72" r="9" stroke-width="2.5"/>
+      <circle cx="240" cy="110" r="6" stroke-width="2"/>
+      <circle cx="322" cy="56" r="11" stroke-width="2.5"/>
+      <circle cx="470" cy="92" r="7" stroke-width="2"/>
+      <circle cx="540" cy="52" r="13" stroke-width="3"/>
+      <circle cx="736" cy="250" r="10" stroke-width="2.5"/>
+      <circle cx="700" cy="330" r="6" stroke-width="2"/>
+      <circle cx="64" cy="250" r="8" stroke-width="2.4"/>
+    </g>
+  </g>
+  <g fill="#ffffff" opacity="0.32">
+    <circle cx="92" cy="115" r="5"/><circle cx="537" cy="47" r="4"/><circle cx="318" cy="51" r="3.6"/>
+  </g>
+
+  <!-- foreground vignette -->
+  <rect width="800" height="500" fill="none"/>
+  <path d="M0 0h800v500H0z" fill="url(#ray)" opacity="0.06"/>
+</svg>
