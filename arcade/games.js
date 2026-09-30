@@ -64,6 +64,16 @@
       accent: '#8fcb60',
       needsServer: true,
     },
+    {
+      slug: 'moonshot-golf',
+      title: 'Moonshot Mini Golf',
+      tagline: 'Cartoon mini golf across the solar system.',
+      description: "Putt a glowing ball through 18 whimsical holes on the Moon, Mars and Saturn's rings. Bank around sand traps, dodge rovers, ride wormholes and curve past black holes, with no timers.",
+      genre: 'Sports',
+      controls: ['mouse', 'touch', 'keyboard', 'gamepad'],
+      accent: '#ffd35a',
+      needsServer: false,
+    },
   ];
 
   const ArcadeGames = { GAMES };
