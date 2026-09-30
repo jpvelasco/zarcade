@@ -650,13 +650,19 @@ body.launching main { transform: scale(1.06); filter: blur(3px); transition: tra
   .stage-controls, .stage-actions { justify-content: center; }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  /* Phones tap a cabinet to play, so the big attract screen steps aside. */
+  .stage { display: none; }
+  .marquee { padding-top: 18px; }
+  .sign { padding: 28px 22px 26px; }
+  .sign-sub { flex-wrap: wrap; gap: 4px 8px; font-size: 11px; letter-spacing: .12em; }
+  .mute { top: auto; bottom: -6px; right: 50%; transform: translateX(50%) translateY(50%); width: 38px; height: 38px; font-size: 16px; }
+  .filters { margin-top: 30px; }
   .row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   .cab { padding: 0 8px 10px; }
   .cab-marquee { margin: 0 -8px 8px; font-size: 14px; }
-  .cab-tag { display: none; }
+  .cab-tag { font-size: 12px; line-height: 1.3; }
   .keys { display: none; }
-  .play { font-size: 20px; padding: 14px 28px 14px 22px; }
 }
 
 @media (hover: none) {
