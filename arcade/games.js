@@ -74,6 +74,16 @@
       accent: '#ffd35a',
       needsServer: false,
     },
+    {
+      slug: 'jelly-jam',
+      title: 'Jelly Jam',
+      tagline: "Squishy match-3. Free the reef's baby sea turtles.",
+      description: 'Swap wobbly jelly critters to make striped jellies, bubble bombs and rainbow pearls across 44 levels of a winding reef map. Clear sand, crack coral and drop turtle eggs before the moves run out.',
+      genre: 'Puzzle',
+      controls: ['mouse', 'touch', 'keyboard', 'gamepad'],
+      accent: '#4ef0d0',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
