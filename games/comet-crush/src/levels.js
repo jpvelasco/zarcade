@@ -22,7 +22,7 @@ export const CONSTELLATIONS = [
     palette: ['#5ef2ff', '#ff4fd8', '#ffd84f', '#ff8a3d', '#8a7bff', '#6dff9e'],
     sky: ['#1a0b3d', '#3a0d5c', '#0a2a5c'],
     // Six stars (one per level), in a 100 × 70 box, and the lines between them.
-    stars: [[50, 6], [38, 24], [62, 24], [40, 46], [60, 46], [50, 64]],
+    stars: [[50, 4], [30, 22], [70, 22], [32, 46], [68, 46], [50, 64]],
     lines: [[0, 1], [0, 2], [1, 3], [2, 4], [3, 5], [4, 5], [1, 2]],
   },
   {

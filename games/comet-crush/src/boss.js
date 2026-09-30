@@ -9,35 +9,35 @@ const CX = FIELD.w / 2;
 export const BOSSES = {
   saucer: {
     name: 'Bubble Saucer', hp: 36, w: 150, h: 58, color: '#5ef2ff',
-    path: (t) => ({ x: CX + Math.sin(t * 0.7) * 160, y: 190 + Math.sin(t * 1.7) * 10 }),
+    path: (t) => ({ x: CX + Math.sin(t * 0.7) * 160, y: 202 + Math.sin(t * 1.7) * 10 }),
     shoot: { kind: 'bubble', every: 2.6, first: 2 },
   },
   octopus: {
     name: 'Big Space Octopus', hp: 45, w: 190, h: 100, color: '#b86bff',
-    path: (t) => ({ x: CX + Math.sin(t * 0.4) * 50, y: 160 + Math.sin(t * 1.3) * 6 }),
+    path: (t) => ({ x: CX + Math.sin(t * 0.4) * 50, y: 172 + Math.sin(t * 1.3) * 6 }),
     shoot: { kind: 'bubble', every: 4.2, first: 3 },
     tentacles: { xs: [-110, -66, -22, 22, 66, 110], len: 5, w: 36, regrow: 5 },
   },
   crab: {
     name: 'Crystal Crab', hp: 42, w: 140, h: 64, color: '#ff7ae0',
-    path: (t) => ({ x: CX + Math.sin(t * 0.8) * 150, y: 200 }),
+    path: (t) => ({ x: CX + Math.sin(t * 0.8) * 150, y: 212 }),
     claws: { w: 60, h: 40, cycle: 6, closed: 3.4, move: 0.4 },
   },
   serpent: {
     name: 'Star Serpent', hp: 48, w: 54, h: 54, color: '#6bffb8',
-    path: (t) => ({ x: CX + Math.sin(t * 0.55) * 200, y: 235 + Math.sin(t * 1.1) * 85 }),
+    path: (t) => ({ x: CX + Math.sin(t * 0.55) * 200, y: 245 + Math.sin(t * 1.1) * 85 }),
     shoot: { kind: 'bubble', every: 3.4, first: 3 },
     segments: { count: 10, size: 34, gap: 0.17 },
   },
   mech: {
     name: 'Gumball Mech', hp: 54, w: 200, h: 84, color: '#ff5fa2',
-    path: (t) => ({ x: CX + Math.sin(t * 0.45) * 120, y: 180 + Math.sin(t * 0.9) * 8 }),
+    path: (t) => ({ x: CX + Math.sin(t * 0.45) * 120, y: 194 + Math.sin(t * 0.9) * 8 }),
     shoot: { kind: 'meteor', every: 2.3, first: 2.5 },
     wall: { count: 6, w: 40, h: 20, regrow: 7 },
   },
   kraken: {
     name: 'Kraken Queen', hp: 66, w: 200, h: 104, color: '#d44fff',
-    path: (t) => ({ x: CX + Math.sin(t * 0.5) * 80, y: 165 + Math.sin(t * 1.2) * 6 }),
+    path: (t) => ({ x: CX + Math.sin(t * 0.5) * 80, y: 178 + Math.sin(t * 1.2) * 6 }),
     shoot: { kind: 'bubble', every: 3, first: 2.5, alt: 'meteor' },
     tentacles: { xs: [-96, -32, 32, 96], len: 6, w: 40, regrow: 6 },
   },

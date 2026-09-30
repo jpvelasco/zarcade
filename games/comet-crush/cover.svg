@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#07031a"/>
+      <stop offset="0.55" stop-color="#2a0d5c"/>
+      <stop offset="1" stop-color="#5a1466"/>
+    </linearGradient>
+    <radialGradient id="neb1" cx="0.2" cy="0.3" r="0.5">
+      <stop offset="0" stop-color="#22b8ff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#22b8ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="neb2" cx="0.85" cy="0.75" r="0.55">
+      <stop offset="0" stop-color="#ff4fd8" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ff4fd8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="comet" cx="0.38" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#b9fbff"/>
+      <stop offset="1" stop-color="#22b8ff"/>
+    </radialGradient>
+    <radialGradient id="cometGlow" r="0.5">
+      <stop offset="0" stop-color="#8ff6ff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#8ff6ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tail" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#a855f7" stop-opacity="0"/>
+      <stop offset="0.6" stop-color="#ff4fd8" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#8ff6ff" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="ship" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.35" stop-color="#9ff4ff"/>
+      <stop offset="0.7" stop-color="#3a5cff"/>
+      <stop offset="1" stop-color="#1a1f66"/>
+    </linearGradient>
+    <linearGradient id="dome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ff4fd8"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5ef2ff"/>
+      <stop offset="1" stop-color="#5ef2ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9fbff"/><stop offset="0.5" stop-color="#5ef2ff"/><stop offset="1" stop-color="#1c8aa8"/></linearGradient>
+    <linearGradient id="bm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc9f2"/><stop offset="0.5" stop-color="#ff4fd8"/><stop offset="1" stop-color="#9a1c85"/></linearGradient>
+    <linearGradient id="by" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff4c2"/><stop offset="0.5" stop-color="#ffd84f"/><stop offset="1" stop-color="#b3861a"/></linearGradient>
+    <linearGradient id="bo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd2b0"/><stop offset="0.5" stop-color="#ff8a3d"/><stop offset="1" stop-color="#a8481a"/></linearGradient>
+    <linearGradient id="bv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcd6ff"/><stop offset="0.5" stop-color="#8a7bff"/><stop offset="1" stop-color="#4632a8"/></linearGradient>
+    <linearGradient id="bx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb06b"/><stop offset="0.5" stop-color="#ff4f2d"/><stop offset="1" stop-color="#8f1030"/></linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#f2f5ff"/><stop offset="0.45" stop-color="#9aa4c2"/><stop offset="0.55" stop-color="#c9d0e6"/><stop offset="1" stop-color="#5b6485"/></linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+    <g id="brick">
+      <rect x="0" y="0" width="58" height="26" rx="7"/>
+      <rect x="4" y="3" width="50" height="9" rx="4" fill="#ffffff" opacity="0.35"/>
+      <line x1="38" y1="1" x2="46" y2="25" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5"/>
+    </g>
+    <g id="shard"><polygon points="0,0 12,4 5,12"/></g>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <rect width="800" height="500" fill="url(#neb1)"/>
+  <rect width="800" height="500" fill="url(#neb2)"/>
+
+  <!-- Stars -->
+  <g fill="#ffffff">
+    <circle cx="40" cy="30" r="1.4" opacity="0.8"/><circle cx="120" cy="80" r="1" opacity="0.6"/><circle cx="210" cy="24" r="1.6"/>
+    <circle cx="300" cy="60" r="1" opacity="0.5"/><circle cx="660" cy="40" r="1.3" opacity="0.8"/><circle cx="760" cy="110" r="1.6"/>
+    <circle cx="720" cy="220" r="1" opacity="0.6"/><circle cx="30" cy="260" r="1.3" opacity="0.7"/><circle cx="90" cy="400" r="1" opacity="0.6"/>
+    <circle cx="770" cy="420" r="1.2" opacity="0.7"/><circle cx="560" cy="470" r="1" opacity="0.5"/><circle cx="180" cy="470" r="1.4" opacity="0.8"/>
+    <circle cx="610" cy="130" r="1" opacity="0.6"/><circle cx="400" cy="20" r="1.1" opacity="0.7"/><circle cx="500" cy="80" r="1" opacity="0.5"/>
+  </g>
+
+  <!-- Constellation (the Rocket) glowing in the sky -->
+  <g stroke="#8ff6ff" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 7" fill="none">
+    <polyline points="650,60 600,120 610,190 690,190 700,120 650,60"/>
+    <line x1="600" y1="120" x2="700" y2="120"/>
+    <line x1="610" y1="190" x2="650" y2="240"/><line x1="690" y1="190" x2="650" y2="240"/>
+  </g>
+  <g fill="#ffffff" filter="url(#glow)">
+    <circle cx="650" cy="60" r="5"/><circle cx="600" cy="120" r="4.5"/><circle cx="700" cy="120" r="4.5"/>
+    <circle cx="610" cy="190" r="4"/><circle cx="690" cy="190" r="4"/><circle cx="650" cy="240" r="6" fill="#ffd84f"/>
+  </g>
+
+  <!-- Brick wall -->
+  <g filter="url(#glow)">
+    <g fill="url(#bm)"><use href="#brick" x="80" y="70"/><use href="#brick" x="144" y="70"/><use href="#brick" x="208" y="70"/><use href="#brick" x="272" y="70"/><use href="#brick" x="336" y="70"/><use href="#brick" x="400" y="70"/></g>
+    <g fill="url(#bc)"><use href="#brick" x="48" y="102"/><use href="#brick" x="112" y="102"/><use href="#brick" x="176" y="102"/><use href="#brick" x="304" y="102"/><use href="#brick" x="368" y="102"/><use href="#brick" x="432" y="102"/></g>
+    <g fill="url(#by)"><use href="#brick" x="80" y="134"/><use href="#brick" x="144" y="134"/><use href="#brick" x="336" y="134"/><use href="#brick" x="400" y="134"/><use href="#brick" x="464" y="134"/></g>
+    <g fill="url(#bv)"><use href="#brick" x="48" y="166"/><use href="#brick" x="112" y="166"/><use href="#brick" x="368" y="166"/><use href="#brick" x="432" y="166"/></g>
+    <g fill="url(#bo)"><use href="#brick" x="80" y="198"/><use href="#brick" x="400" y="198"/></g>
+    <g fill="url(#bx)"><use href="#brick" x="208" y="134"/></g>
+    <g fill="url(#metal)"><use href="#brick" x="240" y="102"/></g>
+  </g>
+  <!-- Star brick -->
+  <g filter="url(#glow)">
+    <use href="#brick" x="272" y="134" fill="url(#by)"/>
+    <polygon points="301,139 304,145 311,146 306,151 307,158 301,154 295,158 296,151 291,146 298,145" fill="#ffffff"/>
+  </g>
+
+  <!-- Explosion where the comet smashes in -->
+  <g opacity="0.95">
+    <circle cx="236" cy="200" r="56" fill="#ff8ae8" opacity="0.25" filter="url(#soft)"/>
+    <circle cx="236" cy="200" r="46" fill="none" stroke="#ffd84f" stroke-width="3" opacity="0.8"/>
+    <circle cx="236" cy="200" r="30" fill="none" stroke="#ff4fd8" stroke-width="2" opacity="0.7"/>
+    <g fill="#5ef2ff"><use href="#shard" x="190" y="170" transform="rotate(-20 190 170)"/><use href="#shard" x="280" y="230"/></g>
+    <g fill="#ff4fd8"><use href="#shard" x="270" y="160" transform="rotate(40 270 160)"/><use href="#shard" x="196" y="236" transform="rotate(120 196 236)"/></g>
+    <g fill="#ffd84f"><use href="#shard" x="240" y="150"/><use href="#shard" x="300" y="200" transform="rotate(80 300 200)"/><use href="#shard" x="170" y="205"/></g>
+    <g stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.9">
+      <line x1="236" y1="200" x2="236" y2="150"/><line x1="236" y1="200" x2="286" y2="178"/><line x1="236" y1="200" x2="192" y2="230"/><line x1="236" y1="200" x2="280" y2="240"/>
+    </g>
+  </g>
+
+  <!-- Comet and its trail from the ship -->
+  <path d="M430 420 C 380 330, 300 260, 250 215 L 262 205 C 312 250, 392 322, 444 414 Z" fill="url(#tail)" opacity="0.9"/>
+  <circle cx="254" cy="208" r="36" fill="url(#cometGlow)"/>
+  <circle cx="254" cy="208" r="15" fill="url(#comet)" filter="url(#glow)"/>
+
+  <!-- Power-up capsule -->
+  <g transform="translate(560 300) rotate(-8)" filter="url(#glow)">
+    <rect x="-44" y="-15" width="88" height="30" rx="15" fill="#ff5170"/>
+    <rect x="-38" y="-12" width="76" height="9" rx="4.5" fill="#ffffff" opacity="0.4"/>
+    <rect x="-44" y="-15" width="88" height="30" rx="15" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <text x="0" y="6" text-anchor="middle" font-family="ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif" font-weight="800" font-size="15" fill="#ffffff">LASER</text>
+  </g>
+
+  <!-- Bubble from a boss -->
+  <g opacity="0.9">
+    <circle cx="660" cy="360" r="22" fill="#bff6ff" fill-opacity="0.12" stroke="#dff9ff" stroke-width="2"/>
+    <ellipse cx="652" cy="350" rx="7" ry="4" fill="#ffffff" opacity="0.9" transform="rotate(-30 652 350)"/>
+  </g>
+
+  <!-- Paddle ship -->
+  <g transform="translate(440 440)">
+    <ellipse cx="0" cy="8" rx="130" ry="30" fill="#5ef2ff" opacity="0.22" filter="url(#soft)"/>
+    <polygon points="-52,10 -36,10 -44,48" fill="url(#flame)"/>
+    <polygon points="36,10 52,10 44,48" fill="url(#flame)"/>
+    <path d="M-24 -10 A24 16 0 0 1 24 -10 Z" fill="url(#dome)"/>
+    <rect x="-90" y="-12" width="180" height="26" rx="13" fill="url(#ship)" stroke="#8ff6ff" stroke-width="2" filter="url(#glow)"/>
+    <line x1="-72" y1="3" x2="72" y2="3" stroke="#14206a" stroke-opacity="0.5" stroke-width="1.5"/>
+    <circle cx="-78" cy="1" r="4.5" fill="#ff4fd8"/>
+    <circle cx="78" cy="1" r="4.5" fill="#ff4fd8"/>
+  </g>
+</svg>
