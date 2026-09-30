@@ -16,10 +16,12 @@
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const offline = location.protocol === 'file:';
 
-  let state = A.loadState(localStorage);
+  // Reading `localStorage` throws when the browser blocks site storage.
+  const storage = (() => { try { return localStorage; } catch (_) { return null; } })();
+  let state = A.loadState(storage);
   let genre = A.ALL;
   let shown = GAMES.slice();
-  let current = Math.max(0, GAMES.findIndex((g) => g.slug === state.last));
+  let current = -1;
   let attractTimer = 0;
   let launching = false;
 
@@ -200,7 +202,7 @@
     launching = true;
     stopAttract();
     state = A.recordPlay(state, game.slug);
-    A.saveState(localStorage, state);
+    A.saveState(storage, state);
     sfx('coin');
     document.body.style.setProperty('--accent', game.accent);
     $('launch').style.setProperty('--accent', game.accent);
@@ -212,9 +214,10 @@
   // the back/forward cache mid-launch, so reset it.
   addEventListener('pageshow', (e) => {
     launching = false;
+    padPrev = null;
     document.body.classList.remove('launching');
     if (e.persisted) {
-      state = A.loadState(localStorage);
+      state = A.loadState(storage);
       buildRow();
       select(current, { focus: false, sound: false });
     }
@@ -266,14 +269,16 @@
 
   function toggleMute() {
     state = { ...state, muted: !state.muted };
-    A.saveState(localStorage, state);
+    A.saveState(storage, state);
     $('btn-mute').setAttribute('aria-pressed', String(state.muted));
     if (!state.muted) sfx('filter');
   }
   $('btn-mute').addEventListener('click', toggleMute);
 
-  // Gamepads: d-pad or left stick to choose, A or Start to play.
-  let padPrev = {};
+  // Gamepads: d-pad or left stick to choose, A or Start to play. The first
+  // reading only records what is already held, so a button still down from
+  // leaving a game (A on "Back to arcade") does not relaunch it.
+  let padPrev = null;
   let padRepeat = 0;
   function pollPads(now) {
     const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
@@ -286,6 +291,7 @@
         up: b(12) || ay < -0.5, down: b(13) || ay > 0.5,
         go: b(0) || b(9),
       };
+      if (!padPrev) padPrev = held;
       for (const dir of ['left', 'right', 'up', 'down']) {
         if (held[dir] && (!padPrev[dir] || now > padRepeat)) {
           move(dir);
@@ -320,7 +326,6 @@
   $('offline').classList.toggle('hidden', !(offline && GAMES.some((g) => g.needsServer)));
   buildFilters();
   buildRow();
-  current = -1;
   select(Math.max(0, GAMES.findIndex((g) => g.slug === state.last)), { focus: false, sound: false });
   if (!state.last) startAttract();
   requestAnimationFrame(pollPads);

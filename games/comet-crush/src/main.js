@@ -14,7 +14,10 @@ const params = new URLSearchParams(location.search);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const canvas = $('game');
-const save = loadSave(localStorage);
+// Reading `localStorage` throws when the browser blocks site storage; the
+// save helpers treat a null store as "nothing saved".
+const storage = (() => { try { return localStorage; } catch { return null; } })();
+const save = loadSave(storage);
 const renderer = new Renderer(canvas, { reducedMotion: reduced });
 const input = new Input(canvas, (x, y) => renderer.toField(x, y));
 const sound = new Sound({ muted: save.muted, music: save.music });
@@ -107,8 +110,8 @@ function renderLevels() {
     card.style.setProperty('--accent', c.palette[0]);
     card.style.setProperty('--accent2', c.palette[1]);
     const got = cleared(ci);
-    const starCount = got.reduce((n, _, j) => n + (save.stars[ci * 6 + j] || 0), 0);
-    card.innerHTML = `<div class="c-head"><h3>${c.name}</h3><span class="c-count">★ ${starCount}/18</span></div>
+    const starCount = got.reduce((n, _, j) => n + (save.stars[ci * LEVELS_PER_CONSTELLATION + j] || 0), 0);
+    card.innerHTML = `<div class="c-head"><h3>${c.name}</h3><span class="c-count">★ ${starCount}/${LEVELS_PER_CONSTELLATION * 3}</span></div>
       <p class="c-figure">${open ? `${c.figure} · ${c.blurb}` : `Locked · beat the ${CONSTELLATIONS[ci - 1].name} boss`}</p>`;
     const map = document.createElement('div');
     map.className = 'c-map';
@@ -165,7 +168,7 @@ function onCleared() {
   const stars = w.rating();
   run = { score: w.score, lives: w.lives };
   recordClear(save, w.levelIndex, stars, w.score);
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   const last = w.levelIndex === LEVELS.length - 1;
   if (last) return showVictory();
   mode = 'clear';
@@ -191,7 +194,7 @@ function showVictory() {
 function onGameOver() {
   mode = 'over';
   const best = recordScore(save, world.score);
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   $('over-score').textContent = world.score.toLocaleString('en-US');
   $('over-best').textContent = best ? 'New high score!' : `High score ${save.best.toLocaleString('en-US')}`;
   $('btn-continue').textContent = `Continue at ${levelLabel(world.levelIndex)} →`;
@@ -213,7 +216,7 @@ function toggleMute() {
   save.muted = !save.muted;
   sound.unlock();
   sound.setMuted(save.muted);
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   updateSoundButtons();
 }
 
@@ -221,7 +224,7 @@ function toggleMusic() {
   save.music = !save.music;
   sound.unlock();
   sound.setMusic(save.music);
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   updateSoundButtons();
 }
 

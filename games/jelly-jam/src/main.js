@@ -12,7 +12,10 @@ const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const save = loadSave(localStorage);
+// Reading `localStorage` throws when the browser blocks site storage; the
+// save helpers treat a null store as "nothing saved".
+const storage = (() => { try { return localStorage; } catch { return null; } })();
+const save = loadSave(storage);
 const sfx = new Sfx(save.muted);
 const view = new BoardView($('board'), { reduceMotion });
 
@@ -381,7 +384,7 @@ function resume() {
 function toggleMute() {
   save.muted = !save.muted;
   sfx.setMuted(save.muted);
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   $('btn-mute').textContent = save.muted ? '🔇' : '🔊';
   $('btn-pause-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
 }
@@ -414,7 +417,7 @@ function endLevel() {
   if (won) {
     const before = save.best[levelId] | 0;
     const result = recordWin(save, levelId, { score: game.score, stars });
-    writeSave(localStorage, save);
+    writeSave(storage, save);
     lines.push(['Best score', result.best.toLocaleString()]);
     if (game.score > before) lines.push(['New personal best!']);
     if (game.bestChain > 1) lines.push(['Longest chain', `×${game.bestChain}`]);

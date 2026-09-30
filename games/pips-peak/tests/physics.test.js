@@ -185,6 +185,23 @@ test('kicks chain up a chimney, even when leaning away from the wall', () => {
   assert.ok(climbed > 8, `expected to climb the chimney, got ${climbed.toFixed(1)} tiles`);
 });
 
+test('a wall beside a ground jump does not add a kick on the way up', () => {
+  const rows = [];
+  for (let i = 0; i < 20; i += 1) rows.push('#      ');
+  rows.push('#######');
+  const terrain = terrainOf(rows);
+  const abilities = { doubleJump: true, wallJump: true };
+  const p = createPlayer(TILE + PHYS.width / 2 + 1, 20 * TILE);
+  settle(p, terrain, { abilities });
+  assert.equal(p.onGround, true);
+  const jumps = [];
+  for (let i = 0; i < 12; i += 1) {
+    const result = stepPlayer(p, { jump: true, jumpPressed: i === 0 || i === 6 }, terrain, DT, { abilities });
+    if (result.jumped) jumps.push(result.jumped);
+  }
+  assert.deepEqual(jumps, ['ground', 'double']);
+});
+
 test('one-way planks catch a fall but let Pip rise through', () => {
   const terrain = terrainOf(['     ', '     ', '-----', '     ', '#####']);
   const dropped = createPlayer(8, 0);

@@ -270,3 +270,19 @@ test('the guide route re-plans when the bike leaves it', () => {
     previous = corner;
   }
 });
+
+test('a fresh route from mid-block leads in along the bike\'s own street', () => {
+  const world = startedWorld();
+  for (let column = -4; column <= 4; column++) {
+    for (const offset of [-130, -90, 90, 130]) {
+      world.player.x = column * BLOCK;
+      world.player.y = BLOCK * 2 + offset;
+      world.planRoute();
+      let previous = world.player;
+      for (const corner of world.route) {
+        assert.ok(Math.abs(corner.x - previous.x) < 61 || Math.abs(corner.y - previous.y) < 61, 'each leg follows a street');
+        previous = corner;
+      }
+    }
+  }
+});

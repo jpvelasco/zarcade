@@ -233,11 +233,13 @@ export function shuffleBoard(board, rng = board.rng) {
   const spots = board.playableIndices().filter((i) => isMatchable(board.at(i)) && !board.at(i).special);
   const before = spots.map((i) => board.at(i).color);
   for (let attempt = 0; attempt < 200; attempt++) {
+    // A stubborn mix gets fresh colors before it is shuffled, so the board
+    // left behind is always one that was checked.
+    if (attempt > 61) spots.forEach((i) => { board.at(i).color = rng.int(board.colors); });
     const colors = spots.map((i) => board.at(i).color);
     rng.shuffle(colors);
     spots.forEach((i, k) => { board.at(i).color = colors[k]; });
     if (!findMatches(board).length && hasMoves(board)) break;
-    if (attempt > 60) spots.forEach((i) => { board.at(i).color = rng.int(board.colors); });
   }
   return spots.filter((i, k) => board.at(i).color !== before[k]);
 }

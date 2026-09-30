@@ -254,21 +254,24 @@ export function stepPlayer(p, input, terrain, dt, opts = {}) {
 
   // --- walls ------------------------------------------------------------
   // Touching a wall is tracked on both sides, so a kick still works if you
-  // have already tilted away from it. Sliding needs you to lean in.
+  // have already tilted away from it. Sliding needs you to lean in. Either
+  // one needs Pip to have stopped rising fast, so brushing a wall on the way
+  // up from a jump never hands out a bonus kick.
   let wall = 0;
   if (abilities.wallJump && !p.onGround) {
     const probe = { y: p.y + 2, w: p.w, h: p.h - 4 };
     if (boxHitsSolid(terrain, { ...probe, x: p.x + PHYS.wallStick })) wall = 1;
     else if (boxHitsSolid(terrain, { ...probe, x: p.x - PHYS.wallStick })) wall = -1;
   }
-  if (wall !== 0) {
+  const grips = wall !== 0 && p.vy > -40;
+  if (grips) {
     p.wallTouch = wall;
     p.wallGrace = PHYS.wallGrace;
   } else {
     p.wallGrace = Math.max(0, p.wallGrace - dt);
     if (p.wallGrace === 0) p.wallTouch = 0;
   }
-  const sliding = wall !== 0 && dir === wall && p.vy > -40;
+  const sliding = grips && dir === wall;
   if (sliding && !p.wallSlide) out.startedWallSlide = true;
   p.wallSlide = sliding;
   p.wallDir = wall;
@@ -284,7 +287,7 @@ export function stepPlayer(p, input, terrain, dt, opts = {}) {
       p.launched = false;
       p.squash = -0.8;
       out.jumped = 'ground';
-    } else if (!p.onGround && p.wallGrace > 0 && p.wallTouch !== 0) {
+    } else if (p.wallGrace > 0 && p.wallTouch !== 0) {
       const from = p.wallTouch;
       p.vy = -PHYS.wallJumpY;
       p.vx = -from * PHYS.wallJumpX;

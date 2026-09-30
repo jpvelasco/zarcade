@@ -293,6 +293,8 @@ export class World {
         this.emit('stomp', { x: enemy.x + enemy.w / 2, y: enemy.y });
       } else {
         this.hurt('enemy', { x: enemy.x + enemy.w / 2, y: enemy.y });
+        // Pip and the enemies were just reset, so this pass is over.
+        return;
       }
     }
   }

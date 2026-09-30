@@ -28,8 +28,12 @@ const minimap = $('#minimap');
 const renderer = new Renderer(scene);
 const query = new URLSearchParams(location.search);
 
+// Reading `localStorage` throws when the browser blocks site storage; the
+// save helpers treat a null store as "nothing saved".
+const storage = (() => { try { return localStorage; } catch { return null; } })();
+
 const state = {
-  save: loadSave(localStorage),
+  save: loadSave(storage),
   world: null,
   attract: false,
   chapter: 0,
@@ -295,7 +299,7 @@ function updateGarage() {
     button.textContent = cost === null ? 'MAXED' : `${cost} CR`;
     button.addEventListener('click', () => {
       if (!buyUpgrade(state.save, key)) return;
-      writeSave(localStorage, state.save);
+      writeSave(storage, state.save);
       state.world.setStats(statsFor(state.save.upgrades));
       updateGarage();
       updateTitle();
@@ -316,7 +320,7 @@ function updateGarage() {
     button.append(swatch, document.createTextNode(paint.label));
     button.addEventListener('click', () => {
       state.save.paint = paint.id;
-      writeSave(localStorage, state.save);
+      writeSave(storage, state.save);
       applyPaint();
       updateGarage();
     });
@@ -332,7 +336,7 @@ function recordResult() {
   recordDelivery(state.save, result);
   recordJob(state.save, result.chapter, result.job, result.stars);
   result.recorded = true;
-  writeSave(localStorage, state.save);
+  writeSave(storage, state.save);
   updateTitle();
 }
 
@@ -384,7 +388,7 @@ function showComplete() {
   const world = state.world;
   const chapter = world.chapter;
   recordChapter(state.save, chapter);
-  writeSave(localStorage, state.save);
+  writeSave(storage, state.save);
   const def = CHAPTERS[chapter];
   const last = chapter === CHAPTERS.length - 1;
   $('#complete-eyebrow').textContent = last ? 'THE END · HAPPY LANTERN FESTIVAL' : `CHAPTER ${chapter + 1} COMPLETE`;
@@ -623,7 +627,7 @@ $('#btn-restart').addEventListener('click', () => {
 $('#btn-mute').addEventListener('click', () => {
   state.save.muted = !state.save.muted;
   audio.setMuted(state.save.muted);
-  writeSave(localStorage, state.save);
+  writeSave(storage, state.save);
   $('#btn-mute').textContent = `Sound: ${state.save.muted ? 'off' : 'on'}`;
 });
 $('#btn-quit').addEventListener('click', showMap);
@@ -651,7 +655,7 @@ document.addEventListener('keydown', (event) => {
   if (event.code === 'KeyM') {
     state.save.muted = !state.save.muted;
     audio.setMuted(state.save.muted);
-    writeSave(localStorage, state.save);
+    writeSave(storage, state.save);
     toastMessage(state.save.muted ? 'SOUND OFF' : 'SOUND ON', 900);
     return;
   }

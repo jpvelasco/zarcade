@@ -131,6 +131,28 @@ test('landing on a beetle pops it; walking into one hurts', () => {
   assert.ok(hits.some((e) => e.type === 'hurt'));
 });
 
+test('a hurt ends the enemy pass, so no enemy is stomped by the old Pip', () => {
+  const world = stage([
+    '            ',
+    ' S          ',
+    '      bb    ',
+    '############',
+  ]);
+  const p = world.player;
+  const [side, under] = world.enemies;
+  // Falling onto the second beetle, but the first one is already in Pip's face.
+  p.x = under.x;
+  p.y = under.y - p.h + 3;
+  p.vy = 120;
+  side.x = p.x;
+  side.y = p.y;
+  world.step(DT, {});
+  const types = world.events.map((e) => e.type);
+  assert.ok(types.includes('hurt'));
+  assert.ok(!types.includes('stomp'), `unexpected events: ${types.join(', ')}`);
+  assert.ok(world.enemies.every((e) => e.alive));
+});
+
 test('a crumbling block gives way shortly after Pip lands, then grows back', () => {
   const world = stage([
     '     ',

@@ -13,7 +13,10 @@ const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
 const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
 
-const save = loadSave(localStorage);
+// Reading `localStorage` throws when the browser blocks site storage; the
+// save helpers treat a null store as "nothing saved".
+const storage = (() => { try { return localStorage; } catch { return null; } })();
+const save = loadSave(storage);
 const sound = new Sound({ muted: save.muted, music: save.music });
 const renderer = new Renderer($('game'));
 renderer.reduced = motionQuery.matches;
@@ -186,7 +189,7 @@ function toggleMute() {
   save.muted = !save.muted;
   sound.unlock();
   sound.setMuted(save.muted);
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   updateSoundButtons();
 }
 
@@ -194,14 +197,14 @@ function toggleMusic() {
   save.music = !save.music;
   sound.unlock();
   sound.setMusic(save.music);
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   updateSoundButtons();
 }
 
 function toggleSpeed() {
   speed = speed === 1 ? 2 : 1;
   save.fast = speed === 2;
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   sound.play('click');
   hudCache.speed = null;
 }
@@ -218,7 +221,7 @@ function showResults() {
   $('res-stars').classList.toggle('hidden', !won);
   if (won) {
     const res = recordResult(save, game.mapIndex, stars);
-    writeSave(localStorage, save);
+    writeSave(storage, save);
     starEls.forEach((s, i) => s.classList.toggle('on', i < stars));
     $('res-title').textContent = stars === 3 ? 'Perfect picnic!' : 'Picnic saved!';
     $('res-sub').textContent = `${game.map.name} · ${game.baskets} of ${game.maxBaskets} baskets left`;

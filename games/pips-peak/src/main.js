@@ -21,7 +21,10 @@ const screens = [...document.querySelectorAll('.overlay')];
 const canvas = $('game');
 const renderer = new Renderer(canvas);
 const input = new Input();
-const save = loadSave(localStorage);
+// Reading `localStorage` throws when the browser blocks site storage; the
+// save helpers treat a null store as "nothing saved".
+const storage = (() => { try { return localStorage; } catch { return null; } })();
+const save = loadSave(storage);
 const audio = new Audio(save.muted);
 
 const state = {
@@ -72,7 +75,7 @@ function muteLabel() {
 function toggleMute() {
   save.muted = !save.muted;
   audio.setMuted(save.muted);
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   muteLabel();
   if (!save.muted) audio.click();
 }
@@ -193,7 +196,7 @@ function finishLevel() {
   const world = state.world;
   const result = world.result();
   const { entry, record } = recordRun(save, result);
-  writeSave(localStorage, save);
+  writeSave(storage, save);
   state.mode = 'complete';
   const level = LEVELS[state.index];
   $('result-zone').textContent = ZONES[level.zone].name.toUpperCase();

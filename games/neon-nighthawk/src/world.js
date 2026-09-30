@@ -120,6 +120,12 @@ function makePlayer(position, stats, heat = 0) {
   };
 }
 
+// True when a straight line from `from` to `corner` would leave the street:
+// the two points share neither a column nor a row of the road grid.
+function offStreet(corner, from) {
+  return Math.abs(corner.x - from.x) > 60 && Math.abs(corner.y - from.y) > 60;
+}
+
 // One chapter of the story: three jobs in one district. The simulation has
 // no DOM access: rendering, controls, audio, persistence and overlays all sit
 // above this class and only read it.
@@ -253,7 +259,12 @@ export class World {
     const target = this.target;
     this.routeFor = target;
     this.routeCell = target ? `${nearestStreet(target.x)},${nearestStreet(target.y)}` : '';
-    this.route = target ? routeBetween(this.player, target, this.contract.seed) : [];
+    const route = target ? routeBetween(this.player, target, this.contract.seed) : [];
+    // routeBetween starts at the nearest intersection but leaves it out. When
+    // the bike is mid-block on a cross street, the first corner is not on its
+    // street, so lead in through that intersection instead of cutting across.
+    if (route.length && offStreet(route[0], this.player)) route.unshift(nearestIntersection(this.player));
+    this.route = route;
     this.routeIndex = 0;
   }
 
@@ -859,7 +870,7 @@ export class World {
     const next = this.route[this.routeIndex];
     // Off the suggested streets (a detour, a shove from traffic): re-plan so
     // the guide line never cuts through buildings.
-    const strayed = next && Math.abs(next.x - this.player.x) > 60 && Math.abs(next.y - this.player.y) > 60;
+    const strayed = next && offStreet(next, this.player);
     if (strayed || target !== this.routeFor || cell !== this.routeCell) this.planRoute();
   }
 
