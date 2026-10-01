@@ -1,0 +1,151 @@
+# Spooky Spotter — design spec
+
+*2026-10-01 · slug `spooky-spotter` · genre: hidden object*
+
+## Pitch
+
+Hollowhush Manor is not haunted so much as *lived in*. Its shy ghost residents
+have mislaid their favourite things — a teddy, a pair of spectacles, a teacup,
+a sock — and nobody can tidy up while the lights are out. Search cluttered,
+hand-drawn rooms for each ghost's list. Every found thing floats across the
+room to its owner, who brightens, does a happy swirl and says thank you. Clear
+a room and that part of the mansion wakes up: dust clears, lamps come on, the
+map lights another window. Clear all seven and the ghosts throw a party.
+
+Friendly, never scary. No jump scares, no chase, no timer that can fail you.
+
+## Design decisions made without the user
+
+- **Seven rooms, three modes each.** Library, Kitchen, Attic, Greenhouse,
+  Ballroom, Cellar, Observatory. Each room has a *Find* round (the main mode),
+  *Spot the Difference* and *Silhouette Hunt*. Rooms unlock in order; the extra
+  modes unlock when the room's Find round is cleared, so a child always has an
+  obvious next thing but can replay what they liked.
+- **Fixed world canvas, camera on top.** Each room scene lives in a 1800×1200
+  world box. The camera fits the box by default (so *nothing* is ever off
+  screen at zoom 1) and can zoom to 3.2× and pan. Zoom is comfort, never a
+  requirement: every target is clickable at the default fit on a 390×844
+  phone.
+- **Visibility is a hard invariant, enforced in tests.** See below.
+- **Misses cost a "fog" beat, never points or progress.** A click on nothing
+  puffs a little fog, ignores clicks for 0.55 s and nudges the miss counter
+  used for the third star. Three stars = finish under the room's par time with
+  at least half the lantern hints unused and few misses. A child who taps
+  everywhere still finishes the room and still gets a star.
+- **Audio is synthesized** (music box + celeste pads), muteable, off-by-default
+  music respected from the save.
+- **No read-aloud/voice**: out of scope. Item names are large and each list row
+  carries a drawn icon, so pre-readers can play from the pictures.
+
+## Visibility invariant
+
+A hidden-object game that hides something *behind* something is broken. The
+generator and the hit test share one occlusion model:
+
+- Every placed prop declares axis-aligned **cover rects** (what it visually
+  blocks) and a **draw order**. Props drawn after a target may cover it.
+- At build time each target gets a **visibility mask**: a grid (4 world px
+  cells) over its box, with cells marked covered when any later prop's cover
+  rect contains the cell centre.
+- From the mask the builder computes the largest 4-connected visible blob, its
+  area, and the largest inscribed disc inside that blob (`hit`).
+- A placement is accepted only when: the box is inside the room bounds with a
+  40 px margin; visible fraction ≥ 0.45; visible area ≥ 950 world px²; the
+  inscribed hit disc radius ≥ 13 world px (a 44 px tap target at phone fit).
+  The builder retries other slots, then falls back to an uncovered slot, and
+  finally `scene.js` throws rather than ship an invisible target.
+- Runtime hit testing uses the same mask, so the covered half of a sock behind
+  a curtain does not respond while the visible half does — plus a small
+  forgiveness radius around the hit disc for fingers.
+
+`tests/scene.test.js` builds every room at many seeds and asserts all of the
+above, plus determinism (same seed → identical scene) and that no two targets'
+hit discs overlap.
+
+## Procedural rooms
+
+- `rooms.js` describes each room: palette, architecture (walls, floor, windows),
+  a list of **furniture slots** with prop families that fit, and a list of
+  **hide slots** with a `kind` — `shelf`, `table`, `floor`, `under` (a rug or
+  curtain edge partly covers it), `nook`, `hook`, `sill`, `behind` (a prop's
+  shoulder covers up to 45 %).
+- `props.js` is the library: ~60 code-drawn props (bookcase, armchair, rug,
+  curtain, grandfather clock, cobweb, portrait, crate, barrel, copper pan,
+  kettle, hat stand, trunk, rocking horse, wine rack, cheese wheel, fern,
+  watering can, telescope, orrery, gramophone, piano, chandelier …). Each prop
+  has a size range, a palette role, cover rects relative to its box, and an
+  art key.
+- `scene.js` composes: architecture → furniture into slots → clutter →
+  targets into hide slots → decoration in front. Everything comes out of one
+  `Rng` seeded with `hash(room, mode, seed)`, so a Shift-Code-style room seed
+  recreates a room exactly.
+- `items.js` holds ~34 findable things, each with a drawn shape, a size, which
+  hide kinds suit it ("a teacup goes on tables and shelves, not under a rug"),
+  and the list label.
+
+## Modes
+
+- **Find** (main): 6–9 items from the room's ghosts. List on the side (bottom
+  tray on phones). Found items fly to the ghost.
+- **Spot the Difference**: the same scene twice, side by side (stacked on
+  phones), with 5–7 changes generated by mutating props (recolour, remove,
+  move, mirror, swap, scale). Changes use the same visibility invariant on the
+  changed prop's box.
+- **Silhouette Hunt**: the list shows black shapes only, no names, and the
+  scene is tinted dusk. Six silhouettes, generated from the same placement
+  machinery.
+
+## Sticky hooks
+
+1. **Mansion map** — seven rooms as a cutaway house; each cleared room lights
+   its windows, the dust fades and the roofline gains a detail. 100 % = a party
+   scene with every ghost dancing.
+2. **Ghost friend album** — 9 ghosts with names, bios and a mood portrait;
+   greyed silhouettes until you return their things.
+3. **Curio cabinet** — 24 collectible trinkets on four shelves: one per room
+   mode cleared (21) plus three secrets (find the manor mouse in three rooms).
+   Missing ones show as silhouettes.
+4. **Daily room** — the local date seeds a room + mode + layout; same day, same
+   room for everyone. A streak counter with a gentle "come back tomorrow".
+5. **Stars and personal bests** — three stars per room mode, best time per
+   room shown on the map and the title screen, with a "New best!" moment.
+6. **Fast replay** — results screen → *Again* restarts in one tap.
+
+## Controls
+
+- **Mouse**: click to pick up, wheel to zoom, drag to pan, hover highlights
+  nothing (no cheating).
+- **Touch**: tap, pinch to zoom, drag to pan.
+- **Keyboard**: arrow keys / WASD move a visible reticle (hold to accelerate),
+  Enter or Space picks, `[` `]` or Tab step through the item list, `+` `-`
+  zoom, `0` reset zoom, `H` hint lantern, `M` mute, Esc / P pause.
+- Pointer hides after 2 s idle during play. `prefers-reduced-motion` drops the
+  dust, parallax and swirl particles.
+
+## Files
+
+```
+games/spooky-spotter/
+  index.html style.css cover.svg favicon.svg README.md package.json
+  telemetry.js fullscreen.js         (copies, never edited)
+  src/rng.js items.js props.js rooms.js scene.js modes.js ghosts.js
+      game.js save.js art.js render.js audio.js ui.js solver.js perf.js main.js
+  tests/scene.test.js modes.test.js game.test.js rooms.test.js solver.test.js perf.test.js
+```
+
+`src/scene.js`, `modes.js`, `game.js`, `items.js`, `props.js`, `rooms.js`,
+`ghosts.js`, `solver.js`, `rng.js` and `perf.js` are DOM-free. `art.js`,
+`render.js`, `ui.js`, `audio.js` and `main.js` own the browser.
+
+## Performance
+
+Architecture and every static prop bake into one offscreen "room plate" canvas
+per scene, built in slices across frames so no frame exceeds ~50 ms. The frame
+loop draws the plate, the animated layer (ghosts, dust, found-item flyers,
+lantern glow) and the HUD. No `shadowBlur` or `filter` per frame; glows are
+baked radial-gradient sprites. Particles capped at 140.
+
+## Debug params
+
+`?room=attic` `?mode=diff` `?seed=123` `?autopilot` `?solve` `?fresh`
+`?reduced` `?unlock` `?crash`
