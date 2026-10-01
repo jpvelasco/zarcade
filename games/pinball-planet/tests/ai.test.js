@@ -48,3 +48,24 @@ test('attract mode serves and plays forever without a game running', () => {
   assert.ok(w.balls.length >= 1);
   assert.equal(w.rules.score, 0);
 });
+
+test('most drains are not outlane drains (the outlane mouths stay narrow)', () => {
+  let drains = 0, outlane = 0;
+  for (const seed of [3, 9]) {
+    const w = new World({ seed, attract: true });
+    const ai = new Autoplayer(seed);
+    let t = 0, lastOutlane = -9;
+    for (let i = 0; i < Math.round(600 / STEP); i++) {
+      w.step(STEP, ai.controls(w, STEP));
+      t += STEP;
+      for (const e of w.events) {
+        if (e.type === 'rollover' && (e.id === 'leftOutlane' || e.id === 'rightOutlane')) lastOutlane = t;
+        if (e.type === 'kickback') lastOutlane = -9;
+        if (e.type === 'drain') { drains++; if (t - lastOutlane < 3) outlane++; }
+      }
+      w.events.length = 0;
+    }
+  }
+  assert.ok(drains >= 6, `${drains} drains`);
+  assert.ok(outlane / drains < 0.6, `${outlane} of ${drains} drains went down an outlane`);
+});

@@ -24,7 +24,11 @@ export const FLIPPERS = [
 export const PLUNGER = { x: 602, restY: 1062, travel: 30, laneX0: 587, laneX1: 617, topY: 360 };
 export const HOLE = { x: 302, y: 470, well: 48, capture: 11 };
 export const SHOOTER_GATE_Y = 338;
-export const INLANE_POST_Y = 730;
+// The inlane post's height sets how wide the outlane mouth is (the gap to the
+// corner of the wall bump above it). At 730 about three drains in four went
+// down an outlane; at 727 it's about half, and the rest come down the middle
+// where flipper skill can save them.
+export const INLANE_POST_Y = 727;
 export const ORBIT_GATE = { y0: 440, ax: 22, ay: 468, bx: 80, by: 510 };
 
 export function orbitGates() {

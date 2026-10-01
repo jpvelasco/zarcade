@@ -5,7 +5,8 @@
 //           Space / ↓  hold to pull the plunger, release to fire
 //           X / C  nudge left / right
 //   Touch:  hold the left or right half to flip; swipe down and let go to
-//           plunge (while a ball waits on the plunger).
+//           plunge (while a ball waits on the plunger); flick up on a half
+//           to nudge the table that way.
 //   Pad:    LB / LT left flipper, RB / RT right flipper, A or d-pad down
 //           plunger, X / B nudge, Start pause.
 const LEFT_KEYS = ['ShiftLeft', 'KeyZ', 'ArrowLeft'];
@@ -14,6 +15,18 @@ const PLUNGE_KEYS = ['Space', 'ArrowDown'];
 const SWIPE_PX = 16;
 const SWIPE_FULL_PX = 170;
 const TAP_FLIP_MS = 90;
+export const NUDGE_SWIPE = { px: 38, ms: 260 };
+
+// A quick upward flick on one half of the screen nudges the table towards
+// that side (like X / C). Returns -1, 1 or 0. `t` is the touch record from
+// pointerdown; each touch nudges at most once.
+export function flickNudge(t, x, y, now) {
+  if (t.nudged || t.kind === 'plunge') return 0;
+  const dy = t.y0 - y;
+  if (dy < NUDGE_SWIPE.px || Math.abs(x - t.x0) > dy || now - t.t0 > NUDGE_SWIPE.ms) return 0;
+  t.nudged = true;
+  return t.side === 'left' ? -1 : 1;
+}
 
 export class Input {
   constructor(surface, { canPlunge = () => false } = {}) {
@@ -58,7 +71,12 @@ export class Input {
     });
     surface.addEventListener('pointermove', (e) => {
       const t = this.touches.get(e.pointerId);
-      if (!t || t.kind === 'flip') return;
+      if (!t) return;
+      if (e.pointerType !== 'mouse') {
+        const n = flickNudge(t, e.clientX, e.clientY, performance.now());
+        if (n) this.nudgeQueued = n;
+      }
+      if (t.kind === 'flip') return;
       const dy = e.clientY - t.y0;
       if (t.kind === 'pending' && dy > SWIPE_PX && Math.abs(e.clientX - t.x0) < dy * 1.5) t.kind = 'plunge';
       if (t.kind === 'plunge') t.pull = Math.max(0, Math.min(1, (dy - SWIPE_PX) / SWIPE_FULL_PX));

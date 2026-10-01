@@ -295,6 +295,19 @@ code { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 6p
 .touch-hints.fade { opacity: 0; }
 .th { font: 800 13px var(--font); color: rgba(255, 255, 255, 0.75); padding: 6px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.35); }
 .th.mid { color: var(--gold); }
+.th { white-space: nowrap; }
+.th small { display: block; font-size: 11px; font-weight: 700; opacity: 0.8; }
+@media (max-width: 420px) {
+  .touch-hints { padding: 0 8px; gap: 6px; }
+  .th { font-size: 12px; padding: 5px 8px; }
+  .th small { font-size: 10.5px; }
+}
+.th.right { text-align: right; }
+.touch-only { display: none; }
+@media (pointer: coarse) {
+  .touch-only { display: inline; }
+  .keys-only { display: none; }
+}
 
 /* ------------------------------------------------------------ lists */
 
@@ -342,7 +355,7 @@ code { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 6p
 @keyframes blinkb { 50% { border-color: rgba(255, 179, 71, 0.25); } }
 .arrow {
   width: 64px;
-  height: 36px;
+  height: 44px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.08);

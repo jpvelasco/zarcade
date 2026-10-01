@@ -16,7 +16,7 @@ npm run serve        # from the repo root
 | Left flipper | Left Shift / Z / ← | hold the left half | LB / LT |
 | Right flipper | Right Shift / M / → | hold the right half | RB / RT |
 | Plunger | hold Space or ↓, let go | swipe down, let go | hold A (or d-pad ↓) |
-| Nudge | X (left) / C (right) | | X / B |
+| Nudge | X (left) / C (right) | flick up on the left or right half | X / B |
 | Pause | Esc / P | ❚❚ button | Start |
 | Sound | N | 🔊 button | |
 
