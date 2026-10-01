@@ -5,7 +5,7 @@
 
 import {
   bakeCloud, bakeColumn, bakeDrop, bakeHazard, bakeHills, bakeLetter, bakeMailbox,
-  bakePlane, bakeRainCloud, bakeRing, bakeSky, bakeSun, bakeTuft, draw,
+  bakePlane, bakeRainCloud, bakeRing, bakeSky, bakeSun, bakeTuft, bakeVent, draw, SCENERY,
 } from './sprites.js';
 import { CRUISE } from './endless.js';
 import { GREEN_AFTER, PAD_BEFORE } from './world.js';
@@ -17,6 +17,8 @@ const MAX_PARTICLES = 190;
 const TRAIL = 46;
 const SOAK_STEPS = 4;
 const TAU = Math.PI * 2;
+// The paper is drawn larger than it collides: a generous, readable hero.
+const PLANE_SCALE = 1.5;
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -85,15 +87,32 @@ export class Renderer {
       this.sprites.sky = bakeSky(region.sky);
       this.sprites.sun = bakeSun(region.accent);
       const snow = region.id === 'peaks' ? '#f4faff' : null;
-      this.sprites.far = bakeHills(fadeToSky(region.land[1], region.sky[1], 0.62), 11, { jag: region.id === 'peaks' ? 1 : 0.5, snow });
-      this.sprites.near = bakeHills(fadeToSky(region.land[1], region.sky[1], 0.3), 23, { height: 210, jag: region.id === 'peaks' ? 0.9 : 0.6, snow });
+      const peaky = region.id === 'peaks';
+      this.sprites.far = bakeHills(fadeToSky(region.land[1], region.sky[0], 0.68), 11, { width: 1200, height: 230, jag: peaky ? 1.1 : 0.7, snow });
+      this.sprites.near = bakeHills(fadeToSky(region.land[1], region.sky[1], 0.38), 23, { width: 1024, height: 190, jag: peaky ? 0.85 : 0.55, snow });
+      this.sprites.mid = bakeHills(fadeToSky(region.land[1], region.sky[2], 0.1), 41, { width: 880, height: 150, jag: 0.45 });
       this.sprites.clouds = [0, 1, 2, 3].map((i) => bakeCloud(i * 17 + 3));
       this.sprites.column = this.sprites.column || bakeColumn();
       this.sprites.rain = this.sprites.rain || bakeRainCloud();
       this.sprites.ring = this.sprites.ring || bakeRing(false);
       this.sprites.ringTaken = this.sprites.ringTaken || bakeRing(true);
-      this.sprites.tuft = this.sprites.tuft || [0, 1, 2, 3].map((i) => bakeTuft(['grass', 'flower', 'grass', 'rock'][i], i * 13 + 2));
+      // Two variants of each kind so a hillside does not look stamped out.
+      const mix = SCENERY[region.id] || SCENERY.town;
+      this.sprites.tuft = [];
+      this.sprites.tuftPick = [];
+      let roll = 0;
+      mix.forEach(([kind, share], i) => {
+        const from = this.sprites.tuft.length;
+        this.sprites.tuft.push(bakeTuft(kind, i * 13 + 2), bakeTuft(kind, i * 13 + 91));
+        roll += share;
+        this.sprites.tuftPick.push({ upTo: roll, from });
+      });
       this.letter = this.letter || bakeLetter();
+    }
+    const vent = { town: 'chimney', cliffs: 'warmrock', forest: 'campfire', lake: 'shoal', peaks: 'warmrock' }[region.id];
+    if (this.ventKey !== vent) {
+      this.ventKey = vent;
+      this.sprites.vent = bakeVent(vent);
     }
     this.sprites.boxOpen = this.sprites.boxOpen || bakeMailbox(false);
     this.sprites.boxFlag = this.sprites.boxFlag || bakeMailbox(true);
@@ -112,8 +131,8 @@ export class Renderer {
     const clearance = world.groundAt(plane.x) - plane.y;
     const speed = Math.hypot(plane.vx, plane.vy);
     const wantZoom = 1
-      + clamp((speed - 15) / 30, 0, 0.26)
-      + clamp((clearance - 44) / 170, 0, 0.34);
+      + clamp((speed - 15) / 32, 0, 0.22)
+      + clamp((clearance - 16) / 90, 0, 0.5);
     cam.zoom = lerp(cam.zoom, wantZoom, 1 - Math.exp(-dt * 2.2));
     if (!follow) return;
     const aheadX = clamp(plane.vx * 0.55, 0, 16);
@@ -265,49 +284,67 @@ export class Renderer {
 
   // --------------------------------------------------------------- backdrop
 
+  /**
+   * Sky, sun, far ridges and clouds, all drawn in screen space. Every layer
+   * moves with the camera by its own fraction, so the distance reads and the
+   * ridges always sit behind the real ground rather than on top of it.
+   */
   drawBackdrop(world, left, top, scale) {
     const ctx = this.ctx;
+    const cam = this.camera;
     const sky = this.sprites.sky;
     ctx.drawImage(sky.img, 0, 0, sky.w, sky.h, 0, 0, this.pxW, this.pxH);
 
-    // The sun sits high and drifts very slowly: a fixed point to fly towards.
-    const sun = this.sprites.sun;
-    const sunX = this.pxW * 0.78 - left * scale * 0.02;
-    const sunY = this.pxH * 0.16 - top * scale * 0.04;
-    ctx.drawImage(sun.img, sunX - sun.img.width / 2, sunY - sun.img.height / 2);
+    // The valley floor near the camera is what every far layer is pinned to.
+    const groundY = world.terrain.heightAt(cam.x);
+    const place = (worldY, k) => this.pxH / 2 + (worldY - cam.y) * k * scale;
 
-    const horizon = this.pxH * 0.72;
-    this.drawHillBand(this.sprites.far, left * scale * 0.1, horizon - this.sprites.far.h * 0.5, 1.0);
-    this.drawHillBand(this.sprites.near, left * scale * 0.22, horizon - this.sprites.near.h * 0.22, 1.0);
+    const sun = this.sprites.sun;
+    const sunW = this.pxH * 0.5;
+    ctx.drawImage(sun.img, this.pxW * 0.74 - sunW / 2, place(groundY - 150, 0.06) - sunW / 2, sunW, sunW);
+
+    // Each band's bottom edge sits on the real ground line, so the near ground
+    // always hides it; only the ridge height and the drift speed say how far
+    // away it is.
+    const floor = place(groundY, 1);
+    this.drawHillBand(this.sprites.far, cam.x * 0.12 * scale, floor + 4, this.pxH * 0.4);
+    this.drawHillBand(this.sprites.near, cam.x * 0.28 * scale, floor + 12, this.pxH * 0.28);
+    this.drawHillBand(this.sprites.mid, cam.x * 0.55 * scale, floor + 20, this.pxH * 0.16);
 
     // A few clouds, drifting.
     const clouds = this.sprites.clouds;
-    for (let i = 0; i < 7; i += 1) {
+    for (let i = 0; i < 12; i += 1) {
       const sprite = clouds[i % clouds.length];
-      const span = this.pxW * 2.4;
-      const base = hash01(i, 5) * span;
-      const drift = this.time * (6 + hash01(i, 9) * 10);
-      const x = ((base + drift - left * scale * 0.34) % span + span) % span - this.pxW * 0.3;
-      const y = this.pxH * (0.08 + hash01(i, 13) * 0.3) - top * scale * 0.08;
-      ctx.globalAlpha = 0.7;
-      ctx.drawImage(sprite.img, x, y, sprite.img.width * 0.8, sprite.img.height * 0.8);
+      const span = this.pxW * 2.6;
+      const drift = this.time * (5 + hash01(i, 9) * 9);
+      const x = ((hash01(i, 5) * span + drift - cam.x * 0.5 * scale) % span + span) % span - this.pxW * 0.4;
+      const y = place(groundY - 26 - hash01(i, 13) * 135, 0.45 + hash01(i, 23) * 0.2);
+      const w = this.pxH * (0.22 + hash01(i, 17) * 0.16);
+      ctx.globalAlpha = 0.75;
+      ctx.drawImage(sprite.img, x, y, w, w * sprite.img.height / sprite.img.width);
       ctx.globalAlpha = 1;
     }
-    void world;
+    void left;
+    void top;
   }
 
-  drawHillBand(band, offset, y, alpha) {
+  /**
+   * Tile one baked band so its bottom edge lands on `bottom`, then flood the
+   * same colour on down the screen: the real ground is drawn over the top, so
+   * no gap can open up where the valley falls away.
+   */
+  drawHillBand(band, offset, bottom, height) {
     const ctx = this.ctx;
-    const w = band.img.width;
-    const scale = Math.max(1, this.pxW / w * 1.6);
-    const tileW = w * scale;
+    const tileW = height * (band.img.width / band.img.height);
     let x = -(((offset % tileW) + tileW) % tileW);
-    ctx.globalAlpha = alpha;
     while (x < this.pxW) {
-      ctx.drawImage(band.img, x, y, tileW, band.img.height * scale);
+      ctx.drawImage(band.img, x, bottom - height, tileW, height);
       x += tileW - 1;
     }
-    ctx.globalAlpha = 1;
+    if (bottom < this.pxH) {
+      ctx.fillStyle = band.color;
+      ctx.fillRect(0, bottom - 1, this.pxW, this.pxH - bottom + 2);
+    }
   }
 
   // ---------------------------------------------------------------- terrain
@@ -330,7 +367,7 @@ export class Renderer {
     ctx.beginPath();
     ctx.moveTo(x0, terrain.heightAt(x0) + 3.2);
     for (let x = x0; x <= x1; x += step) ctx.lineTo(x, terrain.heightAt(x));
-    for (let x = x1; x >= x0; x -= step * 3) ctx.lineTo(x, terrain.heightAt(x) + 3.2);
+    for (let x = x1; x >= x0; x -= step) ctx.lineTo(x, terrain.heightAt(x) + 3.2);
     ctx.closePath();
     ctx.fillStyle = region.land[0];
     ctx.fill();
@@ -353,13 +390,21 @@ export class Renderer {
 
     // Tufts, flowers and pebbles on the surface, same every time you pass.
     const tufts = this.sprites.tuft;
-    const first = Math.floor(x0 / 7) * 7;
-    for (let x = first; x <= x1; x += 7) {
+    const first = Math.floor(x0 / 6) * 6;
+    for (let x = first; x <= x1; x += 6) {
       if (terrain.kindAt(x) === 'water') continue;
-      const pick = Math.floor(hash01(x, 3) * tufts.length);
+      const roll = hash01(x, 3);
+      let slot = this.sprites.tuftPick[this.sprites.tuftPick.length - 1];
+      for (const entry of this.sprites.tuftPick) {
+        if (roll <= entry.upTo) {
+          slot = entry;
+          break;
+        }
+      }
+      const pick = slot.from + (hash01(x, 29) < 0.5 ? 0 : 1);
       const y = terrain.heightAt(x);
-      if (y > bottom || y < top - 10) continue;
-      draw(ctx, tufts[pick], x + hash01(x, 7) * 4, y + 0.4, 0.8 + hash01(x, 11) * 0.5);
+      if (y > bottom + 24 || y < top - 24) continue;
+      draw(ctx, tufts[pick], x + hash01(x, 7) * 4, y + 0.4, 0.82 + hash01(x, 11) * 0.42);
     }
   }
 
@@ -375,18 +420,21 @@ export class Renderer {
         case 'up':
         case 'ridge': {
           const column = this.sprites.column;
-          ctx.globalAlpha = 0.85;
+          ctx.globalAlpha = 0.9;
           ctx.drawImage(column.img, source.x - source.w, source.y - source.h, source.w * 2, source.h);
           ctx.globalAlpha = 1;
+          // Something at the bottom making the warm air: a chimney, a campfire,
+          // sun-baked rock, a warm shoal.
+          if (source.t === 'up') draw(ctx, this.sprites.vent, source.x, world.groundAt(source.x) + 0.4, 1);
           // Rising motes make the direction obvious.
-          const motes = this.reduced ? 3 : 7;
+          const motes = this.reduced ? 4 : 10;
           for (let i = 0; i < motes; i += 1) {
             const phase = (this.time * 0.22 + i / motes) % 1;
             const y = source.y - phase * source.h;
             const sway = Math.sin(phase * 7 + i) * source.w * 0.35;
-            ctx.fillStyle = `rgba(255, 236, 190, ${0.75 * (1 - phase)})`;
+            ctx.fillStyle = `rgba(255, 232, 178, ${0.8 * (1 - phase)})`;
             ctx.beginPath();
-            ctx.arc(source.x + sway, y, 0.55, 0, TAU);
+            ctx.arc(source.x + sway, y, 0.55 + phase * 1.1, 0, TAU);
             ctx.fill();
           }
           break;
@@ -469,7 +517,7 @@ export class Renderer {
         ctx.strokeStyle = `rgba(255, 226, 150, ${0.35 + pulse * 0.35})`;
         ctx.lineWidth = 0.4;
         ctx.beginPath();
-        ctx.arc(drop.x, drop.y, 6 + pulse * 1.2, 0, TAU);
+        ctx.arc(drop.x, drop.y, 7 + pulse * 1.6, 0, TAU);
         ctx.stroke();
       }
     }
@@ -623,10 +671,10 @@ export class Renderer {
     const soaked = world.plane.soak;
     for (let i = 1; i < list.length; i += 1) {
       const t = i / list.length;
-      ctx.globalAlpha = t * 0.4;
+      ctx.globalAlpha = t * t * 0.42;
       ctx.fillStyle = soaked > 0.5 ? '#9fb4cf' : '#ffffff';
       ctx.beginPath();
-      ctx.arc(list[i].x, list[i].y, 0.22 + t * 0.4, 0, TAU);
+      ctx.arc(list[i].x, list[i].y, 0.12 + t * 0.28, 0, TAU);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -661,11 +709,11 @@ export class Renderer {
       ctx.globalAlpha = 0.16 * (1 - clearance / 70);
       ctx.fillStyle = '#20304a';
       ctx.beginPath();
-      ctx.ellipse(plane.x, ground - 0.3, 2.4, 0.6, 0, 0, TAU);
+      ctx.ellipse(plane.x, ground - 0.3, 3.2, 0.8, 0, 0, TAU);
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-    draw(ctx, sprite, plane.x, plane.y, 1, plane.pitch);
+    draw(ctx, sprite, plane.x, plane.y, PLANE_SCALE, plane.pitch);
     if (dive && world.status === 'flying') {
       // Speed lines off the tail while the button is held.
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';

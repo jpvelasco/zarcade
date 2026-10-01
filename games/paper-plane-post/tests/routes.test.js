@@ -84,10 +84,12 @@ test('rings and letters sit in flyable air', () => {
     }
     for (const drop of route.drops) {
       const ground = route.terrain.heightAt(drop.x);
-      assert.ok(drop.y <= ground - 6.9, `${route.id} window at ${drop.x} is on the floor`);
-      // Reachable from the lazy line without a heroic detour.
+      // A window is an upper floor of a believable building, and the plane only
+      // ever has to dip a little way off the line to reach one.
+      assert.ok(drop.y <= ground - 7.9, `${route.id} window at ${drop.x} is on the floor`);
+      assert.ok(drop.y >= ground - 34.1, `${route.id} window at ${drop.x} is on a skyscraper`);
       const off = Math.abs(drop.y - route.line.at(drop.x));
-      assert.ok(off < 26, `${route.id} window at ${drop.x} is ${off.toFixed(0)} m off the line`);
+      assert.ok(off < 24, `${route.id} window at ${drop.x} is ${off.toFixed(0)} m off the line`);
       assert.ok(drop.x < route.mailbox.x, `${route.id} window past the mailbox`);
     }
     const ids = new Set([...route.rings, ...route.drops].map((item) => item.id));

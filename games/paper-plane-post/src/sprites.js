@@ -245,8 +245,8 @@ export function bakeColumn(ppm = 10) {
   canvas.height = Math.ceil(h * ppm * 24);
   const g = canvas.getContext('2d');
   const grad = g.createLinearGradient(0, canvas.height, 0, 0);
-  grad.addColorStop(0, 'rgba(255, 216, 150, 0.5)');
-  grad.addColorStop(0.45, 'rgba(255, 232, 186, 0.26)');
+  grad.addColorStop(0, 'rgba(255, 206, 128, 0.62)');
+  grad.addColorStop(0.4, 'rgba(255, 228, 176, 0.34)');
   grad.addColorStop(1, 'rgba(255, 244, 220, 0)');
   // Bell-shaped across so the edges fade out like the field does.
   for (let i = 0; i < canvas.width; i += 1) {
@@ -272,29 +272,31 @@ export function bakeRainCloud(ppm = 9) {
 
 export function bakeCloud(seed, ppm = 7) {
   const puffs = 4 + Math.floor(hash01(seed, 3) * 3);
-  return make(2.4, 1.1, ppm * 20, (g) => {
+  return make(2.6, 1.5, ppm * 20, (g) => {
     for (let i = 0; i < puffs; i += 1) {
-      const x = 0.34 + (i / (puffs - 1)) * 1.7;
-      const r = 0.22 + hash01(seed, i) * 0.3;
-      circle(g, x, 0.74 - hash01(seed, i + 9) * 0.1, r, 'rgba(255, 255, 255, 0.92)');
+      const x = 0.46 + (i / (puffs - 1)) * 1.7;
+      const r = 0.2 + hash01(seed, i) * 0.26;
+      circle(g, x, 0.9 - hash01(seed, i + 9) * 0.12, r, 'rgba(255, 255, 255, 0.9)');
     }
-    g.globalAlpha = 0.55;
+    g.globalAlpha = 0.6;
     for (let i = 0; i < puffs; i += 1) {
-      const x = 0.38 + (i / (puffs - 1)) * 1.7;
-      circle(g, x, 0.58, 0.2 + hash01(seed, i + 4) * 0.2, '#ffffff');
+      const x = 0.5 + (i / (puffs - 1)) * 1.66;
+      circle(g, x, 0.74, 0.17 + hash01(seed, i + 4) * 0.18, '#ffffff');
     }
     g.globalAlpha = 1;
-  }, 0.5, 0.6);
+  }, 0.5, 0.62);
 }
 
 export function bakeSun(accent, ppm = 6) {
   return make(4, 4, ppm * 20, (g) => {
-    g.globalAlpha = 0.18;
-    circle(g, 2, 2, 1.9, accent);
-    g.globalAlpha = 0.3;
-    circle(g, 2, 2, 1.3, accent);
-    g.globalAlpha = 1;
-    circle(g, 2, 2, 0.78, '#fff6d8');
+    const glow = g.createRadialGradient(2, 2, 0.3, 2, 2, 2);
+    glow.addColorStop(0, 'rgba(255, 250, 224, 0.95)');
+    glow.addColorStop(0.3, 'rgba(255, 244, 206, 0.6)');
+    glow.addColorStop(0.62, `${accent}44`);
+    glow.addColorStop(1, `${accent}00`);
+    g.fillStyle = glow;
+    g.fillRect(0, 0, 4, 4);
+    circle(g, 2, 2, 0.62, '#fff8e2');
   }, 0.5, 0.5);
 }
 
@@ -303,22 +305,22 @@ export function bakeRing(taken, ppm = 22) {
   const r = 9;
   return make(r * 2 + 2.4, r * 2 + 2.4, ppm / 4, (g) => {
     const c = r + 1.2;
-    g.lineWidth = 1.5;
-    g.strokeStyle = taken ? 'rgba(255, 214, 110, 0.95)' : 'rgba(255, 255, 255, 0.78)';
+    g.lineWidth = 1;
+    g.strokeStyle = taken ? 'rgba(255, 206, 92, 0.95)' : 'rgba(255, 255, 255, 0.95)';
     g.beginPath();
     g.ellipse(c, c, r, r * 0.96, 0, 0, TAU);
     g.stroke();
-    g.lineWidth = 0.6;
-    g.strokeStyle = taken ? 'rgba(255, 246, 206, 0.95)' : 'rgba(190, 228, 255, 0.8)';
+    g.lineWidth = 0.45;
+    g.strokeStyle = taken ? 'rgba(255, 246, 206, 0.95)' : 'rgba(126, 196, 240, 0.9)';
     g.beginPath();
-    g.ellipse(c, c, r - 1.2, r * 0.96 - 1.2, 0, 0, TAU);
+    g.ellipse(c, c, r - 0.8, r * 0.96 - 0.8, 0, 0, TAU);
     g.stroke();
     // Little ribbons so the ring reads as paper, not metal.
     for (let i = 0; i < 6; i += 1) {
       const a = (i / 6) * TAU + 0.3;
       const x = c + Math.cos(a) * r;
       const y = c + Math.sin(a) * r * 0.96;
-      circle(g, x, y, 0.75, taken ? '#ffd66e' : '#eaf6ff');
+      circle(g, x, y, 0.7, taken ? '#ffd66e' : '#ffffff');
     }
   }, 0.5, 0.5);
 }
@@ -341,58 +343,152 @@ export function bakeMailbox(flag, ppm = 26) {
   }, 0.5, 1);
 }
 
+const DROP_PALETTE = {
+  house: { wall: '#f7e5c8', roof: '#d4694f', trim: '#b98f5e' },
+  hut: { wall: '#f2efe4', roof: '#4e7f9b', trim: '#9aa08f' },
+  treehouse: { wall: '#d6b184', roof: '#6aa75a', trim: '#8a6a46' },
+  boathouse: { wall: '#eef3f6', roof: '#5f8fbe', trim: '#9ab0bf' },
+  cabin: { wall: '#e8d6bd', roof: '#9fb6d2', trim: '#8a6a46' },
+};
+
+/** The lit window a letter goes through, plus a plant once it has arrived. */
+function paintWindow(g, cx, cy, taken) {
+  rrect(g, cx - 1.1, cy - 1.1, 2.2, 2.2, 0.26, taken ? '#ffe9a8' : '#fff4c8', '#9a7a4a', 0.16);
+  line(g, cx, cy - 1.1, cx, cy + 1.1, '#9a7a4a', 0.12);
+  line(g, cx - 1.1, cy, cx + 1.1, cy, '#9a7a4a', 0.12);
+  if (taken) {
+    circle(g, cx + 0.45, cy + 0.55, 0.3, '#ff8fb0');
+    circle(g, cx - 0.45, cy + 0.55, 0.26, '#8fd45c');
+  }
+}
+
 /**
- * A building with a window the letter goes through. One painter covers the
- * whole valley: the region just changes the roof, the colours and the trim.
+ * A building with a window the letter goes through. The height comes from the
+ * route, so each region has a tall shape that makes sense at thirty metres:
+ * a narrow townhouse, a lighthouse, a pine treehouse, a stilted boathouse and
+ * a timber cable-car tower.
  */
 export function bakeDrop(kind, height, taken, seed, ppm = 16) {
-  const h = Math.max(6, Math.min(26, height));
-  const w = kind === 'treehouse' ? 6.4 : 8.2;
-  const palette = {
-    house: { wall: '#f7e5c8', roof: '#d4694f', trim: '#b98f5e' },
-    hut: { wall: '#e9e2d2', roof: '#6f93a6', trim: '#8d8171' },
-    treehouse: { wall: '#d6b184', roof: '#6aa75a', trim: '#8a6a46' },
-    boathouse: { wall: '#eef3f6', roof: '#5f8fbe', trim: '#9ab0bf' },
-    cabin: { wall: '#e8d6bd', roof: '#9fb6d2', trim: '#8a6a46' },
-  }[kind] || { wall: '#f7e5c8', roof: '#d4694f', trim: '#b98f5e' };
-  return make(w + 1, h + 1.2, ppm, (g) => {
-    const bodyTop = 2.6;
-    if (kind === 'treehouse') {
-      // A trunk to the ground with the cabin up top.
-      line(g, w / 2 + 0.5, h, w / 2 + 0.5, bodyTop + 2, '#8a6a46', 1.1);
-      g.globalAlpha = 0.85;
-      for (let i = 0; i < 3; i += 1) {
-        circle(g, 1.6 + i * 1.9, h - 2 - i * 1.2, 1.5, '#4f9a4a');
+  const h = Math.max(6, Math.min(40, height));
+  const palette = DROP_PALETTE[kind] || DROP_PALETTE.house;
+  const tall = h > 19;
+  const w = (kind === 'treehouse' ? 7 : 8.2) * (tall ? 0.78 : 1);
+
+  if (kind === 'hut') {
+    // A lighthouse: tapered, banded, with a lamp room on top.
+    return make(w + 2, h + 1.4, ppm, (g) => {
+      const top = 4.6;
+      const bw = w * 0.34;
+      const tw = w * 0.2;
+      const cx = w / 2 + 1;
+      poly(g, [cx - tw, top, cx + tw, top, cx + bw, h, cx - bw, h], palette.wall, palette.trim, 0.22);
+      const bands = Math.max(1, Math.round((h - top) / 7));
+      for (let i = 0; i < bands; i += 1) {
+        const y0 = top + (h - top) * ((i + 0.45) / bands);
+        const y1 = top + (h - top) * ((i + 0.95) / bands);
+        const f = (y) => tw + (bw - tw) * ((y - top) / (h - top));
+        poly(g, [cx - f(y0), y0, cx + f(y0), y0, cx + f(y1), y1, cx - f(y1), y1], '#d9604f');
+      }
+      rrect(g, cx - tw - 0.9, top - 1, (tw + 0.9) * 2, 1, 0.3, palette.roof, shade(palette.roof, -0.3), 0.14);
+      rrect(g, cx - tw - 0.3, top - 3.6, (tw + 0.3) * 2, 2.8, 0.3, '#cfe7f4', palette.trim, 0.18);
+      poly(g, [cx - tw - 1.1, top - 3.6, cx, top - 6.1, cx + tw + 1.1, top - 3.6], palette.roof, shade(palette.roof, -0.3), 0.18);
+      paintWindow(g, cx, top - 2.2, taken);
+      g.globalAlpha = 0.5;
+      poly(g, [cx + tw, top - 3, cx + tw + 7, top - 4.6, cx + tw + 7, top - 1.4], '#fff3b0');
+      g.globalAlpha = 1;
+    }, 0.5, 1);
+  }
+
+  if (kind === 'cabin') {
+    // A timber tower with a cable-car hut on top.
+    return make(w + 2, h + 1.4, ppm, (g) => {
+      const cx = w / 2 + 1;
+      const bodyH = Math.min(5.4, h * 0.42);
+      const legTop = bodyH + 0.4;
+      const spread = w * 0.42;
+      line(g, cx - spread, h, cx - w * 0.2, legTop, '#8a6a46', 0.5);
+      line(g, cx + spread, h, cx + w * 0.2, legTop, '#8a6a46', 0.5);
+      const rungs = Math.max(1, Math.floor((h - legTop) / 4.5));
+      for (let i = 0; i < rungs; i += 1) {
+        const t0 = i / rungs;
+        const t1 = (i + 1) / rungs;
+        const lx = (t) => cx - (w * 0.2 + (spread - w * 0.2) * t);
+        const rx = (t) => cx + (w * 0.2 + (spread - w * 0.2) * t);
+        const ly = (t) => legTop + (h - legTop) * t;
+        line(g, lx(t0), ly(t0), rx(t1), ly(t1), '#9a7a52', 0.26);
+        line(g, rx(t0), ly(t0), lx(t1), ly(t1), '#9a7a52', 0.26);
+        line(g, lx(t1), ly(t1), rx(t1), ly(t1), '#8a6a46', 0.3);
+      }
+      rrect(g, cx - w * 0.34, 2.6, w * 0.68, bodyH - 2.2, 0.4, palette.wall, palette.trim, 0.22);
+      poly(g, [cx - w * 0.42, 2.8, cx, 0.5, cx + w * 0.42, 2.8], palette.roof, shade(palette.roof, -0.3), 0.2);
+      paintWindow(g, cx, 4.2, taken);
+      line(g, 0, 1.4, w + 2, 0.4, '#7a8a9a', 0.2);
+    }, 0.5, 1);
+  }
+
+  if (kind === 'treehouse') {
+    return make(w + 2, h + 1.4, ppm, (g) => {
+      const cx = w / 2 + 1;
+      line(g, cx, h, cx, 4.4, '#8a6a46', 1.1);
+      g.globalAlpha = 0.95;
+      const tiers = Math.max(2, Math.floor(h / 7));
+      for (let i = 0; i < tiers; i += 1) {
+        const ty = h - 1.6 - i * ((h - 6) / tiers);
+        const r = 2.6 - 1.2 * (i / tiers);
+        circle(g, cx - 1.6, ty, r, '#4f9a4a');
+        circle(g, cx + 1.7, ty - 0.6, r * 0.9, '#58a852');
       }
       g.globalAlpha = 1;
-    } else {
-      rrect(g, 1.1, bodyTop, w - 1.2, h - bodyTop, 0.3, palette.wall, palette.trim, 0.2);
-      for (let i = 0; i < Math.floor((h - bodyTop) / 4.5); i += 1) {
-        line(g, 1.1, bodyTop + 3.4 + i * 4.5, w - 0.1, bodyTop + 3.4 + i * 4.5, palette.trim, 0.12);
+      rrect(g, cx - w * 0.36, 2.8, w * 0.72, 3.8, 0.4, palette.wall, palette.trim, 0.2);
+      poly(g, [cx - w * 0.46, 3, cx, 0.6, cx + w * 0.46, 3], palette.roof, shade(palette.roof, -0.3), 0.2);
+      line(g, cx - w * 0.36, 6.6, cx + w * 0.36, 6.6, '#8a6a46', 0.3);
+      paintWindow(g, cx, 4.5, taken);
+    }, 0.5, 1);
+  }
+
+  if (kind === 'boathouse') {
+    return make(w + 2, h + 1.4, ppm, (g) => {
+      const cx = w / 2 + 1;
+      const bodyH = Math.min(6.4, h * 0.5);
+      for (const off of [-w * 0.3, 0, w * 0.3]) line(g, cx + off, h, cx + off, bodyH, '#a08a70', 0.4);
+      for (let i = 1; i * 5 < h - bodyH; i += 1) {
+        line(g, cx - w * 0.32, bodyH + i * 5, cx + w * 0.32, bodyH + i * 5, '#a08a70', 0.24);
+      }
+      rrect(g, cx - w * 0.4, 3.2, w * 0.8, bodyH - 2.8, 0.3, palette.wall, palette.trim, 0.22);
+      poly(g, [cx - w * 0.5, 3.4, cx, 0.6, cx + w * 0.5, 3.4], palette.roof, shade(palette.roof, -0.3), 0.2);
+      paintWindow(g, cx, 4.9, taken);
+      circle(g, cx + w * 0.42, 2.4, 0.5, '#ffe08a', '#c89a2c', 0.14);
+    }, 0.5, 1);
+  }
+
+  // A narrow townhouse with floors, shop awning and a front door.
+  return make(w + 1.4, h + 1.4, ppm, (g) => {
+    const bodyTop = 2.8;
+    const left = 0.9;
+    const width = w - 0.4;
+    const cx = left + width / 2;
+    rrect(g, left, bodyTop, width, h - bodyTop, 0.3, palette.wall, palette.trim, 0.2);
+    const floors = Math.max(1, Math.floor((h - bodyTop - 3) / 5.2));
+    for (let i = 0; i < floors; i += 1) {
+      const fy = bodyTop + 4.6 + i * 5.2;
+      if (fy > h - 1) break;
+      line(g, left, fy, left + width, fy, palette.trim, 0.12);
+      if (fy < h - 4) {
+        rrect(g, left + 0.9, fy + 1.2, 1.5, 2.2, 0.2, '#cfe3ef', palette.trim, 0.12);
+        rrect(g, left + width - 2.4, fy + 1.2, 1.5, 2.2, 0.2, '#cfe3ef', palette.trim, 0.12);
       }
     }
-    // Roof.
-    poly(g, [0.5, bodyTop + 0.2, w / 2 + 0.5, 0.4, w + 0.5, bodyTop + 0.2], palette.roof, shade(palette.roof, -0.3), 0.18);
-    if (kind === 'treehouse') {
-      rrect(g, 1.4, bodyTop, w - 1.8, 3.6, 0.3, palette.wall, palette.trim, 0.18);
+    poly(g, [left - 0.7, bodyTop + 0.2, cx, 0.4, left + width + 0.7, bodyTop + 0.2], palette.roof, shade(palette.roof, -0.3), 0.2);
+    rrect(g, left + width - 2.1, 0.2, 0.9, bodyTop, 0.2, '#b2563f', '#83382a', 0.14);
+    if (h > 13 && hash01(seed, 11) > 0.45) {
+      const ay = h - 6.6;
+      for (let i = 0; i < 5; i += 1) {
+        rrect(g, left + i * (width / 5), ay, width / 5, 1.5, 0.1, i % 2 ? '#ffffff' : palette.roof);
+      }
     }
-    if (kind === 'house' || kind === 'cabin') {
-      rrect(g, w - 2.2, 0.1, 0.9, bodyTop, 0.2, '#b2563f', '#83382a', 0.14);
-    }
-    // The lit window the letter goes through, right at the top.
-    const wx = w / 2 + 0.5;
-    const wy = bodyTop + 1.5;
-    rrect(g, wx - 1.1, wy - 1.0, 2.2, 2.0, 0.25, taken ? '#ffe9a8' : '#fff4c8', '#9a7a4a', 0.16);
-    line(g, wx, wy - 1.0, wx, wy + 1.0, '#9a7a4a', 0.12);
-    line(g, wx - 1.1, wy, wx + 1.1, wy, '#9a7a4a', 0.12);
-    if (taken) {
-      // A happy little plant appears in the window once the post arrives.
-      circle(g, wx + 0.45, wy + 0.52, 0.3, '#ff8fb0');
-      circle(g, wx - 0.45, wy + 0.52, 0.26, '#8fd45c');
-    }
-    if (hash01(seed, 5) > 0.5 && kind !== 'treehouse') {
-      line(g, 1.5, bodyTop + 0.4, w - 0.5, bodyTop + 0.4, shade(palette.roof, -0.2), 0.12);
-    }
+    rrect(g, cx - 0.9, h - 3.2, 1.8, 3.2, 0.25, shade(palette.trim, -0.2), palette.trim, 0.12);
+    circle(g, cx + 0.55, h - 1.6, 0.14, '#ffe08a');
+    paintWindow(g, cx, bodyTop + 1.6, taken);
   }, 0.5, 1);
 }
 
@@ -447,69 +543,153 @@ export function bakeHazard(kind, reach, ppm = 16) {
   }
 }
 
-/** Grass tufts, flowers, rocks: cheap foreground sprinkles. */
-export function bakeTuft(kind, seed, ppm = 20) {
-  return make(2.6, 2.2, ppm, (g) => {
-    if (kind === 'flower') {
-      line(g, 1.3, 2.1, 1.2, 0.9, '#4f9a4a', 0.12);
-      const petal = ['#ff9ec4', '#ffe08a', '#b9a6ff', '#9be8ff'][Math.floor(hash01(seed, 2) * 4)];
-      for (let i = 0; i < 5; i += 1) {
-        const a = (i / 5) * TAU;
-        circle(g, 1.2 + Math.cos(a) * 0.3, 0.8 + Math.sin(a) * 0.3, 0.24, petal);
-      }
-      circle(g, 1.2, 0.8, 0.18, '#fff3b0');
-    } else if (kind === 'rock') {
-      poly(g, [0.4, 2.1, 0.8, 1.1, 1.6, 0.9, 2.2, 2.1], '#a9b3b8', '#7d878c', 0.12);
-    } else if (kind === 'reed') {
-      for (let i = 0; i < 4; i += 1) {
-        line(g, 0.7 + i * 0.4, 2.1, 0.5 + i * 0.5, 0.5 + hash01(seed, i) * 0.6, '#6f9a52', 0.1);
-      }
-    } else {
-      for (let i = 0; i < 5; i += 1) {
-        const x = 0.4 + i * 0.45;
-        line(g, x, 2.1, x + (hash01(seed, i) - 0.5) * 0.6, 0.7 + hash01(seed, i + 7) * 0.7, '#5fa94a', 0.12);
-      }
+/**
+ * Ground sprinkles: whatever grows or sits on the valley floor. One painter,
+ * a handful of kinds, picked per region so each place looks like itself.
+ */
+export function bakeTuft(kind, seed, ppm = 18) {
+  switch (kind) {
+    case 'pine':
+    case 'pinesnow': {
+      const tall = 9 + hash01(seed, 2) * 7;
+      const snowy = kind === 'pinesnow';
+      return make(7, tall + 1, ppm, (g) => {
+        line(g, 3.5, tall, 3.5, tall * 0.5, '#6b4a2c', 0.55);
+        const tiers = 4;
+        for (let i = 0; i < tiers; i += 1) {
+          const base = tall * (0.92 - i * 0.2);
+          const apex = base - tall * 0.28;
+          const spread = 2.9 * (1 - i * 0.21);
+          poly(g, [3.5, apex, 3.5 + spread, base, 3.5 - spread, base],
+            snowy ? '#5c8f6c' : '#3f8a46', snowy ? '#43705a' : '#2c6a35', 0.16);
+          if (snowy) {
+            g.globalAlpha = 0.85;
+            poly(g, [3.5, apex, 3.5 + spread * 0.55, apex + tall * 0.11, 3.5 - spread * 0.55, apex + tall * 0.11], '#f2f8ff');
+            g.globalAlpha = 1;
+          }
+        }
+      }, 0.5, 1);
     }
-  }, 0.5, 1);
+    case 'bush':
+      return make(4, 3, ppm, (g) => {
+        circle(g, 1.3, 2.3, 0.85, '#4f9a4a');
+        circle(g, 2.6, 2.4, 0.75, '#5fb155');
+        circle(g, 1.95, 1.7, 0.8, '#69bd5c');
+      }, 0.5, 1);
+    case 'fern':
+      return make(4, 2.6, ppm, (g) => {
+        for (let i = 0; i < 5; i += 1) {
+          const a = -1.2 + i * 0.6;
+          g.beginPath();
+          g.moveTo(2, 2.5);
+          g.quadraticCurveTo(2 + Math.sin(a) * 1.1, 1.4, 2 + Math.sin(a) * 1.9, 0.5 + Math.abs(Math.sin(a)) * 0.7);
+          g.strokeStyle = '#4f9a4a';
+          g.lineWidth = 0.22;
+          g.stroke();
+        }
+      }, 0.5, 1);
+    case 'flower':
+      return make(3, 2.6, ppm, (g) => {
+        line(g, 1.5, 2.5, 1.4, 1.1, '#4f9a4a', 0.14);
+        const petal = ['#ff9ec4', '#ffe08a', '#b9a6ff', '#ffffff'][Math.floor(hash01(seed, 2) * 4)];
+        for (let i = 0; i < 5; i += 1) {
+          const a = (i / 5) * TAU;
+          circle(g, 1.4 + Math.cos(a) * 0.34, 0.95 + Math.sin(a) * 0.34, 0.26, petal);
+        }
+        circle(g, 1.4, 0.95, 0.2, '#fff3b0');
+      }, 0.5, 1);
+    case 'rock':
+      return make(4.4, 2.6, ppm, (g) => {
+        poly(g, [0.5, 2.5, 1.1, 1.1, 2.4, 0.6, 3.6, 1.5, 3.9, 2.5], '#a9b3b8', '#7d878c', 0.16);
+        poly(g, [1.4, 2.5, 2.1, 1.3, 3.0, 1.1, 3.1, 2.5], '#c3ccd0');
+      }, 0.5, 1);
+    case 'snowrock':
+      return make(5, 3, ppm, (g) => {
+        poly(g, [0.5, 2.9, 1.3, 1.1, 2.7, 0.5, 4.1, 1.6, 4.5, 2.9], '#b9c6d6', '#8e9cae', 0.16);
+        poly(g, [1.1, 1.5, 2.7, 0.5, 4.0, 1.5, 2.6, 1.9], '#f4faff');
+      }, 0.5, 1);
+    case 'reed':
+      return make(4, 3.2, ppm, (g) => {
+        for (let i = 0; i < 5; i += 1) {
+          const x = 0.8 + i * 0.6;
+          line(g, x, 3.1, x + (hash01(seed, i) - 0.5) * 0.9, 0.6 + hash01(seed, i + 7) * 1.1, '#6f9a52', 0.16);
+        }
+        circle(g, 1.4, 0.8, 0.22, '#b88a4e');
+        circle(g, 3.1, 1.0, 0.2, '#b88a4e');
+      }, 0.5, 1);
+    case 'fence':
+      return make(7, 2.4, ppm, (g) => {
+        line(g, 0.4, 1.3, 6.6, 1.3, '#cbb28c', 0.26);
+        line(g, 0.4, 1.9, 6.6, 1.9, '#cbb28c', 0.26);
+        for (let i = 0; i < 4; i += 1) line(g, 0.8 + i * 1.8, 2.3, 0.8 + i * 1.8, 0.8, '#b89a70', 0.3);
+      }, 0.5, 1);
+    default:
+      return make(3.4, 2.6, ppm, (g) => {
+        for (let i = 0; i < 5; i += 1) {
+          const x = 0.6 + i * 0.55;
+          line(g, x, 2.5, x + (hash01(seed, i) - 0.5) * 0.8, 0.8 + hash01(seed, i + 7) * 0.9, '#5fa94a', 0.16);
+        }
+      }, 0.5, 1);
+  }
 }
 
-/** A tiled band of far hills, repeated across the sky. */
+/** What grows on the floor of each region, with how often each kind turns up. */
+export const SCENERY = {
+  town: [['grass', 0.3], ['flower', 0.24], ['bush', 0.18], ['fence', 0.14], ['pine', 0.09], ['rock', 0.05]],
+  cliffs: [['grass', 0.38], ['rock', 0.26], ['bush', 0.16], ['flower', 0.12], ['pine', 0.08]],
+  forest: [['pine', 0.44], ['fern', 0.2], ['bush', 0.18], ['grass', 0.12], ['flower', 0.06]],
+  lake: [['reed', 0.34], ['grass', 0.26], ['bush', 0.18], ['flower', 0.14], ['pine', 0.08]],
+  peaks: [['snowrock', 0.34], ['pinesnow', 0.3], ['grass', 0.22], ['rock', 0.14]],
+};
+
+/**
+ * A tiled band of far hills. The ridge is a sum of sines at whole-number
+ * frequencies, so it rolls smoothly and the tile repeats without a seam.
+ */
 export function bakeHills(color, seed, { width = 1024, height = 170, jag = 0.5, snow = null } = {}) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const g = canvas.getContext('2d');
-  const points = [];
-  const steps = 24;
-  for (let i = 0; i <= steps; i += 1) {
-    const t = i / steps;
-    // Matching ends keep the tile seamless.
-    const wobble = Math.sin(t * TAU) * 0.5 + 0.5;
-    const n = hash01(seed, i % steps) * 0.6 + hash01(seed + 31, (i * 7) % steps) * 0.4;
-    points.push([t * width, height * (0.95 - (0.25 + n * jag) * (0.5 + wobble * 0.5))]);
-  }
+  const waves = [1, 2, 3, 5, 8].map((freq, i) => ({
+    freq,
+    amp: 1 / (1 + i * 1.15),
+    phase: hash01(seed, i) * TAU,
+  }));
+  const ridge = (t) => {
+    let v = 0;
+    let total = 0;
+    for (const wave of waves) {
+      v += Math.sin(t * TAU * wave.freq + wave.phase) * wave.amp;
+      total += wave.amp;
+    }
+    return v / total;               // -1 .. 1
+  };
+  const yAt = (t) => height * (0.99 - (0.3 + ridge(t) * 0.26 * (0.5 + jag)) * 0.92);
+
   g.beginPath();
   g.moveTo(0, height);
-  for (const [x, y] of points) g.lineTo(x, y);
+  for (let x = 0; x <= width; x += 3) g.lineTo(x, yAt(x / width));
   g.lineTo(width, height);
   g.closePath();
   g.fillStyle = color;
   g.fill();
+
   if (snow) {
     g.save();
     g.clip();
     g.fillStyle = snow;
-    for (const [x, y] of points) {
-      g.beginPath();
-      g.moveTo(x - 36, y + 34);
-      g.lineTo(x, y - 2);
-      g.lineTo(x + 36, y + 34);
-      g.closePath();
-      g.fill();
-    }
+    // Caps on the high ground only, following the ridge.
+    const cap = height * 0.46;
+    g.beginPath();
+    g.moveTo(0, cap);
+    for (let x = 0; x <= width; x += 3) g.lineTo(x, yAt(x / width));
+    g.lineTo(width, cap);
+    g.closePath();
+    g.fill();
     g.restore();
   }
-  return { img: canvas, w: width, h: height };
+  return { img: canvas, w: width, h: height, color };
 }
 
 export function bakeSky(colors, width = 8, height = 256) {
@@ -533,4 +713,51 @@ export function bakeLetter(ppm = 30) {
     poly(g, [0.1, 0.16, 1.1, 1.0, 2.1, 0.16], null, '#d9b98a', 0.1);
     rrect(g, 1.3, 0.28, 0.6, 0.42, 0.08, '#ff9ec4');
   }, 0.5, 0.5);
+}
+
+/**
+ * What a warm column rises from: a chimney pot, a campfire, sun-baked rock or
+ * a warm shoal. Drawn at the base of every `up` source so the lift has a
+ * visible cause.
+ */
+export function bakeVent(kind, ppm = 20) {
+  switch (kind) {
+    case 'campfire':
+      return make(7, 4.2, ppm, (g) => {
+        for (let i = 0; i < 4; i += 1) {
+          line(g, 1.6 + i * 0.5, 3.9, 4.4 - i * 0.5, 2.6, '#7d5a38', 0.42);
+        }
+        poly(g, [3.5, 0.5, 4.9, 3.1, 2.1, 3.1], '#ff9a3c', '#e0631c', 0.18);
+        poly(g, [3.5, 1.5, 4.2, 3.1, 2.8, 3.1], '#ffe08a');
+        circle(g, 1.1, 3.9, 0.45, '#9aa7ad');
+        circle(g, 5.9, 3.9, 0.45, '#9aa7ad');
+      }, 0.5, 1);
+    case 'warmrock':
+      return make(10, 4.6, ppm, (g) => {
+        poly(g, [0.6, 4.4, 2.2, 1.4, 5.4, 0.7, 8.2, 2.2, 9.4, 4.4], '#b8a894', '#8c7b68', 0.22);
+        poly(g, [2.4, 4.4, 3.6, 2.2, 5.6, 1.6, 6.8, 3.0], '#d4c6b0');
+        g.globalAlpha = 0.55;
+        poly(g, [4.4, 1.3, 6.6, 1.9, 5.2, 2.6], '#fff2c2');
+        g.globalAlpha = 1;
+      }, 0.5, 1);
+    case 'shoal':
+      return make(12, 2.6, ppm, (g) => {
+        g.globalAlpha = 0.7;
+        for (let i = 0; i < 3; i += 1) {
+          g.beginPath();
+          g.ellipse(3 + i * 3, 1.8 - i * 0.2, 2.4, 0.6, 0, 0, TAU);
+          g.fillStyle = '#e8dcae';
+          g.fill();
+        }
+        g.globalAlpha = 1;
+        for (let i = 0; i < 4; i += 1) line(g, 2 + i * 2.6, 2.4, 2.4 + i * 2.6, 0.6, '#6f9a52', 0.16);
+      }, 0.5, 1);
+    default:   // a chimney pot on a little roof
+      return make(7, 7.4, ppm, (g) => {
+        poly(g, [0.3, 7.2, 3.5, 3.2, 6.7, 7.2], '#d4694f', '#a24a37', 0.22);
+        rrect(g, 4.2, 1.1, 1.6, 3.4, 0.3, '#b2563f', '#83382a', 0.2);
+        rrect(g, 4.0, 0.7, 2, 0.8, 0.26, '#8c4030');
+        rrect(g, 1.2, 5.1, 1.5, 1.6, 0.25, '#fff4c8', '#9a7a4a', 0.16);
+      }, 0.5, 1);
+  }
 }
