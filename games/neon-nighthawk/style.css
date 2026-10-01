@@ -239,7 +239,12 @@ button { color: inherit; }
   padding: 22px;
   background: linear-gradient(90deg, rgba(3, 7, 13, .68), rgba(3, 7, 13, .16) 66%, rgba(3, 7, 13, .52));
   animation: fade-in .23s ease-out;
+  /* A card taller than a phone held sideways scrolls instead of losing its
+     buttons off the bottom; auto margins centre it only when it fits. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
+.overlay > .card { margin: auto; }
 
 .title-screen {
   place-items: end start;
@@ -495,7 +500,7 @@ button { color: inherit; }
 }
 
 .touch-actions { display: grid; grid-template-columns: repeat(2, 70px); gap: 8px; pointer-events: auto; }
-.touch-button { min-height: 51px; border: 1px solid rgba(215, 241, 255, .25); border-radius: 50%; background: rgba(7, 17, 29, .62); color: #dff9ff; font-size: 9px; font-weight: 800; letter-spacing: .07em; touch-action: none; }
+.touch-button { min-height: 51px; border: 1px solid rgba(215, 241, 255, .25); border-radius: 50%; background: rgba(7, 17, 29, .62); color: #dff9ff; font-size: 11px; font-weight: 800; letter-spacing: .06em; touch-action: none; }
 .touch-button.dash { border-color: var(--accent); color: var(--accent); }
 .touch-button.pulse { color: #75f6c7; }
 .touch-button.echo { color: #c783ff; }
@@ -747,3 +752,50 @@ body.playing .arcade-link { display: none; }
 body.lite .card,
 body.lite .meter-stack,
 body.lite .arcade-link { backdrop-filter: none; }
+
+/* Phones held sideways: tighter cards so story and result screens show their
+   buttons without scrolling. */
+@media (max-height: 500px) {
+  .overlay { padding: 10px max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left)); }
+  .touch:not(.hidden) ~ .overlay { padding-bottom: 10px; }
+  .card { width: min(640px, 100%); padding: 14px 22px; }
+  .card h2 { font-size: 24px; }
+  .dialogue { gap: 6px; margin: 8px 0 10px; }
+  .dialogue .line p { padding: 6px 11px; font-size: 13.5px; line-height: 1.35; }
+  .dialogue .face { width: 30px; height: 30px; font-size: 14px; }
+  .district-list { gap: 6px; margin: 10px 0 12px; }
+  .district { padding: 6px 12px 6px 8px; }
+  .district-number { width: 36px; height: 36px; }
+  .result-card .row { margin-top: 10px; }
+  .result-stars { font-size: 30px; }
+  .credits { margin: 4px 0 6px !important; font-size: 26px; }
+  .result-lines { grid-template-columns: 1fr 1fr; column-gap: 22px; gap: 0 22px; }
+  .result-line { padding: 4px 0; }
+  .garage-card { max-height: none; overflow: visible; }
+  .upgrade-list { grid-template-columns: 1fr 1fr; margin: 10px 0 14px; }
+  .upgrade { padding: 8px 10px; }
+}
+
+/* Fingers need bigger targets than a mouse pointer. Touch players read
+   ability readiness off the buttons themselves, not keyboard hints. */
+@media (pointer: coarse) {
+  .button { min-height: 44px; font-size: 13px; }
+  .icon-button { width: 44px; height: 44px; font-size: 18px; }
+  .upgrade button, .paint { min-height: 44px; font-size: 12px; }
+  .ability-row { display: none; }
+  .touch-button[data-hold='dash'], .touch-button[data-hold='pulse'], .touch-button[data-hold='echo'] { opacity: .5; transition: opacity .2s; }
+  .touch-button.ready { opacity: 1; }
+}
+
+/* Phones held sideways: small meters and minimap tucked under the pause
+   button, clear of the action buttons and the middle of the street. */
+@media (pointer: coarse) and (max-height: 500px) {
+  .hud { padding: 10px max(14px, env(safe-area-inset-right)) 10px max(14px, env(safe-area-inset-left)); }
+  .objective { top: 58px; max-width: 46vw; }
+  .objective strong { font-size: 14px; }
+  .hud-bottom { top: 60px; bottom: auto; right: max(14px, env(safe-area-inset-right)); align-items: start; gap: 8px; }
+  .meter-stack { width: 148px; gap: 5px; padding: 8px; }
+  .meter-row { grid-template-columns: 44px 1fr 30px; font-size: 8px; }
+  #minimap { width: 84px; height: 84px; }
+  .comms { left: 160px; right: 180px; bottom: 12px; max-width: none; }
+}

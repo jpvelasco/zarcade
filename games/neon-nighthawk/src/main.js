@@ -602,6 +602,9 @@ function updateHud() {
   setClass('ab-dash', 'ready', player.charge >= world.stats.dashCost);
   setClass('ab-pulse', 'ready', player.charge >= 28);
   setClass('ab-echo', 'ready', player.charge >= 43 && player.echoCooldown <= 0);
+  setClass('tb-dash', 'ready', player.charge >= world.stats.dashCost);
+  setClass('tb-pulse', 'ready', player.charge >= 28);
+  setClass('tb-echo', 'ready', player.charge >= 43 && player.echoCooldown <= 0);
   setClass('scan-warning', 'hidden', player.scan < 0.13);
   setStyle('scan-warning', 'opacity', clamp(player.scan * 1.35, 0.25, 1).toFixed(2));
   setText('combo', player.combo > 1 ? `${player.combo}× STYLE CHAIN` : '');
