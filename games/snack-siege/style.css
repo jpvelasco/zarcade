@@ -433,6 +433,9 @@ code { background: rgba(74, 29, 46, 0.08); padding: 2px 6px; border-radius: 6px;
   .btn { font-size: 15px; padding: 8px 12px; }
   .btn.big { font-size: 21px; min-height: 56px; }
   .chip { display: none; }
+  .map-head h2 { font-size: 22px; }
+  .world-tab { padding: 6px 10px; font-size: 13px; }
+  .world-tabs { gap: 6px; }
   .score-box { min-width: 100px; padding: 3px 10px 5px; }
   .hud-score { font-size: 20px; }
   .level-node { width: 44px; height: 44px; font-size: 16px; border-width: 3px; }

@@ -356,7 +356,7 @@ export class Renderer {
   }
 
   queueSlot(i, count = 3) {
-    const gap = Math.min(1.0, 4.2 / Math.max(1, count - 1));
+    const gap = Math.min(1.0, 3.2 / Math.max(1, count - 1));
     return { x: SLING.x - 1.25 - i * gap, y: 0.45 };
   }
 
