@@ -16,11 +16,16 @@ import {
   upgradeCost,
   writeSave,
 } from './progress.js';
+import { FrameStats, LONG_FRAME_MS, STALL_MS, degraded } from './perf.js';
 import { Renderer } from './render.js';
 import { CHAPTERS, SPEAKERS } from './story.js';
 import { World } from './world.js';
 
 const STORY_SEED = 9417;
+// Telemetry is loaded by index.html before this module. If it failed to load,
+// the game still runs, it just logs nothing.
+const telemetry = window.Telemetry || null;
+const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
 const $ = (selector) => document.querySelector(selector);
 const screens = [...document.querySelectorAll('.overlay')];
 const scene = $('#scene');
@@ -189,6 +194,7 @@ function fillDialogue(parent, lines) {
 
 function startChapter(chapter, job = 0) {
   audio.unlock();
+  log.event('chapter.start', { chapter: chapter + 1, job: job + 1 });
   state.chapter = chapter;
   const seed = seedFromCode($('#shift-code').value || query.get('seed'));
   makeWorld(seed, chapter, { job });
@@ -236,6 +242,8 @@ function showBriefing() {
 
 function launchContract() {
   audio.unlock();
+  const contract = state.world.contract;
+  log.event('job.start', { chapter: contract.chapter + 1, job: contract.job + 1, kind: contract.kind, 'time.limit': contract.timeLimit });
   state.padLatch = true;
   state.world.startContract();
   state.paused = false;
@@ -248,12 +256,14 @@ function launchContract() {
 }
 
 function showPlayUi() {
+  document.body.classList.add('playing');
   hud.classList.remove('hidden');
   if (matchMedia('(pointer: coarse)').matches) touch.classList.remove('hidden');
   $('#hud-scans').classList.toggle('hidden', !state.world.contract.type.scanLimit);
 }
 
 function hidePlayUi() {
+  document.body.classList.remove('playing');
   hud.classList.add('hidden');
   touch.classList.add('hidden');
   comms.classList.remove('show');
@@ -300,6 +310,7 @@ function updateGarage() {
     button.textContent = cost === null ? 'MAXED' : `${cost} CR`;
     button.addEventListener('click', () => {
       if (!buyUpgrade(state.save, key)) return;
+      log.event('garage.upgrade', { upgrade: key, level: state.save.upgrades[key] });
       writeSave(storage, state.save);
       state.world.setStats(statsFor(state.save.upgrades));
       updateGarage();
@@ -346,6 +357,12 @@ const RESULT_TITLES = ['Delivered!', 'Nice ride!', 'Superstar courier!'];
 function showDebrief() {
   const result = state.world.currentResult;
   if (!result) return;
+  if (!result.recorded) {
+    log.event('job.complete', {
+      chapter: result.chapter + 1, job: result.job + 1, stars: result.stars, sparks: result.sparks,
+      'sparks.total': result.sparksTotal, integrity: result.integrity, 'time.left': Math.round(result.contract.timeRemaining),
+    });
+  }
   recordResult();
   hidePlayUi();
   $('#result-title').textContent = RESULT_TITLES[result.stars - 1];
@@ -379,6 +396,7 @@ function showDebrief() {
 
 function showFailure() {
   hidePlayUi();
+  log.event('job.fail', { chapter: state.world.chapter + 1, job: state.world.contractIndex + 1, reason: state.world.failure });
   $('#failure-title').textContent = ['So close!', 'Oof! Almost!', 'Shake it off!'][state.world.contractIndex % 3];
   $('#failure-copy').textContent = state.world.failure || 'Mara will find another window.';
   showScreen('screen-failed');
@@ -387,6 +405,7 @@ function showFailure() {
 function showComplete() {
   hidePlayUi();
   const world = state.world;
+  log.event('chapter.complete', { chapter: world.chapter + 1, credits: world.totalCredits });
   const chapter = world.chapter;
   recordChapter(state.save, chapter);
   writeSave(storage, state.save);
@@ -636,8 +655,64 @@ function revealCursor() {
   }
 }
 
+// Frame timing for telemetry: a summary every 10 seconds when play is
+// struggling, and a warning for any single frame long enough to feel stuck.
+const frameStats = new FrameStats();
+let statsAt = performance.now();
+let lastLongFrameLog = 0;
+
+function worldSnapshot() {
+  const world = state.world;
+  return {
+    screen: state.screen || 'play',
+    status: world.status,
+    chapter: world.chapter + 1,
+    job: world.contractIndex + 1,
+    'lit.blocks': world.lit.size,
+    patrols: world.patrols.length,
+    sparks: world.contract.sparks.length,
+    attract: state.attract,
+  };
+}
+
+function trackFrame(now, elapsed) {
+  // Hidden tabs pause animation frames; that gap is not a stall.
+  if (document.visibilityState !== 'visible') return;
+  frameStats.add(elapsed);
+  if (elapsed >= LONG_FRAME_MS && now - lastLongFrameLog > 5000) {
+    lastLongFrameLog = now;
+    log.warn('frame.long', { 'frame.ms': Math.round(elapsed), ...worldSnapshot() });
+  }
+  if (now - statsAt >= 10000) {
+    statsAt = now;
+    const summary = frameStats.take();
+    if (degraded(summary)) log.warn('perf.degraded', { ...summary, ...worldSnapshot() });
+  }
+}
+
+// A watchdog outside the frame loop. If frames stop arriving while the page
+// is visible (an endless loop, a stuck GPU), it records how long the freeze
+// lasted as soon as the main thread is free again.
+let lastFrameAt = performance.now();
+let stallReported = false;
+setInterval(() => {
+  const gap = performance.now() - lastFrameAt;
+  if (document.visibilityState === 'visible' && gap > STALL_MS && !stallReported && !telemetry?.crashed) {
+    stallReported = true;
+    log.error('frame.stall', { 'stall.ms': Math.round(gap), ...worldSnapshot() });
+  }
+}, 1000);
+document.addEventListener('visibilitychange', () => { lastFrameAt = performance.now(); });
+
 function frame(now) {
-  const dt = Math.min(0.035, Math.max(0, (now - state.lastFrame) / 1000));
+  const elapsed = now - state.lastFrame;
+  if (stallReported) {
+    log.warn('frame.resumed', { 'stall.ms': Math.round(now - lastFrameAt) });
+    stallReported = false;
+  }
+  lastFrameAt = now;
+  trackFrame(now, elapsed);
+  const dt = Math.min(0.035, Math.max(0, elapsed / 1000));
   state.lastFrame = now;
   if (state.attract) {
     if (state.world.active) state.world.step(dt, aiInput(state.world));
@@ -654,8 +729,12 @@ function frame(now) {
   renderer.draw(state.world, { attract: state.attract, now });
   if (now > state.toastUntil) toast.classList.remove('show');
   if (now > state.commsUntil) comms.classList.remove('show');
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
+
+// A crash inside a frame shows the crash screen (with a report to copy)
+// instead of leaving a frozen picture.
+const loop = telemetry ? telemetry.guard(frame, 'neon-nighthawk.frame') : frame;
 
 // ------------------------------------------------------------- buttons
 
@@ -785,4 +864,5 @@ showTitle();
 if (query.has('chapter')) {
   startChapter(clamp(Number(query.get('chapter')) - 1 || 0, 0, CHAPTERS.length - 1), clamp(Number(query.get('job')) - 1 || 0, 0, 2));
 }
-requestAnimationFrame(frame);
+log.event('game.ready', { stars: state.save.story.stars.flat().reduce((a, b) => a + b, 0), unlocked: state.save.story.unlocked + 1 });
+requestAnimationFrame(loop);

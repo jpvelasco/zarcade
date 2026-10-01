@@ -4,6 +4,7 @@
   "description": "A collection of browser games, plus an arcade page to pick between them.",
   "scripts": {
     "test": "node --test 'arcade/tests/*.test.js' 'games/*/tests/*.test.js'",
-    "serve": "node scripts/serve.mjs"
+    "serve": "node scripts/serve.mjs",
+    "sync-telemetry": "node scripts/sync-telemetry.mjs"
   }
 }
