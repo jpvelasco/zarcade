@@ -351,17 +351,21 @@ export function itemSilhouette(id) {
 }
 
 // Bake sprites a few at a time (from an idle callback or the title screen)
-// so no single frame stalls. Returns true when everything is ready.
+// so no single frame stalls: both wave frames, then museum silhouettes.
+// Returns true when everything is ready.
 let warmIndex = 0;
 export function warmSprites(budgetMs = 6) {
   const t0 = performance.now();
-  while (warmIndex < ITEMS.length * 2 && performance.now() - t0 < budgetMs) {
-    const it = ITEMS[warmIndex >> 1];
-    const f = warmIndex & 1;
-    if (!f || it.waves) itemSprite(it.id, f);
+  const n = ITEMS.length;
+  while (warmIndex < n * 3 && performance.now() - t0 < budgetMs) {
+    if (warmIndex < n * 2) {
+      const it = ITEMS[warmIndex >> 1];
+      const f = warmIndex & 1;
+      if (!f || it.waves) itemSprite(it.id, f);
+    } else itemSilhouette(ITEMS[warmIndex - n * 2].id);
     warmIndex++;
   }
-  return warmIndex >= ITEMS.length * 2;
+  return warmIndex >= n * 3;
 }
 
 // ------------------------------------------------------------ ball skins

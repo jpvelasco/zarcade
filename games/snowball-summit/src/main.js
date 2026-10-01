@@ -592,6 +592,8 @@ function frame(now) {
 const loop = telemetry ? telemetry.guard(frame, 'snowball-summit.frame') : frame;
 
 if (location.protocol !== 'file:') {
+  // Pay the first-canvas cost while loading, before the title paints.
+  itemSprite('pinecone'); skinTexture(save.skin); ballShade(); hatSprite(save.hat);
   log.event('game.ready', { stars: totalStars(save), museum: museumCount(save), 'endless.best': save.endless.dist, reduced });
   const sl = params.get('slope');
   const idx = SLOPES.findIndex((s) => s.id === sl);
