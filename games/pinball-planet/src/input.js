@@ -73,8 +73,13 @@ export class Input {
       const t = this.touches.get(e.pointerId);
       if (!t) return;
       if (e.pointerType !== 'mouse') {
-        const n = flickNudge(t, e.clientX, e.clientY, performance.now());
-        if (n) this.nudgeQueued = n;
+        // One nudge per touch: wiggling a thumb that's holding a flipper must
+        // not stack nudges into a tilt. A deliberate flick still works.
+        const n = t.nudged ? 0 : flickNudge(t, e.clientX, e.clientY, performance.now());
+        if (n) {
+          t.nudged = true;
+          this.nudgeQueued = n;
+        }
       }
       if (t.kind === 'flip') return;
       const dy = e.clientY - t.y0;
