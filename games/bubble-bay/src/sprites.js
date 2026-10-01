@@ -196,8 +196,8 @@ function stoneBubble(ctx, r) {
 
 function iceOverlay(ctx, r, hp) {
   const g = ctx.createLinearGradient(-r, -r, r, r);
-  g.addColorStop(0, 'rgba(235, 252, 255, 0.78)');
-  g.addColorStop(1, 'rgba(150, 215, 255, 0.55)');
+  g.addColorStop(0, 'rgba(235, 252, 255, 0.6)');
+  g.addColorStop(1, 'rgba(150, 215, 255, 0.35)');
   ctx.fillStyle = g;
   ctx.beginPath();
   // a faceted block of ice
@@ -336,37 +336,35 @@ function anchorIcon(ctx, r) {
 export function drawOtterHead(ctx, look, { silhouette = false, happy = false } = {}) {
   const f = silhouette ? { fur: '#20344d', light: '#20344d', dark: '#20344d' } : look.fur;
   const ink = silhouette ? '#20344d' : '#2a1a10';
-  // ears
+  // small round ears, low on the sides
   for (const s of [-1, 1]) {
     ctx.fillStyle = f.dark;
     ctx.beginPath();
-    ctx.arc(s * 0.62, -0.52, 0.22, 0, Math.PI * 2);
+    ctx.arc(s * 0.8, -0.3, 0.17, 0, Math.PI * 2);
     ctx.fill();
-    if (!silhouette) {
-      ctx.fillStyle = f.light;
-      ctx.beginPath();
-      ctx.arc(s * 0.62, -0.52, 0.11, 0, Math.PI * 2);
-      ctx.fill();
-    }
   }
+  // a wide, flat otter head
   ctx.fillStyle = f.fur;
   ctx.beginPath();
-  ctx.ellipse(0, 0, 0.84, 0.74, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 0, 0.9, 0.7, 0, 0, Math.PI * 2);
   ctx.fill();
   if (!silhouette) {
+    // pale face mask: brows, cheeks and a big muzzle
     ctx.fillStyle = f.light;
     ctx.beginPath();
-    ctx.ellipse(0, 0.24, 0.52, 0.36, 0, 0, Math.PI * 2);
+    ctx.ellipse(-0.36, 0.22, 0.4, 0.34, 0.3, 0, Math.PI * 2);
+    ctx.ellipse(0.36, 0.22, 0.4, 0.34, -0.3, 0, Math.PI * 2);
+    ctx.ellipse(0, 0.36, 0.42, 0.3, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(-0.24, -0.16, 0.2, 0.15, 0, 0, Math.PI * 2);
-    ctx.ellipse(0.24, -0.16, 0.2, 0.15, 0, 0, Math.PI * 2);
+    ctx.ellipse(-0.3, -0.3, 0.16, 0.08, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(0.3, -0.3, 0.16, 0.08, 0.2, 0, Math.PI * 2);
     ctx.fill();
     // cheeks
-    ctx.fillStyle = 'rgba(255, 120, 140, 0.38)';
+    ctx.fillStyle = 'rgba(255, 120, 140, 0.4)';
     ctx.beginPath();
-    ctx.ellipse(-0.52, 0.2, 0.14, 0.09, 0, 0, Math.PI * 2);
-    ctx.ellipse(0.52, 0.2, 0.14, 0.09, 0, 0, Math.PI * 2);
+    ctx.ellipse(-0.6, 0.18, 0.13, 0.08, 0, 0, Math.PI * 2);
+    ctx.ellipse(0.6, 0.18, 0.13, 0.08, 0, 0, Math.PI * 2);
     ctx.fill();
     // eyes
     ctx.fillStyle = ink;
@@ -375,43 +373,48 @@ export function drawOtterHead(ctx, look, { silhouette = false, happy = false } =
       ctx.lineWidth = 0.09;
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.arc(-0.27, -0.1, 0.1, Math.PI * 1.1, Math.PI * 1.9);
-      ctx.moveTo(0.37, -0.1);
-      ctx.arc(0.27, -0.1, 0.1, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.arc(-0.3, -0.08, 0.1, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.moveTo(0.4, -0.08);
+      ctx.arc(0.3, -0.08, 0.1, Math.PI * 1.1, Math.PI * 1.9);
       ctx.stroke();
     } else {
       ctx.beginPath();
-      ctx.arc(-0.27, -0.12, 0.11, 0, Math.PI * 2);
-      ctx.arc(0.27, -0.12, 0.11, 0, Math.PI * 2);
+      ctx.arc(-0.3, -0.1, 0.105, 0, Math.PI * 2);
+      ctx.arc(0.3, -0.1, 0.105, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(-0.24, -0.16, 0.04, 0, Math.PI * 2);
-      ctx.arc(0.3, -0.16, 0.04, 0, Math.PI * 2);
+      ctx.arc(-0.27, -0.14, 0.038, 0, Math.PI * 2);
+      ctx.arc(0.33, -0.14, 0.038, 0, Math.PI * 2);
       ctx.fill();
     }
-    // nose and mouth
+    // a big nose and a little mouth
     ctx.fillStyle = ink;
     ctx.beginPath();
-    ctx.ellipse(0, 0.1, 0.13, 0.09, 0, 0, Math.PI * 2);
+    ctx.moveTo(-0.17, 0.1);
+    ctx.quadraticCurveTo(0, 0.04, 0.17, 0.1);
+    ctx.quadraticCurveTo(0.12, 0.25, 0, 0.27);
+    ctx.quadraticCurveTo(-0.12, 0.25, -0.17, 0.1);
     ctx.fill();
     ctx.strokeStyle = ink;
-    ctx.lineWidth = 0.055;
+    ctx.lineWidth = 0.05;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(0, 0.18);
-    ctx.lineTo(0, 0.26);
-    ctx.arc(-0.09, 0.26, 0.09, 0, Math.PI * 0.9);
-    ctx.moveTo(0, 0.26);
-    ctx.arc(0.09, 0.26, 0.09, Math.PI, Math.PI * 0.1, true);
+    ctx.moveTo(0, 0.27);
+    ctx.lineTo(0, 0.34);
+    ctx.arc(-0.08, 0.34, 0.08, 0, Math.PI * 0.9);
+    ctx.moveTo(0, 0.34);
+    ctx.arc(0.08, 0.34, 0.08, Math.PI, Math.PI * 0.1, true);
     ctx.stroke();
-    // whisker dots
-    ctx.fillStyle = 'rgba(42, 26, 16, 0.45)';
-    for (const [x, y] of [[-0.3, 0.22], [-0.36, 0.3], [0.3, 0.22], [0.36, 0.3]]) {
-      ctx.beginPath();
-      ctx.arc(x, y, 0.025, 0, Math.PI * 2);
-      ctx.fill();
+    // whiskers
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.lineWidth = 0.03;
+    ctx.beginPath();
+    for (const s of [-1, 1]) {
+      ctx.moveTo(s * 0.3, 0.3); ctx.lineTo(s * 0.72, 0.24);
+      ctx.moveTo(s * 0.3, 0.36); ctx.lineTo(s * 0.7, 0.4);
     }
+    ctx.stroke();
   }
   drawAccessory(ctx, look.accessory, silhouette);
 }
@@ -421,8 +424,8 @@ function drawAccessory(ctx, kind, silhouette) {
   ctx.save();
   switch (kind) {
     case 'bow':
-      ctx.translate(0.5, -0.66);
-      ctx.rotate(0.3);
+      ctx.translate(0.62, -0.52);
+      ctx.rotate(0.4);
       ctx.fillStyle = c('#ff6fae');
       ctx.beginPath();
       ctx.moveTo(0, 0);
@@ -442,17 +445,17 @@ function drawAccessory(ctx, kind, silhouette) {
     case 'sailor':
       ctx.fillStyle = c('#ffffff');
       ctx.beginPath();
-      ctx.ellipse(0, -0.7, 0.5, 0.14, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, -0.6, 0.5, 0.14, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(-0.36, -0.72);
-      ctx.quadraticCurveTo(0, -1.15, 0.36, -0.72);
+      ctx.moveTo(-0.36, -0.62);
+      ctx.quadraticCurveTo(0, -1.05, 0.36, -0.62);
       ctx.fill();
       ctx.fillStyle = c('#2f6fd6');
-      ctx.fillRect(-0.36, -0.82, 0.72, 0.08);
+      ctx.fillRect(-0.36, -0.72, 0.72, 0.08);
       break;
     case 'flower':
-      ctx.translate(-0.56, -0.62);
+      ctx.translate(-0.62, -0.5);
       ctx.fillStyle = c('#ffe14d');
       for (let k = 0; k < 5; k++) {
         const a = (k * Math.PI * 2) / 5;
@@ -466,7 +469,7 @@ function drawAccessory(ctx, kind, silhouette) {
       ctx.fill();
       break;
     case 'starfish':
-      ctx.translate(0.1, -0.78);
+      ctx.translate(0.15, -0.66);
       ctx.rotate(-0.2);
       ctx.fillStyle = c('#ff8f4a');
       glyphPath(ctx, 'star', 0.24);
@@ -476,24 +479,24 @@ function drawAccessory(ctx, kind, silhouette) {
       ctx.strokeStyle = c('#2b4b7a');
       ctx.lineWidth = 0.06;
       ctx.beginPath();
-      ctx.arc(-0.27, -0.12, 0.17, 0, Math.PI * 2);
-      ctx.moveTo(0.44, -0.12);
-      ctx.arc(0.27, -0.12, 0.17, 0, Math.PI * 2);
-      ctx.moveTo(-0.1, -0.14);
-      ctx.lineTo(0.1, -0.14);
+      ctx.arc(-0.3, -0.1, 0.17, 0, Math.PI * 2);
+      ctx.moveTo(0.47, -0.1);
+      ctx.arc(0.3, -0.1, 0.17, 0, Math.PI * 2);
+      ctx.moveTo(-0.13, -0.12);
+      ctx.lineTo(0.13, -0.12);
       ctx.stroke();
       break;
     case 'beanie':
       ctx.fillStyle = c('#ff5d5d');
       ctx.beginPath();
-      ctx.moveTo(-0.62, -0.5);
-      ctx.quadraticCurveTo(0, -1.25, 0.62, -0.5);
+      ctx.moveTo(-0.66, -0.42);
+      ctx.quadraticCurveTo(0, -1.15, 0.66, -0.42);
       ctx.closePath();
       ctx.fill();
       ctx.fillStyle = c('#ffffff');
-      ctx.fillRect(-0.64, -0.6, 1.28, 0.14);
+      ctx.fillRect(-0.68, -0.52, 1.36, 0.14);
       ctx.beginPath();
-      ctx.arc(0, -1.0, 0.11, 0, Math.PI * 2);
+      ctx.arc(0, -0.92, 0.11, 0, Math.PI * 2);
       ctx.fill();
       break;
     default:
@@ -607,8 +610,8 @@ export class Sprites {
     return this.bake(`o${id}`, (ctx, r) => {
       glassBubble(ctx, r, 'rgba(150, 230, 255, 0.3)');
       ctx.save();
-      ctx.translate(0, r * 0.08);
-      ctx.scale(r * 0.7, r * 0.7);
+      ctx.translate(0, r * 0.06);
+      ctx.scale(r * 0.8, r * 0.8);
       drawOtterHead(ctx, otterLook(id));
       ctx.restore();
       glassRim(ctx, r);
@@ -772,27 +775,28 @@ export function drawCrabBody(ctx, u, blink = false) {
   ctx.fill();
 }
 
-export function drawClaw(ctx, u, open = 0) {
+// A chunky claw with its pincer opening toward +x.
+export function drawClaw(ctx, u) {
   ctx.fillStyle = '#ff7444';
   ctx.strokeStyle = '#c23a24';
-  ctx.lineWidth = u * 0.06;
-  // pincer halves
-  ctx.save();
-  ctx.rotate(-0.25 - open * 0.3);
+  ctx.lineWidth = u * 0.07;
+  ctx.lineJoin = 'round';
   ctx.beginPath();
-  ctx.ellipse(0, -u * 0.22, u * 0.42, u * 0.24, 0, Math.PI, Math.PI * 2);
+  // upper finger
+  ctx.moveTo(-u * 0.3, -u * 0.32);
+  ctx.quadraticCurveTo(u * 0.3, -u * 0.5, u * 0.5, -u * 0.08);
+  ctx.quadraticCurveTo(u * 0.2, -u * 0.12, u * 0.02, -u * 0.02);
+  // lower finger
+  ctx.quadraticCurveTo(u * 0.22, u * 0.06, u * 0.36, u * 0.2);
+  ctx.quadraticCurveTo(u * 0.1, u * 0.42, -u * 0.3, u * 0.3);
+  ctx.quadraticCurveTo(-u * 0.55, 0, -u * 0.3, -u * 0.32);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-  ctx.restore();
-  ctx.save();
-  ctx.rotate(0.15 + open * 0.3);
+  ctx.fillStyle = 'rgba(255, 220, 190, 0.55)';
   ctx.beginPath();
-  ctx.ellipse(0, u * 0.1, u * 0.4, u * 0.2, 0, 0, Math.PI);
-  ctx.closePath();
+  ctx.ellipse(-u * 0.12, -u * 0.18, u * 0.14, u * 0.07, -0.3, 0, Math.PI * 2);
   ctx.fill();
-  ctx.stroke();
-  ctx.restore();
 }
 
 // The scallop-shell launcher, pointing up its local -y axis.

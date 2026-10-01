@@ -7,9 +7,10 @@ import { Sprites, PALETTE, drawCrabBody, drawClaw, drawLauncher, makeCanvas } fr
 import { Rng } from './rng.js';
 
 export const WATER_Y = 1 + (LOSE_ROW - 0.42) * ROW_H; // the tide line
-export const NEXT_POS = { x: FIELD_W / 2 - 3.6, y: LAUNCH_Y + 0.9 };
-export const COUNT_POS = { x: FIELD_W / 2 + 3.6, y: LAUNCH_Y + 0.9 };
-const VIEW_H = LAUNCH_Y + 2.7;
+export const NEXT_POS = { x: FIELD_W / 2 - 3.9, y: LAUNCH_Y + 1.3 };
+export const COUNT_POS = { x: FIELD_W / 2 + 3.9, y: LAUNCH_Y + 1.3 };
+const VIEW_TOP = 0.75;
+const VIEW_H = LAUNCH_Y + 3.5 + VIEW_TOP;
 const SHOT_SPEED = 46; // radii per second
 const MAX_PARTICLES = 260;
 const GRAVITY = 70;
@@ -83,8 +84,10 @@ export class View {
     const t = roomy ? 0 : top, b = roomy ? 0 : bottom;
     this.s = Math.max(6, Math.min(w / (FIELD_W + 0.9), (h - t - b) / (VIEW_H + 0.3)));
     this.ox = (w - FIELD_W * this.s) / 2;
-    this.oy = t + Math.max(4, (h - t - b - VIEW_H * this.s) / 2);
+    this.oy = t + Math.max(4, (h - t - b - VIEW_H * this.s) / 2) + VIEW_TOP * this.s;
     this.sprites.setRadius(this.s * dpr * 0.985);
+    this.fontCount = `800 ${Math.round(this.s * 1.05)}px ui-rounded, "SF Pro Rounded", system-ui, sans-serif`;
+    this.fontSmall = `800 ${Math.round(this.s * 0.8)}px ui-rounded, "SF Pro Rounded", system-ui, sans-serif`;
     this.bakeBackdrop();
     this.bakeCrab();
   }
@@ -123,7 +126,7 @@ export class View {
   onSwapSpot(px, py) {
     const x = (px - this.ox) / this.s, y = (py - this.oy) / this.s;
     const nearNext = Math.hypot(x - NEXT_POS.x, y - NEXT_POS.y) < 1.7;
-    const onCrab = Math.abs(x - FIELD_W / 2) < 1.8 && y > LAUNCH_Y + 0.4 && y < LAUNCH_Y + 2.6;
+    const onCrab = Math.abs(x - FIELD_W / 2) < 2 && y > LAUNCH_Y + 1.0 && y < LAUNCH_Y + 3.4;
     return nearNext || onCrab;
   }
 
@@ -183,7 +186,7 @@ export class View {
     ctx.stroke();
 
     // the sandbar Coral stands on
-    const sandTop = this.Y(LAUNCH_Y + 0.9);
+    const sandTop = this.Y(LAUNCH_Y + 1.5);
     ctx.fillStyle = theme.sand;
     ctx.beginPath();
     ctx.moveTo(this.X(FIELD_W / 2 - 7), h + 4);
@@ -884,62 +887,61 @@ export class View {
     const game = this.game;
     if (!crab) return;
     const u = crab.u / dpr;
-    const cx = this.X(FIELD_W / 2), cy = this.Y(LAUNCH_Y + 1.25);
     const bob = this.reduceMotion ? 0 : Math.sin(this.time * 2.4) * u * 0.05;
-    const body = this.blink > 0 ? crab.blink : crab.body;
-    const bw = body.width / dpr, bh = body.height / dpr;
-    ctx.drawImage(body, cx - bw * 0.5, cy - bh * (1.75 / 3.2) + bob, bw, bh);
-    // the shell launcher, turned to the aim
-    const angle = this.aim;
-    const lx = this.X(FIELD_W / 2), ly = this.Y(LAUNCH_Y);
+    const cx = this.X(FIELD_W / 2), cy = this.Y(LAUNCH_Y + 2.15) + bob;
+    const lx = this.X(FIELD_W / 2), ly = this.Y(LAUNCH_Y) + bob * 0.5;
+    const a = Math.PI / 2 - this.aim;
+    // the scallop launcher behind the bubble, turned to the aim
     ctx.save();
-    ctx.translate(lx, ly + bob);
-    ctx.rotate(Math.PI / 2 - angle);
-    const kick = this.claw * u * 0.25;
-    const sw = crab.shell.width / dpr, sh = crab.shell.height / dpr;
-    ctx.drawImage(crab.shell, -sw / 2, -sh / 2 + u * 0.35 + kick, sw, sh);
+    ctx.translate(lx, ly);
+    ctx.rotate(a);
+    const kick = this.claw * u * 0.3;
+    const sw = crab.shell.width / dpr * 0.8, sh = crab.shell.height / dpr * 0.8;
+    ctx.drawImage(crab.shell, -sw / 2, -sh / 2 + u * 0.55 + kick, sw, sh);
     ctx.restore();
-    // claws hold the shell from both sides
+    // loaded bubble
+    if (game.current && !this.flight) this.blit(this.sprites.forShot(game.current), lx, ly, 0.5 + 0.5 * easeOutBack(this.loadPop));
+    // arms up to the shell, then the body in front
+    ctx.strokeStyle = '#e8553a';
+    ctx.lineWidth = u * 0.24;
+    ctx.lineCap = 'round';
     const cw = crab.claw.width / dpr;
+    const grips = [];
     for (const side of [-1, 1]) {
-      const a = Math.PI / 2 - angle;
-      const px = lx + Math.cos(a) * side * u * 1.25;
-      const py = ly + Math.sin(a) * side * u * 1.25 + u * 0.55 + bob;
-      ctx.save();
-      ctx.translate(px, py);
-      ctx.scale(side, 1);
-      ctx.rotate(-0.4 + this.claw * 0.3);
-      ctx.drawImage(crab.claw, -cw / 2, -cw / 2, cw, cw);
-      ctx.restore();
-      ctx.strokeStyle = '#e8553a';
-      ctx.lineWidth = u * 0.22;
-      ctx.lineCap = 'round';
+      const gx = lx + side * u * (1.2 - this.claw * 0.12);
+      const gy = ly + u * 0.35;
+      grips.push([side, gx, gy]);
       ctx.beginPath();
-      ctx.moveTo(cx + side * u * 1.0, cy - u * 0.2 + bob);
-      ctx.quadraticCurveTo(cx + side * u * 1.6, cy - u * 0.6, px, py + u * 0.2);
+      ctx.moveTo(cx + side * u * 1.05, cy - u * 0.15);
+      ctx.quadraticCurveTo(cx + side * u * 1.9, cy - u * 0.9, gx, gy + u * 0.3);
       ctx.stroke();
     }
-    // loaded bubble
-    if (game.current && !this.flight) {
-      const sprite = this.sprites.forShot(game.current);
-      this.blit(sprite, lx, ly + bob, 0.5 + 0.5 * easeOutBack(this.loadPop));
+    const body = this.blink > 0 ? crab.blink : crab.body;
+    const bw = body.width / dpr, bh = body.height / dpr;
+    ctx.drawImage(body, cx - bw * 0.5, cy - bh * (1.75 / 3.2), bw, bh);
+    for (const [side, gx, gy] of grips) {
+      ctx.save();
+      ctx.translate(gx, gy);
+      ctx.scale(-side, 1);
+      ctx.rotate(-0.35 - this.claw * 0.3);
+      ctx.drawImage(crab.claw, -cw / 2, -cw / 2, cw * 0.85, cw * 0.85);
+      ctx.restore();
     }
     // next bubble in the clam
-    if (game.next) {
-      this.blit(this.sprites.forShot(game.next), this.X(NEXT_POS.x), this.Y(NEXT_POS.y), 0.78);
-    }
+    if (game.next) this.blit(this.sprites.forShot(game.next), this.X(NEXT_POS.x), this.Y(NEXT_POS.y), 0.78);
     // bubbles left
     const n = game.shotsLeft;
     const x = this.X(COUNT_POS.x), y = this.Y(COUNT_POS.y);
-    ctx.fillStyle = n <= 3 && game.phase === 'aim' ? '#ff6b6b' : '#ffffff';
+    const low = n <= 3 && game.phase === 'aim';
+    ctx.fillStyle = low ? '#ff6b6b' : '#ffffff';
     ctx.beginPath();
     ctx.arc(x, y, this.s * 0.95, 0, Math.PI * 2);
     ctx.fill();
     ctx.lineWidth = this.s * 0.12;
     ctx.strokeStyle = 'rgba(20, 60, 100, 0.5)';
     ctx.stroke();
-    ctx.fillStyle = n <= 3 && game.phase === 'aim' ? '#ffffff' : '#12406a';
-    ctx.font = `800 ${Math.round(this.s * (n >= 100 ? 0.8 : 1.05))}px ui-rounded, "SF Pro Rounded", system-ui, sans-serif`;
+    ctx.fillStyle = low ? '#ffffff' : '#12406a';
+    ctx.font = n >= 100 ? this.fontSmall : this.fontCount;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(String(n), x, y + this.s * 0.05);

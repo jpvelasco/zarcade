@@ -8,7 +8,8 @@ export const OTTER_NAMES = [
 ];
 export const OTTER_COUNT = OTTER_NAMES.length;
 
-// Five fur shades and six little accessories make 30 different otters.
+// Five fur shades and six little accessories make 30 different otters;
+// neighbours in the list always differ in both.
 export const FURS = [
   { fur: '#8a5a3b', light: '#d9b48f', dark: '#5c3a24' },
   { fur: '#a8713f', light: '#f0cfa0', dark: '#6e4522' },
@@ -19,5 +20,7 @@ export const FURS = [
 export const ACCESSORIES = ['bow', 'sailor', 'flower', 'starfish', 'glasses', 'beanie'];
 
 export function otterLook(id) {
-  return { name: OTTER_NAMES[id], fur: FURS[id % FURS.length], accessory: ACCESSORIES[Math.floor(id / FURS.length) % ACCESSORIES.length] };
+  const a = id % ACCESSORIES.length;
+  const b = Math.floor(id / ACCESSORIES.length);
+  return { name: OTTER_NAMES[id], fur: FURS[(a + 2 * b) % FURS.length], accessory: ACCESSORIES[a] };
 }

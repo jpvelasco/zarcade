@@ -2,7 +2,7 @@
 import { Game, BOOSTERS } from './game.js';
 import { LEVELS, LEVEL_COUNT, AREAS, GOAL_TEXT, getLevel, dailyLevel, dateKeyOf } from './levels.js';
 import { MIN_ANGLE, MAX_ANGLE } from './grid.js';
-import { View } from './render.js';
+import { View, WATER_Y } from './render.js';
 import { Sfx } from './audio.js';
 import { renderMap, scrollToLevel } from './map.js';
 import { paintBubbleIcon, paintOtter, drawCrabBody, drawLauncher, Sprites } from './sprites.js';
@@ -286,6 +286,8 @@ function layout() {
   const top = $('hud').getBoundingClientRect().height + 4;
   const bottom = $('dock').getBoundingClientRect().height + 4;
   view.resize(Math.floor(rect.width), Math.floor(rect.height), { top, bottom, side: 290 });
+  // tips sit just above the tide line, where the board is usually empty
+  $('tip').style.bottom = `${Math.max(70, rect.height - view.Y(WATER_Y) + 10)}px`;
 }
 
 function goalIconCell(level) {
