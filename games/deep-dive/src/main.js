@@ -66,6 +66,7 @@ let saveTimer = 0;
 let fogTimer = 0;
 let lowWarned = false;
 let lowBeep = 0;
+let lastShyTip = -1e9;
 let sessionStarted = false;
 renderer.setWorld(world);
 
@@ -334,6 +335,12 @@ function handleWorldEvents(events) {
         dirty = true;
         toast(e.kind === 'coral' ? 'Drilled through the coral!' : 'The hatch creaks open!', '');
         log.event('gate.open', { gate: e.id });
+        break;
+      case 'startle':
+        if (!world.scanned.has(SPECIES[e.species].id) && performance.now() - lastShyTip > 9000) {
+          lastShyTip = performance.now();
+          toast(`Shh! The ${SPECIES[e.species].name} is shy. Let go and drift up slowly.`, 'hint', 3800);
+        }
         break;
       case 'hint':
         toast(HINTS[e.reason] || 'Hmm, Bubbles can\'t go that way yet.', 'hint', 3400);
