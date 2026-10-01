@@ -1010,7 +1010,7 @@ export class Renderer {
     const W = canvas.width, H = canvas.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = 'rgba(4,14,34,0.92)';
+    ctx.fillStyle = '#040e22';
     ctx.fillRect(0, 0, W, H);
     let scale, ox, oy;
     if (full) {

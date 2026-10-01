@@ -60,6 +60,7 @@ let attractPilot = null;
 let autopilot = params.has('autopilot') ? new Autopilot({ mode: 'explore' }) : null;
 let mode = 'title'; // title | play | paused | map | book | garage | part | out | ending
 let returnMode = 'title';
+let overlayFrom = 'title'; // where the map, book or paint shop was opened from
 let accumulator = 0;
 let saveTimer = 0;
 let fogTimer = 0;
@@ -103,7 +104,7 @@ function goalChips(container, withLabel) {
     const known = save.progress.scanned.includes(id);
     return `<span class="goal${done.includes(id) ? ' done' : ''}">${done.includes(id) ? '✓ ' : '★ '}${known || done.includes(id) ? sp.name : `${sp.name}`}</span>`;
   }).join('');
-  container.innerHTML = (withLabel ? `<span class="lbl">Daily</span>` : '') + html;
+  container.innerHTML = (withLabel ? `<span class="lbl">Daily ${done.length}/${save.daily.goals.length}</span>` : '') + html;
 }
 
 function toTitle() {
@@ -179,7 +180,8 @@ function resume() {
 function back() {
   if (mode === 'paused') resume();
   else if (mode === 'map' || mode === 'book' || mode === 'garage') {
-    if (returnMode === 'play') { mode = 'paused'; updateSoundButtons(); showScreen('screen-pause'); }
+    if (overlayFrom === 'play') resume();
+    else if (overlayFrom === 'paused') { mode = 'paused'; updateSoundButtons(); showScreen('screen-pause'); }
     else toTitle();
   } else if (mode === 'part') closePart();
   else if (mode === 'out') closeOut();
@@ -422,6 +424,7 @@ function closeEnding() { closePart(); }
 function openMap() {
   sound.unlock();
   if (mode === 'play') returnMode = 'play';
+  if (mode === 'play' || mode === 'paused' || mode === 'title') overlayFrom = mode;
   mode = 'map';
   renderer.updateFog(world);
   const c = $('bigmap');
@@ -442,6 +445,7 @@ let bookArea = 0;
 function openBook() {
   sound.unlock();
   if (mode === 'play') returnMode = 'play';
+  if (mode === 'play' || mode === 'paused' || mode === 'title') overlayFrom = mode;
   mode = 'book';
   if (returnMode === 'play') bookArea = world.areaIndex;
   syncSave();
@@ -508,6 +512,7 @@ function showDetail(sp, btn) {
 function openGarage() {
   sound.unlock();
   if (mode === 'play') returnMode = 'play';
+  if (mode === 'play' || mode === 'paused' || mode === 'title') overlayFrom = mode;
   mode = 'garage';
   syncSave();
   renderGarage();

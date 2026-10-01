@@ -340,7 +340,7 @@ p { line-height: 1.4; }
 
 .head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .head h2 { flex: 1; margin: 0; text-align: center; font-size: 24px; }
-.map-card canvas { flex: 1; min-height: 0; width: 100%; object-fit: contain; border-radius: 16px; background: rgba(4, 14, 34, 0.8); }
+.map-card canvas { flex: 1; min-height: 0; width: 100%; object-fit: contain; border-radius: 16px; background: #040e22; }
 .map-lines { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
 
 .tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
@@ -428,7 +428,8 @@ p { line-height: 1.4; }
   .tagline { font-size: 15px; margin-bottom: 12px; }
   #minimap { width: 120px; height: 80px; }
   .icon-btn { width: 40px; height: 40px; font-size: 17px; border-radius: 12px; }
-  .hud-tl { max-width: calc(100vw - 150px); }
+  .hud-tl { max-width: calc(100vw - 210px); }
+  .daily-chip .goal { display: none; }
   .o2-bar { width: clamp(80px, 26vw, 140px); }
   .fact { top: auto; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 118px); right: 50%; transform: translateX(50%); width: min(340px, 92vw); display: flex; gap: 8px; align-items: center; animation: none; }
   #fact-art { width: 96px; flex: 0 0 auto; }

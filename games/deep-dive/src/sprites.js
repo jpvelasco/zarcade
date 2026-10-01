@@ -579,7 +579,7 @@ export function bakeCreature(sp, frame, { silhouette = false } = {}) {
   if (silhouette) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalCompositeOperation = 'source-in';
-    ctx.fillStyle = '#0d2440';
+    ctx.fillStyle = '#2f6690';
     ctx.fillRect(0, 0, c.width, c.height);
   }
   return { canvas: c, w, h };
