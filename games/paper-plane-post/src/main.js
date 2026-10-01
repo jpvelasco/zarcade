@@ -11,7 +11,7 @@ import { Input } from './input.js';
 import { frameMonitor } from './perf.js';
 import {
   currentFold, currentPaper, entryFor, formatDistance, formatTime, freshenDaily, loadSave,
-  nextRouteIndex, recordEndless, recordRun, regionOpen, routeOpen, totals, writeSave,
+  nextRouteIndex, recordEndless, recordRun, refreshStamps, regionOpen, routeOpen, totals, writeSave,
 } from './progress.js';
 import { Renderer } from './render.js';
 import { REGIONS, ROUTES } from './routes.js';
@@ -39,6 +39,8 @@ const input = new Input();
 // helpers treat a null store as "nothing saved".
 const storage = (() => { try { return localStorage; } catch { return null; } })();
 const save = freshenDaily(loadSave(storage));
+// A save made before a stamp existed should still have it: catch up on load.
+if (refreshStamps(save).length) writeSave(storage, save);
 const audio = new Audio(save.muted);
 
 const state = {
@@ -120,9 +122,9 @@ function showTitle() {
   startAttract();
   const sums = totals(save);
   const bits = [];
-  if (sums.routes) bits.push(`${sums.routes}/${sums.routeCount} rounds`);
+  if (sums.routes) bits.push(`${sums.routes}/${sums.routeCount} round${sums.routes === 1 ? '' : 's'}`);
   if (sums.stars) bits.push(`${sums.stars}/${sums.maxStars} stars`);
-  if (sums.letters) bits.push(`${sums.letters} letters`);
+  if (sums.letters) bits.push(`${sums.letters} letter${sums.letters === 1 ? '' : 's'}`);
   if (save.endless.best) bits.push(`Endless best ${formatDistance(save.endless.best)}`);
   if (save.daily.streak > 1) bits.push(`${save.daily.streak}-day streak`);
   $('title-bests').textContent = bits.length
@@ -314,7 +316,7 @@ function showRouteResult(result, entry, record) {
   $('result-badges').innerHTML = [
     badge('✦ Feather', result.soft, 'Landed gently'),
     badge('◎ Bullseye', result.bullseye, 'Landed right by the box'),
-    badge(`✧ ${result.snaps} snaps`, result.snaps > 0, 'Crisp releases out of a dive'),
+    badge(`✧ ${result.snaps} snap${result.snaps === 1 ? '' : 's'}`, result.snaps > 0, 'Crisp releases out of a dive'),
   ].join('');
   $('result-lines').innerHTML = `
     <div><span>Letters</span><b>${result.letters}/${result.letterTotal}</b></div>
@@ -323,10 +325,13 @@ function showRouteResult(result, entry, record) {
     <div><span>Score</span><b>${result.score}</b></div>`;
   const last = state.index >= ROUTES.length - 1;
   const nextOpen = !last && routeOpen(save, state.index + 1);
-  $('btn-next').innerHTML = result.outcome === 'landed' && nextOpen
-    ? 'Next round<span>→</span>'
-    : 'Route map';
-  $('btn-replay').textContent = result.outcome === 'landed' ? 'Fly again' : 'Try again';
+  const landed = result.outcome === 'landed';
+  // The big button is always the obvious next thing: onward, or one more go.
+  $('btn-next').innerHTML = landed
+    ? (nextOpen ? 'Next round<span>→</span>' : 'Route map')
+    : 'Try again';
+  $('btn-replay').textContent = 'Fly again';
+  $('btn-replay').classList.toggle('hidden', !landed);
 }
 
 function showBreezeResult(result, folded) {
@@ -342,8 +347,8 @@ function showBreezeResult(result, folded) {
   $('result-record').textContent = 'New furthest flight!';
   $('result-badges').innerHTML = [
     badge('✦ Feather', result.soft, 'Landed gently'),
-    badge(`✧ ${result.snaps} snaps`, result.snaps > 0, 'Crisp releases out of a dive'),
-    badge(`☀ ${result.thermals} columns`, result.thermals > 0, 'Warm columns ridden'),
+    badge(`✧ ${result.snaps} snap${result.snaps === 1 ? '' : 's'}`, result.snaps > 0, 'Crisp releases out of a dive'),
+    badge(`☀ ${result.thermals} column${result.thermals === 1 ? '' : 's'}`, result.thermals > 0, 'Warm columns ridden'),
   ].join('');
   $('result-lines').innerHTML = `
     ${daily ? `<div><span>Goal</span><b>${goal} m</b></div>` : ''}
@@ -352,8 +357,9 @@ function showBreezeResult(result, folded) {
     <div><span>Best ever</span><b>${formatDistance(save.endless.best)}</b></div>
     <div><span>Score</span><b>${result.score}</b></div>
     ${daily && save.daily.streak ? `<div><span>Day streak</span><b>${save.daily.streak}</b></div>` : ''}`;
-  $('btn-next').innerHTML = daily ? 'Endless Breeze' : 'Fly again<span>→</span>';
-  $('btn-replay').textContent = 'Route map';
+  $('btn-next').innerHTML = 'Fly again<span>→</span>';
+  $('btn-replay').textContent = daily ? 'Endless Breeze' : 'Daily Breeze';
+  $('btn-replay').classList.remove('hidden');
 }
 
 function renderStamps(fresh) {
@@ -371,9 +377,9 @@ function renderStamps(fresh) {
 
 function stampGlyph(art) {
   return {
-    letter: '✉', satchel: '🧳', crown: '♛', roof: '🏠', house: '🏡', map: '🗺',
+    letter: '✉', satchel: '❖', crown: '♛', roof: '⌂', house: '⌂', map: '✥',
     star: '★', ring: '◎', snap: '✧', feather: '✦', thermal: '☀', cloud: '☁',
-    mountain: '⛰', sun: '☀',
+    mountain: '▲', sun: '☀',
   }[art] || '✦';
 }
 
@@ -413,7 +419,7 @@ function buildMap() {
         <span class="stars">${stars}${marks}</span>
         <span class="meta">${unlocked
           ? (entry.done
-            ? `${formatTime(entry.best)} · ${entry.letters}/${route.letterCount} letters · ${entry.rings}/${route.ringCount} rings`
+            ? `${formatTime(entry.best)} · ${Math.min(entry.letters, route.letterCount)}/${route.letterCount} letters · ${Math.min(entry.rings, route.ringCount)}/${route.ringCount} rings`
             : `${route.length} m · ${route.letterCount} letters`)
           : 'Finish the round before it'}</span>`;
       button.addEventListener('click', () => {
@@ -730,6 +736,9 @@ $('btn-daily').addEventListener('click', () => startEndless({ daily: true }));
 $('btn-hangar').addEventListener('click', showHangar);
 $('btn-album').addEventListener('click', showAlbum);
 $('btn-map-back').addEventListener('click', showTitle);
+$('btn-map-top').addEventListener('click', showTitle);
+$('btn-hangar-top').addEventListener('click', showTitle);
+$('btn-album-top').addEventListener('click', showTitle);
 $('btn-hangar-back').addEventListener('click', showTitle);
 $('btn-album-back').addEventListener('click', showTitle);
 $('btn-title-mute').addEventListener('click', toggleMute);
@@ -739,21 +748,19 @@ $('btn-pause').addEventListener('click', pause);
 $('btn-resume').addEventListener('click', resume);
 $('btn-restart').addEventListener('click', restart);
 $('btn-pause-map').addEventListener('click', showMap);
-$('btn-result-map').addEventListener('click', () => {
-  if (state.kind === 'route') showMap();
-  else showTitle();
-});
+$('btn-result-map').addEventListener('click', showMap);
 $('btn-replay').addEventListener('click', () => {
   if (state.kind === 'route') startRoute(state.index);
-  else showMap();
+  else startEndless({ daily: state.kind !== 'daily' });
 });
 $('btn-next').addEventListener('click', () => {
   if (state.kind !== 'route') {
-    startEndless({ daily: false });
+    startEndless({ daily: state.kind === 'daily' });
     return;
   }
   const done = state.lastResult && state.lastResult.outcome === 'landed';
-  if (done && state.index < ROUTES.length - 1 && routeOpen(save, state.index + 1)) startRoute(state.index + 1);
+  if (!done) startRoute(state.index);
+  else if (state.index < ROUTES.length - 1 && routeOpen(save, state.index + 1)) startRoute(state.index + 1);
   else showMap();
 });
 document.addEventListener('visibilitychange', () => {

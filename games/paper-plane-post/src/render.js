@@ -632,20 +632,26 @@ export class Renderer {
   drawEndlessMarkers(world, x0, x1) {
     const ctx = this.ctx;
     const first = Math.ceil(x0 / 100) * 100;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '1.9px ui-rounded, system-ui, sans-serif';
     for (let x = first; x <= x1; x += 100) {
       const y = world.groundAt(x);
-      ctx.strokeStyle = '#e8dcc4';
-      ctx.lineWidth = 0.4;
+      ctx.strokeStyle = '#d8c8a8';
+      ctx.lineWidth = 0.35;
       ctx.beginPath();
       ctx.moveTo(x, y);
-      ctx.lineTo(x, y - 5);
+      ctx.lineTo(x, y - 6);
       ctx.stroke();
       ctx.fillStyle = '#fff6e6';
-      ctx.fillRect(x - 0.4, y - 7.6, 4.8, 2.8);
+      ctx.beginPath();
+      ctx.roundRect(x - 0.2, y - 8.6, 7, 2.8, 0.5);
+      ctx.fill();
       ctx.fillStyle = '#3a4a66';
-      ctx.font = '2.2px ui-rounded, system-ui, sans-serif';
-      ctx.fillText(String(Math.round((x - world.startX) / 100) * 100), x, y - 5.4);
+      ctx.fillText(`${Math.round((x - world.startX) / 100) * 100}m`, x + 3.3, y - 7.2);
     }
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
     if (world.scene.goal) {
       const gx = world.startX + world.scene.goal;
       if (gx > x0 && gx < x1) {
