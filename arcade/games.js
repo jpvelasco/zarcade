@@ -292,6 +292,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'snowball-summit',
+      title: 'Snowball Summit',
+      tagline: 'Roll a snowball downhill and grow it giant.',
+      description: 'Roll down three snowy peaks scooping up pinecones, penguins and cabins, jump for balloon treats, and outrun the friendly Snow Cloud. Twelve slopes, a daily slope, Endless Mountain, a museum and silly hats.',
+      genre: 'Arcade',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#5ec8f2',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
