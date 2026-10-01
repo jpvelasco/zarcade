@@ -60,7 +60,7 @@ export class UI {
 
   costBtn(action, arg, cost, label, cls = 'primary', key = '') {
     const can = this.zoo.coins >= cost;
-    return `<button class="btn ${cls}${can ? '' : ' cant'}" data-act="${action}" data-arg="${arg}" data-cost="${cost}" aria-disabled="${!can}">${label} · ${COIN}${fmt(cost)}${key ? `<span class="key">${key}</span>` : ''}</button>`;
+    return `<button class="btn ${cls}${can ? '' : ' cant'}" data-act="${action}" data-arg="${arg}" data-cost="${cost}" aria-disabled="${!can}"><span class="lbl">${label} · ${COIN}${fmt(cost)}</span>${key ? `<span class="key">${key}</span>` : ''}</button>`;
   }
 
   // ---------------------------------------------------------------- sheets

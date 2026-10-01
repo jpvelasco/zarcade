@@ -59,6 +59,7 @@ button:focus-visible, a:focus-visible { outline: 4px solid var(--sky); outline-o
 .btn.small { min-height: 36px; padding: 6px 12px; font-size: 14px; border-radius: 12px; }
 .btn[disabled], .btn.cant { opacity: 0.55; cursor: default; transform: none; }
 .btn .coin { width: 18px; height: 18px; }
+.lbl { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 
 .coin {
   display: inline-block; width: 22px; height: 22px; border-radius: 50%; flex: none;
@@ -331,6 +332,10 @@ h2 { margin: 0 0 8px; font-size: 26px; font-weight: 900; }
   .cell canvas { width: 70px; height: 77px; }
   .deco-grid { grid-template-columns: repeat(2, 1fr); }
   .portrait { width: calc(33% - 6px); }
+  .item { flex-wrap: wrap; }
+  .item .grow { flex-basis: calc(100% - 80px); }
+  .item > .btn, .item > .row { flex: 1 1 100%; }
+  .item > .row .btn { flex: 1; }
   .title-card { padding: 14px 16px 18px; }
   .logo-pets { height: 80px; }
   .logo-pets canvas { width: 70px; height: 77px; }

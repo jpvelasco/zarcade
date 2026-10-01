@@ -48,7 +48,7 @@ export class Renderer {
 
   // A zoom that shows one zone comfortably.
   zoneZoom() {
-    return Math.max(this.minZ, Math.min(1.25, this.W / 720, (this.H - 210) / 560));
+    return Math.max(this.minZ, Math.min(1.25, this.W / (this.W < 600 ? 610 : 720), (this.H - 210) / 560));
   }
 
   focusZone(b, { instant = false } = {}) {

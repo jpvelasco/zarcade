@@ -60,3 +60,20 @@ test('visitor counts scale with income and stay capped', () => {
   assert.ok(targetVisitors(100) > targetVisitors(1));
   assert.equal(targetVisitors(1e12), MAX_VISITORS);
 });
+
+test('a golden balloon visitor turns up now and then', () => {
+  const zoo = zooWithAnimals();
+  const actors = new Actors(6);
+  actors.sync(zoo);
+  let seen = false;
+  for (let t = 0; t < 1500 && !seen; t++) {
+    zoo.tick(0.1);
+    actors.update(0.1, zoo);
+    const g = actors.visitors.find((v) => v.golden);
+    if (g) {
+      seen = true;
+      assert.equal(actors.goldenAt(g.x, g.y - 40), g);
+    }
+  }
+  assert.ok(seen);
+});
