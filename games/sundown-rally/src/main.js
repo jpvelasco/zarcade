@@ -6,10 +6,15 @@ import { Hud, formatTime } from './hud.js';
 import { Input } from './input.js';
 import { Audio } from './audio.js';
 import { loadSave, writeSave, statsFor, UPGRADES, PAINTS, upgradeCost, buyUpgrade, recordFinish } from './progress.js';
+import { frameMonitor } from './perf.js';
 
 const STEP = 1 / 60;
 const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
+
+// Telemetry is optional: the game still runs if telemetry.js is missing.
+const telemetry = window.Telemetry || null;
+const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
 
 const save = loadSave(localStorage);
 const input = new Input();
@@ -29,6 +34,14 @@ let trackIndex = Math.min(save.unlocked, TRACKS.length) - 1;
 let mode = 'menu'; // menu | race | paused | results
 let endTimer = 0;
 let accumulator = 0;
+
+// Saving can fail (private mode, full storage); play on and report it once.
+let saveWarned = false;
+function persist() {
+  if (writeSave(localStorage, save) || saveWarned) return;
+  saveWarned = true;
+  log.warn('save.failed', { mode });
+}
 
 function resize() {
   renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -106,7 +119,8 @@ function renderGarage() {
     buy.disabled = cost === null || save.coins < cost;
     buy.addEventListener('click', () => {
       if (buyUpgrade(save, key)) {
-        writeSave(localStorage, save);
+        persist();
+        log.event('garage.upgrade', { upgrade: key, level: save.upgrades[key], coins: save.coins });
         audio.unlock();
         audio.handleEvents([{ type: 'pickup', kind: 'repair' }], 0);
         renderGarage();
@@ -124,7 +138,7 @@ function renderGarage() {
     sw.setAttribute('aria-label', `Paint ${color}`);
     sw.addEventListener('click', () => {
       save.paint = color;
-      writeSave(localStorage, save);
+      persist();
       view.jeeps[0].userData.paint.color.set(color);
       renderGarage();
     });
@@ -141,6 +155,7 @@ function startRace(index) {
   hud.reset(world);
   input.clearPressed();
   showScreen(null);
+  log.event('race.start', { track: index + 1, 'track.id': TRACKS[index].id });
 }
 
 function pause() {
@@ -176,17 +191,25 @@ function showResults() {
     lines.push(['Coins earned', `🪙 ${res.earned}`]);
     if (res.newBest) lines.push(['New best time!']);
     if (res.unlockedNext) lines.push([`Unlocked: ${TRACKS[trackIndex + 1].name}!`]);
+    log.event('race.complete', {
+      track: trackIndex + 1, 'track.id': track.id, stars: res.stars, 'time.s': Math.round(p.finishTime * 10) / 10,
+      kills: p.kills, coins: res.earned, 'best.new': !!res.newBest,
+    });
     if (!last) buttons.push(['Next track →', true, () => startRace(trackIndex + 1)]);
     buttons.push(['Retry', last, () => startRace(trackIndex)]);
   } else {
     save.coins += p.coins; // keep what you picked up
     $('res-title').textContent = 'Wrecked!';
+    log.event('race.fail', {
+      track: trackIndex + 1, 'track.id': track.id, reason: 'wrecked', kills: p.kills,
+      progress: Math.round(((p.along - world.track.startDist) / (world.track.finishDist - world.track.startDist)) * 100),
+    });
     $('res-stars').classList.add('hidden');
     $('res-time').textContent = `${Math.round(((p.along - world.track.startDist) / (world.track.finishDist - world.track.startDist)) * 100)}% of the way`;
     lines.push(['Zombies', p.kills], ['Coins kept', `🪙 ${p.coins}`], ['Tip: grab 🔧 repairs, or upgrade Armor']);
     buttons.push(['Retry', true, () => startRace(trackIndex)]);
   }
-  writeSave(localStorage, save);
+  persist();
   buttons.push(['Garage', false, () => toMenu('screen-garage')], ['Tracks', false, () => toMenu('screen-tracks')]);
 
   $('res-lines').innerHTML = lines.map(([a, b]) => (b === undefined ? `<div class="highlight">${a}</div>` : `<div><span>${a}</span><b>${b}</b></div>`)).join('');
@@ -215,7 +238,7 @@ $('btn-quit').addEventListener('click', () => toMenu('screen-title'));
 $('btn-mute').addEventListener('click', () => {
   save.muted = !save.muted;
   audio.setMuted(save.muted);
-  writeSave(localStorage, save);
+  persist();
   $('btn-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
@@ -235,8 +258,20 @@ function updatePointer(dt, playing) {
   }
 }
 
+// Frame telemetry: slow frames, struggling 10 s windows, and a watchdog
+// outside the loop that notices when frames stop while the page is visible.
+const monitor = frameMonitor({
+  log,
+  snapshot: () => ({ mode, track: trackIndex + 1, status: world ? world.status : 'none' }),
+  visible: () => document.visibilityState === 'visible',
+  crashed: () => !!telemetry?.crashed,
+});
+setInterval(() => monitor.check(performance.now()), 1000);
+document.addEventListener('visibilitychange', () => monitor.reset(performance.now()));
+
 let last = performance.now();
 function frame(now) {
+  monitor.frame(now);
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   updatePointer(dt, mode === 'race');
@@ -274,14 +309,19 @@ function frame(now) {
 
   if (view && mode !== 'paused') view.update(dt);
   if (view) view.render();
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
+
+// A crash inside a frame shows the crash screen instead of a frozen picture;
+// after a crash the guard returns early, so the loop stops rescheduling.
+const loop = telemetry ? telemetry.guard(frame, 'sundown-rally.frame') : frame;
 
 if (location.protocol !== 'file:') {
   loadTrack(trackIndex, false);
+  log.event('game.ready', { unlocked: save.unlocked, stars: Object.values(save.stars).reduce((a, b) => a + b, 0), coins: save.coins });
   if (params.has('track')) startRace(Math.min(TRACKS.length - 1, Number(params.get('track')) || 0));
   else toMenu('screen-title');
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
 
 // Handy for poking at the game from the console.

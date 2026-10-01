@@ -35,8 +35,14 @@ export function loadSave(storage) {
   }
 }
 
+// Returns false when storage is unavailable (private mode, full quota).
 export function writeSave(storage, save) {
-  try { storage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* storage unavailable */ }
+  try {
+    storage.setItem(SAVE_KEY, JSON.stringify(save));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function statsFor(upgrades) {
