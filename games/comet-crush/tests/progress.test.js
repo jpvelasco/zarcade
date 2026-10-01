@@ -14,7 +14,7 @@ test('save uses the namespaced key and round-trips', () => {
   const save = loadSave(s);
   recordClear(save, 0, 3, 5000);
   save.muted = true;
-  writeSave(s, save);
+  assert.equal(writeSave(s, save), true);
   const again = loadSave(s);
   assert.deepEqual(again, { unlocked: 1, stars: { 0: 3 }, best: 5000, muted: true, music: true });
 });
@@ -28,7 +28,8 @@ test('corrupt or hostile saves fall back to safe defaults', () => {
   }
   const throwing = { getItem() { throw new Error('denied'); }, setItem() { throw new Error('denied'); } };
   assert.equal(loadSave(throwing).unlocked, 0);
-  writeSave(throwing, loadSave(throwing));
+  assert.equal(writeSave(throwing, loadSave(throwing)), false);
+  assert.equal(writeSave(null, loadSave(null)), false);
 });
 
 test('clearing levels unlocks the next and keeps the best stars', () => {

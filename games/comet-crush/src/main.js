@@ -7,17 +7,30 @@ import { Autopilot } from './ai.js';
 import { TIMING } from './config.js';
 import { LEVELS, CONSTELLATIONS, LEVELS_PER_CONSTELLATION, levelLabel } from './levels.js';
 import { loadSave, writeSave, recordClear, recordScore, constellationsReached, isUnlocked, totalStars } from './progress.js';
+import { frameMonitor } from './perf.js';
 
 const STEP = TIMING.step;
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Telemetry is optional: the game still runs if telemetry.js is missing.
+const telemetry = window.Telemetry || null;
+const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
+
 const canvas = $('game');
 // Reading `localStorage` throws when the browser blocks site storage; the
 // save helpers treat a null store as "nothing saved".
 const storage = (() => { try { return localStorage; } catch { return null; } })();
 const save = loadSave(storage);
+// Saving can fail (private mode, full or blocked storage); play on and
+// report it once.
+let saveWarned = false;
+function persist() {
+  if (writeSave(storage, save) || saveWarned) return;
+  saveWarned = true;
+  log.warn('save.failed', { 'storage.available': !!storage });
+}
 const renderer = new Renderer(canvas, { reducedMotion: reduced });
 const input = new Input(canvas, (x, y) => renderer.toField(x, y));
 const sound = new Sound({ muted: save.muted, music: save.music });
@@ -80,6 +93,7 @@ function startLevel(i, { fresh = false } = {}) {
   overTimer = 0;
   input.clear();
   showScreen(null);
+  log.event('level.start', { level: i + 1, constellation: world.level.c + 1, boss: !!world.level.boss, lives: world.lives, score: world.score });
 }
 
 function pause() {
@@ -167,8 +181,12 @@ function onCleared() {
   const w = world;
   const stars = w.rating();
   run = { score: w.score, lives: w.lives };
-  recordClear(save, w.levelIndex, stars, w.score);
-  writeSave(storage, save);
+  const rec = recordClear(save, w.levelIndex, stars, w.score);
+  persist();
+  log.event('level.complete', {
+    level: w.levelIndex + 1, boss: !!w.boss, stars, score: w.score, lives: w.lives,
+    'combo.max': w.maxCombo, 'best.new': rec.newBest,
+  });
   const last = w.levelIndex === LEVELS.length - 1;
   if (last) return showVictory();
   mode = 'clear';
@@ -186,6 +204,7 @@ function onCleared() {
 
 function showVictory() {
   mode = 'victory';
+  log.event('game.complete', { score: world.score, stars: totalStars(save) });
   $('victory-score').textContent = world.score.toLocaleString('en-US');
   $('victory-lines').innerHTML = `<div><span>High score</span><b>${save.best.toLocaleString('en-US')}</b></div><div><span>Stars</span><b>★ ${totalStars(save)} / ${LEVELS.length * 3}</b></div>`;
   showScreen('screen-victory');
@@ -194,7 +213,8 @@ function showVictory() {
 function onGameOver() {
   mode = 'over';
   const best = recordScore(save, world.score);
-  writeSave(storage, save);
+  persist();
+  log.event('level.fail', { level: world.levelIndex + 1, reason: 'gameover', score: world.score, 'best.new': best });
   $('over-score').textContent = world.score.toLocaleString('en-US');
   $('over-best').textContent = best ? 'New high score!' : `High score ${save.best.toLocaleString('en-US')}`;
   $('btn-continue').textContent = `Continue at ${levelLabel(world.levelIndex)} →`;
@@ -216,7 +236,7 @@ function toggleMute() {
   save.muted = !save.muted;
   sound.unlock();
   sound.setMuted(save.muted);
-  writeSave(storage, save);
+  persist();
   updateSoundButtons();
 }
 
@@ -224,7 +244,7 @@ function toggleMusic() {
   save.music = !save.music;
   sound.unlock();
   sound.setMusic(save.music);
-  writeSave(storage, save);
+  persist();
   updateSoundButtons();
 }
 
@@ -239,7 +259,11 @@ $('btn-pause').addEventListener('click', pause);
 $('btn-mute').addEventListener('click', toggleMute);
 $('btn-next').addEventListener('click', () => startLevel(world.levelIndex + 1));
 $('btn-clear-levels').addEventListener('click', toLevels);
-$('btn-continue').addEventListener('click', () => { run = { score: world.score, lives: 3 }; startLevel(world.levelIndex); });
+$('btn-continue').addEventListener('click', () => {
+  log.event('continue.used', { level: world.levelIndex + 1, score: world.score });
+  run = { score: world.score, lives: 3 };
+  startLevel(world.levelIndex);
+});
 $('btn-over-levels').addEventListener('click', toLevels);
 $('btn-victory-levels').addEventListener('click', toLevels);
 for (const b of document.querySelectorAll('[data-sound]')) b.addEventListener('click', toggleMute);
@@ -292,8 +316,23 @@ function launchHint() {
   return navigator.getGamepads && [...navigator.getGamepads()].some(Boolean) ? 'Press A to launch' : 'Press Space to launch';
 }
 
+// Frame telemetry: slow frames, struggling 10 s windows, and a watchdog
+// outside the loop that notices when frames stop while the page is visible.
+const monitor = frameMonitor({
+  log,
+  snapshot: () => ({
+    mode, level: world ? world.levelIndex + 1 : 0, status: world ? world.status : 'none',
+    balls: world?.balls?.length ?? 0, attract: isAttract,
+  }),
+  visible: () => document.visibilityState === 'visible',
+  crashed: () => !!telemetry?.crashed,
+});
+setInterval(() => monitor.check(performance.now()), 1000);
+document.addEventListener('visibilitychange', () => monitor.reset(performance.now()));
+
 let last = performance.now();
 function frame(now) {
+  monitor.frame(now);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   input.pollPad();
@@ -337,14 +376,19 @@ function frame(now) {
   }
   if (mode !== 'paused') renderer.update(dt, world);
   renderer.draw(world, { attract: isAttract && mode !== 'play', launchHint: launchHint() });
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
 
+// A crash inside a frame shows the crash screen instead of a frozen picture;
+// after a crash the guard returns early, so the loop stops rescheduling.
+const loop = telemetry ? telemetry.guard(frame, 'comet-crush.frame') : frame;
+
 if (location.protocol !== 'file:') {
+  log.event('game.ready', { unlocked: save.unlocked + 1, stars: totalStars(save), best: save.best });
   const lv = parseInt(params.get('level'), 10);
   if (lv >= 1 && lv <= LEVELS.length) startLevel(lv - 1, { fresh: true });
   else toTitle();
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
 
 window.CC = { get world() { return world; }, get mode() { return mode; }, save, startLevel, renderer, input, sound };

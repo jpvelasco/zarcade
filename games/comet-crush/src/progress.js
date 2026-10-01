@@ -28,11 +28,14 @@ export function loadSave(storage) {
   return save;
 }
 
+// Returns false in private mode or when storage is full or blocked: progress
+// just won't persist.
 export function writeSave(storage, save) {
   try {
     storage.setItem(SAVE_KEY, JSON.stringify(save));
+    return true;
   } catch {
-    /* private mode or full: progress just won't persist */
+    return false;
   }
 }
 
