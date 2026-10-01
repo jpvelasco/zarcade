@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="stone" cx="45%" cy="40%">
+      <stop offset="0%" stop-color="#fffdf4"/>
+      <stop offset="100%" stop-color="#e3d9b8"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#cfe8b8"/>
+  <rect x="7" y="7" width="50" height="50" rx="12" fill="url(#stone)" stroke="#bdb38f" stroke-width="1.5"/>
+  <path d="M7 32 Q32 32 32 57" fill="none" stroke="#b39f7b" stroke-width="17" stroke-linecap="round"/>
+  <path d="M7 32 Q32 32 32 57" fill="none" stroke="#a6dcfa" stroke-width="12" stroke-linecap="round"/>
+  <path d="M7 32 Q32 32 32 57" fill="none" stroke="#4fb2ec" stroke-width="7" stroke-linecap="round"/>
+  <g transform="translate(43 20)">
+    <g fill="#f59bb8">
+      <ellipse cx="0" cy="-7" rx="5" ry="6"/>
+      <ellipse cx="6.6" cy="-2" rx="5" ry="6" transform="rotate(72 6.6 -2)"/>
+      <ellipse cx="4" cy="6" rx="5" ry="6" transform="rotate(144 4 6)"/>
+      <ellipse cx="-4" cy="6" rx="5" ry="6" transform="rotate(216 -4 6)"/>
+      <ellipse cx="-6.6" cy="-2" rx="5" ry="6" transform="rotate(288 -6.6 -2)"/>
+    </g>
+    <circle r="4" fill="#ffcf4a"/>
+  </g>
+</svg>

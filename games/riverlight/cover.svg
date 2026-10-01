@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbeedd"/>
+      <stop offset="55%" stop-color="#e9f3dc"/>
+      <stop offset="100%" stop-color="#cfe6c0"/>
+    </linearGradient>
+    <radialGradient id="washA" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f6d6dc" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#f6d6dc" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="washB" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#bfe3f0" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#bfe3f0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="washC" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c2dca2" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#c2dca2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="stone" cx="45%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#fffdf5"/>
+      <stop offset="100%" stop-color="#e5ddc2"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffbe0"/>
+      <stop offset="30%" stop-color="#fff2a8" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#fff2a8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="lantern" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#62cf7f" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#62cf7f" stop-opacity="0"/>
+    </radialGradient>
+    <g id="tile">
+      <rect x="-44" y="-44" width="88" height="88" rx="14" fill="url(#stone)" stroke="#bdb38f" stroke-width="2"/>
+    </g>
+    <g id="flower">
+      <g fill="#f59bb8">
+        <ellipse cx="0" cy="-12" rx="8" ry="10"/>
+        <ellipse cx="11.4" cy="-3.7" rx="8" ry="10" transform="rotate(72 11.4 -3.7)"/>
+        <ellipse cx="7" cy="9.7" rx="8" ry="10" transform="rotate(144 7 9.7)"/>
+        <ellipse cx="-7" cy="9.7" rx="8" ry="10" transform="rotate(216 -7 9.7)"/>
+        <ellipse cx="-11.4" cy="-3.7" rx="8" ry="10" transform="rotate(288 -11.4 -3.7)"/>
+      </g>
+      <circle r="6.5" fill="#ffcf4a"/>
+      <circle r="3" cx="1.5" cy="1.5" fill="#e8a52c"/>
+    </g>
+    <g id="koi">
+      <path d="M-20 0 L-31 -9 L-28 0 L-31 9 Z" fill="#ff8a3d"/>
+      <ellipse cx="0" cy="0" rx="21" ry="8" fill="#ff8a3d"/>
+      <circle cx="6" cy="-1.5" r="4" fill="#fff"/>
+      <circle cx="-6" cy="2" r="3" fill="#fff"/>
+    </g>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <circle cx="140" cy="110" r="190" fill="url(#washA)"/>
+  <circle cx="660" cy="90" r="210" fill="url(#washB)"/>
+  <circle cx="420" cy="420" r="300" fill="url(#washC)"/>
+  <circle cx="700" cy="420" r="160" fill="url(#washA)" opacity="0.7"/>
+
+  <!-- garden bed -->
+  <g opacity="0.75" fill="#c2dca2">
+    <circle cx="210" cy="190" r="90"/><circle cx="310" cy="190" r="90"/><circle cx="410" cy="190" r="90"/><circle cx="510" cy="190" r="90"/><circle cx="610" cy="190" r="90"/>
+    <circle cx="210" cy="290" r="90"/><circle cx="310" cy="290" r="90"/><circle cx="410" cy="290" r="90"/><circle cx="510" cy="290" r="90"/><circle cx="610" cy="290" r="90"/>
+    <circle cx="210" cy="390" r="90"/><circle cx="310" cy="390" r="90"/><circle cx="410" cy="390" r="90"/><circle cx="510" cy="390" r="90"/><circle cx="610" cy="390" r="90"/>
+  </g>
+
+  <!-- stones -->
+  <g fill="rgba(60,50,30,0.16)">
+    <rect x="166" y="150" width="88" height="88" rx="14"/><rect x="266" y="150" width="88" height="88" rx="14"/><rect x="366" y="150" width="88" height="88" rx="14"/><rect x="466" y="150" width="88" height="88" rx="14"/><rect x="566" y="150" width="88" height="88" rx="14"/>
+    <rect x="166" y="250" width="88" height="88" rx="14"/><rect x="266" y="250" width="88" height="88" rx="14"/><rect x="366" y="250" width="88" height="88" rx="14"/><rect x="466" y="250" width="88" height="88" rx="14"/><rect x="566" y="250" width="88" height="88" rx="14"/>
+    <rect x="166" y="350" width="88" height="88" rx="14"/><rect x="266" y="350" width="88" height="88" rx="14"/><rect x="366" y="350" width="88" height="88" rx="14"/><rect x="466" y="350" width="88" height="88" rx="14"/><rect x="566" y="350" width="88" height="88" rx="14"/>
+  </g>
+  <g>
+    <use href="#tile" x="210" y="190"/><use href="#tile" x="310" y="190"/><use href="#tile" x="410" y="190"/><use href="#tile" x="510" y="190"/><use href="#tile" x="610" y="190"/>
+    <use href="#tile" x="210" y="290"/><use href="#tile" x="310" y="290"/><use href="#tile" x="410" y="290"/><use href="#tile" x="510" y="290"/><use href="#tile" x="610" y="290"/>
+    <use href="#tile" x="210" y="390"/><use href="#tile" x="310" y="390"/><use href="#tile" x="410" y="390"/><use href="#tile" x="510" y="390"/><use href="#tile" x="610" y="390"/>
+  </g>
+
+  <!-- the stream: spring at left, splitting to flowers -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path id="stream" d="M210 290 L260 290 Q310 290 310 240 Q310 190 360 190 L460 190 Q510 190 510 240 L510 340 Q510 390 560 390 L610 390 M310 290 L310 340 Q310 390 360 390 L410 390 M510 190 L610 190" stroke="#b39f7b" stroke-width="34"/>
+    <path d="M210 290 L260 290 Q310 290 310 240 Q310 190 360 190 L460 190 Q510 190 510 240 L510 340 Q510 390 560 390 L610 390 M310 290 L310 340 Q310 390 360 390 L410 390 M510 190 L610 190" stroke="#dccca6" stroke-width="26"/>
+    <path d="M210 290 L260 290 Q310 290 310 240 Q310 190 360 190 L460 190 Q510 190 510 240 L510 340 Q510 390 560 390 L610 390 M310 290 L310 340 Q310 390 360 390 L410 390 M510 190 L610 190" stroke="#a6dcfa" stroke-width="26" opacity="0.6"/>
+    <path d="M210 290 L260 290 Q310 290 310 240 Q310 190 360 190 L460 190 Q510 190 510 240 L510 340 Q510 390 560 390 L610 390 M310 290 L310 340 Q310 390 360 390 L410 390 M510 190 L610 190" stroke="#4fb2ec" stroke-width="15"/>
+    <path d="M210 290 L260 290 Q310 290 310 240 Q310 190 360 190 L460 190 Q510 190 510 240 L510 340 Q510 390 560 390 L610 390 M310 290 L310 340 Q310 390 360 390 L410 390 M510 190 L610 190" stroke="#ffffff" stroke-width="4" stroke-dasharray="6 18" opacity="0.8"/>
+  </g>
+  <circle cx="310" cy="290" r="18" fill="#b39f7b"/><circle cx="310" cy="290" r="13" fill="#4fb2ec"/>
+  <circle cx="510" cy="190" r="18" fill="#b39f7b"/><circle cx="510" cy="190" r="13" fill="#4fb2ec"/>
+
+  <!-- spring -->
+  <circle cx="210" cy="290" r="24" fill="#bdb38f"/>
+  <circle cx="210" cy="290" r="19" fill="#4fb2ec"/>
+  <circle cx="210" cy="290" r="11" fill="none" stroke="#fff" stroke-width="2.5" opacity="0.8"/>
+  <circle cx="210" cy="290" r="4" fill="#fff" opacity="0.9"/>
+
+  <!-- empty stones: rocks, lily pad -->
+  <g transform="translate(210 190)">
+    <ellipse cx="-8" cy="6" rx="20" ry="14" fill="#b9b8a0"/><ellipse cx="-11" cy="2" rx="12" ry="7" fill="#d3d2bb"/>
+    <path d="M12 20 q2 -12 -3 -22 M17 20 q2 -14 4 -24 M22 20 q1 -10 7 -16" stroke="#6fa055" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(210 390)">
+    <path d="M0 0 L27 -6 A27 27 0 1 1 25 8 Z" fill="#7cc4a4"/><circle cx="6" cy="-4" r="7" fill="#ff9fc4"/>
+  </g>
+  <g transform="translate(410 290)">
+    <ellipse cx="0" cy="8" rx="30" ry="15" fill="#fff" opacity="0.6"/><path d="M-14 10 q14 -30 28 0" fill="#d9533a"/><rect x="-3" y="4" width="6" height="12" fill="#f3e6d0"/>
+  </g>
+  <g transform="translate(610 290)">
+    <ellipse cx="-8" cy="6" rx="20" ry="14" fill="#b9b8a0"/><ellipse cx="-11" cy="2" rx="12" ry="7" fill="#d3d2bb"/>
+  </g>
+
+  <!-- flowers at the stream ends -->
+  <circle cx="610" cy="190" r="17" fill="#7a6a4c"/>
+  <circle cx="610" cy="390" r="17" fill="#7a6a4c"/>
+  <circle cx="410" cy="390" r="17" fill="#7a6a4c"/>
+  <use href="#flower" x="610" y="190" transform="translate(610 190) scale(1.25) translate(-610 -190)"/>
+  <g transform="translate(610 390) scale(1.25)"><use href="#flower" fill="#c5a3f0"/></g>
+  <g transform="translate(410 390) scale(1.25)">
+    <g fill="#fbcf5e">
+      <ellipse cx="0" cy="-12" rx="8" ry="10"/>
+      <ellipse cx="11.4" cy="-3.7" rx="8" ry="10" transform="rotate(72 11.4 -3.7)"/>
+      <ellipse cx="7" cy="9.7" rx="8" ry="10" transform="rotate(144 7 9.7)"/>
+      <ellipse cx="-7" cy="9.7" rx="8" ry="10" transform="rotate(216 -7 9.7)"/>
+      <ellipse cx="-11.4" cy="-3.7" rx="8" ry="10" transform="rotate(288 -11.4 -3.7)"/>
+    </g>
+    <circle r="6.5" fill="#fff7f0"/>
+  </g>
+
+  <!-- koi in the channels -->
+  <use href="#koi" transform="translate(420 190) rotate(4)"/>
+  <use href="#koi" transform="translate(510 300) rotate(92) scale(0.85)"/>
+
+  <!-- fireflies and petals -->
+  <g>
+    <circle cx="120" cy="120" r="26" fill="url(#glow)"/><circle cx="700" cy="140" r="22" fill="url(#glow)"/>
+    <circle cx="455" cy="120" r="18" fill="url(#glow)"/><circle cx="680" cy="330" r="24" fill="url(#glow)"/>
+    <circle cx="120" cy="360" r="20" fill="url(#glow)"/><circle cx="360" cy="460" r="18" fill="url(#glow)"/>
+    <circle cx="560" cy="460" r="22" fill="url(#glow)"/>
+  </g>
+  <g fill="#f8b7cb">
+    <ellipse cx="90" cy="230" rx="7" ry="4" transform="rotate(30 90 230)"/>
+    <ellipse cx="740" cy="250" rx="7" ry="4" transform="rotate(-20 740 250)"/>
+    <ellipse cx="260" cy="70" rx="6" ry="3.5" transform="rotate(50 260 70)"/>
+    <ellipse cx="560" cy="60" rx="6" ry="3.5" transform="rotate(-40 560 60)"/>
+    <ellipse cx="730" cy="450" rx="7" ry="4" transform="rotate(10 730 450)" fill="#fbd77a"/>
+    <ellipse cx="70" cy="440" rx="6" ry="3.5" transform="rotate(70 70 440)" fill="#fff3f6"/>
+  </g>
+  <circle cx="700" cy="400" r="70" fill="url(#lantern)"/>
+</svg>
