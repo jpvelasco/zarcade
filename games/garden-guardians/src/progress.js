@@ -21,8 +21,15 @@ export function loadSave(storage) {
   }
 }
 
+// Returns false when nothing was saved (storage full, disabled or blocked).
 export function writeSave(storage, save) {
-  try { storage && storage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* storage full or disabled */ }
+  if (!storage) return false;
+  try {
+    storage.setItem(SAVE_KEY, JSON.stringify(save));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function isMapUnlocked(save, index) {

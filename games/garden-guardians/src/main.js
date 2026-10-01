@@ -8,15 +8,28 @@ import { DEFENDERS, DEFENDER_ORDER, BUGS, TARGETING, TARGETING_LABEL } from './d
 import { MAPS, AREAS, COLS, ROWS } from './maps.js';
 import { upgradeCost, buildCost } from './combat.js';
 import { loadSave, writeSave, isMapUnlocked, unlockedDefenders, recordResult, totalStars } from './progress.js';
+import { frameMonitor } from './perf.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
 const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
 
+// Telemetry is optional: the game still runs if telemetry.js is missing.
+const telemetry = window.Telemetry || null;
+const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
+
 // Reading `localStorage` throws when the browser blocks site storage; the
 // save helpers treat a null store as "nothing saved".
 const storage = (() => { try { return localStorage; } catch { return null; } })();
 const save = loadSave(storage);
+// Saving can fail (private mode, full or blocked storage); play on and
+// report it once.
+let saveWarned = false;
+function persist() {
+  if (writeSave(storage, save) || saveWarned) return;
+  saveWarned = true;
+  log.warn('save.failed', { 'storage.available': !!storage });
+}
 const sound = new Sound({ muted: save.muted, music: save.music });
 const renderer = new Renderer($('game'));
 renderer.reduced = motionQuery.matches;
@@ -85,6 +98,7 @@ function startMap(mapIndex) {
   renderPanel();
   sound.setMusicLevel(1);
   const m = MAPS[mapIndex];
+  log.event('map.start', { map: mapIndex + 1, 'map.id': m.id, waves: game.waves.length, 'stars.best': save.stars[m.id] || 0 });
   if (mapIndex === 0 && !save.stars[m.id]) {
     toast('Tap the grass beside the path to plant a <b>Pea Pod</b>!', 'Then press <b>Start wave</b> when you are ready.', 5);
   } else {
@@ -189,7 +203,7 @@ function toggleMute() {
   save.muted = !save.muted;
   sound.unlock();
   sound.setMuted(save.muted);
-  writeSave(storage, save);
+  persist();
   updateSoundButtons();
 }
 
@@ -197,14 +211,14 @@ function toggleMusic() {
   save.music = !save.music;
   sound.unlock();
   sound.setMusic(save.music);
-  writeSave(storage, save);
+  persist();
   updateSoundButtons();
 }
 
 function toggleSpeed() {
   speed = speed === 1 ? 2 : 1;
   save.fast = speed === 2;
-  writeSave(storage, save);
+  persist();
   sound.play('click');
   hudCache.speed = null;
 }
@@ -221,7 +235,11 @@ function showResults() {
   $('res-stars').classList.toggle('hidden', !won);
   if (won) {
     const res = recordResult(save, game.mapIndex, stars);
-    writeSave(storage, save);
+    persist();
+    log.event('map.complete', {
+      map: game.mapIndex + 1, 'map.id': game.map.id, stars, baskets: game.baskets, shooed: game.stats.shooed,
+      defenders: game.defenders.length, 'map.unlocked': res.newMap !== null,
+    });
     starEls.forEach((s, i) => s.classList.toggle('on', i < stars));
     $('res-title').textContent = stars === 3 ? 'Perfect picnic!' : 'Picnic saved!';
     $('res-sub').textContent = `${game.map.name} · ${game.baskets} of ${game.maxBaskets} baskets left`;
@@ -237,6 +255,7 @@ function showResults() {
     sound.play('win');
   } else {
     $('res-title').textContent = 'The bugs got the snacks!';
+    log.event('map.fail', { map: game.mapIndex + 1, 'map.id': game.map.id, wave: game.wave, waves: game.waves.length, shooed: game.stats.shooed });
     $('res-sub').textContent = `${game.map.name} · reached wave ${game.wave} of ${game.waves.length}`;
     lines.push(['Bugs shooed', game.stats.shooed]);
     lines.push(['Tip: honey slows bugs, and Sunflower Cannons shoo crowds.']);
@@ -672,8 +691,23 @@ function updatePointer(dt) {
 
 // ------------------------------------------------------------ loop
 
+// Frame telemetry: slow frames, struggling 10 s windows, and a watchdog
+// outside the loop that notices when frames stop while the page is visible.
+const monitor = frameMonitor({
+  log,
+  snapshot: () => ({
+    mode, speed, map: game ? game.mapIndex + 1 : 0, wave: game ? game.wave : 0,
+    bugs: game?.bugs?.length ?? 0, defenders: game?.defenders?.length ?? 0, attract: !!bot && mode !== 'play',
+  }),
+  visible: () => document.visibilityState === 'visible',
+  crashed: () => !!telemetry?.crashed,
+});
+setInterval(() => monitor.check(performance.now()), 1000);
+document.addEventListener('visibilitychange', () => monitor.reset(performance.now()));
+
 let last = performance.now();
 function frame(now) {
+  monitor.frame(now);
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   updatePointer(dt);
@@ -719,15 +753,20 @@ function frame(now) {
       ghost: mode === 'play' && ui.placing && at ? { type: ui.placing, x: at.x, y: at.y } : null,
     });
   }
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
+
+// A crash inside a frame shows the crash screen instead of a frozen picture;
+// after a crash the guard returns early, so the loop stops rescheduling.
+const loop = telemetry ? telemetry.guard(frame, 'garden-guardians.frame') : frame;
 
 updateSoundButtons();
 if (location.protocol !== 'file:') {
+  log.event('game.ready', { stars: totalStars(save), gardens: Object.keys(save.stars).length });
   const mapParam = Number(params.get('map'));
   if (mapParam >= 1 && mapParam <= MAPS.length) startMap(mapParam - 1);
   else toTitle();
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
 
 // Handy for debugging and browser checks.

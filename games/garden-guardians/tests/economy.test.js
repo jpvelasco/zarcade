@@ -108,8 +108,10 @@ test('save data round-trips under the namespaced key and unlocks progress', () =
   assert.equal(res.newMap, 1);
   assert.deepEqual(res.newDefenders, ['honey', 'daisy']);
   assert.equal(recordResult(save, 0, 1).best, 2, 'keeps best stars');
-  writeSave(storage, save);
+  assert.equal(writeSave(storage, save), true);
   assert.ok(store.has(SAVE_KEY));
+  assert.equal(writeSave(null, save), false);
+  assert.equal(writeSave({ setItem() { throw new Error('quota'); } }, save), false);
   assert.equal(SAVE_KEY, 'garden-guardians.v1');
   const again = loadSave(storage);
   assert.equal(again.stars['sunny-lawn'], 2);
