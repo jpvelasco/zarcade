@@ -65,11 +65,25 @@ function setSeason(key) {
   audio.setSeason(key);
 }
 
+// Short landscape screens (phones on their side) move the bar to the right
+// edge so the garden gets the full height. Keep in step with style.css.
+const sideways = matchMedia('(orientation: landscape) and (max-height: 500px)');
+
 function insets() {
   if (mode === 'title') return { top: 0, bottom: 0, left: 0, right: 0 };
   if (mode === 'photo') return { top: 20, bottom: 70, left: 10, right: 10 };
+  const side = sideways.matches;
   const phone = innerWidth < 560;
-  return { top: phone ? 66 : 70, bottom: phone ? 82 : 86, left: 6, right: 6 };
+  const base = side
+    ? { top: 6, bottom: 6, left: 190, right: 120 }
+    : { top: phone ? 66 : 70, bottom: phone ? 82 : 86, left: 6, right: 6 };
+  if (mode === 'results') {
+    // Fit the finished garden into the space the results card leaves free.
+    const card = document.querySelector('.results-card');
+    if (side) return { ...base, top: 66, left: 6, right: card.offsetWidth + 24 };
+    return { ...base, bottom: card.offsetHeight + 36 };
+  }
+  return base;
 }
 
 function layout() {
@@ -417,7 +431,8 @@ canvas.addEventListener('pointerdown', (e) => {
     timer: setTimeout(() => {
       if (!press) return;
       press.long = true;
-      navigator.vibrate?.(12);
+      // Vibrating before the first completed tap is blocked (and logged).
+      if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(12);
       rotateAt(press.i, -1);
     }, 450),
   };

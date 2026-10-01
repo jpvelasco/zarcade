@@ -110,7 +110,7 @@ body[data-season="night"] .overlay.dim { background: rgba(10, 12, 30, 0.45); }
 .btn:focus-visible, .bar-btn:focus-visible, .icon-btn:focus-visible, .lvl:focus-visible { outline: 3px solid var(--water); outline-offset: 2px; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15); }
 .btn.big { font-size: 1.35rem; padding: 14px 28px; }
-.btn.small { font-size: 0.92rem; padding: 7px 14px; }
+.btn.small { font-size: 0.92rem; padding: 7px 14px; min-height: 44px; }
 
 .arcade-link {
   position: fixed;
@@ -338,6 +338,32 @@ code { background: rgba(0, 0, 0, 0.06); padding: 1px 5px; border-radius: 6px; }
 @media (max-height: 560px) {
   .title-card { padding: 10px 20px; }
   .tagline, .controls { display: none; }
+}
+
+/* Phones on their side: the bar moves to the right edge so the garden gets
+   the full height, and the results card sits beside the garden. main.js
+   matches this query in insets(). */
+@media (orientation: landscape) and (max-height: 500px) {
+  .bar {
+    left: auto;
+    right: max(10px, env(safe-area-inset-right));
+    top: max(64px, calc(env(safe-area-inset-top) + 54px));
+    bottom: auto;
+    transform: none;
+    flex-direction: column;
+    gap: 5px;
+    padding: 6px;
+    width: 104px;
+  }
+  .bar-btn { width: 100%; min-width: 0; height: 50px; }
+  .bar-moves { min-width: 0; padding: 2px 0; order: -1; }
+  .moves { font-size: 0.98rem; }
+  .target { font-size: 0.74rem; }
+  .overlay.low { align-items: center; justify-content: flex-end; padding: 66px max(12px, env(safe-area-inset-right)) 10px 12px; }
+  .results-card { max-width: min(360px, 46vw); padding: 12px 16px; }
+  .results-card h2 { font-size: 1.3rem; }
+  .results-card .stars { font-size: 2rem; margin: 0; }
+  .results-card p { margin: 2px 0 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
