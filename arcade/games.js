@@ -144,6 +144,16 @@
       accent: '#ffb347',
       needsServer: true,
     },
+    {
+      slug: 'jungle-blaster',
+      title: 'Jungle Blaster 2600',
+      tagline: 'Swing, hop and blast through a retro jungle.',
+      description: 'A 2600-style run-and-gun adventure: swing on vines, hop the crocs, grab the treasure and blast six giant bosses, solo or co-op, with chiptunes and a CRT glow.',
+      genre: 'Action',
+      controls: ['keyboard', 'touch', 'gamepad'],
+      accent: '#ff8a1a',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
