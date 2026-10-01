@@ -97,31 +97,53 @@ export class Renderer {
     this.flakes = Array.from({ length: n }, (_, i) => ({ x: Math.random() * w, y: Math.random() * h, r: 1 + Math.random() * 2.4, s: 0.4 + Math.random(), p: i }));
   }
 
+  // Backdrops are baked once per peak (and screen height) and cached, so
+  // Endless Mountain can change peaks without a hitch.
   bakeSky(peak, force = false) {
     if (peak === this.peak && !force) return;
+    if (force) this.skyCache = new Map();
+    this.skyCache ??= new Map();
     this.peak = peak;
+    let set = this.skyCache.get(peak);
+    if (!set) {
+      set = this.buildSky(peak);
+      this.skyCache.set(peak, set);
+    }
+    Object.assign(this, set);
+  }
+
+  buildSky(peak) {
     const key = PEAKS[peak]?.sky || 'morning';
     const P = SKIES[key];
-    this.pal = P;
     const H = this.H;
     const sky = mk(2, H);
     const g = sky.getContext('2d');
     const gr = g.createLinearGradient(0, 0, 0, H);
     gr.addColorStop(0, P.top); gr.addColorStop(0.55, P.mid); gr.addColorStop(1, P.bottom);
     g.fillStyle = gr; g.fillRect(0, 0, 2, H);
-    this.sky = sky;
-    this.ridges = [ridgeStrip(P.far, 'rgba(255,255,255,0.75)', 11 + peak, 1400, 360, 1.1), ridgeStrip(P.mid2, 'rgba(255,255,255,0.55)', 23 + peak, 1100, 300, 0.9)];
-    this.trees = treeStrip(P.trees, 31 + peak, 1024, 240);
-    this.decoTree = decoTree(P.trees);
-    this.stars = key === 'night' ? starfield(this.W, this.H) : null;
-    this.aurora = key === 'night' ? auroraStrip(1200, 320) : null;
-    this.sun = key === 'night' ? softDot('rgba(240,245,255,0.95)', 160) : key === 'sunset' ? softDot('rgba(255,200,120,0.95)', 220) : softDot('rgba(255,250,220,0.95)', 200);
     const wg = mk(140, 2);
     const w2 = wg.getContext('2d');
     const lg = w2.createLinearGradient(0, 0, 140, 0);
     lg.addColorStop(0, 'rgba(120,170,255,0.75)'); lg.addColorStop(1, 'rgba(120,170,255,0)');
     w2.fillStyle = lg; w2.fillRect(0, 0, 140, 2);
-    this.warnEdge = wg;
+    return {
+      pal: P,
+      sky,
+      ridges: [ridgeStrip(P.far, 'rgba(255,255,255,0.75)', 11 + peak, 1400, 360, 1.1), ridgeStrip(P.mid2, 'rgba(255,255,255,0.55)', 23 + peak, 1100, 300, 0.9)],
+      trees: treeStrip(P.trees, 31 + peak, 1024, 240),
+      decoTree: decoTree(P.trees),
+      stars: key === 'night' ? starfield(this.W, this.H) : null,
+      aurora: key === 'night' ? auroraStrip(1200, 320) : null,
+      sun: key === 'night' ? softDot('rgba(240,245,255,0.95)', 160) : key === 'sunset' ? softDot('rgba(255,200,120,0.95)', 220) : softDot('rgba(255,250,220,0.95)', 200),
+      warnEdge: wg,
+    };
+  }
+
+  // Bake the other peaks' backdrops ahead of time (one per call).
+  warmSkies() {
+    this.skyCache ??= new Map();
+    for (let p = 0; p < PEAKS.length; p++) if (!this.skyCache.has(p)) { this.skyCache.set(p, this.buildSky(p)); return false; }
+    return true;
   }
 
   reset(world, { snap = true } = {}) {
@@ -155,6 +177,7 @@ export class Renderer {
     this.time += dt;
     if (!world) return;
     const b = world.ball;
+    if (world.endless) this.bakeSky(world.level.zoneAt(b.x));
     const T = world.terrain;
     const c = this.cam;
     const k = snap ? 1 : 1 - Math.exp(-dt * 2.2);
@@ -328,7 +351,7 @@ export class Renderer {
     if (this.aurora) {
       const aw = W * 1.4, off = -((this.time * 12 + camX * 0.01) % aw);
       g.globalAlpha = 0.9;
-      for (let x = off; x < W; x += aw) g.drawImage(this.aurora, x, 0, aw, H * 0.5);
+      for (let x = off; x < W; x += aw - 2) g.drawImage(this.aurora, x, 0, aw, H * 0.5);
       g.globalAlpha = 1;
     }
     const sunR = Math.min(W, H) * (P === SKIES.sunset ? 0.32 : 0.24);
@@ -389,8 +412,15 @@ export class Renderer {
     gr.addColorStop(0, P.snowBody); gr.addColorStop(1, P.snowDeep);
     g.fillStyle = gr;
     g.fill();
-    // Bright rim
     const D = world.ball.D * this.s;
+    // A soft drift band under the surface gives the snow some depth.
+    g.lineJoin = 'round';
+    g.strokeStyle = 'rgba(255,255,255,0.35)';
+    g.lineWidth = Math.max(6, D * 0.6);
+    g.beginPath();
+    for (let i = i0; i <= i1; i += step) g.lineTo(this.X(i * dx), this.Y(T.ys[i]) + D * 0.55);
+    g.stroke();
+    // Bright rim
     g.lineJoin = 'round';
     g.lineCap = 'round';
     g.strokeStyle = P.snowTop;
@@ -784,8 +814,8 @@ export class Renderer {
       const tLeft = world.time <= goals.time;
       line(safeTop + 94 * u, clock(world.finishTime ?? world.time), clock(goals.time), tLeft);
     } else if (world.endless) {
-      line(safeTop + 58 * u, `${Math.floor(world.distance / 100)} m rolled`, null);
-      line(safeTop + 78 * u, things(world.collected), null);
+      line(safeTop + 60 * u, `${Math.floor(world.distance / 100)} m rolled`, opts.best ? `best ${opts.best} m` : null, world.distance / 100 > (opts.best || 0));
+      line(safeTop + 80 * u, things(world.collected), null);
     } else {
       line(safeTop + 62 * u, things(world.collected), null);
       line(safeTop + 84 * u, clock(world.time), null);
@@ -813,12 +843,12 @@ export class Renderer {
     }
     // Avalanche warning
     const av = world.avalanche;
-    if (av && av.delay <= 0 && av.gap < 11 && world.status === 'play') {
-      const k = Math.max(0, Math.min(1, 1 - av.gap / 11));
+    if (av && av.delay <= 0 && av.gap < 7 && world.status === 'play') {
+      const k = Math.max(0, Math.min(1, 1.15 - av.gap / 7));
       g.globalAlpha = k;
       g.drawImage(this.warnEdge, 0, 0, 140 * u, H);
       g.globalAlpha = 1;
-      if (av.gap < 6) {
+      if (av.gap < 4) {
         g.textAlign = 'left';
         g.font = `900 ${Math.round(20 * u)}px ${FONT}`;
         g.lineWidth = 5; g.strokeStyle = '#3a2d4d';

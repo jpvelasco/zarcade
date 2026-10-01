@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5fb8ff"/>
+      <stop offset="0.6" stop-color="#b9e6ff"/>
+      <stop offset="1" stop-color="#fff1d6"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbe6"/>
+      <stop offset="0.5" stop-color="#fff3c0" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#fff3c0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f9ff"/>
+      <stop offset="1" stop-color="#bcd6f2"/>
+    </linearGradient>
+    <radialGradient id="ball" cx="0.36" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#eef6ff"/>
+      <stop offset="1" stop-color="#a9c6ec"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <circle cx="620" cy="110" r="120" fill="url(#sun)"/>
+  <!-- far mountains -->
+  <path d="M0 300 L90 190 L150 240 L250 120 L340 230 L420 160 L520 250 L610 150 L700 230 L800 170 L800 360 L0 360 Z" fill="#a9c9ee"/>
+  <path d="M250 120 L285 165 L265 160 L250 175 L232 158 L215 166 Z M610 150 L640 190 L622 186 L608 198 L594 184 L578 190 Z M90 190 L115 220 L100 217 L88 228 L76 216 Z" fill="#ffffff"/>
+  <path d="M0 330 Q120 270 230 300 T470 290 T800 270 L800 400 L0 400 Z" fill="#8cb2e0"/>
+  <!-- pine strip -->
+  <g fill="#4f8fae">
+    <path d="M30 360 L60 290 L90 360 Z"/><path d="M80 365 L118 270 L156 365 Z"/><path d="M140 362 L170 300 L200 362 Z"/>
+    <path d="M560 340 L590 270 L620 340 Z"/><path d="M610 345 L650 250 L690 345 Z"/><path d="M680 340 L712 280 L744 340 Z"/><path d="M730 345 L765 265 L800 345 Z"/>
+  </g>
+  <!-- slope -->
+  <path d="M0 330 Q250 330 420 395 T800 470 L800 500 L0 500 Z" fill="url(#snow)"/>
+  <path d="M0 330 Q250 330 420 395 T800 470" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+  <path d="M40 342 Q200 340 320 372" fill="none" stroke="#9fb6dc" stroke-width="10" stroke-linecap="round" opacity="0.6"/>
+  <!-- Snow Cloud -->
+  <g>
+    <circle cx="40" cy="250" r="90" fill="#dfe9fb"/>
+    <circle cx="110" cy="300" r="70" fill="#eef4ff"/>
+    <circle cx="60" cy="170" r="70" fill="#eef4ff"/>
+    <circle cx="20" cy="320" r="70" fill="#eef4ff"/>
+    <circle cx="80" cy="240" r="62" fill="#ffffff"/>
+    <ellipse cx="78" cy="238" rx="7" ry="10" fill="#3a2d4d"/>
+    <ellipse cx="112" cy="238" rx="7" ry="10" fill="#3a2d4d"/>
+    <path d="M80 258 Q95 272 110 258" fill="none" stroke="#3a2d4d" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="68" cy="256" r="8" fill="#ff9db4" opacity="0.6"/>
+    <circle cx="124" cy="256" r="8" fill="#ff9db4" opacity="0.6"/>
+  </g>
+  <!-- snow spray -->
+  <g fill="#ffffff">
+    <circle cx="300" cy="340" r="9"/><circle cx="276" cy="326" r="6"/><circle cx="256" cy="344" r="7"/><circle cx="236" cy="330" r="4"/><circle cx="318" cy="322" r="5"/>
+  </g>
+  <!-- big snowball -->
+  <ellipse cx="420" cy="398" rx="110" ry="16" fill="#3a4a8a" opacity="0.18"/>
+  <circle cx="420" cy="285" r="112" fill="url(#ball)" stroke="#3a2d4d" stroke-width="6"/>
+  <!-- things stuck to the ball -->
+  <g stroke="#3a2d4d" stroke-width="3" stroke-linejoin="round">
+    <!-- pinecones -->
+    <ellipse cx="355" cy="250" rx="13" ry="17" fill="#9a5b32" transform="rotate(-30 355 250)"/>
+    <ellipse cx="470" cy="350" rx="12" ry="16" fill="#9a5b32" transform="rotate(40 470 350)"/>
+    <!-- mitten -->
+    <path d="M492 228 q-4 -28 18 -30 q22 0 20 26 q12 -4 10 8 q-4 10 -12 10 l0 12 l-36 0 Z" fill="#2bb5a6" transform="rotate(20 510 230)"/>
+    <!-- candy cane -->
+    <path d="M378 340 l0 -34 a14 14 0 0 1 28 0" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+    <path d="M378 340 l0 -34 a14 14 0 0 1 28 0" fill="none" stroke="#e8364a" stroke-width="10" stroke-dasharray="7 7" stroke-linecap="round"/>
+    <!-- cocoa -->
+    <rect x="430" y="300" width="30" height="30" rx="6" fill="#e8505b" transform="rotate(-15 445 315)"/>
+    <!-- carrot -->
+    <path d="M330 300 l22 6 l-30 22 Z" fill="#ff8a2a"/>
+  </g>
+  <!-- waving penguin at the rim -->
+  <g transform="translate(516 296) rotate(70)" stroke="#3a2d4d" stroke-width="3">
+    <ellipse cx="0" cy="-28" rx="22" ry="26" fill="#26304a"/>
+    <ellipse cx="0" cy="-24" rx="14" ry="18" fill="#ffffff" stroke="none"/>
+    <ellipse cx="0" cy="-38" rx="15" ry="11" fill="#ffffff" stroke="none"/>
+    <circle cx="-6" cy="-40" r="3" fill="#3a2d4d" stroke="none"/><circle cx="6" cy="-40" r="3" fill="#3a2d4d" stroke="none"/>
+    <path d="M-5 -34 l10 0 l-5 6 Z" fill="#ffa53b" stroke-width="2"/>
+    <ellipse cx="24" cy="-46" rx="6" ry="14" fill="#26304a" transform="rotate(35 24 -46)"/>
+  </g>
+  <!-- beanie -->
+  <g stroke="#3a2d4d" stroke-width="6" stroke-linejoin="round">
+    <path d="M345 190 Q350 110 420 106 Q490 110 495 190 Z" fill="#e8364a"/>
+    <rect x="336" y="176" width="168" height="30" rx="14" fill="#ffffff"/>
+    <circle cx="420" cy="96" r="20" fill="#ffffff"/>
+  </g>
+  <!-- things waiting on the slope -->
+  <g stroke="#3a2d4d" stroke-width="3" stroke-linejoin="round">
+    <path d="M620 418 l14 -40 l14 40 Z" fill="#2e9d5b"/>
+    <ellipse cx="690" cy="440" rx="11" ry="14" fill="#9a5b32"/>
+    <g transform="translate(740 452)">
+      <ellipse cx="0" cy="-16" rx="14" ry="18" fill="#26304a"/>
+      <ellipse cx="0" cy="-14" rx="9" ry="12" fill="#ffffff" stroke="none"/>
+      <path d="M-4 -24 l8 0 l-4 5 Z" fill="#ffa53b" stroke-width="2"/>
+    </g>
+  </g>
+  <!-- falling snow -->
+  <g fill="#ffffff" opacity="0.9">
+    <circle cx="200" cy="60" r="3"/><circle cx="330" cy="40" r="2.5"/><circle cx="500" cy="70" r="3"/><circle cx="720" cy="40" r="2.5"/><circle cx="260" cy="150" r="2"/>
+    <circle cx="560" cy="210" r="3"/><circle cx="160" cy="120" r="2"/><circle cx="760" cy="200" r="3"/><circle cx="640" cy="290" r="2"/><circle cx="380" cy="30" r="2"/>
+  </g>
+</svg>

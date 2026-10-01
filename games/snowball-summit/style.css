@@ -64,10 +64,10 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 @keyframes pop { from { transform: scale(0.92); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .card, .stars span, .toast { animation: none !important; } }
 
-h2 { margin: 0 0 6px; font-size: 28px; font-weight: 900; color: var(--ink); }
-h2.rainbow { background: linear-gradient(90deg, #3b82f6, #a855f7, #ff6f91); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.card h2 { margin: 0 0 6px; font-size: 28px; font-weight: 900; color: var(--ink); }
+.card h2.rainbow { background: linear-gradient(90deg, #3b82f6, #a855f7, #ff6f91); -webkit-background-clip: text; background-clip: text; color: transparent; }
 h3.sub { margin: 16px 0 8px; font-size: 18px; font-weight: 900; text-align: left; }
-p { margin: 8px 0; line-height: 1.4; }
+.card p { margin: 8px 0; line-height: 1.4; }
 .muted { color: var(--muted); font-size: 15px; font-weight: 600; }
 .center { text-align: center; }
 code { background: rgba(58, 45, 77, 0.08); padding: 2px 6px; border-radius: 6px; }
@@ -308,7 +308,7 @@ code { background: rgba(58, 45, 77, 0.08); padding: 2px 6px; border-radius: 6px;
   .logo .l2 { font-size: 43px; }
   .logo-ball { width: 70px; height: 70px; }
   .logo-hat { left: 12px; width: 44px; }
-  h2 { font-size: 24px; }
+  .card h2 { font-size: 24px; }
 }
 @media (max-height: 560px) {
   .card { padding: 14px 16px; }

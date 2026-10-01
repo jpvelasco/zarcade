@@ -93,6 +93,7 @@ function attract() {
 // ------------------------------------------------------------ title
 
 function toTitle() {
+  bankUnfinished();
   mode = 'title';
   if (!isAttract) attract();
   hideToast();
@@ -114,7 +115,17 @@ function toTitle() {
 
 // ------------------------------------------------------------ starting runs
 
+// A run left mid-way (restart, slopes, back to title) still fills the museum.
+function bankUnfinished() {
+  if (!world || isAttract || world.status !== 'play' || !world.collected) return;
+  const out = recordAttempt(save, { byType: world.byType });
+  world.byType = {};
+  persist();
+  if (out.newTypes.length) log.event('museum.new', { count: out.newTypes.length, from: 'unfinished' });
+}
+
 function begin(kind, level, index = -1) {
+  bankUnfinished();
   sound.unlock();
   hideToast();
   isAttract = false;
@@ -315,6 +326,7 @@ function renderMap() {
 }
 
 function toMap() {
+  bankUnfinished();
   sound.unlock();
   if (!isAttract) attract();
   mode = 'map';
@@ -503,6 +515,7 @@ setInterval(() => monitor.check(performance.now()), 1000);
 document.addEventListener('visibilitychange', () => monitor.reset(performance.now()));
 
 let spritesReady = false;
+let skiesReady = false;
 let last = performance.now();
 function frame(now) {
   monitor.frame(now);
@@ -511,6 +524,7 @@ function frame(now) {
   input.pollPad();
   updatePointer(dt);
   if (!spritesReady) spritesReady = warmSprites(5);
+  else if (!skiesReady && mode !== 'play') skiesReady = renderer.warmSkies();
 
   const esc = input.consume('Escape');
   if (esc || input.consume('KeyP') || input.consumePad('start')) {
@@ -561,6 +575,7 @@ function frame(now) {
     touch: input.touchUsed,
     safeBottom: safeBottom(),
     banner: playing && bannerTimer > 0 && world.time < 1.4 ? 'Roll!' : null,
+    best: current?.kind === 'endless' ? save.endless.dist : 0,
   });
   if (mode === 'wardrobe') drawPreview($('wardrobe-preview'), save.skin, save.hat, now / 1000);
   requestAnimationFrame(loop);

@@ -77,7 +77,10 @@ export class Input {
     this.pointers.clear();
   }
 
+  // Edges only live for the frame they happened in, so a jump press can't
+  // later click a menu button.
   pollPad() {
+    this.padEdges.clear();
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     let pad = null;
     for (const p of pads) if (p) { pad = p; break; }
