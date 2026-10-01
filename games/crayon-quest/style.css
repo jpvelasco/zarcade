@@ -69,6 +69,8 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 .sheet.wide { max-width: 980px; }
 .sheet h2 { font-size: 30px; text-align: center; margin-bottom: 6px; }
 .sheet .lead { text-align: center; font-size: 18px; margin: 4px 0 14px; }
+.sheet h2 svg { width: 40px; height: 40px; vertical-align: -8px; }
+.sheet .lead svg { width: 24px; height: 24px; vertical-align: -6px; }
 @keyframes sheet-in { from { transform: scale(0.9) rotate(-1.5deg); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* ------------------------------------------------------------ buttons */
@@ -92,7 +94,13 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   color: var(--ink);
 }
 .btn:nth-child(even) { border-radius: var(--wobble-2); }
-.btn:hover { transform: translateY(-2px) rotate(-0.6deg); box-shadow: 4px 6px 0 rgba(45, 42, 50, 0.22); }
+@media (hover: hover) {
+  .btn:hover { transform: translateY(-2px) rotate(-0.6deg); box-shadow: 4px 6px 0 rgba(45, 42, 50, 0.22); }
+  .hero-card:hover { transform: translateY(-3px) rotate(-1deg); }
+  .node.open:hover { animation-play-state: paused; transform: scale(1.15); }
+  .hand .card:hover { --lift: -22px; z-index: 5; }
+  .pick:hover { transform: translateY(-4px) rotate(-1deg); }
+}
 .btn:active { transform: translateY(1px); box-shadow: 1px 2px 0 rgba(45, 42, 50, 0.2); }
 .btn:disabled { opacity: 0.45; cursor: default; transform: none; }
 .btn.primary { background: var(--yellow); }
@@ -180,7 +188,6 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   font-size: 15px;
 }
 .hero-card:nth-child(even) { border-radius: var(--wobble-2); }
-.hero-card:hover { transform: translateY(-3px) rotate(-1deg); }
 .hero-card.sel { background: #fff3c4; border-width: 4px; transform: translateY(-4px) rotate(-1deg); box-shadow: 5px 7px 0 rgba(45, 42, 50, 0.2); }
 .hero-card.locked { cursor: default; background: #eeeae0; }
 .hero-card .doodle { width: 140px; height: 140px; }
@@ -240,7 +247,6 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 .node svg { width: 100%; height: 100%; display: block; }
 .node.boss { width: 86px; height: 86px; margin: -43px 0 0 -43px; box-shadow: 0 0 0 3px var(--ink); background: #fff3c4; }
 .node.open { cursor: pointer; box-shadow: 0 0 0 3.5px var(--ink); animation: pulse 1.1s ease-in-out infinite; background: #fff; }
-.node.open:hover { animation-play-state: paused; transform: scale(1.15); }
 .node.done { opacity: 0.55; }
 .node.here { box-shadow: 0 0 0 4px var(--red); opacity: 1; }
 .node.past { opacity: 0.45; filter: grayscale(0.6); }
@@ -322,6 +328,8 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 .intent.buff, .intent.summon { background: #e6f7df; }
 .intent.debuff { background: #f1e6ff; }
 .intent .sub { font-size: 14px; margin-left: 2px; }
+.intent .mini { display: inline-flex; align-items: center; font-size: 15px; margin-left: 2px; }
+.intent .mini svg { width: 22px; height: 22px; }
 .intent:empty { visibility: hidden; }
 
 .bar-wrap { width: 88%; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
@@ -393,9 +401,9 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 .card .frame svg { width: 100%; height: 100%; display: block; }
 .card .inner { position: absolute; inset: 7px 8px 8px; display: flex; flex-direction: column; align-items: center; }
 .card .cname { font-size: 15px; font-weight: 800; line-height: 1.05; margin-top: 4px; min-height: 32px; display: flex; align-items: center; padding: 0 12px 0 16px; }
-.card .art { width: 54%; aspect-ratio: 1; margin: 0 0 2px; }
+.card .art { height: 34%; aspect-ratio: 1; margin: 0 0 2px; flex: none; }
 .card .art svg { width: 100%; height: 100%; }
-.card .ctext { font-size: 14px; font-weight: 700; line-height: 1.12; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.card .ctext { font-size: 14px; font-weight: 700; line-height: 1.12; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
 .card .ctext .up { color: #2e7d32; }
 .card .ctext .down { color: #c62828; }
 .card .ctext small { font-size: 12px; color: var(--ink-soft); }
@@ -405,14 +413,13 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 }
 .card .cost svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .card .cost span { position: relative; }
-.card .kind { position: absolute; bottom: 2px; left: 0; right: 0; font-size: 11px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 1px; }
+.card .kind { flex: none; line-height: 1; padding-bottom: 1px; font-size: 11px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 1px; }
 .card.k-attack .kind { color: var(--attack); }
 .card.k-skill .kind { color: var(--skill); }
 .card.k-magic .kind { color: var(--magic); }
 .card.r-uncommon .cname { color: #1565c0; }
 .card.r-rare .cname { color: #b8860b; }
 .card.upgraded .cname { color: #2e7d32; }
-.hand .card:hover { --lift: -22px; z-index: 5; }
 .hand .card.sel { --lift: -34px; --rot: 0deg !important; z-index: 6; }
 .hand .card.sel .frame { filter: drop-shadow(0 0 0 transparent); }
 .hand .card.sel::before { content: ''; position: absolute; inset: -7px; border: 3.5px dashed var(--orange); border-radius: 18px; }
@@ -429,7 +436,6 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 /* ------------------------------------------------------------ rooms */
 .choices { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 10px 0 16px; }
 .pick { appearance: none; border: 0; background: none; padding: 0; font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; border-radius: 18px; transition: transform 0.15s; }
-.pick:hover { transform: translateY(-4px) rotate(-1deg); }
 .pick.taken { transform: translateY(-6px) scale(1.04); }
 .pick.taken .card::before { content: ''; position: absolute; inset: -7px; border: 4px solid var(--green); border-radius: 18px; }
 .pick.faded { opacity: 0.35; pointer-events: none; }
@@ -491,7 +497,7 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 .help .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .help h3 { margin-top: 10px; }
 
-.toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) rotate(-1deg); z-index: 60; background: var(--yellow); border: 3px solid var(--ink); border-radius: var(--wobble); padding: 8px 18px; font-weight: 800; font-size: 18px; box-shadow: 3px 4px 0 rgba(45, 42, 50, 0.2); animation: sheet-in 0.3s; max-width: 92vw; text-align: center; }
+.toast { position: fixed; left: 50%; top: 64px; transform: translateX(-50%) rotate(-1deg); z-index: 60; background: var(--yellow); border: 3px solid var(--ink); border-radius: var(--wobble); padding: 8px 18px; font-weight: 800; font-size: 18px; box-shadow: 3px 4px 0 rgba(45, 42, 50, 0.2); animation: sheet-in 0.3s; max-width: 92vw; text-align: center; }
 
 /* ------------------------------------------------------------ small screens */
 @media (max-width: 900px) {
@@ -502,7 +508,7 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   .end-turn { width: 94px; font-size: 17px; }
 }
 @media (max-width: 600px) {
-  :root { --card-w: 92px; --card-h: 132px; }
+  :root { --card-w: 86px; --card-h: 128px; }
   .topbar { font-size: 16px; gap: 6px; min-height: 40px; }
   .topbar .stat svg { width: 22px; height: 22px; }
   .topbar .floor { display: none; }
@@ -518,10 +524,14 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   .hero-card .blurb { display: none; }
   .arena { flex-direction: column; align-items: stretch; justify-content: flex-end; padding: 44px 0 2px; gap: 0; }
   .enemies { justify-content: center; flex: 1; align-items: flex-end; gap: 4px; }
-  .enemy, .enemy.small { width: 31%; max-width: 150px; }
-  .enemy.big { width: 52%; max-width: 210px; }
-  .enemies.solo .enemy { width: 46%; max-width: 190px; }
-  .hero-spot { width: 34%; max-width: 150px; align-self: flex-start; margin-top: -10px; }
+  .enemy, .enemy.small { width: 40%; max-width: 170px; }
+  .enemies:has(> :nth-child(3)) .enemy { width: 32%; }
+  .enemy.big { width: 56%; max-width: 230px; }
+  .enemies.solo .enemy { width: 52%; max-width: 210px; }
+  .enemies.solo .enemy.big { width: 64%; max-width: 250px; }
+  .enemies { order: 1; }
+  .hero-spot { order: 2; width: 30%; max-width: 140px; align-self: flex-start; margin: -18px 0 0 2%; }
+  .icon-btn.deck-btn { width: auto; }
   .fname { font-size: 13px; }
   .intent { font-size: 17px; min-height: 34px; padding: 1px 8px 1px 2px; }
   .intent svg { width: 26px; height: 26px; }

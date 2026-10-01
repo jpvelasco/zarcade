@@ -57,6 +57,9 @@ const KIND_COLOR = { attack: '#e53958', skill: '#3d8bfd', magic: '#8e5cf0' };
 const KIND_NAME = { attack: 'Attack', skill: 'Skill', magic: 'Magic' };
 
 function persist() {
+  // Mid enemy turn the battle is half resolved; the last save (before End
+  // turn) is the one to come back to.
+  if (busy) return;
   if (run && run.phase !== 'over') profile.current = run;
   if (!saveProfile(storage, profile) && !persist.warned) {
     persist.warned = true;
@@ -158,6 +161,7 @@ function show(name) {
   if (name === 'title') renderTitle();
   if (name === 'heroes') renderHeroes();
   if (name === 'map') renderMap();
+  if (name === 'title' || name === 'heroes') focusFirst($(`#screen-${name}`));
   sound.setScene(run ? run.floor : 0, name === 'battle' ? (run?.fightKind === 'boss' ? 'boss' : 'battle') : 'calm');
 }
 
@@ -385,6 +389,7 @@ function renderMap() {
     html += `<button class="${cls}" style="left:${x}%;top:${y}%" ${isOpen ? `data-act="node" data-id="${n.id}"` : 'tabindex="-1" aria-disabled="true"'} aria-label="${label}" title="${NODE_NAMES[n.type]}">${icon(n.type === 'boss' ? 'boss' : n.type)}${tick}${me}</button>`;
   }
   $('#map').innerHTML = html;
+  if (!$('#map-legend').innerHTML) $('#map-legend').innerHTML = Object.entries(NODE_NAMES).map(([k, v]) => `<span>${icon(k)} ${v}</span>`).join('');
   if (!modalOpen() && !coarse) {
     const first = $('#map .node.open');
     if (first && (!document.activeElement || !document.activeElement.classList.contains('node'))) first.focus({ preventScroll: true });
@@ -462,8 +467,14 @@ function intentHTML(b, e) {
   let inner = '';
   if (v.dmg !== undefined) inner += `${icon('slash')}${v.dmg}${v.hits > 1 ? `<span class="sub">×${v.hits}</span>` : ''}`;
   if (t === 'def' || t === 'atkdef') inner += `${icon('shield')}${t === 'def' ? v.block : ''}`;
-  if (t === 'buff') inner += icon('up');
-  if (t === 'debuff' || t === 'atkdebuff') inner += icon('trick');
+  if (t === 'buff') inner += `${icon('up')}${v.power ? `+${v.power}` : ''}`;
+  if (v.block && t === 'buff') inner += `<span class="mini">${icon('shield')}${v.block}</span>`;
+  if (t === 'debuff' || t === 'atkdebuff') {
+    if (t === 'debuff') inner += icon('trick');
+    if (v.smudge) inner += `<span class="mini">${icon('drop')}${v.smudge}</span>`;
+    if (v.soggy) inner += `<span class="mini">${icon('splash')}${v.soggy}</span>`;
+    if (v.dizzy) inner += `<span class="mini">${icon('dizzy')}${v.dizzy}</span>`;
+  }
   if (t === 'summon') inner += icon('summon');
   return `<div class="intent ${cls}">${inner}</div>`;
 }
@@ -869,11 +880,11 @@ async function battleOver() {
   sync();
 }
 
-function announceUnlocks(ids) {
+function announceUnlocks(ids, { quiet = false } = {}) {
   for (const id of ids) {
     log.event('hero.unlock', { hero: id });
     sound.play('unlock');
-    toast(`New hero unlocked: ${HERO[id].name}!`, 3600);
+    if (!quiet) toast(`New hero unlocked: ${HERO[id].name}!`, 3600);
   }
 }
 
@@ -1041,7 +1052,7 @@ function showResults() {
     run.celebrate = recordRun(profile, run, { minutes, date: dateKey() });
     run.recorded = true;
     log.event('run.complete', { result: run.result, score: run.score, floor: run.floor + 1, hero: run.hero, daily: run.daily, minutes: Math.round(minutes), battles: run.stats.battles });
-    announceUnlocks(run.celebrate.unlocks);
+    announceUnlocks(run.celebrate.unlocks, { quiet: true });
     persist();
   }
   const c = run.celebrate;
@@ -1051,7 +1062,8 @@ function showResults() {
   const s = run.stats;
   const best = c.newBest ? '<span class="newbest">New best!</span>' : c.newDailyBest && run.daily ? '<span class="newbest">Daily best!</span>' : c.newHeroBest ? `<span class="newbest">${HERO[run.hero].name} best!</span>` : '';
   closeModal2();
-  openModal(`<h2>${won ? 'You reached the top of the tower!' : 'Your page got crumpled!'}</h2>
+  const quit = run.result === 'quit';
+  openModal(`<h2>${won ? 'You reached the top of the tower!' : quit ? 'Run put away' : 'Your page got crumpled!'}</h2>
     <div class="result-hero doodle boil ${won ? '' : 'lost'}">${heroSVG(run.hero, { pose: won ? 'attack' : 'idle' })}</div>
     <p class="lead">${won ? 'You scribbled out the Grand Smudge. What a masterpiece!' : `You made it to page ${run.floor + 1}: ${FLOORS[run.floor].name}. Every run makes you a better artist!`}</p>
     ${best}<div class="score">${run.score}</div>
@@ -1105,7 +1117,7 @@ function showHelp() {
     <p>Climb three pages of the sketchbook tower. Pick a path on the map, beat the doodle monsters, and scribble out the boss at the top of each page!</p>
     <h3>Battles</h3>
     <ul><li>Each turn you get <b>3 energy</b> and <b>5 cards</b>. The yellow circle on a card is its cost.</li>
-    <li>${coarse ? 'Tap a card, then tap a monster.' : 'Click a card, then click a monster. Or press 1–9, ←/→ to aim and Enter.'} Cards with no target: tap them twice.</li>
+    <li>${coarse ? 'Tap a card, then tap a monster.' : 'Click a card, then click a monster. Or press 1–9, ←/→ to aim and Enter.'} Cards with no target: ${coarse ? 'tap' : 'click'} them twice.</li>
     <li>The bubble over each monster shows what it will do next. A sword means it will hit you!</li>
     <li>When you're done, press <b>End turn</b>${coarse ? '' : ' (E)'}.</li></ul>
     <h3>Words to know</h3><ul class="chips">
@@ -1129,6 +1141,7 @@ const actions = {
     show(run.phase === 'battle' ? 'battle' : 'map');
     if (run.phase === 'battle') buildBattle();
     sync();
+    if (run.phase === 'battle' && run.battle.over) battleOver();
   },
   heroes() {
     sound.unlock();
