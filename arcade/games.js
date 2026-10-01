@@ -402,6 +402,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'picto-paint',
+      title: 'Picto Paint',
+      tagline: 'Solve number clues to paint pictures that come alive.',
+      description: 'A cozy picture-logic game: use the row and column clues to fill squares and reveal 89 pixel pictures across eight albums, from 5×5 doodles to 15×15 colour space scenes. Finished pictures blink, wiggle and blast off into your gallery.',
+      genre: 'Nonogram',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#ef6f6c',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
