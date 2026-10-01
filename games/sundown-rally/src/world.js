@@ -17,6 +17,9 @@ const ROCKET = { speed: 70, turn: 5, life: 2.5, blast: 7.5 };
 
 // One race on one track. Pure simulation: no rendering, no DOM, no audio.
 // Everything that happens is pushed onto `events` for the view and audio.
+// How fast (rad/s) a jeep pressed against an obstacle turns along its face.
+const GLANCE_TURN = 9;
+
 export class World {
   constructor(def, { stats = BASE_STATS, autopilot = false } = {}) {
     this.def = def;
@@ -175,7 +178,7 @@ export class World {
     if (racer.comboTimer <= 0) racer.combo = 0;
 
     this.checkRamps(racer);
-    this.checkObstacles(racer);
+    this.checkObstacles(racer, dt);
     this.checkZombies(racer);
     this.checkPickups(racer);
     this.useWeapon(racer, input);
@@ -219,7 +222,7 @@ export class World {
     }
   }
 
-  checkObstacles(racer) {
+  checkObstacles(racer, dt = 1 / 60) {
     const v = racer.vehicle;
     const lift = this.clearance(v);
     for (const o of this.obstaclesNear(v.x, v.z)) {
@@ -244,23 +247,57 @@ export class World {
         continue;
       }
 
-      // Solid: push out and bounce off.
+      // Solid: push out, then slide along it. Only the push into the
+      // obstacle is cancelled, so scraping a rock keeps the jeep moving and a
+      // hard hit costs speed once, not on every frame of contact.
       const d = Math.sqrt(d2) || 0.01, nx = dx / d, nz = dz / d;
       v.x = o.x + nx * reach;
       v.z = o.z + nz * reach;
+      const [tx, tz] = this.glanceTangent(racer, nx, nz);
       const into = v.vx * nx + v.vz * nz;
       if (into < 0) {
-        v.vx -= 1.3 * into * nx;
-        v.vz -= 1.3 * into * nz;
-        v.vx *= t.slow + 0.3; v.vz *= t.slow + 0.3;
-        if (racer.hitCooldown <= 0 && -into > 4) {
+        const impact = -into;
+        const speed = Math.hypot(v.vx, v.vz) || 1;
+        // The more head-on the hit, the more of it turns into a sideways
+        // glance instead of a dead stop.
+        const headOn = clamp(impact / speed, 0, 1);
+        v.vx -= into * nx;
+        v.vz -= into * nz;
+        v.vx += tx * impact * 0.55 * headOn;
+        v.vz += tz * impact * 0.55 * headOn;
+        if (racer.hitCooldown <= 0 && impact > 4) {
           racer.hitCooldown = 1;
+          const keep = 1 - (1 - (t.slow + 0.3)) * clamp((impact - 4) / 16, 0, 1);
+          v.vx *= keep; v.vz *= keep;
           // Nudges are free; only real impacts hurt.
-          this.damage(racer, t.damage * clamp((-into - 6) / 14, 0, 1.4));
-          this.emit('crash', { racer: racer.id, soft: false, kind: o.type, x: v.x, y: v.y, z: v.z, impact: -into });
+          this.damage(racer, t.damage * clamp((impact - 6) / 14, 0, 1.4));
+          this.emit('crash', { racer: racer.id, soft: false, kind: o.type, x: v.x, y: v.y, z: v.z, impact });
         }
       }
+      // Turn the nose along the face. Grip only lets the jeep travel where
+      // it points, so this is what lets the slide carry on.
+      const fx = Math.sin(v.heading), fz = Math.cos(v.heading);
+      if (fx * nx + fz * nz < -0.05) {
+        let diff = Math.atan2(tx, tz) - v.heading;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        v.heading += clamp(diff, -GLANCE_TURN * dt, GLANCE_TURN * dt);
+      }
     }
+  }
+
+  // The way along an obstacle's face the jeep should slide: the side the nose
+  // already leans to, or when dead-on, the side the road continues on.
+  glanceTangent(racer, nx, nz) {
+    const v = racer.vehicle;
+    const fx = Math.sin(v.heading), fz = Math.cos(v.heading);
+    const tx = -nz, tz = nx;
+    const leaning = fx * tx + fz * tz;
+    let sign = Math.sign(leaning);
+    if (Math.abs(leaning) < 0.2) {
+      const ahead = this.track.pointAt(racer.along + 6, racer.lateral);
+      sign = Math.sign((ahead.x - v.x) * tx + (ahead.z - v.z) * tz) || 1;
+    }
+    return [tx * sign, tz * sign];
   }
 
   destroyObstacle(o, how) {

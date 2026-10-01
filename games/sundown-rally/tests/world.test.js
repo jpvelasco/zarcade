@@ -157,3 +157,41 @@ test('the jeep flies over a rock when high enough', () => {
   w.checkObstacles(w.player);
   assert.equal(w.player.vehicle.hp, hp);
 });
+
+// Big solid obstacles should push the jeep aside, not glue it in place.
+function rockAhead(w, ahead, lateralOffset) {
+  const p = w.track.pointAt(w.player.along + ahead, w.player.lateral + lateralOffset);
+  const rock = { id: 993, type: 'rock', x: p.x, z: p.z, y: w.track.groundHeight(p.x, p.z), r: 2, h: 2.2, alive: true, along: w.player.along + ahead, lateral: w.player.lateral + lateralOffset };
+  w.obstacles.push(rock);
+  w.buildGrid();
+  return rock;
+}
+
+test('clipping the side of a rock slides the jeep past at speed', () => {
+  const w = startedWorld();
+  const rock = rockAhead(w, 14, 2.4);
+  let slowest = Infinity;
+  for (let i = 0; i < 60 * 2; i++) {
+    w.step(DT, { throttle: 1 });
+    if (w.player.along > rock.along - 4 && w.player.along < rock.along + 2) slowest = Math.min(slowest, w.player.vehicle.speed);
+  }
+  assert.ok(w.player.along > rock.along + 4, `stuck ${(rock.along - w.player.along).toFixed(1)} m behind the rock`);
+  assert.ok(slowest > 8, `slowed to ${slowest.toFixed(1)} m/s while sliding along the rock`);
+});
+
+test('driving straight into a rock glances off instead of getting stuck', () => {
+  const w = startedWorld();
+  const rock = rockAhead(w, 12, 0);
+  const v = w.player.vehicle;
+  const reach = rock.r + v.stats.radius;
+  let hitAt = null;
+  for (let i = 0; i < 60 * 3 && hitAt === null; i++) {
+    w.step(DT, { throttle: 1 });
+    if (Math.hypot(v.x - rock.x, v.z - rock.z) < reach + 0.05) hitAt = i;
+  }
+  assert.notEqual(hitAt, null, 'the jeep reached the rock');
+  // Within a second of the hit the jeep is moving freely, clear of the rock.
+  for (let i = 0; i < 60; i++) w.step(DT, { throttle: 1 });
+  assert.ok(v.speed > 8, `crawling at ${v.speed.toFixed(1)} m/s`);
+  assert.ok(Math.hypot(v.x - rock.x, v.z - rock.z) > reach + 3, 'still pressed against the rock');
+});
