@@ -1051,6 +1051,8 @@ addEventListener('keydown', (e) => {
   if (e.repeat && !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) return;
   audio.unlock();
   const k = e.code;
+  // A focused button handles its own Enter/Space.
+  if ((k === 'Enter' || k === 'Space') && e.target && e.target.closest && e.target.closest('button, a')) return;
   if (k === 'KeyM') { toggleSound(); return; }
   if (mode === 'play') {
     if (k === 'Escape' || k === 'KeyP') { e.preventDefault(); pause(); return; }
@@ -1231,6 +1233,13 @@ $('btn-res-map').addEventListener('click', toMap);
 addEventListener('resize', layout);
 addEventListener('orientationchange', () => setTimeout(layout, 150));
 for (const el of document.querySelectorAll('button, .btn')) el.addEventListener('pointerdown', () => audio.unlock());
+// Tray and HUD buttons let go of focus after a tap or click, so keyboard
+// shortcuts (Space, Enter) keep working on the board.
+for (const host of [$('bar'), $('hud')]) {
+  host.addEventListener('click', (e) => {
+    if (e.detail > 0 && e.target.closest('button')) e.target.closest('button').blur();
+  });
+}
 
 syncToggles();
 claimSkins(save, LEVELS);

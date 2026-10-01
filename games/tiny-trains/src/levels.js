@@ -595,22 +595,7 @@ const RAW = {
       stock: { W: 1 },
     },
     {
-      name: 'Owl Express',
-      par: 30,
-      map: [
-        'r> . . . . . . G-',
-        'l t . . . t l h',
-        'g> . . . . . . R-',
-        'h l t l t l h l',
-        'b> . . . . . . Y-',
-        't l . . . l t h',
-        'y> . . . . . . B-',
-      ],
-      depart: { '0,2': 2, '0,6': 2 },
-      stock: { X: 2 },
-    },
-    {
-      name: 'Grand Central',
+      name: 'Moonlight Junction',
       par: 11,
       map: [
         'l . . . m . . l',
@@ -623,6 +608,21 @@ const RAW = {
       ],
       queue: { '0,5': 'bp' },
       stock: { W: 3 },
+    },
+    {
+      name: 'Grand Central',
+      par: 30,
+      map: [
+        'r> . . . . . . G-',
+        'l t . . . t l h',
+        'g> . . . . . . R-',
+        'h l t l t l h l',
+        'b> . . . . . . Y-',
+        't l . . . l t h',
+        'y> . . . . . . B-',
+      ],
+      depart: { '0,2': 2, '0,6': 2 },
+      stock: { X: 2 },
     },
   ],
 };

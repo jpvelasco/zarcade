@@ -3,7 +3,7 @@
 
 import {
   THEMES, drawPiece, drawPoints, drawScenery, drawDepot, drawStation, drawPaintShed, drawPortal,
-  bakeTrain, puffSprite, makeCanvas, roundRect, badge, hash, drawSymbol, piecePairs, drawPeek,
+  bakeTrain, puffSprite, makeCanvas, roundRect, badge, hash, drawSymbol, piecePairs, drawPeek, drawPortalHood,
 } from './art.js';
 import { pointAt, segLength, easedS } from './geom.js';
 import { wrapTime } from './sim.js';
@@ -423,8 +423,17 @@ export class View {
     if (this.selected >= 0) this.highlight(ctx, this.selected, '#ff8a3d', 3);
     if (this.tutorial && !this.run) this.drawTutorial(ctx);
     // Trains.
-    if (this.run) this.drawTrains(ctx, T);
-    else this.drawParked(ctx);
+    if (this.run) {
+      this.drawTrains(ctx, T);
+      // Tunnel hills go back over the trains so they disappear inside.
+      for (let i = 0; i < board.cells.length; i++) {
+        if (board.cells[i].k !== 'portal') continue;
+        ctx.save();
+        ctx.translate(this.ox + (i % board.w) * cs, this.oy + Math.floor(i / board.w) * cs);
+        drawPortalHood(ctx, cs, board.cells[i], this.theme);
+        ctx.restore();
+      }
+    } else this.drawParked(ctx);
     for (const m of this.failMarks) this.drawFailMark(ctx, m);
   }
 
@@ -594,7 +603,7 @@ export class View {
     for (const p of this.particles) {
       const k = p.life / p.max;
       if (p.kind === 'puff') {
-        ctx.globalAlpha = (1 - k) * 0.8;
+        ctx.globalAlpha = (1 - k) * (1 - k * 0.3);
         const s = p.size;
         ctx.drawImage(this.puff, p.x - s, p.y - s, s * 2, s * 2);
       } else if (p.kind === 'confetti') {
@@ -629,7 +638,7 @@ export class View {
       const h = this.trainPoint(id, T, 0);
       if (!h || h.alpha < 0.5) continue;
       const x = h.x + Math.cos(h.a) * this.cs * 0.17, y = h.y + Math.sin(h.a) * this.cs * 0.17;
-      this.emit('puff', x, y, { angle: -Math.PI / 2 + (Math.random() - 0.5), speed: 14, life: 1.2, size: this.cs * 0.15 });
+      this.emit('puff', x, y - this.cs * 0.06, { angle: -Math.PI / 2 + (Math.random() - 0.5), speed: 16, life: 1.3, size: this.cs * 0.17 });
     }
   }
 

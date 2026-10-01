@@ -562,8 +562,13 @@ export function drawPaintShed(ctx, s, cell) {
 }
 
 export function drawPortal(ctx, s, cell, theme) {
+  drawTrack(ctx, s, [[cell.mouth, opposite(cell.mouth)]], { fixed: true });
+  drawPortalHood(ctx, s, cell, theme);
+}
+
+// The hill over a tunnel mouth: drawn again over trains so they go *in*.
+export function drawPortalHood(ctx, s, cell, theme) {
   const m = cell.mouth;
-  drawTrack(ctx, s, [[m, opposite(m)]], { fixed: true });
   ctx.save();
   ctx.translate(s / 2, s / 2);
   ctx.rotate([-Math.PI / 2, 0, Math.PI / 2, Math.PI][m]);
