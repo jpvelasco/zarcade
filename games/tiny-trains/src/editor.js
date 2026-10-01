@@ -80,13 +80,13 @@ export class Editor {
   }
 
   // Best straight or curve for a bare tap with the track tool.
-  bestTrack(i) {
+  bestTrack(i, axis = 1) {
     let best = { t: 'S', v: 1 }, score = -1;
     for (const t of ['S', 'C']) {
       for (let v = 0; v < VARIANTS[t]; v++) {
         let s = 0;
         for (const e of openEdges(t, v)) if (this.offers(i, e)) s += 2;
-        if (t === 'S') s += 0.5; // straights win ties
+        if (t === 'S') s += v === axis ? 0.6 : 0.5; // straights win ties
         if (s > score) { score = s; best = { t, v }; }
       }
     }
@@ -95,7 +95,7 @@ export class Editor {
 
   // Tap with a tool: place a new piece, or turn the one already there.
   // Returns 'place', 'turn', 'swap' or null.
-  tap(i, tool) {
+  tap(i, tool, axis = 1) {
     if (!this.canBuild(i)) return null;
     const here = this.layout.get(i);
     if (tool === 'erase') return this.remove(i) ? 'remove' : null;
@@ -104,7 +104,7 @@ export class Editor {
       this.layout.set(i, { t: here.t, v: turn(here.t, here.v, 1) });
       return 'turn';
     }
-    const piece = tool === 'track' ? this.bestTrack(i) : { t: tool, v: this.bestVariant(i, tool) };
+    const piece = tool === 'track' ? this.bestTrack(i, axis) : { t: tool, v: this.bestVariant(i, tool) };
     if (this.left(piece.t) <= 0 && !(here && here.t === piece.t)) return 'empty';
     this.push();
     this.layout.set(i, piece);
@@ -167,7 +167,9 @@ export class Editor {
       if (a === b) b = opposite(a);
       const want = pieceJoining(a, b);
       if (!want) continue;
-      const old = base.get(i);
+      // Compare with what's there now, so a stroke that loops back onto
+      // itself can make a crossing or a switch where it closes.
+      const old = out.get(i);
       let piece = want;
       if (old) {
         const oe = openEdges(old.t, old.v);

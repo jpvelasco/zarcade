@@ -402,3 +402,23 @@ body[data-theme="night"] .skin.on { background: rgba(255, 220, 140, 0.2); }
 .fail-card h2 { font-size: 1.35rem; margin-bottom: 2px; }
 .fail-card p { font-size: 0.95rem; margin: 2px 0 10px; }
 .fail-card .btn { min-height: 46px; padding: 8px 16px; }
+
+/* Phones on their side: HUD down the left, tray down the right, so the
+   board gets the full height. Keep in step with insets() in main.js. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hud { flex-direction: column; align-items: flex-start; gap: 8px; width: 196px; right: auto; padding-top: max(8px, env(safe-area-inset-top)); padding-left: max(10px, env(safe-area-inset-left)); }
+  .hud-left { max-width: 184px; padding: 5px 12px; }
+  .hud-name { font-size: 0.98rem; }
+  .hud-right { flex-wrap: wrap; width: 184px; }
+  .bar { left: auto; right: 0; top: 0; bottom: 0; flex-direction: column; justify-content: center; align-items: center; gap: 8px; padding: 8px max(8px, env(safe-area-inset-right)) 8px 0; }
+  .tools { flex-direction: column; max-height: calc(100vh - 96px); max-width: none; overflow-x: hidden; overflow-y: auto; touch-action: pan-y; }
+  .tool { width: 46px; height: 46px; }
+  .tool canvas { width: 34px; height: 34px; }
+  .colors { position: fixed; bottom: auto; top: 8px; left: auto; right: 78px; transform: none; flex-direction: column; max-height: calc(100vh - 16px); overflow-y: auto; }
+  .go-wrap { flex-direction: column-reverse; align-items: center; }
+  .go-btn { min-width: 66px; height: 54px; font-size: 1.1rem; border-radius: 18px; }
+  .overlay.low { align-items: center; justify-content: flex-end; padding-right: 90px; }
+  .results-card, .fail-card { max-width: 320px; }
+  .results-card .stars { font-size: 2rem; }
+  .toast { top: 12px; }
+}

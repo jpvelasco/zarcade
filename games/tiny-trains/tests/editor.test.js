@@ -83,3 +83,13 @@ test('cellsBetween steps through every cell', () => {
   assert.deepEqual(cellsBetween(5, 0, 3), [1, 2, 3]);
   assert.deepEqual(cellsBetween(5, 0, 11), [5, 6, 11]);
 });
+
+test('a stroke that loops back onto itself joins with a switch', () => {
+  const b = parseLevel({ map: ['. . . .', 'r> . . .', '. . . .'], stock: { W: 1 } });
+  const ed = new Editor(b);
+  ed.beginStroke();
+  ed.drawStroke([4, 5, 6, 10, 9, 5]);
+  ed.endStroke();
+  assert.equal(ed.layout.get(5).t, 'W');
+  assert.equal(simulate(b, ed.layout, { requireServed: false }).outcome, 'loop');
+});

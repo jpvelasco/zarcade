@@ -886,18 +886,25 @@ export function drawShedThumb(canvas, skin, color, locked) {
   const g = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   g.clearRect(0, 0, W, H);
-  const s = Math.min(W / 1.25, H * 1.6);
+  const s = Math.min(W / 1.45, H * 1.45);
   g.save();
-  g.translate(W * 0.62, H / 2);
-  drawLoco(g, s, skin, color);
-  g.translate(-s * 0.58, 0);
+  g.translate(W * 0.64 - s * 0.72, H / 2);
   drawCarriage(g, s, color, 2, 3);
+  g.restore();
+  g.save();
+  g.translate(W * 0.64, H / 2);
+  drawLoco(g, s, skin, color);
   g.restore();
   if (locked) {
     g.globalCompositeOperation = 'source-atop';
-    g.fillStyle = 'rgba(40, 46, 70, 0.92)';
+    g.fillStyle = '#3d4466';
     g.fillRect(0, 0, W, H);
     g.globalCompositeOperation = 'source-over';
+    g.fillStyle = 'rgba(255,255,255,0.85)';
+    g.font = `900 ${Math.round(H * 0.42)}px ui-rounded, system-ui, sans-serif`;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('?', W * 0.64, H * 0.53);
   }
 }
 

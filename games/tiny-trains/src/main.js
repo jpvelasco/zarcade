@@ -78,6 +78,7 @@ function setTheme(key) {
   document.querySelector('meta[name="theme-color"]').setAttribute('content', colors[key] || '#bfe9ff');
 }
 
+const sideways = matchMedia('(orientation: landscape) and (max-height: 500px)');
 function insets() {
   if (mode === 'title') {
     const card = document.querySelector('.title-card');
@@ -86,6 +87,13 @@ function insets() {
     return { top: 60, bottom: ch + 24, left: 8, right: 8 };
   }
   if (mode === 'map' || mode === 'shed' || mode === 'daily') return { top: 10, bottom: 10, left: 10, right: 10 };
+  if (sideways.matches) {
+    if (mode === 'results') {
+      const card = document.querySelector('.results-card');
+      return { top: 8, bottom: 8, left: 200, right: (card ? card.offsetWidth : 320) + 100 };
+    }
+    return { top: 8, bottom: 8, left: 204, right: 92 + (play && play.colorTool ? 56 : 0) };
+  }
   const phone = innerWidth < 560;
   const hud = phone ? 108 : 96;
   const bar = phone ? 82 : 92;
@@ -985,7 +993,7 @@ function tapCell(cell) {
   if (c.k === 'depot') { audio.toot(1.2, false); view.burst('puff', view.cellCenter(cell).x, view.cellCenter(cell).y, 3, { speed: 20, size: view.cs * 0.12, life: 1 }); return; }
   if (c.k === 'station') { audio.bell(); return; }
   if (c.k !== 'grass') { audio.nope(); return; }
-  const result = editor.tap(cell, tool);
+  const result = editor.tap(cell, tool, lastAxis);
   if (result === 'empty') {
     toast(`No ${tool === 'X' ? 'crossings' : 'switches'} left. Move one you've placed!`);
     audio.nope();
@@ -1013,8 +1021,10 @@ function updateGhost() {
   if (piece) view.ghost = { cell: i, piece };
 }
 
+let lastAxis = 1;
 function moveCursor(dx, dy) {
   if (!play) return;
+  if (dx || dy) lastAxis = dx ? 1 : 0;
   const { w, h } = play.board;
   let i = view.cursor < 0 ? firstBuildable() : view.cursor;
   const x = Math.max(0, Math.min(w - 1, (i % w) + dx));
@@ -1026,7 +1036,7 @@ function moveCursor(dx, dy) {
   view.ghost = null;
   if (play.editor.canBuild(i) && !play.editor.layout.has(i)) {
     const tool = play.tool;
-    if (tool === 'track') view.ghost = { cell: i, piece: play.editor.bestTrack(i) };
+    if (tool === 'track') view.ghost = { cell: i, piece: play.editor.bestTrack(i, lastAxis) };
     else if (['S', 'C', 'X', 'W'].includes(tool) && play.editor.left(tool) > 0) view.ghost = { cell: i, piece: { t: tool, v: play.editor.bestVariant(i, tool) } };
   }
 }
