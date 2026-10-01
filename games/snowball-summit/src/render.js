@@ -1,7 +1,7 @@
 // Canvas renderer. Reads world state and never changes it. Everything
 // costly (sprites, sky, ridges, cloud) is baked once; per frame it is
 // drawImage, a terrain path, and a capped particle pool.
-import { itemSprite, skinTexture, ballShade, hatSprite, propellerBlades, cloudSprite, SKIES, ridgeStrip, treeStrip, starfield, auroraStrip } from './sprites.js';
+import { itemSprite, skinTexture, ballShade, hatSprite, propellerBlades, cloudSprite, iceWallSprite, SKIES, ridgeStrip, treeStrip, starfield, auroraStrip } from './sprites.js';
 import { PICK_RATIO, BUMP_RATIO, ITEM_BY_ID, formatSize } from './items.js';
 import { PEAKS } from './levels.js';
 import { physicsFor } from './world.js';
@@ -33,8 +33,9 @@ function sparkSprite() {
 }
 
 function decoTree(color) {
-  const c = mk(120, 200);
+  const c = mk(240, 400);
   const g = c.getContext('2d');
+  g.scale(2, 2);
   g.fillStyle = color;
   g.fillRect(54, 170, 12, 30);
   for (let i = 0; i < 4; i++) {
@@ -145,8 +146,9 @@ export class Renderer {
     const sp = Math.min(1.4, Math.hypot(b.vx, b.vy) / vmax);
     const aspect = this.W / this.H;
     // Portrait screens need more height to see enough slope ahead.
-    const base = aspect < 1 ? 9.5 : 6.4;
-    return b.D * base * (1 + sp * 0.18);
+    const base = aspect < 1 ? 8.2 : 6.4;
+    const chase = world.avalanche && world.avalanche.delay <= 0 && world.status === 'play' ? 1.12 : 1;
+    return b.D * base * chase * (1 + sp * 0.18);
   }
 
   update(dt, world, snap = false) {
@@ -160,12 +162,16 @@ export class Renderer {
     c.viewH = Math.exp(Math.log(c.viewH) + (Math.log(target) - Math.log(c.viewH)) * k);
     const viewW = c.viewH * (this.W / this.H);
     let lead = viewW * (this.W > this.H ? 0.16 : 0.08);
+    // Behind the title card, frame the ball off to the lower left.
+    if (this.attract) lead = viewW * (this.W > this.H ? 0.3 : 0.05);
     const av = world.avalanche;
-    if (av && av.delay <= 0 && av.gap < 9) lead -= viewW * 0.12 * (1 - av.gap / 9);
+    // With the Snow Cloud behind, frame the ball nearer the middle so its
+    // puffy front looms at the left edge.
+    if (av && av.delay <= 0 && world.status === 'play') lead = -viewW * (0.04 + 0.1 * Math.max(0, 1 - av.gap / 6.5));
     // Follow the ball tightly in x; ease the look-ahead and the height.
     c.lead = snap || c.lead == null ? lead : c.lead + (lead - c.lead) * (1 - Math.exp(-dt * 2));
     const ahead = T.groundY(b.x + viewW * 0.3);
-    const ty = Math.min(b.y, (b.y + ahead) / 2) + c.viewH * 0.06;
+    const ty = Math.min(b.y, (b.y + ahead) / 2) + c.viewH * (this.attract && this.W > this.H ? -0.16 : 0.06);
     c.x = b.x + c.lead;
     c.y += (ty - c.y) * (snap ? 1 : 1 - Math.exp(-dt * 4));
     // Particles
@@ -258,7 +264,7 @@ export class Renderer {
           break;
         case 'bridge.break':
           for (let i = 0; i < Math.round(16 * burst); i++) this.emit('plank', e.x + (Math.random() - 0.5) * D * 2, e.y, (Math.random() - 0.5) * D * 3, -Math.random() * D * 2, D * (0.15 + Math.random() * 0.15), 1.4, D * 9, '#a0663a');
-          this.say('Crack! Too heavy!', e.x, e.y - D * 1.4, '#ffd28f', 1, 1.3);
+          this.say('Crack! Too heavy!', b.x, b.y - D * 1.2, '#ffd28f', 1, 1.3, b);
           this.shake = Math.max(this.shake, 0.6);
           break;
         case 'assist':
@@ -455,11 +461,17 @@ export class Renderer {
         g.beginPath(); g.moveTo(this.X(br.x0), this.Y(br.y0 - post));
         g.quadraticCurveTo(this.X((br.x0 + br.x1) / 2), this.Y((br.y0 + br.y1) / 2 - post * 0.35), this.X(br.x1), this.Y(br.y1 - post)); g.stroke();
       } else {
-        g.strokeStyle = '#b5764a'; g.lineWidth = th;
-        const len = (br.x1 - br.x0) * 0.3;
+        // Snapped planks dangle from each post.
+        const len = Math.min((br.x1 - br.x0) * 0.22, br.max * 2.2);
+        g.lineCap = 'butt';
         for (const [x, y, dir] of [[br.x0, br.y0, 1], [br.x1, br.y1, -1]]) {
-          g.beginPath(); g.moveTo(this.X(x), this.Y(y)); g.lineTo(this.X(x + dir * len * 0.3), this.Y(y + len * 0.95)); g.stroke();
+          const ex = x + dir * len * 0.35, ey = y + len * 0.93;
+          g.strokeStyle = '#3a2d4d'; g.lineWidth = th + 3;
+          g.beginPath(); g.moveTo(this.X(x), this.Y(y)); g.lineTo(this.X(ex), this.Y(ey)); g.stroke();
+          g.strokeStyle = '#b5764a'; g.lineWidth = th;
+          g.stroke();
         }
+        g.lineCap = 'round';
       }
       this.sign(g, br.x0 - br.max * 0.2, br.y0 - post * 1.25, `≤ ${formatSize(br.max)}`, ok ? '#5fcf7a' : '#ff9f5a', br.max * 0.32, 'bridge');
     }
@@ -487,23 +499,20 @@ export class Renderer {
     const T = world.terrain;
     const [x0, x1] = this.visibleRange();
     const D = world.ball.D;
+    const wall = iceWallSprite();
     for (const gt of T.gates) {
-      if (gt.smashed || gt.x < x0 - gt.min * 3 || gt.x > x1 + gt.min * 3) continue;
-      const hgt = Math.max(gt.min * 2.2, D * 3.2);
-      const w = gt.min * 0.5;
-      const X = this.X(gt.x), Y = this.Y(gt.y + gt.min * 0.2), top = this.Y(gt.y - hgt);
-      g.fillStyle = 'rgba(160,215,255,0.6)';
-      g.fillRect(X - w * 0.35 * this.s, top, w * 0.7 * this.s, Y - top);
-      g.fillStyle = 'rgba(255,255,255,0.7)';
-      g.fillRect(X - w * 0.3 * this.s, top, w * 0.12 * this.s, Y - top);
-      g.strokeStyle = '#3a2d4d'; g.lineWidth = 2;
-      g.strokeRect(X - w * 0.35 * this.s, top, w * 0.7 * this.s, Y - top);
+      if (gt.smashed || gt.x < x0 - gt.min * 4 || gt.x > x1 + gt.min * 4) continue;
+      const hgt = Math.max(gt.min * 1.9, D * 2.4);
+      const w = Math.max(gt.min * 0.7, D * 0.6);
+      const X = this.X(gt.x), base = this.Y(gt.y + D * 0.15);
+      const top = this.Y(gt.y - hgt);
+      g.drawImage(wall, X - w * 0.25 * this.s, top, w * this.s, base - top);
       const ok = D >= gt.min;
-      this.sign(g, gt.x, gt.y - Math.min(hgt * 0.55, D * 1.6 + gt.min * 0.4), `${formatSize(gt.min)}+`, ok ? '#5fcf7a' : '#ff9f5a', Math.max(gt.min, D) * 0.45, 'gate');
-      // The Snow Pal who helps small balls through.
+      this.sign(g, gt.x + w * 0.25, gt.y - hgt * 0.55, `${formatSize(gt.min)}+`, ok ? '#5fcf7a' : '#ff9f5a', Math.max(gt.min, D) * 0.42, 'gate');
+      // The Snow Pal on top of the wall helps small balls through.
       const pal = itemSprite('snowman', Math.sin(this.time * 4) > 0 ? 1 : 0);
-      const ph = gt.min * 0.9 * this.s;
-      g.drawImage(pal.img, X + w * 0.5 * this.s, this.Y(gt.y) - ph * (pal.h - pal.pad), ph * pal.w, ph * pal.h);
+      const ph = Math.max(gt.min, D) * 0.75 * this.s;
+      g.drawImage(pal.img, X + w * 0.25 * this.s - ph * pal.w / 2, top - ph * (pal.h - pal.pad) + ph * 0.05, ph * pal.w, ph * pal.h);
     }
   }
 
@@ -511,8 +520,7 @@ export class Renderer {
     const T = world.terrain;
     if (!Number.isFinite(T.finishX)) return;
     const [x0, x1] = this.visibleRange();
-    const lv = world.level;
-    const h = Math.max(lv.u * (lv.plan || 3) * 2.2, world.ball.D * 2.6);
+    const h = world.ball.D * 2.6;
     if (T.finishX < x0 - h || T.finishX > x1 + h) return;
     const xA = T.finishX - h * 0.15, xB = T.finishX + h * 0.6;
     const yA = T.groundY(xA), yB = T.groundY(xB);
@@ -617,12 +625,17 @@ export class Renderer {
       const def = ITEM_BY_ID[it.type];
       const sp = itemSprite(it.type, def.waves ? wave : 0);
       const h = it.size * s;
-      const dist = R - h * 0.28;
+      // Spread things over the face so the ball looks covered, like a 3D
+      // ball seen from the side; the newest ones stick out at the rim.
+      const age = st.length - 1 - i;
+      const depth = age < 3 ? 1 : 0.5 + 0.5 * (((i * 2654435761) >>> 0) % 1000) / 1000;
+      const dist = Math.max(0, (R - h * 0.28) * depth);
       g.save();
       g.rotate(it.ang);
       g.translate(dist, 0);
       g.rotate(Math.PI / 2);
       if (rel < 0.12) g.globalAlpha = (rel - 0.07) / 0.05;
+      if (depth < 0.92) g.globalAlpha *= 0.55 + depth * 0.45;
       g.drawImage(sp.img, -h * sp.w / 2, -h * (sp.h - sp.pad) + h * 0.35, h * sp.w, h * sp.h);
       g.globalAlpha = 1;
       g.restore();
@@ -679,15 +692,16 @@ export class Renderer {
     const b = world.ball;
     const T = world.terrain;
     const img = cloudSprite();
-    const h = b.D * 9 * this.s;
+    const h = b.D * 8 * this.s;
     const w = h * (img.width / img.height);
     const bob = this.reduced ? 0 : Math.sin(this.time * 3) * h * 0.015;
-    const right = this.X(a.x + b.D * 0.6);
-    const bottom = this.Y(T.groundY(a.x) + b.D * 0.8);
-    if (right < -w * 0.1) return;
-    const left = right - w;
-    g.drawImage(img, left, bottom - h + bob, w, h);
-    if (left > 0) { g.fillStyle = '#eef4ff'; g.fillRect(0, bottom - h * 0.92 + bob, left + w * 0.3, this.H); }
+    const front = a.x + b.D * 1.1;
+    const right = this.X(front);
+    if (right < -w * 0.05) return;
+    // Sit the cloud so its face is level with the ball and its puffs bury the slope.
+    const bottom = this.Y(T.groundY(front - b.D)) + h * 0.22;
+    g.drawImage(img, right - w, bottom - h + bob, w, h);
+    if (right - w * 0.75 > 0) g.drawImage(img, right - w * 1.7, bottom - h * 1.05 - bob, w, h);
   }
 
   drawSnowfall(g) {
@@ -736,7 +750,7 @@ export class Renderer {
     const pad = 14 * u;
     const safeTop = Math.max(pad, 10);
     // Panel
-    const pw = 210 * u, ph = (world.endless ? 92 : 112) * u;
+    const pw = 236 * u, ph = (world.endless ? 92 : 112) * u;
     g.fillStyle = 'rgba(30,24,60,0.55)';
     roundRect(g, pad, safeTop, pw, ph, 16 * u); g.fill();
     g.textAlign = 'left'; g.textBaseline = 'middle';
@@ -759,20 +773,21 @@ export class Renderer {
     };
     if (goals) {
       const frac = Math.min(1, b.D / goals.size);
-      g.fillStyle = 'rgba(255,255,255,0.18)'; roundRect(g, pad + 14 * u, safeTop + 46 * u, pw - 28 * u, 7 * u, 4 * u); g.fill();
-      g.fillStyle = checks[0] ? '#ffd84f' : '#8ff6ff'; roundRect(g, pad + 14 * u, safeTop + 46 * u, (pw - 28 * u) * frac, 7 * u, 4 * u); g.fill();
+      const barW = pw - 110 * u;
+      g.fillStyle = 'rgba(255,255,255,0.18)'; roundRect(g, pad + 14 * u, safeTop + 47 * u, barW, 8 * u, 4 * u); g.fill();
+      g.fillStyle = checks[0] ? '#ffd84f' : '#8ff6ff'; roundRect(g, pad + 14 * u, safeTop + 47 * u, Math.max(8 * u, barW * frac), 8 * u, 4 * u); g.fill();
       g.fillStyle = checks[0] ? '#ffd84f' : 'rgba(255,255,255,0.55)';
-      g.textAlign = 'right'; g.font = `800 ${Math.round(13 * u)}px ${FONT}`;
-      g.fillText(`${checks[0] ? '★' : '☆'} ${formatSize(goals.size)}`, pad + pw - 12 * u, safeTop + 26 * u);
+      g.textAlign = 'right'; g.font = `800 ${Math.round(15 * u)}px ${FONT}`;
+      g.fillText(`${checks[0] ? '★' : '☆'} ${formatSize(goals.size)}`, pad + pw - 12 * u, safeTop + 51 * u);
       g.textAlign = 'left'; g.font = `800 ${Math.round(15 * u)}px ${FONT}`;
-      line(safeTop + 72 * u, `${world.collected} things`, goals.items, checks[1]);
+      line(safeTop + 72 * u, things(world.collected), goals.items, checks[1]);
       const tLeft = world.time <= goals.time;
       line(safeTop + 94 * u, clock(world.finishTime ?? world.time), clock(goals.time), tLeft);
     } else if (world.endless) {
       line(safeTop + 58 * u, `${Math.floor(world.distance / 100)} m rolled`, null);
-      line(safeTop + 78 * u, `${world.collected} things`, null);
+      line(safeTop + 78 * u, things(world.collected), null);
     } else {
-      line(safeTop + 62 * u, `${world.collected} things`, null);
+      line(safeTop + 62 * u, things(world.collected), null);
       line(safeTop + 84 * u, clock(world.time), null);
     }
     // Course progress along the bottom.
@@ -825,10 +840,12 @@ export class Renderer {
       g.fillStyle = 'rgba(30,24,60,0.45)';
       roundRect(g, W * 0.04, y - 26 * u, W * 0.42, 52 * u, 16 * u); g.fill();
       roundRect(g, W * 0.54, y - 26 * u, W * 0.42, 52 * u, 16 * u); g.fill();
+      const tw = g.measureText('Tap anywhere to jump').width + 36 * u;
+      roundRect(g, W / 2 - tw / 2, y - 74 * u, tw, 44 * u, 14 * u); g.fill();
       g.fillStyle = '#fff';
       g.fillText('◀ Hold: brake', W * 0.25, y);
       g.fillText('Hold: speed ▶', W * 0.75, y);
-      g.fillText('Tap anywhere to jump', W / 2, y - 48 * u);
+      g.fillText('Tap anywhere to jump', W / 2, y - 52 * u);
       g.globalAlpha = 1;
     }
     if (opts.banner) {
@@ -847,6 +864,8 @@ function roundRect(g, x, y, w, h, r) {
   g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
   g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
 }
+
+export const things = (n) => `${n} thing${n === 1 ? '' : 's'}`;
 
 export function clock(t) {
   const s = Math.max(0, Math.floor(t));

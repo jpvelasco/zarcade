@@ -1,7 +1,7 @@
 // Browser entry: screens, the fixed-step loop, input, sound, saves and
 // telemetry. Rules live in world.js; this file only drives them.
 import { World, STEP } from './world.js';
-import { Renderer, clock } from './render.js';
+import { Renderer, clock, things } from './render.js';
 import { Input } from './input.js';
 import { Sound } from './audio.js';
 import { Autoplayer, calibrate } from './autoplayer.js';
@@ -162,6 +162,7 @@ function restart() {
 function pause() {
   if (mode !== 'play') return;
   mode = 'paused';
+  hideToast();
   $('pause-sub').textContent = current ? (current.kind === 'slope' ? `${current.level.id} · ${current.level.name}` : current.level.name) : '';
   updateSoundButtons();
   showScreen('screen-pause');
@@ -177,7 +178,7 @@ function resume() {
 // ------------------------------------------------------------ results
 
 function starRow(checks, goals) {
-  const labels = [`Size ${formatSize(goals.size)}`, `${goals.items} things`, `Under ${clock(goals.time)}`];
+  const labels = [`Size ${formatSize(goals.size)}`, things(goals.items), `Under ${clock(goals.time)}`];
   return checks.map((on, i) => `<div class="st"><span class="s${on ? ' on' : ''}">★</span>${labels[i]}</div>`).join('');
 }
 
@@ -208,6 +209,7 @@ function onFinished() {
   for (const u of out.unlocks) log.event('unlock', { kind: u.kind, id: u.id });
   if (current.kind === 'slope' && current.index === SLOPES.length - 1 && out.firstClear) return showVictory(out);
   mode = 'results';
+  hideToast();
   const lv = current.level;
   $('res-title').textContent = stars === 3 ? 'Perfect roll!' : stars ? 'Slope clear!' : 'Made it down!';
   $('res-sub').textContent = current.kind === 'daily' ? `Daily Slope · ${lv.daily} · streak ${out.streak} day${out.streak === 1 ? '' : 's'}` : `${lv.id} · ${lv.name}`;
@@ -242,6 +244,7 @@ function onCaught() {
   persist();
   log.event('level.fail', { mode: current.kind, slope: current.kind === 'slope' ? current.level.id : 'daily', reason: 'caught', progress: Math.round(w.progress() * 100), size: sum.size });
   mode = 'caught';
+  hideToast();
   $('caught-lines').innerHTML = [['Snowball size', formatSize(sum.size)], ['Things collected', sum.items], ['Rolled', `${Math.round(w.progress() * 100)}% of the slope`]]
     .map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join('');
   $('caught-extra').innerHTML = extras(out);
@@ -286,7 +289,7 @@ function renderMap() {
     card.style.setProperty('--sky1', skies[pi][0]);
     card.style.setProperty('--sky2', skies[pi][1]);
     const got = SLOPES.slice(first, first + SLOPES_PER_PEAK).reduce((n, s) => n + (save.slopes[s.id]?.stars || 0), 0);
-    card.innerHTML = `<h3>${p.name} <small>★ ${got}/${SLOPES_PER_PEAK * 3}</small></h3><p class="blurb">${open ? p.blurb : 'Finish the peak before to open it'}</p>`;
+    card.innerHTML = `<h3>${p.name} <small>★ ${got}/${SLOPES_PER_PEAK * 3}</small></h3><p class="blurb">${open ? p.blurb : `Finish ${PEAKS[pi - 1].name} to open it`}</p>`;
     const list = document.createElement('div');
     list.className = 'slopes';
     for (let j = 0; j < SLOPES_PER_PEAK; j++) {
@@ -298,10 +301,10 @@ function renderMap() {
       b.className = `slope-btn${i === next ? ' next' : ''}`;
       b.disabled = !unlocked;
       const st = rec?.stars || 0;
-      b.innerHTML = `<span class="num">${unlocked ? j + 1 : '🔒'}</span><span class="nm">${lv.name}<small>${rec?.best ? `Best ${formatSize(rec.best.size)} · ${rec.best.items} things` : lv.avalanche ? 'Snow Cloud chase!' : unlocked ? 'Not rolled yet' : 'Locked'}</small></span><span class="st">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
+      b.innerHTML = `<span class="num">${unlocked ? j + 1 : '🔒'}</span><span class="nm">${lv.name}<small>${rec?.best ? `Best ${formatSize(rec.best.size)} · ${things(rec.best.items)}` : lv.avalanche ? 'Snow Cloud chase!' : unlocked ? 'Not rolled yet' : 'Locked'}</small></span><span class="st">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>`;
       b.setAttribute('aria-label', `${lv.id} ${lv.name}${unlocked ? '' : ', locked'}, ${st} stars`);
       b.addEventListener('click', () => startSlope(i));
-      const info = () => { $('map-info').textContent = unlocked ? `${lv.id} · ${lv.name} — ${lv.tip}` : 'Finish the slope before to open this one.'; };
+      const info = () => { $('map-info').textContent = unlocked ? `${lv.id} · ${lv.name} — ${lv.tip}` : 'Finish the slope before this one to open it.'; };
       b.addEventListener('focus', info);
       b.addEventListener('mouseenter', info);
       list.appendChild(b);
@@ -325,7 +328,7 @@ function toMap() {
 function drawPreview(c, skin, hat, t = 0) {
   const g = c.getContext('2d');
   g.clearRect(0, 0, c.width, c.height);
-  const R = c.width * 0.3, cx = c.width / 2, cy = c.height * 0.6;
+  const R = c.width * 0.24, cx = c.width / 2, cy = c.height * 0.68;
   g.save(); g.translate(cx, cy); g.rotate(t * 0.6);
   g.drawImage(skinTexture(skin), -R, -R, R * 2, R * 2);
   g.restore();
@@ -550,6 +553,7 @@ function frame(now) {
     }
   }
   sound.frame(world, dt, playing);
+  renderer.attract = isAttract && mode !== 'play';
   if (mode !== 'paused') renderer.update(dt, world);
   renderer.draw(world, {
     attract: isAttract && mode !== 'play',

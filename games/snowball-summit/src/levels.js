@@ -274,31 +274,31 @@ const GOALS = [
   { size: 48, items: 56, time: 40 },
   { size: 52, items: 54, time: 40 },
   { size: 59, items: 66, time: 43 },
-  { size: 66, items: 66, time: 43 },
+  { size: 68, items: 69, time: 43 },
   { size: 90, items: 48, time: 52 },
   { size: 96, items: 57, time: 59 },
   { size: 120, items: 60, time: 59 },
-  { size: 144, items: 67, time: 67 },
+  { size: 148, items: 70, time: 66 },
   { size: 307, items: 51, time: 70 },
-  { size: 378, items: 58, time: 77 },
+  { size: 382, items: 60, time: 76 },
   { size: 356, items: 57, time: 78 },
-  { size: 553, items: 68, time: 86 }
+  { size: 561, items: 71, time: 84 }
 ];
 
 // Turn a raw slope into cm segments with tiers, gates and bridges resolved
 // against the planned growth curve D(x) = start * plan^(x / length).
-function compile(raw, i) {
+function compile(raw, i, limits = LIMITS[i]) {
   const peak = PEAKS[Math.floor(i / 4)];
   const u = peak.u;
   const total = raw.segments.reduce((n, sg) => n + sg.len * u, 0);
   // Real players trail the plan a little, so things and gates are sized for 85 % of it.
   const planAt = (x) => 0.85 * u * Math.pow(raw.plan, Math.min(1, x / total));
-  let x = 0;
+  let x = 0, gi = 0, bi = 0;
   const segments = raw.segments.map((sg) => {
     const out = { ...sg, items: parse(sg.items) };
     for (const k of ['len', 'h', 'depth', 'bumps']) if (out[k] != null) out[k] *= u;
-    if (sg.t === 'gate') out.min = niceSize(planAt(x) * sg.rel);
-    if (sg.t === 'bridge') out.max = niceSize(planAt(x) * sg.rel);
+    if (sg.t === 'gate') out.min = limits?.gates?.[gi++] ?? niceSize(planAt(x) * sg.rel);
+    if (sg.t === 'bridge') out.max = limits?.bridges?.[bi++] ?? niceSize(planAt(x) * sg.rel);
     x += out.len;
     return out;
   });
@@ -322,7 +322,27 @@ function compile(raw, i) {
   };
 }
 
-export const SLOPES = SLOPES_RAW.map(compile);
+// Gate and bridge limits baked from autoplayer runs (scripts in the spec):
+// gates at 90 % of the smaller of a full-skill and a gentle run's size there,
+// bridges just under a greedy run's size so grabbing everything breaks them.
+const LIMITS = [
+  null,
+  { gates: [30], bridges: [] },
+  { gates: [], bridges: [25] },
+  { gates: [30], bridges: [45] },
+  null,
+  { gates: [], bridges: [60] },
+  { gates: [55, 90], bridges: [] },
+  { gates: [90, 150], bridges: [70] },
+  null,
+  { gates: [], bridges: [170] },
+  { gates: [160, 275], bridges: [] },
+  { gates: [325, 475], bridges: [225] },
+];
+
+export const SLOPES = SLOPES_RAW.map((raw, i) => compile(raw, i));
+// For tuning: rebuild one slope with other limits.
+export const compileSlope = (i, limits) => compile(SLOPES_RAW[i], i, limits);
 
 export const SLOPES_PER_PEAK = 4;
 

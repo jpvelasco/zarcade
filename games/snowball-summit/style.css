@@ -204,7 +204,7 @@ code { background: rgba(58, 45, 77, 0.08); padding: 2px 6px; border-radius: 6px;
 
 /* ------------------------------------------------------------ wardrobe & museum */
 
-.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
 .pick {
   appearance: none;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -285,6 +285,7 @@ code { background: rgba(58, 45, 77, 0.08); padding: 2px 6px; border-radius: 6px;
   top: max(76px, calc(env(safe-area-inset-top) + 64px));
   transform: translateX(-50%);
   z-index: 30;
+  width: max-content;
   max-width: min(520px, 92vw);
   padding: 12px 18px;
   border-radius: 18px;
@@ -300,6 +301,8 @@ code { background: rgba(58, 45, 77, 0.08); padding: 2px 6px; border-radius: 6px;
 
 @media (max-width: 760px) {
   .peak-grid { grid-template-columns: 1fr; }
+  .toast { top: max(118px, calc(env(safe-area-inset-top) + 108px)); }
+  .pick { padding: 8px 4px; font-size: 13px; }
   .card { padding: 18px 16px 16px; }
   .logo .l1 { font-size: 38px; }
   .logo .l2 { font-size: 43px; }

@@ -496,28 +496,55 @@ export function propellerBlades(g, x, y, s, t) {
 // ------------------------------------------------------------ Snow Cloud
 
 let cloudCanvas = null;
+// The Snow Cloud: a tall heap of puffs with a friendly face near the
+// bottom-right (where it meets the ball). Puffs stay inside the canvas.
 export function cloudSprite() {
   if (cloudCanvas) return cloudCanvas;
-  const W = 520, H = 720;
+  const W = 560, H = 760;
   cloudCanvas = canvas(W, H);
   const g = cloudCanvas.getContext('2d');
   const rnd = mulberry32(7);
   const puffs = [];
-  for (let i = 0; i < 26; i++) {
-    const y = H * (0.08 + rnd() * 0.88);
-    const x = W * (0.12 + rnd() * 0.5) + (y / H) * W * 0.18;
-    puffs.push([x, y, 70 + rnd() * 80]);
+  for (let i = 0; i < 30; i++) {
+    const y = H * (0.12 + rnd() * 0.7);
+    const r = 60 + rnd() * 70;
+    const x = Math.min(W - r - 10, W * (0.1 + rnd() * 0.55) + (y / H) * W * 0.2);
+    puffs.push([x, y, r]);
   }
-  puffs.push([W * 0.62, H * 0.42, 150], [W * 0.68, H * 0.62, 140], [W * 0.5, H * 0.86, 150], [W * 0.56, H * 0.22, 120]);
-  for (const [x, y, r] of puffs) { circ(g, x + 8, y + 10, r); g.fillStyle = 'rgba(120,150,210,0.5)'; g.fill(); }
+  puffs.push([W * 0.66, H * 0.5, 140], [W * 0.7, H * 0.68, 130], [W * 0.5, H * 0.78, 140], [W * 0.56, H * 0.3, 120], [W * 0.22, H * 0.8, 140], [W * 0.3, H * 0.6, 150]);
+  // Keep every puff inside the canvas so nothing is cut off.
+  for (const p of puffs) { p[2] = Math.min(p[2], p[0] - 8, W - p[0] - 8, p[1] - 8, H - p[1] - 8); }
+  for (const [x, y, r] of puffs) { circ(g, x + 6, y + 10, r); g.fillStyle = 'rgba(120,150,210,0.45)'; g.fill(); }
   for (const [x, y, r] of puffs) { circ(g, x, y, r); g.fillStyle = '#eef4ff'; g.fill(); }
   for (const [x, y, r] of puffs) { circ(g, x - r * 0.25, y - r * 0.3, r * 0.55); g.fillStyle = 'rgba(255,255,255,0.9)'; g.fill(); }
-  // Friendly face
-  const fx = W * 0.68, fy = H * 0.45;
+  const fx = W * 0.68, fy = H * 0.56;
   for (const dx of [-42, 42]) { ell(g, fx + dx, fy, 16, 22); g.fillStyle = INK; g.fill(); circ(g, fx + dx - 5, fy - 8, 6); g.fillStyle = '#fff'; g.fill(); }
   g.beginPath(); g.arc(fx, fy + 30, 34, 0.15 * Math.PI, 0.85 * Math.PI); g.lineWidth = 9; g.strokeStyle = INK; g.lineCap = 'round'; g.stroke();
   cheeks(g, fx, fy + 30, 66, 16);
   return cloudCanvas;
+}
+
+// A wall of ice bricks for size gates (drawn for a 100×260 px wall).
+let iceWall = null;
+export function iceWallSprite() {
+  if (iceWall) return iceWall;
+  const W = 100, H = 260;
+  iceWall = canvas(W + 8, H + 8);
+  const g = iceWall.getContext('2d');
+  g.translate(4, 4);
+  rrect(g, 0, 0, W, H, 18); g.fillStyle = 'rgba(170,220,255,0.92)'; g.fill();
+  g.save(); rrect(g, 0, 0, W, H, 18); g.clip();
+  g.strokeStyle = 'rgba(255,255,255,0.85)'; g.lineWidth = 3;
+  for (let row = 0; row * 32 < H; row++) {
+    const y = row * 32;
+    g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+    for (let x = row % 2 ? 25 : 50; x < W; x += 50) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 32); g.stroke(); }
+  }
+  g.fillStyle = 'rgba(255,255,255,0.45)'; g.fillRect(10, 0, 14, H);
+  g.restore();
+  rrect(g, 0, 0, W, H, 18); g.lineWidth = 4; g.strokeStyle = INK; g.stroke();
+  snowCap(g, [-2, 12, 8, -2, 50, -6, 92, -2, W + 2, 12, 70, 16, 40, 12]);
+  return iceWall;
 }
 
 // ------------------------------------------------------------ backdrops

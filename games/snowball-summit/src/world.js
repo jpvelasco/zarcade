@@ -8,7 +8,7 @@ export const STEP = 1 / 120;
 const REF = 20; // reference diameter (cm) the physics constants are tuned at
 // The Snow Cloud never falls further behind than this many ball widths, so
 // it stays looming at the left edge of the screen.
-export const CHASE_GAP = 8;
+export const CHASE_GAP = 6.5;
 const MILESTONES = [25, 30, 40, 50, 60, 75, 100, 125, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000];
 
 // Size-scaled physics: a bigger ball falls harder and rolls faster, but less
