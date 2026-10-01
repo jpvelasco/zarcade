@@ -397,9 +397,12 @@ export class RaceView {
       look = base.clone().add(new THREE.Vector3(0, 1.4, 0));
     } else {
       const speed = Math.max(0, v.speed);
-      desired = base.clone().addScaledVector(f, -(7.2 + speed * 0.04)).add(new THREE.Vector3(0, 2.9 + speed * 0.018, 0));
-      look = base.clone().addScaledVector(f, 7).add(new THREE.Vector3(0, 1.5, 0));
-      fov = 60 + speed * 0.28 + (v.nitroOn ? 9 : 0);
+      // A phone held upright sees a narrow slice of the world, mostly sky.
+      // Widen the view and lift the camera so the road ahead fills it.
+      const tall = clamp((1 - this.camera.aspect) / 0.55, 0, 1);
+      desired = base.clone().addScaledVector(f, -(7.2 + speed * 0.04 + tall * 1.5)).add(new THREE.Vector3(0, 2.9 + speed * 0.018 + tall * 2.2, 0));
+      look = base.clone().addScaledVector(f, 7 + tall * 3).add(new THREE.Vector3(0, 1.5 - tall * 0.6, 0));
+      fov = (60 + speed * 0.28 + (v.nitroOn ? 9 : 0)) * (1 + tall * 0.3);
       // During the countdown, swoop in from the front.
       if (w.time < 0) {
         const t = clamp(-w.time / 3, 0, 1);

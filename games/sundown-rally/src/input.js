@@ -15,7 +15,40 @@ export class Input {
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
     window.addEventListener('blur', () => this.keys.clear());
 
-    for (const btn of document.querySelectorAll('#touch .tbtn')) {
+    // The two steering buttons work as one pad: whichever half a finger is
+    // over steers, so a thumb can slide from ◀ to ▶ without lifting.
+    const pad = document.querySelector('#touch .touch-left');
+    const sides = new Map();
+    const sideOf = (e) => {
+      const r = pad.getBoundingClientRect();
+      return e.clientX < r.left + r.width / 2 ? 'left' : 'right';
+    };
+    const steerPad = () => {
+      for (const key of ['left', 'right']) {
+        const on = [...sides.values()].includes(key);
+        if (on) this.touch.add(key); else this.touch.delete(key);
+        pad.querySelector(`[data-key=${key}]`).classList.toggle('active', on);
+      }
+    };
+    if (pad) {
+      pad.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        try { pad.setPointerCapture(e.pointerId); } catch { /* still works without capture */ }
+        sides.set(e.pointerId, sideOf(e));
+        steerPad();
+      });
+      pad.addEventListener('pointermove', (e) => {
+        if (!sides.has(e.pointerId)) return;
+        sides.set(e.pointerId, sideOf(e));
+        steerPad();
+      });
+      const lift = (e) => { if (sides.delete(e.pointerId)) steerPad(); };
+      pad.addEventListener('pointerup', lift);
+      pad.addEventListener('pointercancel', lift);
+      pad.addEventListener('lostpointercapture', lift);
+    }
+
+    for (const btn of document.querySelectorAll('#touch .touch-right .tbtn')) {
       const key = btn.dataset.key;
       const on = (e) => { e.preventDefault(); this.touch.add(key); btn.classList.add('active'); };
       const off = (e) => { e.preventDefault(); this.touch.delete(key); btn.classList.remove('active'); };
