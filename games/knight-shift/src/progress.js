@@ -77,10 +77,11 @@ export function recordPuzzle(save, id, stars) {
   return { first: !prev, better: stars > prev };
 }
 
-// The first unsolved puzzle and everything before it are open.
+// Solved puzzles, and the first unsolved one, are open.
 export function puzzleUnlocked(save, index) {
-  for (let i = 0; i < index; i++) if (!save.puzzles[PUZZLES[i].id]) return false;
-  return index >= 0 && index < PUZZLES.length;
+  if (index < 0 || index >= PUZZLES.length) return false;
+  if (save.puzzles[PUZZLES[index].id]) return true;
+  return index <= nextPuzzle(save);
 }
 
 export function nextPuzzle(save) {

@@ -52,4 +52,8 @@ test('results and puzzle progress', () => {
   assert.equal(puzzleUnlocked(save, 1), true);
   assert.equal(nextPuzzle(save), 1);
   assert.equal(puzzleStarsTotal(save), 2);
+  // A puzzle solved out of order stays open.
+  recordPuzzle(save, PUZZLES[5].id, 3);
+  assert.equal(puzzleUnlocked(save, 5), true);
+  assert.equal(puzzleUnlocked(save, 4), false);
 });

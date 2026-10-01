@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#2a1a3e">
+  <meta name="description" content="Knight Shift: friendly chess with twists. Play cheerful bots, Fog of War, Power Squares, Chess960 and a Puzzle Trail.">
+  <title>Knight Shift — chess with a twist</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="knight-shift"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body class="theme-wood">
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Knight Shift uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/knight-shift/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="app" class="app">
+    <div class="board-col">
+      <div class="bar" id="bar-top">
+        <div class="avatar" id="top-avatar"></div>
+        <div class="who">
+          <div class="name" id="top-name">Pip the Pawn</div>
+          <div class="tray" id="top-tray"></div>
+        </div>
+        <div class="powers" id="top-powers"></div>
+        <div class="thinking hidden" id="top-thinking" aria-label="Thinking"><i></i><i></i><i></i></div>
+        <div class="bubble hidden" id="bubble" role="status"></div>
+      </div>
+      <div class="board-box" id="board-box">
+        <canvas id="board" tabindex="0" aria-label="Chess board. Use the arrow keys to move the cursor and Enter to pick a piece and a square."></canvas>
+        <div id="promo" class="promo hidden" role="dialog" aria-label="Promote your pawn"></div>
+        <div id="coach" class="coach hidden" role="status">
+          <div class="coach-head"><span class="coach-owl" aria-hidden="true"></span><b>Coach Owl</b></div>
+          <p id="coach-text"></p>
+          <div class="row tight">
+            <button id="btn-coach-undo" class="btn small primary">Take it back</button>
+            <button id="btn-coach-ok" class="btn small">Got it</button>
+          </div>
+        </div>
+        <div id="toast" class="toast hidden" role="status"></div>
+      </div>
+      <div class="bar" id="bar-bottom">
+        <div class="avatar" id="bottom-avatar"></div>
+        <div class="who">
+          <div class="name" id="bottom-name">You</div>
+          <div class="tray" id="bottom-tray"></div>
+        </div>
+        <div class="powers" id="bottom-powers"></div>
+      </div>
+    </div>
+    <aside class="side">
+      <div class="info" id="info">
+        <div class="info-mode" id="info-mode">Classic</div>
+        <div class="info-status" id="info-status">Your move</div>
+        <div class="info-sub" id="info-sub"></div>
+      </div>
+      <ol id="moves" class="moves" aria-label="Moves"></ol>
+      <div class="actions" id="actions">
+        <button id="btn-undo" class="btn icon-text" title="Undo (U)"><span aria-hidden="true">↶</span> Undo</button>
+        <button id="btn-hint" class="btn icon-text" title="Hint (H)"><span aria-hidden="true" class="glyph-q">?</span> Hint</button>
+        <button id="btn-again" class="btn icon-text primary hidden" title="Play again"><span aria-hidden="true">↻</span> Again</button>
+        <button id="btn-menu" class="btn icon-text" title="Pause (Esc)"><span aria-hidden="true">❚❚</span> Menu</button>
+      </div>
+    </aside>
+  </div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <!-- Title -->
+  <section id="screen-title" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Knight Shift">
+        <div class="logo-knight" id="logo-knight" aria-hidden="true"></div>
+        <h1><span class="l1">Knight</span><span class="l2">Shift</span></h1>
+      </div>
+      <p class="tagline">Chess with a twist, for everyone! Play friendly bots, sneak through the fog, grab power squares, and climb the Puzzle Trail.</p>
+      <div class="col">
+        <button id="btn-continue" class="btn primary big hidden">Continue game</button>
+        <button id="btn-new" class="btn primary big">Play chess</button>
+        <button id="btn-trail" class="btn big trail-btn">Puzzle Trail</button>
+        <div class="row">
+          <button class="btn" data-theme-btn>Board: Wood</button>
+          <button class="btn" data-sound>Sound: on</button>
+        </div>
+      </div>
+      <p id="title-stats" class="muted"></p>
+      <p class="controls"><b>Move</b> tap or drag · arrows + Enter · d-pad + A &nbsp; <b>Hint</b> H &nbsp; <b>Undo</b> U &nbsp; <b>Pause</b> Esc / P</p>
+    </div>
+  </section>
+
+  <!-- New game setup -->
+  <section id="screen-setup" class="overlay dim hidden">
+    <div class="card wide setup-card">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>New game</h2>
+        <span></span>
+      </div>
+      <h3>1. Pick a game</h3>
+      <div class="choice-grid modes" id="mode-grid" role="radiogroup" aria-label="Game mode"></div>
+      <h3>2. Pick an opponent</h3>
+      <div class="choice-grid bots" id="bot-grid" role="radiogroup" aria-label="Opponent"></div>
+      <p id="setup-desc"></p>
+      <div id="color-block">
+        <h3>3. Play as</h3>
+        <div class="row tight" id="color-row" role="radiogroup" aria-label="Your color">
+          <button class="btn chip" data-color="w">White</button>
+          <button class="btn chip" data-color="r">Surprise me</button>
+          <button class="btn chip" data-color="b">Black</button>
+        </div>
+      </div>
+      <div class="col"><button id="btn-start" class="btn primary big">Start!</button></div>
+    </div>
+  </section>
+
+  <!-- Puzzle trail -->
+  <section id="screen-trail" class="overlay dim hidden">
+    <div class="card wide trail-card">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Puzzle Trail</h2>
+        <span id="trail-stars" class="pill"></span>
+      </div>
+      <div class="trail" id="trail"></div>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-pause-new" class="btn">New game</button>
+        <button id="btn-pause-trail" class="btn">Puzzle Trail</button>
+        <div class="row">
+          <button class="btn" data-theme-btn>Board: Wood</button>
+          <button class="btn" data-sound>Sound: on</button>
+        </div>
+        <div class="row">
+          <button class="btn" id="btn-toggle-moves">Show moves: on</button>
+          <button class="btn" id="btn-toggle-coach">Coach: on</button>
+        </div>
+        <button class="btn" id="btn-flip">Turn the board around</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Result -->
+  <section id="screen-result" class="overlay dim hidden">
+    <div class="card result-card">
+      <div class="result-avatar" id="result-avatar"></div>
+      <h2 id="result-title">Checkmate!</h2>
+      <p id="result-sub" class="muted"></p>
+      <div id="result-stars" class="stars hidden" aria-hidden="true"></div>
+      <p id="result-line" class="speech"></p>
+      <div id="result-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-result-next" class="btn primary">Play again</button>
+        <button id="btn-result-board" class="btn">Look at the board</button>
+        <div class="row">
+          <button id="btn-result-setup" class="btn">New game</button>
+          <button class="btn" data-title>Title</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pass and play curtain (Fog of War with a friend) -->
+  <section id="screen-pass" class="overlay curtain hidden">
+    <div class="card small">
+      <div class="pass-icon" id="pass-icon" aria-hidden="true"></div>
+      <h2 id="pass-title">Pass to Black</h2>
+      <p class="muted">No peeking! Hand over the device, then tap to see your side of the fog.</p>
+      <div class="col"><button id="btn-pass" class="btn primary big">I'm ready</button></div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

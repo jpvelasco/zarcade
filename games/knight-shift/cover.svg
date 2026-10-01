@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1a4e"/>
+      <stop offset="0.55" stop-color="#5a2f6e"/>
+      <stop offset="1" stop-color="#c76b4a"/>
+    </linearGradient>
+    <radialGradient id="moon" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6d8"/>
+      <stop offset="0.6" stop-color="#ffe7a0" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#ffd27a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ivory" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffaf0"/>
+      <stop offset="1" stop-color="#e5cfa8"/>
+    </linearGradient>
+    <linearGradient id="walnut" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7a4d2e"/>
+      <stop offset="1" stop-color="#2c170b"/>
+    </linearGradient>
+    <radialGradient id="pBlue"><stop offset="0" stop-color="#5ec8ff"/><stop offset="0.5" stop-color="#5ec8ff" stop-opacity="0.6"/><stop offset="1" stop-color="#5ec8ff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="pPurple"><stop offset="0" stop-color="#b77bff"/><stop offset="0.5" stop-color="#b77bff" stop-opacity="0.6"/><stop offset="1" stop-color="#b77bff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="pGold"><stop offset="0" stop-color="#ffb84a"/><stop offset="0.5" stop-color="#ffb84a" stop-opacity="0.6"/><stop offset="1" stop-color="#ffb84a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="fog" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#e9e2ff" stop-opacity="0.75"/><stop offset="1" stop-color="#e9e2ff" stop-opacity="0"/></radialGradient>
+    <path id="knight" d="M17 93 Q17 83 28 83 L72 83 Q83 83 83 93 Z M23 83 Q23 77 32 77 L68 77 Q77 77 77 83 Z M31 77 C30 64 37 58 47 51 C41 52 35 54 29 58 C22 62 14 58 14 50 C14 43 20 37 27 31 C33 25 38 19 43 15 L46 5 L54 13 C71 15 81 31 81 50 C81 62 77 71 75 77 Z"/>
+    <path id="pawn" d="M17 93 Q17 83 28 83 L72 83 Q83 83 83 93 Z M23 83 Q23 77 32 77 L68 77 Q77 77 77 83 Z M38 50 C38 62 31 70 29 77 L71 77 C69 70 62 62 62 50 Z M33 47 Q50 41 67 47 Q67 54 50 54 Q33 54 33 47 Z M35 28 A15 15 0 1 1 65 28 A15 15 0 1 1 35 28 Z"/>
+    <path id="queen" d="M17 93 Q17 83 28 83 L72 83 Q83 83 83 93 Z M23 83 Q23 77 32 77 L68 77 Q77 77 77 83 Z M34 66 C33 71 28 74 26 77 L74 77 C72 74 67 71 66 66 Z M30 61 Q50 55 70 61 Q70 68 50 68 Q30 68 30 61 Z M30 61 L19 26 L33 43 L36 17 L45 41 L50 13 L55 41 L64 17 L67 43 L81 26 L70 61 Z M13.5 24 A5.5 5.5 0 1 1 24.5 24 A5.5 5.5 0 1 1 13.5 24 Z M30.5 15 A5.5 5.5 0 1 1 41.5 15 A5.5 5.5 0 1 1 30.5 15 Z M44.5 10 A5.5 5.5 0 1 1 55.5 10 A5.5 5.5 0 1 1 44.5 10 Z M58.5 15 A5.5 5.5 0 1 1 69.5 15 A5.5 5.5 0 1 1 58.5 15 Z M75.5 24 A5.5 5.5 0 1 1 86.5 24 A5.5 5.5 0 1 1 75.5 24 Z"/>
+    <pattern id="checks" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect width="2" height="2" fill="#b97f4f"/><rect width="1" height="1" fill="#f1d9ae"/><rect x="1" y="1" width="1" height="1" fill="#f1d9ae"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <circle cx="640" cy="110" r="120" fill="url(#moon)"/>
+  <circle cx="640" cy="110" r="46" fill="#fff4cf"/>
+  <g fill="#fff">
+    <circle cx="80" cy="60" r="2"/><circle cx="190" cy="120" r="1.5"/><circle cx="300" cy="50" r="2.2"/><circle cx="420" cy="90" r="1.4"/>
+    <circle cx="520" cy="40" r="1.8"/><circle cx="760" cy="230" r="1.6"/><circle cx="40" cy="200" r="1.4"/><circle cx="250" cy="200" r="1.2"/>
+  </g>
+  <!-- the board, tilted away from us -->
+  <g transform="translate(400 250)">
+    <g transform="matrix(1 0 -0.55 0.42 0 0)">
+      <rect x="-330" y="-10" width="660" height="660" rx="18" fill="#6b3f1f"/>
+      <rect x="-312" y="8" width="624" height="624" fill="url(#checks)" transform="translate(-312 8) scale(78) translate(312 -8) translate(-4 0.1026)"/>
+    </g>
+  </g>
+  <!-- glowing power squares -->
+  <ellipse cx="250" cy="330" rx="70" ry="26" fill="url(#pBlue)"/>
+  <ellipse cx="560" cy="300" rx="70" ry="26" fill="url(#pPurple)"/>
+  <ellipse cx="460" cy="430" rx="80" ry="30" fill="url(#pGold)"/>
+  <!-- fog drifting over the far side -->
+  <ellipse cx="160" cy="268" rx="150" ry="30" fill="url(#fog)"/>
+  <ellipse cx="640" cy="262" rx="170" ry="28" fill="url(#fog)"/>
+  <!-- pieces -->
+  <g transform="translate(520 172) scale(1.15)" opacity="0.95">
+    <use href="#queen" fill="url(#walnut)" stroke="#130903" stroke-width="3.4" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(150 270) scale(1.0)">
+    <use href="#pawn" fill="url(#walnut)" stroke="#130903" stroke-width="3.4" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(590 330) scale(0.95)">
+    <use href="#pawn" fill="url(#ivory)" stroke="#3a2614" stroke-width="3.4" stroke-linejoin="round"/>
+  </g>
+  <!-- the hero knight mid-leap -->
+  <path d="M220 420 Q300 170 420 300" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="4 16" stroke-linecap="round" opacity="0.75"/>
+  <g transform="translate(300 110) rotate(-8 130 130) scale(2.6)">
+    <ellipse cx="50" cy="96" rx="34" ry="5" fill="#000" opacity="0.25"/>
+    <use href="#knight" fill="url(#ivory)" stroke="#3a2614" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M58 19 C67 25 72 35 72 46 M52 24 C60 30 64 39 64 49" fill="none" stroke="#6b4a2a" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="39" cy="30" r="3.6" fill="#3a2614"/>
+    <circle cx="41" cy="29" r="1.2" fill="#fff"/>
+    <path d="M24 52 Q30 56 36 53" fill="none" stroke="#3a2614" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+  <!-- sparkles -->
+  <g fill="#ffe36e">
+    <path d="M240 130 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6 z"/>
+    <path d="M610 380 l4 11 11 4 -11 4 -4 11 -4 -11 -11 -4 11 -4 z"/>
+    <path d="M700 300 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3 z"/>
+  </g>
+</svg>
