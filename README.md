@@ -50,6 +50,21 @@ entry to `arcade/games.js`. The arcade tests check that every folder is listed.
 - **Hide the pointer while playing.** Games hide the mouse pointer after a
   moment without movement during play, and show it again on any movement.
 
+## Full screen
+
+Every page loads `fullscreen.js`. Move the pointer to the top edge and a pill
+slides in: **Full screen**, or **Exit full screen (Esc)** while in full screen.
+Page-level full screen hides the browser toolbar, so the address bar no longer
+drops down when the mouse nears the top. The browser always keeps Esc as a way
+out.
+
+Turning it on is remembered (`arcade.v1.fullscreen`). Browsers end full screen
+on every page change and only allow entering it from a click or key press, so
+the next click or key press on any arcade page re-enters it. Leaving with Esc
+or the pill turns it off until you turn it on again; changing pages never
+does. Where the Fullscreen API isn't available (iPhone Safari), the pill never
+appears.
+
 ## Telemetry and support
 
 Every game and the arcade load `telemetry.js` first (`<script src="telemetry.js"
@@ -84,5 +99,5 @@ errors.
 ```sh
 npm test               # run every game's tests, plus the arcade and telemetry tests
 npm run serve          # serve the repo at http://localhost:8000 (no caching) and collect OTLP logs
-npm run sync-telemetry # copy arcade/telemetry.js into every game
+npm run sync-telemetry # copy arcade/telemetry.js and fullscreen.js into every game
 ```
