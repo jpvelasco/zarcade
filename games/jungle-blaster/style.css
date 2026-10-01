@@ -222,8 +222,9 @@ h2 {
 .button.primary small { color: rgba(26, 10, 0, 0.75); }
 .button.primary:hover { background: #ffa040; }
 .button.quiet { background: #1e1830; }
-.button.toggle::after { content: "  OFF"; color: #ff7a7a; }
-.button.toggle[aria-pressed="true"]::after { content: "  ON"; color: #7aff8a; }
+.button.toggle { flex-direction: row; gap: 10px; }
+.button.toggle::after { content: "OFF"; color: #ff7a7a; }
+.button.toggle[aria-pressed="true"]::after { content: "ON"; color: #7aff8a; }
 .button:disabled { opacity: 0.45; cursor: default; }
 
 .howto {

@@ -157,8 +157,12 @@ export class Renderer {
       }
     }
     if (t.volcano) {
-      g.fillStyle = this.c('#ffb04a');
-      g.fillRect(250, 30, 8, 8);
+      // A dim red sun through the smoke.
+      g.fillStyle = this.c('#c8401a');
+      for (let r = 0; r < 14; r += 1) {
+        const w = Math.round(Math.sqrt(49 - (r - 6.5) * (r - 6.5)) || 0);
+        g.fillRect(256 - w, 26 + r, w * 2, 1);
+      }
     } else if (t.temple) {
       g.fillStyle = this.c('#ffe07a');
       for (let r = 0; r < 12; r += 1) {
@@ -208,8 +212,8 @@ export class Renderer {
     }
     if (id === 'volcano') {
       fill('#ff6a1a');
-      g.fillRect(156, VIEW_H - 140, 8, 6);
-      g.fillRect(476, VIEW_H - 140, 8, 6);
+      g.fillRect(154, VIEW_H - 141, 12, 3);
+      g.fillRect(157, VIEW_H - 144, 6, 3);
     }
     if (id === 'alien') {
       for (let i = 0; i < 40; i += 1) {

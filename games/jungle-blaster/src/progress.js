@@ -12,7 +12,7 @@ export const DEFAULT_TABLE = Object.freeze([
   { name: 'ACT', score: 45000, stage: 5, mode: 'arcade' },
   { name: 'DAV', score: 32000, stage: 4, mode: 'adventure' },
   { name: 'KAT', score: 24000, stage: 3, mode: 'adventure' },
-  { name: 'JPV', score: 16000, stage: 3, mode: 'arcade' },
+  { name: 'PIX', score: 16000, stage: 3, mode: 'arcade' },
   { name: 'ZAP', score: 10000, stage: 2, mode: 'adventure' },
   { name: 'GEN', score: 6000, stage: 1, mode: 'adventure' },
   { name: 'XYZ', score: 2600, stage: 1, mode: 'arcade' },
