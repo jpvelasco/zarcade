@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { LOCATIONS, LOCATION_BY_ID, RACE_KINDS } from './locations.js';
 import { CARS, CAR_BY_ID, UPGRADES, statBars } from './cars.js';
-import { Race, DT, medalTimes } from './race.js';
+import { Race, DT, medalRace, medalsFrom } from './race.js';
 import { getTrack } from './track.js';
 import { RIVALS, DIFFICULTY } from './ai.js';
 import { CUPS, CUP_BY_ID, newCup, applyResult, standings, cupComplete, pointsFor, raceCoins, trophyFor } from './championship.js';
@@ -64,6 +64,7 @@ let setup = null;  // { loc, kind, cupId }
 let accumulator = 0, endTimer = 0;
 let medals = null;
 let menuReady = false;
+let lastTimings = [];
 
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
@@ -398,7 +399,8 @@ function startRace(s) {
   showScreen('screen-loading', { push: false });
   menu.focusOn(loc.id);
   const ghost = s.kind === 'timetrial' ? loadGhost(storage, getTrack(loc, 'circuit').id) : null;
-  loader = { step: 0, s, loc, car, ghost, gen: null, built: null, started: performance.now() };
+  loader = { step: 0, s, loc, car, ghost, gen: null, built: null, started: performance.now(), timings: [] };
+  lastTimings = loader.timings;
   log.event('level.start', { location: loc.id, kind: s.kind, car: car.id, difficulty: save.difficulty, cup: s.cupId || '' });
 }
 
@@ -406,50 +408,55 @@ function startRace(s) {
 function advanceLoader() {
   const L = loader;
   const t0 = performance.now();
-  const total = 9;
   while (performance.now() - t0 < 10 && loader === L) {
-    if (L.step === 0) {
-      race = new Race({
-        location: L.loc, kind: L.s.kind, car: L.car, upgrades: upgradesFor(save, L.car.id), livery: liveryFor(save, L.car.id),
-        difficulty: save.difficulty, autopilot: params.has('autopilot'), ghost: L.ghost,
-        laps: params.has('laps') && L.s.kind !== 'sprint' ? Math.max(1, Number(params.get('laps')) || 1) : undefined,
-      });
-      L.gen = buildWorld(race.track, L.loc, { quality: quality === 0 ? 0.6 : 1, reduced });
-      L.step = 1;
-    } else if (L.step === 1) {
-      const r = L.gen.next();
-      if (r.done) { L.built = r.value; L.step = 2; }
-      else L.phases = (L.phases || 0) + 1;
-    } else if (L.step === 2) {
-      medals = L.s.kind === 'timetrial' ? medalTimes(L.loc, L.car) : null;
-      L.step = 3;
-    } else if (L.step === 3) {
-      view = new RaceView(renderer, race, L.built, { reduced });
-      view.setShadowQuality(QUALITY[quality][1]);
-      resize();
-      view.update(0);
-      L.step = 4;
-      const started = performance.now();
-      Promise.resolve()
-        .then(() => renderer.compileAsync(view.scene, view.camera))
-        .catch((error) => log.exception(error, { 'error.source': 'compileAsync' }))
-        .then(() => {
-          if (loader !== L) return;
-          log.info('scene.ready', { location: L.loc.id, 'compile.ms': Math.round(performance.now() - started), 'load.ms': Math.round(performance.now() - L.started) });
-          L.step = 5;
-        });
-      queueMicrotask(() => monitor.mark(performance.now()));
-      break;
-    } else if (L.step === 4) {
-      break;
-    } else if (L.step === 5) {
-      beginRace();
-      return;
-    }
+    const s0 = performance.now(), stepWas = L.step;
+    advanceStep(L);
+    L.timings.push([stepWas, Math.round(performance.now() - s0), L.lastPhase]);
+    if (L.step === 4 || L.step === 6) break;
   }
+  if (L.step === 6) { beginRace(); return; }
   const pct = L.step === 1 ? 10 + (L.phases || 0) * 9 : [0, 10, 80, 88, 94, 100][L.step];
   $('load-bar').style.width = `${Math.min(100, pct)}%`;
-  void total;
+}
+
+function advanceStep(L) {
+  if (L.step === 0) {
+    race = new Race({
+      location: L.loc, kind: L.s.kind, car: L.car, upgrades: upgradesFor(save, L.car.id), livery: liveryFor(save, L.car.id),
+      difficulty: save.difficulty, autopilot: params.has('autopilot'), ghost: L.ghost,
+      laps: params.has('laps') && L.s.kind !== 'sprint' ? Math.max(1, Number(params.get('laps')) || 1) : undefined,
+    });
+    L.gen = buildWorld(race.track, L.loc, { quality: quality === 0 ? 0.6 : 1, reduced });
+    L.step = 1;
+  } else if (L.step === 1) {
+    const r = L.gen.next();
+    if (r.done) { L.built = r.value; L.step = 2; }
+    else { L.phases = (L.phases || 0) + 1; L.lastPhase = r.value; }
+  } else if (L.step === 2) {
+    // Time trials: run the autopilot's flying lap a slice at a time.
+    if (L.s.kind !== 'timetrial') { medals = null; L.step = 3; return; }
+    if (!L.medal) L.medal = medalRace(L.loc, L.car);
+    for (let i = 0; i < 120 && L.medal.status !== 'finished' && L.medal.time < 300; i++) { L.medal.step(DT); L.medal.events.length = 0; }
+    if (L.medal.status === 'finished' || L.medal.time >= 300) { medals = medalsFrom(L.medal); L.medal = null; L.step = 3; }
+  } else if (L.step === 3) {
+    view = new RaceView(renderer, race, L.built, { reduced });
+    view.setShadowQuality(QUALITY[quality][1]);
+    resize();
+    view.update(0);
+    L.step = 4;
+    const started = performance.now();
+    Promise.resolve()
+      .then(() => renderer.compileAsync(view.scene, view.camera))
+      .catch((error) => log.exception(error, { 'error.source': 'compileAsync' }))
+      .then(() => {
+        if (loader !== L) return;
+        log.info('scene.ready', { location: L.loc.id, 'compile.ms': Math.round(performance.now() - started), 'load.ms': Math.round(performance.now() - L.started) });
+        L.step = 5;
+      });
+    queueMicrotask(() => monitor.mark(performance.now()));
+  } else if (L.step === 5) {
+    L.step = 6;
+  }
 }
 
 function beginRace() {
@@ -766,5 +773,6 @@ if (location.protocol !== 'file:') {
 // Handy for poking at the game from the console and from browser checks.
 window.GP = {
   get race() { return race; }, get view() { return view; }, get mode() { return mode; }, get quality() { return quality; },
+  get lastLoad() { return lastTimings; },
   save, startRace, input, menu, showResults, toTitle,
 };

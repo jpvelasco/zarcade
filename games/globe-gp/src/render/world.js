@@ -177,7 +177,7 @@ export function* buildWorld(track, loc, { quality = 1, reduced = false } = {}) {
   const far = field.reach;
   const sc = quality < 1 ? 0.6 : 1;
   const n = (k) => Math.round(k * sc);
-  buildTheme(loc, { cells, spots, r, n, track, ground, far, shape, out });
+  yield* buildTheme(loc, { cells, spots, r, n, track, ground, far, shape, out });
   yield 'scenery';
 
   lightPools(loc, cells, track);
@@ -186,8 +186,13 @@ export function* buildWorld(track, loc, { quality = 1, reduced = false } = {}) {
   landmark(loc, { cells, track, shape, field, ground, r });
   const solidMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
   const glowMat = new THREE.MeshBasicMaterial({ vertexColors: true });
-  const poolMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4 });
-  out.cells = cells.build({ solid: solidMat, detail: solidMat, glow: glowMat, glowd: glowMat, pool: poolMat }, group, { detailLayers: ['detail', 'glowd'] });
+  const poolMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4 });
+  out.cells = [];
+  let built = 0;
+  for (const mesh of cells.buildEach({ solid: solidMat, detail: solidMat, glow: glowMat, glowd: glowMat, pool: poolMat }, group, { detailLayers: ['detail', 'glowd'] })) {
+    out.cells.push(mesh);
+    if (++built % 8 === 0) yield 'cells';
+  }
   yield 'cells';
 
   // ------------------------------------------------------------ sky
@@ -471,13 +476,13 @@ function building(M, G, p, w, h, d, color, roof, opts = {}) {
             const lz = -d / 2 + (c + 0.5) * (d / n);
             G.add('quad', { x: x + lx * cs + lz * sn, y: wy, z: z - lx * sn + lz * cs, sx: 1.1, sy: 1.8, ry: ry + side * Math.PI / 2 }, color);
           }
-        } else G.add('box', { x: x + lx * cs, y: wy, z: z - lx * sn, sx: 0.1, sy: 1.1, sz: d * 0.8, ry }, color);
+        } else G.add('quad', { x: x + lx * cs, y: wy, z: z - lx * sn, sx: d * 0.8, sy: 1.1, ry: ry + side * Math.PI / 2 }, color);
       }
     }
   }
 }
 
-function buildTheme(loc, ctx) {
+function* buildTheme(loc, ctx) {
   const { cells, spots, r, n, track, ground, far } = ctx;
   const P = loc.palette;
   const solid = (x, z) => cells.at(x, z, 'solid');
@@ -492,37 +497,46 @@ function buildTheme(loc, ctx) {
     case 'paris': {
       const creams = ['#efe2c8', '#e8d6b4', '#f4ead8', '#dccaa8'];
       for (const p of spots(n(80), 24, 42, 10)) building(solid(p.x, p.z), detail(p.x, p.z), { ...p, ry: facing(p) }, 12 + r() * 8, 13 + r() * 6, 14, creams[Math.floor(r() * 4)], 'mansard', { windows: ['#5a6a88', '#4a5a78'], r, cols: true });
+      yield;
       for (const p of spots(n(130), W + 5, 70)) tree(solid(p.x, p.z), p.x, p.y - 0.3, p.z, 0.9 + r() * 0.5, '#6a5040', ['#5a8a3a', '#6a9a44', '#4a7a34'], 'round', r);
+      yield;
       for (const p of spots(n(60), W + 1.5, W + 3)) {
         const D = detail(p.x, p.z);
         D.add('cyl', { x: p.x, y: p.y, z: p.z, sx: 0.18, sy: 4.2, sz: 0.18 }, '#2a3a2a');
         glowd(p.x, p.z).add('sphere', { x: p.x, y: p.y + 4.3, z: p.z, s: 0.55 }, '#ffe8b0');
       }
+      yield;
       for (const p of spots(n(40), W + 3, W + 12)) {
         const D = detail(p.x, p.z);
         D.add('cyl', { x: p.x, y: p.y, z: p.z, sx: 0.1, sy: 2.2, sz: 0.1 }, '#eeeeee');
         D.add('cone', { x: p.x, y: p.y + 1.9, z: p.z, sx: 2.6, sy: 0.7, sz: 2.6 }, r() < 0.5 ? '#d83a3a' : '#2a5ab0');
       }
+      yield;
       break;
     }
     case 'rio': {
       for (const p of spots(n(150), W + 4, 75)) tree(solid(p.x, p.z), p.x, p.y - 0.3, p.z, 0.8 + r() * 0.5, '#9a7a50', ['#2a9a4a', '#3ab45a', '#1a8a3a'], 'palm', r);
+      yield;
       const houses = ['#ff6a8a', '#ffd23d', '#3fd0ff', '#7cff6a', '#ff9a3a', '#c88aff', '#ffffff'];
       for (const p of spots(n(130), 60, far + 1, 10)) building(solid(p.x, p.z), null, p, 5 + r() * 4, 4 + r() * 5, 5 + r() * 3, houses[Math.floor(r() * houses.length)], 'flat');
+      yield;
       for (const p of spots(n(60), W + 3, 30)) {
         const D = detail(p.x, p.z);
         D.add('cyl', { x: p.x, y: p.y, z: p.z, sx: 0.1, sy: 2.4, sz: 0.1 }, '#ffffff');
         D.add('cone', { x: p.x, y: p.y + 2.1, z: p.z, sx: 3, sy: 0.8, sz: 3 }, houses[Math.floor(r() * houses.length)]);
       }
+      yield;
       break;
     }
     case 'kyoto': {
       const maples = ['#e04a1a', '#f07a1a', '#c8281a', '#f0a030', '#d85a2a'];
       for (const p of spots(n(240), W + 4, 80)) tree(solid(p.x, p.z), p.x, p.y - 0.3, p.z, 0.8 + r() * 0.6, '#4a3226', maples, 'round', r);
+      yield;
       for (const p of spots(n(12), 30, 60, 14)) {
         building(solid(p.x, p.z), null, p, 14, 5, 10, '#b8322a', null);
         solid(p.x, p.z).add('frustum4', { x: p.x, y: p.y + 5, z: p.z, sx: 22, sy: 4, sz: 16, ry: p.ry }, '#3a3a40');
       }
+      yield;
       for (const p of spots(n(70), W + 1.5, W + 6)) {
         const D = detail(p.x, p.z);
         D.add('cyl6', { x: p.x, y: p.y, z: p.z, sx: 0.5, sy: 0.9, sz: 0.5 }, '#8a8a84');
@@ -530,7 +544,9 @@ function buildTheme(loc, ctx) {
         glowd(p.x, p.z).add('box', { x: p.x, y: p.y + 1.2, z: p.z, sx: 0.5, sy: 0.4, sz: 0.85 }, '#ffd88a');
         D.add('cone4', { x: p.x, y: p.y + 1.5, z: p.z, sx: 1.3, sy: 0.5, sz: 1.3 }, '#6a6a64');
       }
+      yield;
       for (const p of spots(n(40), W + 6, 50)) for (let k = 0; k < 6; k++) solid(p.x, p.z).add('cyl6', { x: p.x + (r() - 0.5) * 3, y: p.y, z: p.z + (r() - 0.5) * 3, sx: 0.25, sy: 7 + r() * 4, sz: 0.25 }, '#7aa84a');
+      yield;
       break;
     }
     case 'tokyo': {
@@ -550,15 +566,19 @@ function buildTheme(loc, ctx) {
           glow(p.x, p.z).add('box', { x: p.x + lx * cs, y: p.y + 4 + r() * (h - sy - 4), z: p.z - lx * sn, sx: 0.3, sy, sz: 1.6 + r() * 2, ry: p.ry }, neon[Math.floor(r() * neon.length)]);
         }
       }
+      yield;
       for (const p of spots(n(70), W + 1.5, W + 3)) {
         detail(p.x, p.z).add('cyl', { x: p.x, y: p.y, z: p.z, sx: 0.2, sy: 5, sz: 0.2 }, '#3a3a44');
         glowd(p.x, p.z).add('sphere', { x: p.x, y: p.y + 5.1, z: p.z, s: 0.6 }, '#e8f4ff');
       }
+      yield;
       for (const p of spots(n(30), W + 2, W + 8)) glowd(p.x, p.z).add('boxb', { x: p.x, y: p.y, z: p.z, sx: 1, sy: 1.8, sz: 0.8, ry: p.ry }, neon[Math.floor(r() * neon.length)]);
+      yield;
       break;
     }
     case 'sahara': {
       for (const p of spots(n(90), W + 4, far + 1)) solid(p.x, p.z).add('ico', { x: p.x, y: p.y, z: p.z, sx: 2 + r() * 4, sy: 1.2 + r() * 2.5, sz: 2 + r() * 4, ry: r() * 6 }, r() < 0.5 ? '#b8743a' : '#c8884a');
+      yield;
       // An oasis.
       const o = spots(1, 45, 70, 20)[0];
       if (o) {
@@ -579,23 +599,30 @@ function buildTheme(loc, ctx) {
         M.add('box', { ...at(1.55, 3.1), sx: 0.4, sy: 0.4, sz: 0.7, ry }, '#c89a5a');
         for (const fx of [-0.7, 0.7]) for (const lx of [-0.3, 0.3]) M.add('box', { x: p.x + sn * fx + cs * lx, z: p.z + cs * fx - sn * lx, y: p.y + 0.75, sx: 0.18, sy: 1.5, sz: 0.18, ry }, '#a87a3a');
       }
+      yield;
       for (const p of spots(n(8), 25, 50, 10)) solid(p.x, p.z).add('cone4', { x: p.x, y: p.y, z: p.z, sx: 6, sy: 3.5, sz: 6, ry: r() }, r() < 0.5 ? '#f4e8d0' : '#d84a3a');
+      yield;
       break;
     }
     case 'outback': {
       for (const p of spots(n(120), W + 5, 80)) tree(solid(p.x, p.z), p.x, p.y - 0.3, p.z, 0.8 + r() * 0.6, '#e8e0d0', ['#7a8a4a', '#8a9a5a', '#6a7a3a'], 'gum', r);
+      yield;
       for (const p of spots(n(80), W + 4, 70)) solid(p.x, p.z).add('cone', { x: p.x, y: p.y - 0.2, z: p.z, sx: 1.2 + r(), sy: 1.8 + r() * 2, sz: 1.2 + r(), ry: r() * 6 }, '#b8683a');
+      yield;
       for (const p of spots(n(120), W + 3, 60)) detail(p.x, p.z).add('ico', { x: p.x, y: p.y, z: p.z, sx: 1.4, sy: 0.6, sz: 1.4 }, '#a8a050');
+      yield;
       for (const p of spots(n(14), W + 1.5, W + 3)) {
         const D = detail(p.x, p.z);
         D.add('box', { x: p.x, y: p.y + 1, z: p.z, sx: 0.12, sy: 2, sz: 0.12 }, '#8a8a8a');
         D.add('box', { x: p.x, y: p.y + 2.2, z: p.z, sx: 1.1, sy: 1.1, sz: 0.06, ry: p.ry + Math.PI / 2, rz: Math.PI / 4 }, '#ffcc22');
       }
+      yield;
       for (const p of spots(n(4), 30, 60, 10)) {
         const D = solid(p.x, p.z);
         D.add('frustum4', { x: p.x, y: p.y, z: p.z, sx: 2.4, sy: 9, sz: 2.4 }, '#6a6a6a');
         for (let k = 0; k < 8; k++) D.add('box', { x: p.x, y: p.y + 9, z: p.z + 0.6, sx: 0.4, sy: 3, sz: 0.05, rz: (k / 8) * Math.PI * 2 }, '#c8c8c8');
       }
+      yield;
       break;
     }
     case 'newyork': {
@@ -611,11 +638,13 @@ function buildTheme(loc, ctx) {
         }
         if (r() < 0.12) glow(p.x, p.z).add('box', { x: p.x, y: -2 + h + 3, z: p.z, sx: 8, sy: 3, sz: 0.3, ry: p.ry + Math.PI / 2 }, ['#ff3a5a', '#3ad0ff', '#ffe46a'][Math.floor(r() * 3)]);
       }
+      yield;
       // Pillars under the elevated road.
       for (let i = 0; i < track.samples.length; i += 12) {
         const s = track.samples[i];
         solid(s.x, s.z).add('cyl', { x: s.x, y: -2, z: s.z, sx: 3, sy: s.y - 1.6 + 2, sz: 3 }, '#6a6e78');
       }
+      yield;
       // Street lights on the guard rails.
       for (let i = 0; i < track.samples.length; i += 14) {
         for (const side of [-1, 1]) {
@@ -624,15 +653,19 @@ function buildTheme(loc, ctx) {
           glowd(p.x, p.z).add('sphere', { x: p.x - p.dz * side * -0.6, y: p.y + 5, z: p.z + p.dx * side * -0.6, s: 0.6 }, '#fff0c0');
         }
       }
+      yield;
       break;
     }
     case 'alps': {
       for (const p of spots(n(320), W + 4, far + 1)) tree(solid(p.x, p.z), p.x, p.y - 0.3, p.z, 0.8 + r() * 0.7, '#4a3a2a', ['#2a5a3a', '#f4f8ff', '#3a6a44'], 'pine', r);
+      yield;
       for (const p of spots(n(22), 22, 50, 10)) {
         building(solid(p.x, p.z), null, p, 8, 4.5, 7, '#9a6a3a', 'gable', { roofColor: '#f0f4fa' });
         glowd(p.x, p.z).add('box', { x: p.x, y: p.y + 2.2, z: p.z, sx: 8.1, sy: 1, sz: 1.6, ry: p.ry }, '#ffd88a');
       }
+      yield;
       for (const p of spots(n(50), W + 3, 50)) solid(p.x, p.z).add('ico', { x: p.x, y: p.y, z: p.z, sx: 2 + r() * 3, sy: 1.5 + r() * 2, sz: 2 + r() * 3, ry: r() * 6 }, '#8a94a4');
+      yield;
       break;
     }
     case 'iceland': {
@@ -640,11 +673,14 @@ function buildTheme(loc, ctx) {
         const S = solid(p.x, p.z);
         for (let k = 0; k < 5; k++) S.add('cyl6', { x: p.x + (r() - 0.5) * 3, y: p.y - 0.5, z: p.z + (r() - 0.5) * 3, sx: 1 + r() * 0.5, sy: 1.5 + r() * 4, sz: 1 + r() * 0.5 }, r() < 0.5 ? '#2a2e34' : '#3a3e46');
       }
+      yield;
       for (const p of spots(n(100), W + 3, far + 1)) detail(p.x, p.z).add('ico', { x: p.x, y: p.y, z: p.z, sx: 2.5, sy: 0.9, sz: 2.5, ry: r() * 6 }, r() < 0.5 ? '#5a7a4a' : '#e8f2f8');
+      yield;
       for (const p of spots(n(10), 25, 55, 10)) {
         building(solid(p.x, p.z), null, p, 6, 2.5, 5, '#5a4a3a', 'gable', { roofColor: '#4a8a4a' });
         glowd(p.x, p.z).add('box', { x: p.x, y: p.y + 1.3, z: p.z, sx: 6.1, sy: 0.8, sz: 1, ry: p.ry }, '#ffc870');
       }
+      yield;
       for (let i = 0; i < track.samples.length; i += 16) {
         for (const side of [-1, 1]) {
           const p = track.pointAt(track.samples[i].dist, side * (W + 0.8));
@@ -652,6 +688,7 @@ function buildTheme(loc, ctx) {
           glowd(p.x, p.z).add('box', { x: p.x, y: p.y + 1.4, z: p.z, sx: 0.2, sy: 0.25, sz: 0.2 }, P.wallTrim);
         }
       }
+      yield;
       break;
     }
     default:
@@ -663,7 +700,7 @@ function buildTheme(loc, ctx) {
 function lightPools(loc, cells, track) {
   const colors = { tokyo: ['#ff3fa4', '#3fe5ff', '#ffe46a', '#b06cff'], newyork: ['#ffc070'], iceland: ['#3affc8'], paris: ['#ffb060'] }[loc.theme];
   if (!colors) return;
-  const strength = loc.night ? 0.55 : 0.18;
+  const strength = loc.night ? 0.42 : 0.12;
   const black = C('#000000');
   let k = 0;
   for (let i = 0; i < track.samples.length; i += 7) {

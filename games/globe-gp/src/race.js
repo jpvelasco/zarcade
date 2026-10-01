@@ -573,11 +573,21 @@ export function simulate(opts, maxTime = 600) {
   return race;
 }
 
-// Medal times for a time trial: a flying lap by the autopilot.
-export function medalTimes(location, car) {
-  const race = simulate({ location, kind: 'timetrial', car, laps: 2 }, 300);
+// Medal times for a time trial: a flying lap by the autopilot. `medalRace`
+// and `medalsFrom` let a caller spread the simulation over several frames.
+export function medalRace(location, car) {
+  return new Race({ location, kind: 'timetrial', car, laps: 2, autopilot: true });
+}
+
+export function medalsFrom(race) {
   const lap = race.player.lapTimes[1] || race.player.lapTimes[0] || 60;
   return { gold: lap * 1.05, silver: lap * 1.15, bronze: lap * 1.3, pilot: lap };
+}
+
+export function medalTimes(location, car) {
+  const race = medalRace(location, car);
+  for (let i = 0; i < 300 / DT && race.status !== 'finished'; i++) { race.step(DT); race.events.length = 0; }
+  return medalsFrom(race);
 }
 
 export { Track };

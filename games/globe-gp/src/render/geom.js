@@ -145,9 +145,9 @@ export class CellMergers {
     return m;
   }
 
-  // One mesh per non-empty cell and layer. materials: { layer: Material }.
-  build(materials, group, { detailLayers = [] } = {}) {
-    const meshes = [];
+  // One mesh per non-empty cell and layer, built lazily so the caller can
+  // spread the work over frames. materials: { layer: Material }.
+  *buildEach(materials, group, { detailLayers = [] } = {}) {
     for (const [key, m] of this.cells) {
       if (!m.count) continue;
       const layer = key.split(',')[2];
@@ -156,9 +156,8 @@ export class CellMergers {
       mesh.receiveShadow = layer === 'solid';
       mesh.userData.detail = detailLayers.includes(layer);
       group.add(mesh);
-      meshes.push(mesh);
+      yield mesh;
     }
-    return meshes;
   }
 }
 

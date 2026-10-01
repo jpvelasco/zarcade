@@ -69,7 +69,7 @@ export const LOCATIONS = [
     palette: {
       skyTop: '#0a0820', skyHorizon: '#3a1a5a', fog: '#24123e', fogNear: 70, fogFar: 430,
       sun: '#c8b8ff', sunElevation: 0.5, sunAzimuth: 1.2, ambient: 0.75, light: 0.45,
-      ground: '#2a2836', groundDark: '#1c1a26', road: '#2e2e3a', line: '#ffe46a',
+      ground: '#2a2836', groundDark: '#1c1a26', road: '#44445a', line: '#ffe46a',
       curbA: '#ff3fa4', curbB: '#3fe5ff', wall: '#22222e', wallTrim: '#ff3fa4', water: '#20204a',
     },
     circuit: { seed: 41, radius: 165, wobble: 0.36, points: 12, width: 14, hills: 0.8, base: 0, shortcuts: 0 },
@@ -120,7 +120,7 @@ export const LOCATIONS = [
     palette: {
       skyTop: '#1a1e4a', skyHorizon: '#e07a6a', fog: '#4a3a5a', fogNear: 120, fogFar: 640,
       sun: '#ff9a7a', sunElevation: 0.05, sunAzimuth: -2.0, ambient: 0.7, light: 0.7,
-      ground: '#3a3a44', groundDark: '#2a2a34', road: '#3a3a42', line: '#ffd84a',
+      ground: '#3a3a44', groundDark: '#2a2a34', road: '#4c4c58', line: '#ffd84a',
       curbA: '#ff4a4a', curbB: '#f0f0f0', wall: '#8a96a8', wallTrim: '#ffcc33', water: '#2a3a5a',
     },
     circuit: { seed: 71, radius: 180, wobble: 0.3, points: 10, width: 14, hills: 5, base: 30, shortcuts: 0 },
