@@ -307,6 +307,8 @@ export class Renderer {
   }
 
   resize(w, h, dpr, insets = this.insets) {
+    const same = w === this.w && h === this.h && dpr === this.dpr && JSON.stringify(insets) === JSON.stringify(this.insets);
+    if (same && this.bg) return;
     this.w = w; this.h = h; this.dpr = dpr; this.insets = insets;
     this.canvas.width = Math.round(w * dpr);
     this.canvas.height = Math.round(h * dpr);
