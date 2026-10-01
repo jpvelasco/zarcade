@@ -31,9 +31,9 @@ test('planning does not touch the real game', () => {
 
 test('the browser autopilot steers the crane smoothly and drops', () => {
   const g = new Game({ mode: 'climb', level: LEVELS[0] });
-  const ap = new Autopilot({ budget: 2, pause: 0.2 });
+  const ap = new Autopilot({ budget: 8, pause: 0.2 });
   let drops = 0;
-  for (let i = 0; i < 60 * 20 && g.phase !== 'won'; i++) {
+  for (let i = 0; i < 60 * 40 && g.phase !== 'won'; i++) {
     const c = ap.controls(g, STEP);
     if (c.drop) drops++;
     g.step(STEP, c);

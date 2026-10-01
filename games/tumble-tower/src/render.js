@@ -719,7 +719,8 @@ export class Renderer {
   }
 
   drawBanners(ctx) {
-    let y = Math.max(96, this.H * 0.18);
+    const narrow = this.W < 600;
+    let y = narrow ? Math.max(200, this.H * 0.24) : Math.max(96, this.H * 0.18);
     for (const b of this.banners) {
       const t = b.t;
       const pop = this.reduced ? 1 : Math.min(1, t / 0.18) * (1 + Math.max(0, 0.15 - Math.abs(t - 0.18)) * 1.2);
@@ -729,7 +730,7 @@ export class Renderer {
       ctx.translate(this.W / 2, y);
       ctx.scale(pop, pop);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = '900 34px ui-rounded, system-ui, sans-serif';
+      ctx.font = narrow ? '900 27px ui-rounded, system-ui, sans-serif' : '900 34px ui-rounded, system-ui, sans-serif';
       ctx.lineWidth = 7; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(30, 20, 70, 0.55)';
       ctx.strokeText(b.text, 0, 0);
       ctx.fillStyle = b.color;

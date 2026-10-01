@@ -42,7 +42,17 @@ export function candidates(game) {
 // block balanced on a point (an unstable equilibrium) shows its true colours.
 export const JITTER = { dx: 0.05, angle: 0.025 };
 
+// Scores one candidate. A generator that pauses every SLICE simulated
+// steps so the browser can spread the work over frames.
+const SLICE = 10;
 export function evaluate(game, cand, steps = SIM_STEPS) {
+  const it = evaluateSteps(game, cand, steps);
+  let r = it.next();
+  while (!r.done) r = it.next();
+  return r.value;
+}
+
+export function* evaluateSteps(game, cand, steps = SIM_STEPS) {
   const g = game.clone();
   g.held.angle = cand.angle + JITTER.angle;
   g.held.targetAngle = g.held.angle;
@@ -52,7 +62,10 @@ export function evaluate(game, cand, steps = SIM_STEPS) {
   g.holdTime = 0;
   if (!g.drop()) return -Infinity;
   const body = g.blocks[g.blocks.length - 1];
-  for (let i = 0; i < steps; i++) g.step(1 / 60, {});
+  for (let i = 0; i < steps; i++) {
+    g.step(1 / 60, {});
+    if (i % SLICE === SLICE - 1) yield null;
+  }
   if (g.splashes > splashes) return -1000 + g.top - (g.splashes - splashes) * 10;
   let disp = 0;
   for (const p of before) disp += Math.hypot(p.b.x - p.x, p.b.y - p.y);
@@ -94,7 +107,7 @@ export function* planner(game) {
   const scored = [];
   let best = null, bestScore = -Infinity;
   for (const c of list) {
-    const s = evaluate(game, c);
+    const s = yield* evaluateSteps(game, c);
     scored.push({ c, s });
     if (s > bestScore) { bestScore = s; best = c; }
     yield { best, bestScore, done: false };
@@ -102,7 +115,7 @@ export function* planner(game) {
   scored.sort((a, b) => b.s - a.s);
   best = null; bestScore = -Infinity;
   for (const { c } of scored.slice(0, LONG_LOOKS)) {
-    const s = evaluate(game, c, LONG_STEPS);
+    const s = yield* evaluateSteps(game, c, LONG_STEPS);
     if (s > bestScore) { bestScore = s; best = c; }
     yield { best, bestScore, done: false };
   }
@@ -149,7 +162,7 @@ export class Autopilot {
       for (let i = 0; i < this.budget && this.it; i++) {
         const r = this.it.next();
         if (r.done) { this.plan = r.value; this.it = null; }
-        else if (r.value.best) this.preview = r.value.best;
+        else if (r.value && r.value.best) this.preview = r.value.best;
       }
       const p = this.preview;
       return p ? { targetX: game.platform.x + p.dx } : {};

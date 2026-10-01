@@ -34,7 +34,7 @@ function persist() {
 
 const renderer = new Renderer(canvas, { reducedMotion: reduced });
 const coarse = matchMedia('(hover: none) and (pointer: coarse)');
-const padRoom = () => { renderer.bottomPad = coarse.matches ? 96 : 0; };
+const padRoom = () => { renderer.bottomPad = coarse.matches && innerHeight > innerWidth ? 96 : 0; };
 padRoom();
 coarse.addEventListener?.('change', padRoom);
 const input = new Input(canvas, {
@@ -49,8 +49,8 @@ let mode = 'title'; // title | map | pass | collection | themes | play | paused 
 let game = null;
 let run = null; // { kind: 'climb'|'daily'|'endless'|'pass', index, players, seed }
 let attract = true;
-let pilot = new Autopilot({ budget: 1, pause: 0.35 });
-const autoplay = params.has('autopilot') ? new Autopilot({ budget: 2, pause: 0.2 }) : null;
+let pilot = new Autopilot({ budget: 2, pause: 0.35 });
+const autoplay = params.has('autopilot') ? new Autopilot({ budget: 4, pause: 0.2 }) : null;
 let accumulator = 0;
 let endDelay = 0;
 let passPlayers = 2;
@@ -82,7 +82,7 @@ function startAttract() {
   const pool = Object.fromEntries(save.animals.map((a) => [a, a === 'hippo' || a === 'elephant' ? 3 : a === 'panda' || a === 'chick' ? 0.5 : 1.5]));
   game = new Game({ mode: 'attract', seed: r, pool });
   renderer.setGame(game);
-  pilot = new Autopilot({ budget: 1, pause: 0.35 });
+  pilot = new Autopilot({ budget: 2, pause: 0.35 });
 }
 
 // ------------------------------------------------------------ title & menus
@@ -463,15 +463,6 @@ function updateSoundButtons() {
 function toggleMute() { save.muted = !save.muted; sound.unlock(); sound.setMuted(save.muted); persist(); updateSoundButtons(); }
 function toggleMusic() { save.music = !save.music; sound.unlock(); sound.setMusic(save.music); persist(); updateSoundButtons(); }
 
-let toastTimer = 0;
-function toast(html, animal) {
-  const t = $('toast');
-  t.innerHTML = `${animal ? '<canvas></canvas>' : ''}<span>${html}</span>`;
-  t.classList.remove('hidden');
-  if (animal) paintAnimal(t.querySelector('canvas'), animal, { expr: 'grin' });
-  toastTimer = 2.4;
-}
-
 // ------------------------------------------------------------ wiring
 
 const click = (id, fn) => $(id).addEventListener('click', () => { sound.unlock(); sound.ui(); fn(); });
@@ -510,7 +501,7 @@ dropBtn.addEventListener('click', (e) => { if (e.detail === 0) input.dropNow(); 
 for (const b of document.querySelectorAll('[data-sound]')) b.addEventListener('click', toggleMute);
 for (const b of document.querySelectorAll('[data-music]')) b.addEventListener('click', toggleMusic);
 for (const b of document.querySelectorAll('[data-title]')) b.addEventListener('click', () => { sound.ui(); toTitle(); });
-addEventListener('resize', () => renderer.resize());
+addEventListener('resize', () => { padRoom(); renderer.resize(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 addEventListener('keydown', () => sound.unlock(), { once: true });
@@ -600,7 +591,6 @@ function frame(now) {
       sound.handle(game.events);
       for (const e of game.events) {
         if (e.type === 'turn') renderer.banner(`Player ${e.turn + 1}`, 'Your turn!', PLAYER_COLORS[e.turn], 1.3);
-        if (e.type === 'hold-start') renderer.banner('Hold it…', '', '#ffd23f', 0.9);
       }
       if (run.kind === 'endless' && !shownBest && save.endlessBest > 0 && game.bestTop > save.endlessBest + 0.05) {
         shownBest = true;
@@ -622,7 +612,6 @@ function frame(now) {
   }
   renderer.update(mode === 'paused' ? 0 : dt, game);
   renderer.draw(game, { canDrop: game?.canDrop(), hud: mode === 'play' || mode === 'paused' });
-  if (toastTimer > 0) { toastTimer -= dt; if (toastTimer <= 0) $('toast').classList.add('hidden'); }
   requestAnimationFrame(loop);
 }
 
@@ -644,4 +633,3 @@ window.TT = {
   get game() { return game; }, get mode() { return mode; }, get run() { return run; },
   save, startClimb, startEndless, startDaily, startPass, toTitle, toMap, renderer, input, sound, persist,
 };
-void toast;
