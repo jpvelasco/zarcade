@@ -138,6 +138,12 @@ reason, plus `run.hit`), `mission.complete`, `multiplier.up`, `shop.buy`,
   Lavvy (the chaser) rather than in view; the title art shows it.
 - Two hits within 7 s end a run (Subway Surfers style) instead of one, so
   young players get long runs.
+- Camera: a long telephoto camera (15 m behind, 4.4–7.6 m up) keeps far
+  obstacles readable; the dino is drawn 18% larger than its hitbox.
+- Glide height is 2.6 m so the dino stays on screen; Lavvy runs beside and
+  behind the dino (never covering it), and hugs from behind on a catch.
+- On wide screens the title card sits left and the attract run is framed
+  to the right.
 - Debug params: `?autopilot`, `?seed=N`, `?daily`, `?dist=N` (start
   further along), `?crash` is not needed (use `Telemetry.guard` test via
   `window.DD.forceCrash()`).

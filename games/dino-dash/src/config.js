@@ -26,7 +26,7 @@ export const PLAYER = {
   halfLen: 0.4, // half the dino's length along the path
   laneReach: 0.6, // lane-units of overlap that count as touching a lane
   buffer: 0.18, // an early press is remembered this long
-  glideHeight: 4.2,
+  glideHeight: 2.6,
 };
 
 // Obstacle shapes: vertical extent and length along the path.

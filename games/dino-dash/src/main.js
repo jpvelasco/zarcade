@@ -54,6 +54,7 @@ function showScreen(id) {
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   $('hud').classList.toggle('hidden', !(mode === 'play' || mode === 'paused'));
   input.enabled = mode === 'play';
+  input.padEdges.clear();
   if (id) {
     const first = $(id).querySelector('.btn.primary:not([disabled]), .btn:not([disabled])');
     first?.focus({ preventScroll: true });
@@ -597,7 +598,7 @@ function frame(now) {
     if (input.consumePad('a')) document.activeElement?.click?.();
     if (input.consumePad('b')) back();
     input.queue.length = 0;
-  }
+  } else input.padEdges.clear(); // in play, pad presses went into the action queue
 
   let view = world;
   if (mode === 'play' && world && renderer.ready) {

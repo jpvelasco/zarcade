@@ -300,6 +300,8 @@ export class Renderer {
     this.collect(world, opts);
     this.drawSprites(world);
     this.drawLavvy(world);
+    // A hug from behind: the dino stays in front of Lavvy.
+    if (world.status === 'caught') this.drawPlayer(world);
     this.drawOverlays(world);
   }
 
@@ -682,13 +684,19 @@ export class Renderer {
     }
   }
 
+  // Lavvy runs just behind and beside the dino, so the dino stays in view.
   drawLavvy(world) {
     if (this.lavvyZ < -6.5) return;
     const S = this.sprites;
     const f = Math.floor(this.time * 4) % 2;
-    const x = world.p.x * LANE_W * 0.8;
-    const bob = Math.abs(Math.sin(this.time * 6)) * 0.15;
-    this.sprite(S[`lavvy${f}`], x, bob - 0.2, this.lavvyZ, 1, 1, 1);
+    const px = world.p.x * LANE_W;
+    const caught = world.status === 'caught';
+    const side = world.p.x > 0.3 ? -1 : 1;
+    this.lavvySide = this.lavvySide ?? side;
+    this.lavvySide += (side - this.lavvySide) * 0.05;
+    const x = caught ? px : px + this.lavvySide * 1.7;
+    const bob = Math.abs(Math.sin(this.time * 6)) * 0.12;
+    this.sprite(S[`lavvy${f}`], x, bob - (caught ? 0 : 0.35), this.lavvyZ, caught ? 0.8 : 0.62, this.lavvySide < 0 ? -1 : 1, 1);
   }
 
   drawOverlays(world) {
