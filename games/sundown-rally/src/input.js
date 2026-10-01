@@ -46,6 +46,7 @@ export class Input {
       pad.addEventListener('pointerup', lift);
       pad.addEventListener('pointercancel', lift);
       pad.addEventListener('lostpointercapture', lift);
+      window.addEventListener('blur', () => { sides.clear(); steerPad(); });
     }
 
     for (const btn of document.querySelectorAll('#touch .touch-right .tbtn')) {

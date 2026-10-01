@@ -509,13 +509,17 @@
     }
   }
 
-  function endStroke() {
-    if (!state.drawing) return;
+  function endStroke(e) {
+    // Only the finger that is drawing ends the stroke; a second finger
+    // tapping and lifting must not close (or drop) the loop.
+    if (!state.drawing || e.pointerId !== state.pointerId) return;
     state.drawing = false;
     // Lifting just short of the start still closes the loop (fingers rarely
     // land exactly), unless it would trap a thornbug: letting go is how you
-    // back out of a red loop.
-    const poly = state.mode === 'playing' ? G.releaseLoop(state.trail, SNAP_REACH, 6, MIN_LOOP_AREA) : null;
+    // back out of a red loop. A cancelled pointer (a system gesture took the
+    // touch) was not a deliberate lift, so it never closes one.
+    const lifted = e.type === 'pointerup' && state.mode === 'playing';
+    const poly = lifted ? G.releaseLoop(state.trail, SNAP_REACH, 6, MIN_LOOP_AREA) : null;
     if (poly && !state.bugs.some((b) => G.pointInPolygon(b, poly))) {
       handleLoop(poly);
       state.trail = [];

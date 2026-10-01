@@ -181,7 +181,8 @@ const BOSS_UPDATE = {
         break;
       case 'snuff':
         if (b.t <= 0) {
-          if (b.snuffTarget != null) g.snuffTorch(b.snuffTarget);
+          // Lighting the last torch during his wind-up dazzles him too.
+          if (b.snuffTarget != null && !b.revealed) g.snuffTorch(b.snuffTarget);
           b.tele = null; b.state = 'rest'; b.t = 1.2;
         }
         break;

@@ -37,3 +37,14 @@ test('while hidden the Shade King snuffs torches only now and then', () => {
   // About one attack round every 6-7 seconds, and a snuff every other round.
   assert.ok(g.snuffed >= 1 && g.snuffed <= 4, `snuffed ${g.snuffed} times in 40 s`);
 });
+
+test('lighting the last torch during his wind-up stops the snuff', () => {
+  const b = makeBoss('shade', 160, 100);
+  const g = fakeGame([1, 2]);
+  for (let t = 0; t < 40 && b.state !== 'snuff'; t += 1 / 60) updateBoss(b, g, 1 / 60);
+  assert.equal(b.state, 'snuff', 'he winds up a snuff');
+  g.lit.add(3);
+  play(b, g, 1);
+  assert.equal(g.snuffed, 0);
+  assert.equal(g.lit.size, 3);
+});

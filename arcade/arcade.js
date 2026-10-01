@@ -219,6 +219,10 @@
     document.body.classList.remove('launching');
     if (e.persisted) {
       state = A.loadState(storage);
+      // The game just played may no longer be new, which can empty the New
+      // shelf or drop its chip, so rebuild the chips too.
+      if (!A.genres(GAMES, state.plays).includes(genre)) genre = A.ALL;
+      buildFilters();
       buildRow();
       select(current, { focus: false, sound: false });
     }
