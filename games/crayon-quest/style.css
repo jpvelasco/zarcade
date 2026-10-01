@@ -276,6 +276,9 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   transition: opacity 0.2s;
 }
 .caption:empty { opacity: 0; }
+.scene { position: absolute; left: 0; right: 0; bottom: 78px; height: min(70%, 400px); opacity: 0.5; pointer-events: none; z-index: 0; }
+.scene svg { width: 100%; height: 100%; display: block; }
+.fighter, .enemies { z-index: 1; }
 .fighter { position: relative; display: flex; flex-direction: column; align-items: center; }
 .hero-spot { width: clamp(150px, min(21vw, 38vh), 300px); flex: none; }
 .hero-spot .doodle { width: 100%; aspect-ratio: 1; }
@@ -534,7 +537,8 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   .enemies.solo .enemy { width: 52%; max-width: 210px; }
   .enemies.solo .enemy.big { width: 64%; max-width: 250px; }
   .enemies { order: 1; }
-  .hero-spot { order: 2; width: 30%; max-width: 140px; align-self: flex-start; margin: -18px 0 0 2%; }
+  .scene { top: 0; bottom: auto; height: 61%; opacity: 0.4; }
+  .hero-spot { order: 2; width: 30%; max-width: 140px; align-self: flex-start; margin: 4px 0 0 2%; }
   .icon-btn.deck-btn { width: auto; }
   .fname { font-size: 13px; }
   .intent { font-size: 17px; min-height: 34px; padding: 1px 8px 1px 2px; }

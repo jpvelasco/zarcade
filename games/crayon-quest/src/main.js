@@ -11,7 +11,7 @@ import {
 } from './run.js';
 import { ROWS, COLS } from './map.js';
 import { bestPlay, botStep } from './bot.js';
-import { DEFS, crossOutSVG, frameSVG, heroSVG, iconSVG, letterSpans, monsterSVG, crayonShape, ellipsePts } from './art.js';
+import { DEFS, crossOutSVG, frameSVG, heroSVG, iconSVG, letterSpans, monsterSVG, crayonShape, ellipsePts, sceneSVG } from './art.js';
 import { dateKey, dailySeed, hashString, makeRng } from './rng.js';
 import { liveStreak, loadProfile, mergeAlbum, noteBossDefeated, noteDailyStart, recordRun, saveProfile, checkUnlocks } from './progress.js';
 import { Sound } from './audio.js';
@@ -414,6 +414,7 @@ function buildBattle() {
     <div class="bar-wrap"><div class="block-badge zero">${shieldBadge}<span>0</span></div><div class="hpbar hero"><i></i><b></b></div></div>
     <div class="fname">${HERO[run.hero].name}</div><div class="statuses"></div>`;
   $('#enemies').innerHTML = '';
+  $('#scene').innerHTML = sceneSVG(run.floor);
   sel = -1;
   aimUid = 0;
   for (const c of b.hand) dealUids.add(c.uid);

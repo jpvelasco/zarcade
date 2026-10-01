@@ -604,3 +604,60 @@ export function letterSpans(text, seed = 7) {
   }
   return out;
 }
+
+// ------------------------------------------------------------ scenery
+
+// A faint background for each page, drawn behind the battle: Pencil Woods
+// has pencil trees, Marker Marsh has reeds and water, Rainbow Roof has
+// clouds, a rainbow and roof tiles. 1000×320, anchored to the bottom.
+export function sceneSVG(floor) {
+  const rng = makeRng(hashString(`scene:${floor}`));
+  let out = '';
+  const ground = (color, y, amp, w = 5) => {
+    const pts = [];
+    for (let x = -20; x <= 1020; x += 40) pts.push([x, y + Math.sin(x / 70) * amp + jit(rng, 2)]);
+    return crayonLine(rng, pts, color, w, 1.2);
+  };
+  if (floor === 0) {
+    out += crayonShape(rng, ellipsePts(880, 70, 34, 34, 12), { fill: '#ffe07a', color: '#f2b233', w: 3 });
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      out += line(rng, 880 + Math.cos(a) * 46, 70 + Math.sin(a) * 46, 880 + Math.cos(a) * 60, 70 + Math.sin(a) * 60, '#f2b233', 3);
+    }
+    for (const [x, h, c] of [[80, 150, '#ff8a65'], [210, 110, '#4fc3f7'], [790, 130, '#ba68c8'], [940, 100, '#ffd23f']]) {
+      const base = 290;
+      out += crayonShape(rng, [[x - 9, base], [x - 9, base - h], [x + 9, base - h], [x + 9, base]], { fill: c, w: 2.6, smoothIt: false });
+      out += crayonShape(rng, [[x - 9, base - h], [x, base - h - 20], [x + 9, base - h]], { fill: '#ffe0bd', w: 2.4, smoothIt: false });
+      out += crayonShape(rng, ellipsePts(x, base - h - 34, 40, 32, 11), { fill: '#81c784', color: '#43a047', w: 3 });
+    }
+    out += ground('#66bb6a', 292, 6, 6);
+    for (let x = 30; x < 1000; x += 70) out += crayonLine(rng, [[x, 294], [x + 4, 280], [x + 8, 294], [x + 12, 282]], '#66bb6a', 2.4, 0.8, false);
+  } else if (floor === 1) {
+    for (const x of [60, 120, 860, 930, 980]) {
+      const h = 90 + jit(rng, 30);
+      out += crayonLine(rng, [[x, 300], [x + 4, 300 - h / 2], [x + jit(rng, 8), 300 - h]], '#6d8f4e', 3);
+      out += crayonShape(rng, ellipsePts(x + 2, 300 - h - 4, 6, 16, 8), { fill: '#a0704a', w: 2.2 });
+    }
+    for (const [x, y] of [[300, 300], [700, 306], [520, 312]]) out += crayonShape(rng, ellipsePts(x, y, 46, 10, 10), { fill: '#81c784', color: '#43a047', w: 2.4 });
+    out += ground('#4fc3f7', 290, 5, 5) + ground('#81d4fa', 304, 4, 3);
+    for (const [x, y] of [[180, 60], [760, 90]]) out += crayonShape(rng, ellipsePts(x, y, 50, 18, 10), { fill: '#e3f2fd', color: '#90caf9', w: 2.4, hatch: false });
+  } else {
+    const colors = ['#e53958', '#ff9800', '#ffd23f', '#66bb6a', '#3d8bfd', '#8e5cf0'];
+    colors.forEach((c, i) => {
+      const r = 300 - i * 18;
+      const pts = [];
+      for (let k = 0; k <= 12; k++) {
+        const a = Math.PI + (k / 12) * Math.PI;
+        pts.push([500 + Math.cos(a) * r, 330 + Math.sin(a) * r * 0.8]);
+      }
+      out += crayonLine(rng, pts, c, 9, 1.2);
+    });
+    for (const [x, y, s] of [[130, 80, 1], [860, 60, 1.2], [690, 150, 0.7]]) {
+      for (const [dx, dy, r] of [[0, 0, 26], [28, -10, 30], [56, 2, 24]]) out += crayonShape(rng, ellipsePts(x + dx * s, y + dy * s, r * s, r * s * 0.85, 9), { fill: '#ffffff', color: '#b0bec5', w: 2.4, hatch: false });
+    }
+    const roof = [];
+    for (let x = -20; x <= 1020; x += 30) roof.push([x, (x / 30) % 2 ? 282 : 296]);
+    out += crayonLine(rng, roof, '#d6559b', 4, 1, false);
+  }
+  return `<svg viewBox="0 0 1000 320" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${out}</svg>`;
+}
