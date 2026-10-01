@@ -43,7 +43,9 @@ export function defaultSave() {
     bestContracts: 0,
     upgrades: { fins: 0, quiet: 0, echo: 0, flux: 0, clamps: 0 },
     paint: 'cyan',
+    // `muted` silences sound effects; `musicMuted` silences the soundtrack.
     muted: false,
+    musicMuted: false,
     // Story progress: stars per job (0–3) for each chapter, and the highest
     // chapter the player may start.
     story: { unlocked: 0, stars: [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]], finished: false },
@@ -60,6 +62,9 @@ export function loadSave(storage) {
       ...raw,
       upgrades: { ...base.upgrades, ...(raw.upgrades || {}) },
       story: cleanStory(raw.story, base.story),
+      muted: raw.muted === true,
+      // Saves from before the soundtrack had one switch for everything.
+      musicMuted: typeof raw.musicMuted === 'boolean' ? raw.musicMuted : raw.muted === true,
     };
   } catch {
     return defaultSave();
