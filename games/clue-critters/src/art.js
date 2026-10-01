@@ -344,6 +344,11 @@ function body(ctx, c, o) {
     if (sp === 'cat') { ctx.beginPath(); ctx.moveTo(30, 140); ctx.quadraticCurveTo(80, 130, 70, 80); path(ctx, null, c.fur, 7); }
   }
   if (sp === 'turtle') { ellipse(ctx, 0, 100, 60, 52); path(ctx, c.accent); ctx.beginPath(); for (let i = -1; i <= 1; i++) { ctx.moveTo(i * 30, 60); ctx.lineTo(i * 34, 140); } path(ctx, null, shade(c.accent, -0.3), 3); }
+  // capes hang behind the body
+  if (coat === 'cape' || coat === 'starry') {
+    ctx.beginPath(); ctx.moveTo(-30, 52); ctx.quadraticCurveTo(-70, 110, -62, 156); ctx.quadraticCurveTo(0, 170, 62, 156); ctx.quadraticCurveTo(70, 110, 30, 52); ctx.closePath(); path(ctx, COAT_COLORS[coat]);
+    if (coat === 'starry') { ctx.fillStyle = '#ffe680'; for (const [x, y] of [[-50, 130], [48, 120], [-42, 92], [44, 148]]) { star(ctx, x, y, 6); ctx.fill(); } }
+  }
   // feet
   for (const side of [-1, 1]) {
     ellipse(ctx, side * 20, 150, BIRDS.has(sp) || sp === 'frog' ? 18 : 16, 9);
@@ -357,7 +362,7 @@ function body(ctx, c, o) {
   // arms / wings
   for (const side of [-1, 1]) {
     ctx.save(); ctx.translate(side * 31, 66); ctx.rotate(o.wave && side > 0 ? -2.3 : -side * 0.28);
-    if (BIRDS.has(sp)) { ellipse(ctx, 0, 24, 13, 30); path(ctx, shade(c.fur, -0.08)); } else { ellipse(ctx, 0, 22, 10, 24); path(ctx, coat ? COAT_COLORS[coat] : c.fur); ellipse(ctx, 0, 42, 9, 8); path(ctx, sp === 'frog' ? c.fur : shade(c.fur, -0.1)); }
+    if (BIRDS.has(sp)) { ellipse(ctx, 0, 24, 13, 30); path(ctx, shade(c.fur, -0.08)); } else { ellipse(ctx, 0, 22, 10, 24); path(ctx, coat && coat !== 'cape' && coat !== 'starry' ? COAT_COLORS[coat] : c.fur); ellipse(ctx, 0, 42, 9, 8); path(ctx, sp === 'frog' ? c.fur : shade(c.fur, -0.1)); }
     ctx.restore();
   }
   if (c.id === 'sheep') {
@@ -371,12 +376,9 @@ const COAT_COLORS = { trench: '#c9a46a', raincoat: '#ffd23f', plaid: '#d9534f', 
 function drawCoat(ctx, coat) {
   const col = COAT_COLORS[coat];
   if (coat === 'cape' || coat === 'starry') {
-    ctx.beginPath(); ctx.moveTo(-28, 50); ctx.lineTo(-54, 150); ctx.quadraticCurveTo(0, 162, 54, 150); ctx.lineTo(28, 50); ctx.closePath(); path(ctx, col);
-    if (coat === 'starry') {
-      ctx.fillStyle = '#ffe680';
-      for (const [x, y] of [[-30, 120], [20, 100], [36, 136], [-10, 140], [-38, 90]]) { star(ctx, x, y, 6); ctx.fill(); }
-    }
-    ctx.beginPath(); ctx.moveTo(-26, 50); ctx.quadraticCurveTo(0, 64, 26, 50); path(ctx, null, '#ffd23f', 5);
+    // the cape itself is drawn behind the body; this is the collar and clasp
+    ctx.beginPath(); ctx.moveTo(-30, 52); ctx.quadraticCurveTo(0, 70, 30, 52); ctx.lineTo(28, 62); ctx.quadraticCurveTo(0, 80, -28, 62); ctx.closePath(); path(ctx, col);
+    circle(ctx, 0, 70, 6); path(ctx, '#ffd23f');
     return;
   }
   ctx.beginPath(); ctx.moveTo(-28, 50); ctx.quadraticCurveTo(-48, 110, -36, 148); ctx.quadraticCurveTo(0, 156, 36, 148); ctx.quadraticCurveTo(48, 110, 28, 50); ctx.closePath(); path(ctx, col);
