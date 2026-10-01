@@ -405,6 +405,62 @@ code { background: #f5ead2; padding: 2px 6px; border-radius: 6px; font-size: 13p
   .build-list { gap: 5px; }
 }
 
+/* Touch screens: touch wording, and finger-sized buttons. */
+.touch-only { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .touch-only { display: block; }
+  .keys-only { display: none; }
+  .icon-btn { min-width: 44px; height: 44px; }
+  .icon-btn.small { min-width: 44px; height: 44px; }
+  .wave-btn { min-height: 44px; }
+  .seg button { min-height: 40px; }
+  .arcade-link { padding: 12px 14px; top: 8px; left: 10px; }
+  .title-card { padding-top: 52px; }
+  .build-btn { min-height: 64px; }
+}
+
+/* Portrait: give the next-wave preview room to wrap instead of cutting off,
+   and keep the garden picker header on one line. */
+@media (orientation: portrait), (max-aspect-ratio: 5/6) {
+  .hud-actions { order: 2; flex: 1; margin-left: 0; }
+  .hud-actions .wave-btn { flex: 1; }
+  .hud-next { order: 3; flex-basis: 100%; font-size: 13px; }
+  .overlay { padding: 10px; }
+  .card.wide { padding: 16px 12px; }
+  .maps-head { gap: 10px; }
+  .maps-head h2 { font-size: 22px; }
+  .maps-head .btn { white-space: nowrap; padding: 8px 12px; }
+  .area-row { gap: 10px; }
+  .map-card .meta { flex-wrap: wrap; row-gap: 0; }
+  .map-card .mname { font-size: 14px; }
+}
+
+/* Short landscape screens (phones held sideways): all seven plants fit in
+   the side panel, and menus fit without scrolling. */
+@media (max-height: 460px) and (orientation: landscape) {
+  .build-list { grid-template-columns: repeat(3, 1fr); }
+  .build-btn { padding: 4px 2px 5px; min-height: 0; }
+  .build-btn canvas { width: 40px; height: 40px; }
+  .build-btn kbd { display: none; }
+  .panel { padding: 8px; }
+  .panel h3 { font-size: 14px; margin: 0 0 6px; }
+  .title-card { padding: 44px 22px 14px; }
+  .logo { font-size: 46px; }
+  .tagline { font-size: 14px; margin-top: 4px; }
+  .controls { margin-top: 8px; }
+  .row { margin-top: 10px; }
+  .btn.big { padding-top: 8px; padding-bottom: 8px; }
+  .stars { font-size: 36px; margin: 0; }
+  .card h2 { font-size: 24px; margin-bottom: 2px; }
+  .big { margin: 2px 0 6px; font-size: 16px; }
+  .res-lines { max-width: 560px; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .res-lines div { padding: 4px 10px; font-size: 14px; }
+  #screen-results .card { width: min(620px, 100%); padding: 16px 20px 14px; }
+  #screen-pause .card { width: min(520px, 100%); padding: 16px 20px 14px; }
+  #screen-pause .col { grid-template-columns: 1fr 1fr; margin-top: 8px; gap: 8px; }
+  #screen-pause .row.tight { display: contents; }
+}
+
 /* ------------------------------------------------------------ animation */
 
 @keyframes fade { from { opacity: 0; } }
