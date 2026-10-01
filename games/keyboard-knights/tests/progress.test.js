@@ -102,3 +102,11 @@ test('the bestiary counts poofs and spots first meetings', () => {
   assert.equal(recordPoof(s, 'goose'), false);
   assert.equal(s.bestiary.goose, 2);
 });
+
+test('Play continues from the chosen region first', () => {
+  const s = defaultSave();
+  s.who = 2;
+  assert.equal(nextStageIndex(s), 12);
+  recordRun(s, STAGES[12], result(), '2026-10-01');
+  assert.equal(nextStageIndex(s), 13);
+});

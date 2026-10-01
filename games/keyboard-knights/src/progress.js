@@ -144,11 +144,15 @@ export function isStageUnlocked(save, index) {
 }
 
 // The stage the Play button continues from: the first unlocked one without stars.
+// Starts looking at the region picked in "Who's playing?", so a grown-up
+// is not sent back to the letters.
 export function nextStageIndex(save) {
-  let last = 0;
-  for (let i = 0; i < STAGES.length; i++) {
+  const start = Math.max(0, Math.min(REGIONS.length - 1, save.who ?? 0)) * STAGES_PER_REGION;
+  const order = [...STAGES.keys()].slice(start).concat([...STAGES.keys()].slice(0, start));
+  let last = start;
+  for (const i of order) {
     if (!isStageUnlocked(save, i)) continue;
-    last = i;
+    if (i >= start) last = Math.max(last, i);
     if (!save.stars[STAGES[i].id]) return i;
   }
   return last;

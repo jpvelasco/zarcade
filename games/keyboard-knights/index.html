@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#3b2f5e">
+  <meta name="description" content="Keyboard Knights: a storybook typing adventure. Type the words to poof silly monsters, from home-row letters to whole sentences.">
+  <title>Keyboard Knights — a typing adventure</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="keyboard-knights"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div id="stage"><canvas id="game" aria-label="Keyboard Knights road"></canvas></div>
+    <div id="kbd" class="kbd hidden" aria-label="On-screen keyboard"></div>
+  </div>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Keyboard Knights uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/keyboard-knights/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud-buttons" class="hud-buttons hidden">
+    <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound">🔊</button>
+    <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+  </div>
+
+  <section id="screen-title" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Keyboard Knights">
+        <span class="logo-sword" aria-hidden="true">⚔️</span>
+        <h1><span class="l1">Keyboard</span><span class="l2">Knights</span></h1>
+      </div>
+      <p class="tagline">Type the words, swing your sword, and poof the silly monsters into confetti!</p>
+      <div id="title-knight" class="title-knight" aria-hidden="true"></div>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-map" class="btn">🗺️ Quest map</button>
+          <button id="btn-lessons" class="btn">🎓 Lessons</button>
+        </div>
+        <button id="btn-daily" class="btn daily">☀️ Daily quest</button>
+        <div class="row small-row">
+          <button id="btn-wardrobe" class="btn small">🛡️ Wardrobe</button>
+          <button id="btn-bestiary" class="btn small">📖 Bestiary</button>
+          <button id="btn-stats" class="btn small">📈 Stats</button>
+          <button id="btn-settings" class="btn small">⚙️ Settings</button>
+        </div>
+      </div>
+      <p id="title-best" class="best-line"></p>
+      <p class="controls keys-only"><b>Type</b> the word on a monster · <b>Enter</b> Star Spin · <b>Esc</b> pause</p>
+      <p class="controls touch-only"><b>Tap</b> the big keys to type · <b>★</b> Star Spin · <b>❚❚</b> pause</p>
+    </div>
+  </section>
+
+  <section id="screen-who" class="overlay dim hidden">
+    <div class="card">
+      <h2>Who's playing?</h2>
+      <p class="muted">Pick where to start. Every knight can visit any open stage, and you can change this in Settings.</p>
+      <div class="who-grid">
+        <button class="btn who" data-who="0"><b>Little knight</b><span>Letters on the home row</span></button>
+        <button class="btn who" data-who="1"><b>Young knight</b><span>Short words</span></button>
+        <button class="btn who" data-who="2"><b>Big knight</b><span>Longer words</span></button>
+        <button class="btn who" data-who="3"><b>Grown-up knight</b><span>Long words and sentences</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-map" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Quest map</h2>
+        <span id="map-stars" class="pill"></span>
+      </div>
+      <div id="map-regions" class="regions"></div>
+    </div>
+  </section>
+
+  <section id="screen-lessons" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Lessons</h2>
+        <span class="pill">Finger guide on</span>
+      </div>
+      <p class="muted center">Each lesson adds a few keys. The keyboard shows which finger to use, and monsters wait patiently.</p>
+      <div id="lesson-grid" class="lesson-grid"></div>
+    </div>
+  </section>
+
+  <section id="screen-wardrobe" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Wardrobe</h2>
+        <span id="ward-count" class="pill"></span>
+      </div>
+      <div id="ward-preview" class="ward-preview"></div>
+      <div id="ward-slots"></div>
+    </div>
+  </section>
+
+  <section id="screen-bestiary" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Bestiary</h2>
+        <span id="beast-count" class="pill"></span>
+      </div>
+      <div id="beast-grid" class="beast-grid"></div>
+    </div>
+  </section>
+
+  <section id="screen-stats" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Stats</h2>
+        <span></span>
+      </div>
+      <div id="stats-body"></div>
+    </div>
+  </section>
+
+  <section id="screen-settings" class="overlay dim hidden">
+    <div class="card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Settings</h2>
+        <span></span>
+      </div>
+      <div class="col settings">
+        <button class="btn toggle" data-sound></button>
+        <button class="btn toggle" data-music></button>
+        <button class="btn toggle" id="set-relaxed"></button>
+        <button class="btn toggle" id="set-keyboard"></button>
+        <button class="btn toggle" id="set-forgiving"></button>
+        <button class="btn" id="set-who">Change who's playing</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-sub" class="muted"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart</button>
+        <button id="btn-pause-map" class="btn">Quest map</button>
+        <div class="row">
+          <button class="btn" data-sound></button>
+          <button class="btn" data-music></button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay dim hidden">
+    <div class="card">
+      <h2 id="res-title">Stage clear!</h2>
+      <p id="res-sub" class="muted"></p>
+      <div id="res-stars" class="stars" aria-hidden="true"></div>
+      <div id="res-best" class="best-badge hidden">New best!</div>
+      <div id="res-lines" class="res-lines"></div>
+      <div id="res-unlocks" class="unlocks"></div>
+      <div class="col">
+        <button id="btn-next" class="btn primary">Next →</button>
+        <div class="row">
+          <button id="btn-again" class="btn">↻ Again</button>
+          <button id="btn-res-map" class="btn">Quest map</button>
+        </div>
+      </div>
+      <p class="controls keys-only">Enter: next · Space: again · Esc: map</p>
+    </div>
+  </section>
+
+  <section id="screen-fail" class="overlay dim hidden">
+    <div class="card">
+      <h2>Bonk, bonk, bonk!</h2>
+      <p id="fail-sub" class="muted">Your knight needs a quick snack break.</p>
+      <div id="fail-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-retry" class="btn primary">↻ Try again</button>
+        <button id="btn-fail-map" class="btn">Quest map</button>
+      </div>
+      <p class="controls keys-only">Enter: try again · Esc: map</p>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

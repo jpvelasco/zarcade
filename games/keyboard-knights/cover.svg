@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bfe9ff"/>
+      <stop offset="1" stop-color="#fff3d6"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#c9d4e0"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#3a2a3f" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <rect width="800" height="500" fill="url(#sky)" stroke="none"/>
+    <circle cx="660" cy="90" r="44" fill="#fff8d6" stroke="none"/>
+    <circle cx="660" cy="90" r="70" fill="#fff8d6" opacity="0.4" stroke="none"/>
+    <g fill="#fff" stroke="none">
+      <circle cx="140" cy="80" r="26"/><circle cx="175" cy="68" r="32"/><circle cx="210" cy="82" r="24"/>
+      <circle cx="430" cy="60" r="20"/><circle cx="458" cy="52" r="26"/><circle cx="486" cy="62" r="18"/>
+    </g>
+    <path d="M0 270 Q120 200 250 250 T520 240 T800 230 V500 H0 Z" fill="#b7e3a0" stroke="none"/>
+    <path d="M0 300 Q160 250 330 290 T800 280 V500 H0 Z" fill="#9ad67f" stroke="none"/>
+    <g stroke="none">
+      <rect x="586" y="200" width="16" height="90" fill="#7a5235"/>
+      <circle cx="594" cy="190" r="44" fill="#5fbf5a"/><circle cx="566" cy="214" r="30" fill="#73c95c"/><circle cx="622" cy="214" r="30" fill="#73c95c"/>
+    </g>
+    <path d="M0 330 Q400 316 800 330 V500 H0 Z" fill="#e9cf9a" stroke="none"/>
+    <g fill="#c99a63" opacity="0.35" stroke="none"><ellipse cx="90" cy="420" rx="14" ry="5"/><ellipse cx="300" cy="460" rx="10" ry="4"/><ellipse cx="520" cy="430" rx="14" ry="5"/><ellipse cx="720" cy="470" rx="10" ry="4"/></g>
+
+    <!-- knight -->
+    <ellipse cx="170" cy="438" rx="62" ry="12" fill="#3a2a3f" opacity="0.18" stroke="none"/>
+    <path d="M128 330 L108 410 L150 400 Z" fill="#5b8cff"/>
+    <rect x="140" y="390" width="22" height="42" rx="8" fill="#8d99a8"/>
+    <rect x="176" y="390" width="22" height="42" rx="8" fill="#8d99a8"/>
+    <ellipse cx="150" cy="434" rx="18" ry="8" fill="#5a4a5f"/>
+    <ellipse cx="190" cy="434" rx="18" ry="8" fill="#5a4a5f"/>
+    <rect x="128" y="324" width="84" height="74" rx="26" fill="#cfd8e2"/>
+    <path d="M170 336 L184 344 L180 362 L170 368 L160 362 L156 344 Z" fill="#ffd34f"/>
+    <circle cx="170" cy="284" r="46" fill="#cfd8e2"/>
+    <rect x="158" y="268" width="56" height="26" rx="13" fill="#2e2437"/>
+    <circle cx="184" cy="281" r="6" fill="#fff" stroke="none"/><circle cx="203" cy="281" r="6" fill="#fff" stroke="none"/>
+    <circle cx="186" cy="282" r="3" fill="#3a2a3f" stroke="none"/><circle cx="205" cy="282" r="3" fill="#3a2a3f" stroke="none"/>
+    <path d="M156 244 Q126 210 100 236 Q126 230 144 254 Z" fill="#e94b5b"/>
+    <ellipse cx="128" cy="360" rx="24" ry="28" fill="#8d99a8"/>
+    <ellipse cx="128" cy="360" rx="12" ry="14" fill="#ffd34f"/>
+    <!-- sword mid-swing -->
+    <g transform="rotate(48 214 350)">
+      <rect x="206" y="340" width="16" height="36" rx="6" fill="#5a4a5f"/>
+      <rect x="182" y="328" width="64" height="14" rx="6" fill="#ffd34f"/>
+      <path d="M202 328 V218 L214 196 L226 218 V328 Z" fill="url(#blade)"/>
+    </g>
+    <path d="M300 200 q30 -40 70 -10" fill="none" stroke="#fff" stroke-width="8" opacity="0.8"/>
+    <path d="M296 240 q40 -50 92 -16" fill="none" stroke="#fff" stroke-width="6" opacity="0.6"/>
+
+    <!-- poofing slime: confetti -->
+    <g stroke="none">
+      <circle cx="360" cy="300" r="34" fill="#fff" opacity="0.9"/><circle cx="392" cy="276" r="26" fill="#fff" opacity="0.9"/><circle cx="330" cy="268" r="22" fill="#fff" opacity="0.9"/>
+      <rect x="300" y="210" width="16" height="8" fill="#ff5d7a" transform="rotate(20 308 214)"/>
+      <rect x="420" y="232" width="16" height="8" fill="#ffb13d" transform="rotate(-30 428 236)"/>
+      <rect x="350" y="190" width="14" height="7" fill="#5ec8ff" transform="rotate(50 357 193)"/>
+      <rect x="440" y="300" width="14" height="7" fill="#a77bff" transform="rotate(10 447 303)"/>
+      <rect x="282" y="320" width="14" height="7" fill="#6fe08a" transform="rotate(-20 289 323)"/>
+      <rect x="400" y="200" width="12" height="6" fill="#ffe36b" transform="rotate(70 406 203)"/>
+      <path d="M380 340 l6 14 l15 2 l-11 10 l3 15 l-13 -8 l-13 8 l3 -15 l-11 -10 l15 -2 Z" fill="#ffe36b" stroke="#3a2a3f" stroke-width="3"/>
+    </g>
+
+    <!-- helmet goose with a word -->
+    <ellipse cx="640" cy="440" rx="66" ry="12" fill="#3a2a3f" opacity="0.18" stroke="none"/>
+    <ellipse cx="650" cy="392" rx="66" ry="44" fill="#fbfbf7"/>
+    <path d="M700 376 L732 352 L716 400 Z" fill="#fbfbf7"/>
+    <path d="M610 380 Q584 340 598 300" fill="none" stroke="#3a2a3f" stroke-width="30"/>
+    <path d="M610 380 Q584 340 598 300" fill="none" stroke="#fbfbf7" stroke-width="20"/>
+    <ellipse cx="598" cy="294" rx="28" ry="26" fill="#fbfbf7"/>
+    <path d="M572 292 L536 302 L572 310 Z" fill="#ff9f2e"/>
+    <circle cx="586" cy="288" r="9" fill="#fff"/><circle cx="583" cy="289" r="5" fill="#3a2a3f" stroke="none"/>
+    <path d="M570 284 A30 30 0 0 1 630 284 Z" fill="#b8c4d0"/>
+    <rect x="564" y="278" width="72" height="10" rx="4" fill="#8995a3"/>
+    <path d="M600 254 Q620 236 634 250" fill="none" stroke="#e94b5b" stroke-width="10"/>
+    <path d="M630 432 v14 M664 432 v14"/>
+    <ellipse cx="624" cy="446" rx="13" ry="5" fill="#ff9f2e"/><ellipse cx="658" cy="446" rx="13" ry="5" fill="#ff9f2e"/>
+    <!-- word tag -->
+    <rect x="540" y="176" width="190" height="62" rx="20" fill="#3a2a3f" opacity="0.25" stroke="none" transform="translate(0 7)"/>
+    <rect x="540" y="176" width="190" height="62" rx="20" fill="#fffaf0" stroke="#ffb13d" stroke-width="6"/>
+    <text x="566" y="221" font-family="ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" font-weight="900" font-size="38" stroke="none" fill="#2e9e44">hon<tspan fill="#3a2a3f">k!</tspan></text>
+    <rect x="638" y="226" width="22" height="5" fill="#ff7a1a" stroke="none"/>
+
+    <!-- mushroom further back -->
+    <rect x="452" y="330" width="40" height="40" rx="14" fill="#f6e6c8" stroke-width="4"/>
+    <path d="M430 334 Q472 284 514 334 Q472 344 430 334 Z" fill="#e8484f" stroke-width="4"/>
+    <circle cx="456" cy="318" r="6" fill="#fff4ea" stroke="none"/><circle cx="486" cy="312" r="7" fill="#fff4ea" stroke="none"/>
+    <path d="M458 344 l10 3 M486 344 l-10 3" stroke-width="3"/>
+    <rect x="430" y="246" width="88" height="40" rx="14" fill="#fffaf0" stroke-width="4"/>
+    <text x="448" y="275" font-family="ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" font-weight="900" font-size="24" stroke="none" fill="#3a2a3f">frog</text>
+  </g>
+</svg>
