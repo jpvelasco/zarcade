@@ -63,12 +63,26 @@ export function makeEndless({ seed = 1, theme = 'soft', goal = 0 } = {}) {
 
   let lastY = base - 10;
   let lastColumn = 60;
+  let groundTo = 120;
+
+  /**
+   * The ground is always built further ahead than the things standing on it, so
+   * a ring's height is never worked out from a stretch of valley that is about
+   * to change shape.
+   */
+  function extendGround(toX) {
+    while (groundTo < toX) {
+      const hard = pressure(groundTo);
+      const rough = 10 + 26 * rng.next() + 16 * hard;
+      lastY = Math.max(base - 46, Math.min(base + 16, lastY + (rng.next() - 0.5) * rough));
+      groundTo += SEGMENT;
+      terrain.extend([[groundTo, Math.round(lastY)]]);
+    }
+  }
 
   function segment(x0) {
     const hard = pressure(x0);
-    const rough = 10 + 26 * rng.next() + 16 * hard;
-    lastY = Math.max(base - 46, Math.min(base + 16, lastY + (rng.next() - 0.5) * rough));
-    terrain.extend([[x0 + SEGMENT, Math.round(lastY)]]);
+    extendGround(x0 + SEGMENT * 3);
 
     // Warm columns: close and wide early, further apart and thinner later.
     const spacing = 150 + 90 * hard;

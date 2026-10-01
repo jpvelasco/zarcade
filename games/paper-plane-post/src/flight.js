@@ -118,7 +118,7 @@ export function stepPlane(plane, dt, {
   // Pitch: the one button picks an attitude, the paper rotates toward it.
   const target = dive
     ? DIVE_PITCH * tuning.dive
-    : clamp(path - TRIM_AOA * tuning.lift, PITCH_UP_LIMIT, PITCH_DOWN_LIMIT);
+    : clamp(path - TRIM_AOA, PITCH_UP_LIMIT, PITCH_DOWN_LIMIT);
   const maxTurn = PITCH_RATE * dt;
   const delta = clamp(target - plane.pitch, -maxTurn, maxTurn);
   plane.pitch += delta;
@@ -145,17 +145,21 @@ export function stepPlane(plane, dt, {
     plane.diveTime += dt;
     plane.glideTime = 0;
   } else {
-    const steep = plane.pitch > DIVE_PITCH * 0.58 && plane.vy > 0 && air > SNAP_MIN_SPEED;
-    if (plane.diveTime >= SNAP_MIN_DIVE && plane.glideTime < SNAP_WINDOW && steep) {
-      const bonus = air * SNAP_IMPULSE * tuning.snap;
-      plane.vx += nx * bonus;
-      plane.vy += ny * bonus;
-      plane.snap = true;
-      plane.snapCount += 1;
-      plane.diveTime = 0;      // one snap per dive
+    if (plane.glideTime === 0) {
+      // The moment of release: a long enough dive, still nose-down and really
+      // moving, and the fold snaps. Then the dive clock starts again from zero,
+      // so tapping the button can never add up to a snap.
+      const steep = plane.pitch > DIVE_PITCH * 0.58 && plane.vy > 0 && air > SNAP_MIN_SPEED;
+      if (plane.diveTime >= SNAP_MIN_DIVE && steep) {
+        const bonus = air * SNAP_IMPULSE * tuning.snap;
+        plane.vx += nx * bonus;
+        plane.vy += ny * bonus;
+        plane.snap = true;
+        plane.snapCount += 1;
+      }
+      plane.diveTime = 0;
     }
     plane.glideTime += dt;
-    if (plane.glideTime >= SNAP_WINDOW) plane.diveTime = 0;
   }
 
   const speed = Math.hypot(plane.vx, plane.vy);

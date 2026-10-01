@@ -14,27 +14,27 @@ export const FOLDS = [
   },
   {
     id: 'glider', name: 'Wide Glider', blurb: 'Big wings. Floats forever, hates a hurry.',
-    liftScale: 1.1, dragScale: 1.08, diveScale: 0.94, soakResist: 1, snapScale: 0.95,
+    liftScale: 1.1, dragScale: 0.84, diveScale: 0.94, soakResist: 1, snapScale: 0.95,
     shape: 'glider', need: { kind: 'stars', count: 9, label: '9 stars' },
   },
   {
     id: 'arrow', name: 'Needle Arrow', blurb: 'Slim and quick. Sinks, but gets there.',
-    liftScale: 0.93, dragScale: 0.9, diveScale: 1.08, soakResist: 1.05, snapScale: 1.05,
+    liftScale: 0.93, dragScale: 1.11, diveScale: 1.08, soakResist: 1.05, snapScale: 1.05,
     shape: 'arrow', need: { kind: 'letters', count: 40, label: '40 letters' },
   },
   {
     id: 'crane', name: 'Paper Crane', blurb: 'Folded for luck. Snaps out of a dive beautifully.',
-    liftScale: 1.04, dragScale: 1.02, diveScale: 1, soakResist: 1, snapScale: 1.22,
+    liftScale: 1.04, dragScale: 1.01, diveScale: 1, soakResist: 1, snapScale: 1.22,
     shape: 'crane', need: { kind: 'snaps', count: 60, label: '60 dive snaps' },
   },
   {
     id: 'hawk', name: 'Night Hawk', blurb: 'Swept wings. Dives like it means it.',
-    liftScale: 0.98, dragScale: 0.95, diveScale: 1.1, soakResist: 1, snapScale: 1.1,
+    liftScale: 0.98, dragScale: 0.97, diveScale: 1.1, soakResist: 1, snapScale: 1.1,
     shape: 'hawk', need: { kind: 'routes', count: 24, label: '24 routes delivered' },
   },
   {
     id: 'sunray', name: 'Sunray', blurb: 'Waxed and warm. Rain rolls straight off.',
-    liftScale: 1.06, dragScale: 0.98, diveScale: 1, soakResist: 1.9, snapScale: 1.05,
+    liftScale: 1.06, dragScale: 0.96, diveScale: 1, soakResist: 1.9, snapScale: 1.05,
     shape: 'sunray', need: { kind: 'stamps', count: 18, label: '18 stamps' },
   },
 ];

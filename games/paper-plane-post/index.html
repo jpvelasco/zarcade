@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2b3f63">
+  <meta name="description" content="A one-button paper plane that delivers letters across a pastel valley: dive for speed, soar on warm updrafts, and land softly on the mailbox.">
+  <title>Paper Plane Post — a one-button gliding game</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="paper-plane-post"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game" aria-label="Paper Plane Post. A paper plane gliding over a pastel valley of houses, cliffs, forest, a lake and snowy peaks."></canvas>
+
+    <main id="hud" class="hud hidden" aria-live="off">
+      <header class="hud-top">
+        <div class="hud-where">
+          <span id="hud-region">OAKHOLLOW TOWN</span>
+          <b id="hud-route">1. First Flight</b>
+        </div>
+        <div class="hud-buttons">
+          <button id="btn-mute" class="icon-button" aria-label="Toggle sound" title="Sound (M)">♪</button>
+          <button id="btn-pause" class="icon-button" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+        </div>
+      </header>
+      <div class="hud-left">
+        <div class="chips">
+          <span class="chip" id="chip-letters"><i class="ico-letter"></i><b>0/0</b></span>
+          <span class="chip" id="chip-rings"><i class="ico-ring"></i><b>0/0</b></span>
+          <span class="chip big" id="chip-main"><b>0 m</b></span>
+        </div>
+        <div class="wet" id="wet" aria-hidden="true"><span id="wet-fill"></span><i>wet wings</i></div>
+      </div>
+      <div class="gauge" aria-hidden="true">
+        <div class="gauge-track"><span id="gauge-fill"></span></div>
+        <small>height</small>
+      </div>
+      <div id="banner" class="banner"></div>
+      <div id="toast" class="toast"></div>
+      <div id="hold-hint" class="hold-hint hidden">Hold to dive</div>
+    </main>
+
+    <section id="screen-title" class="overlay">
+      <div class="card title-card">
+        <a class="arcade-link" href="../../index.html">← Arcade</a>
+        <p class="eyebrow">One button. Forty-five rounds.</p>
+        <h1 class="logo">Paper<span>Plane Post</span></h1>
+        <p class="tagline">Hold to dive and gain speed, let go to soar. Ride the chimney updrafts, slip letters through the right windows, and land soft on the mailbox.</p>
+        <div class="row">
+          <button id="btn-play" class="button primary">Fly the round<span>→</span></button>
+          <button id="btn-map" class="button">Route map</button>
+          <button id="btn-endless" class="button">Endless Breeze</button>
+        </div>
+        <div class="row">
+          <button id="btn-daily" class="button">Daily Breeze</button>
+          <button id="btn-hangar" class="button">Hangar</button>
+          <button id="btn-album" class="button">Stamp album</button>
+          <button id="btn-title-mute" class="button quiet">Sound: on</button>
+        </div>
+        <p id="title-bests" class="muted"></p>
+        <ul class="howto">
+          <li><b>Hold</b> Space, ↑, the mouse, a finger anywhere, or gamepad A<span class="sep">·</span><b>Let go</b> to soar</li>
+          <li>Warm columns lift you<span class="sep">·</span>rain soaks your wings<span class="sep">·</span>branches and wires catch you</li>
+          <li><b>Esc</b> pause<span class="sep">·</span><b>R</b> restart<span class="sep">·</span><b>M</b> sound</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="screen-map" class="overlay hidden">
+      <div class="card wide-card">
+        <div class="head">
+          <div>
+            <p class="eyebrow">The valley round</p>
+            <h2>Route map</h2>
+          </div>
+          <p id="map-totals" class="muted"></p>
+        </div>
+        <div id="map-regions" class="map-regions"></div>
+        <div class="row">
+          <button id="btn-map-back" class="button primary">Back</button>
+          <a class="button" href="../../index.html">Back to arcade</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-hangar" class="overlay hidden">
+      <div class="card wide-card">
+        <div class="head">
+          <div>
+            <p class="eyebrow">The folding table</p>
+            <h2>Hangar</h2>
+          </div>
+          <p id="hangar-note" class="muted"></p>
+        </div>
+        <h3 class="sub">Folds</h3>
+        <div id="hangar-folds" class="grid-cards"></div>
+        <h3 class="sub">Paper</h3>
+        <div id="hangar-papers" class="grid-papers"></div>
+        <div class="row">
+          <button id="btn-hangar-back" class="button primary">Back</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-album" class="overlay hidden">
+      <div class="card wide-card">
+        <div class="head">
+          <div>
+            <p class="eyebrow">Letters delivered</p>
+            <h2>Stamp album</h2>
+          </div>
+          <p id="album-totals" class="muted"></p>
+        </div>
+        <div id="album-grid" class="album-grid"></div>
+        <p id="album-next" class="muted"></p>
+        <div class="row">
+          <button id="btn-album-back" class="button primary">Back</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-pause" class="overlay hidden">
+      <div class="card small">
+        <p class="eyebrow">Hanging in the air</p>
+        <h2>Paused</h2>
+        <div class="row stack">
+          <button id="btn-resume" class="button primary">Resume</button>
+          <button id="btn-restart" class="button">Restart round</button>
+          <button id="btn-pause-map" class="button">Route map</button>
+          <button id="btn-pause-mute" class="button">Sound: on</button>
+          <a class="button" href="../../index.html">Back to arcade</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-result" class="overlay hidden">
+      <div class="card small result-card">
+        <p class="eyebrow" id="result-eyebrow">OAKHOLLOW TOWN</p>
+        <h2 id="result-title">Post delivered!</h2>
+        <div id="result-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+        <p id="result-big" class="big">0 m</p>
+        <p id="result-record" class="record hidden">New best!</p>
+        <div id="result-badges" class="badges"></div>
+        <div class="result-lines" id="result-lines"></div>
+        <div id="result-stamps" class="stamp-strip"></div>
+        <div class="row">
+          <button id="btn-next" class="button primary">Next round<span>→</span></button>
+          <button id="btn-replay" class="button">Fly again</button>
+          <button id="btn-result-map" class="button">Route map</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <p class="rotate-hint" aria-hidden="true"><span>📱</span> Turn sideways for a bigger sky</p>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
