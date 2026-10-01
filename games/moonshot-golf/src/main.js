@@ -210,6 +210,12 @@
     $('banner-name').textContent = def.name;
     $('banner-tip').textContent = def.tip;
     b.classList.remove('hidden', 'out');
+    // Keep the ball in view: if it starts in the lower part of the screen,
+    // show the intro under the HUD instead of along the bottom.
+    const ball = renderer.toScreen(play.sim.x, play.sim.y);
+    const low = ball.y > window.innerHeight * 0.5;
+    b.classList.toggle('top', low);
+    if (low) b.style.setProperty('--banner-top', `${Math.ceil($('hud').getBoundingClientRect().bottom) + 8}px`);
     bannerTimer = 5.5;
   }
   function hideBanner(now) {

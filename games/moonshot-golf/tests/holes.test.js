@@ -67,3 +67,13 @@ test('the autoputter sinks every hole within par + 3 without picking up', () => 
     assert.ok(play.strokes <= h.par + 3, `${h.id}: ${play.strokes} strokes on par ${h.par}`);
   }
 });
+
+test('Canyon Bridge is wide enough that a slightly wobbly putt stays on it', () => {
+  const h = HOLES.find((x) => x.id === 'mars-3');
+  const H = P.prepare(h);
+  // Sample down the middle of the bridge: the floor spans at least 100 units
+  // across, so a putt a few degrees off line doesn't drop into the canyon.
+  for (let x = 400; x <= 620; x += 20) {
+    assert.ok(!P.isVoid(H, x, 300 - 48, 0) && !P.isVoid(H, x, 300 + 48, 0), `bridge floor at x=${x}`);
+  }
+});
