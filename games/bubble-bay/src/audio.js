@@ -49,7 +49,7 @@ export class Sfx {
   get t() { return this.ctx.currentTime; }
 
   tone({ freq = 440, type = 'sine', at = 0, dur = 0.2, gain = 0.2, glide = 0, out = null, attack = 0.01 }) {
-    if (!this.ctx || this.muted) return;
+    if (!this.ctx || this.muted || !Number.isFinite(freq) || !Number.isFinite(at)) return;
     const t0 = this.t + at;
     const osc = this.ctx.createOscillator();
     const env = this.ctx.createGain();
@@ -106,7 +106,7 @@ export class Sfx {
     const now = this.t;
     if (now - this.lastPop < 0.025) return;
     this.lastPop = now;
-    const semi = PENTA[Math.min(PENTA.length - 1, k)];
+    const semi = PENTA[Math.max(0, Math.min(PENTA.length - 1, Math.floor(k) || 0))];
     this.tone({ freq: hz(semi, 520), type: 'sine', dur: 0.1, gain: 0.16, glide: 1.6, attack: 0.003 });
     this.hiss({ dur: 0.05, gain: 0.07, freq: 2600 + semi * 60, q: 4 });
   }

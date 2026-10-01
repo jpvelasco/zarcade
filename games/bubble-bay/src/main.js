@@ -748,9 +748,7 @@ function useContinue() {
   log.event('continue.used', { level: levelId, daily: isDaily });
   sfx.wave();
   // the wave: show what it washed away
-  view.cells = game.board.cells.slice();
-  for (const p of events.pops) view.burst(p.i % 10 * 2 + 1, 20, '#bff4ff', 4, 0.8);
-  for (const f of events.freed) view.freeOtter(f.cell.o, 10, 21, 0.1);
+  view.washed(events, game.board);
   for (const id of addOtters(save, events.freed.map((f) => f.cell.o))) newOtters.add(id);
   persist();
   pendingResult = null;

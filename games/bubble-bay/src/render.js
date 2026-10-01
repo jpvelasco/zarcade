@@ -241,22 +241,23 @@ export class View {
         ctx.fillStyle = theme.sea;
         ctx.fillRect(0, horizon, w, h - horizon);
         this.paintClouds(ctx, rng, 5);
-        for (let k = 0; k < 9; k++) {
-          const side = k % 2 ? -1 : 1;
-          const x = side < 0 ? rng.next() * this.ox * 0.9 : w - rng.next() * this.ox * 0.9;
-          const y = horizon + rng.next() * (h - horizon);
-          ctx.fillStyle = '#6b6f7a';
-          ctx.beginPath();
-          ctx.ellipse(x, y, s * (1.5 + rng.next() * 2), s * (0.8 + rng.next()), 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = 'rgba(80, 220, 230, 0.8)';
-          ctx.beginPath();
-          ctx.ellipse(x, y - s * 0.2, s * 0.9, s * 0.35, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#ff8a5c';
-          star(ctx, x + s * 0.8, y + s * 0.3, s * 0.35);
+        // a sandy shore with rock pools on both sides of the board
+        ctx.fillStyle = theme.sand;
+        ctx.beginPath();
+        ctx.moveTo(0, h);
+        ctx.lineTo(0, h * 0.78);
+        ctx.quadraticCurveTo(w * 0.25, h * 0.72, w * 0.5, h * 0.8);
+        ctx.quadraticCurveTo(w * 0.75, h * 0.72, w, h * 0.76);
+        ctx.lineTo(w, h);
+        ctx.fill();
+        for (let k = 0; k < 10; k++) {
+          const left = k % 2 === 0;
+          const room = Math.max(this.ox - s * 1.2, s * 2);
+          const x = left ? s + rng.next() * room : w - s - rng.next() * room;
+          const y = horizon + s * 1.5 + rng.next() * (h - horizon - s * 2);
+          rock(ctx, x, y, s * (1.6 + rng.next() * 1.6), rng, k % 3 !== 2);
         }
-        break;
+                break;
       }
       case 'pier': {
         ctx.fillStyle = 'rgba(255, 240, 200, 0.95)';
@@ -1008,6 +1009,17 @@ export class View {
     ctx.globalAlpha = 1;
   }
 
+  // The continue wave: everything it washed away bursts into foam.
+  washed(events, board) {
+    this.cells = board.cells.slice();
+    for (const p of events.pops) this.burst(CX[p.i], board.y(p.i), '#e8fbff', 5, 0.9);
+    for (const d of events.drops) {
+      this.falls.push({ x: CX[d.i], y: board.y(d.i), vx: 0, vy: 0, sprite: this.sprites.forCell(d.cell), wait: 0.1, color: '#e8fbff', anchor: d.cell.k === 'anchor' });
+    }
+    for (const f of events.freed) this.freeOtter(f.cell.o, CX[f.i], board.y(f.i), 0.1);
+    for (let x = 1; x < FIELD_W; x += 2) this.splash(x, '#bff4ff');
+  }
+
   // Leftover bubbles fly up and burst as a finale.
   finaleBubble(k) {
     const x = 1.5 + ((k * 7.31) % 17);
@@ -1026,6 +1038,67 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r);
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
+}
+
+// A rounded tide-pool rock, maybe with a little pool, seaweed and a starfish.
+function rock(ctx, x, y, r, rng, pool) {
+  const pts = [];
+  const n = 11;
+  for (let k = 0; k < n; k++) {
+    const a = (k / n) * Math.PI * 2;
+    const rr = r * (0.85 + rng.next() * 0.3);
+    pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.62]);
+  }
+  const blob = (dy = 0, scale = 1) => {
+    ctx.beginPath();
+    for (let k = 0; k <= n; k++) {
+      const p = pts[k % n], q = pts[(k + 1) % n];
+      const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
+      const px = x + (p[0] - x) * scale, py = y + dy + (p[1] - y) * scale;
+      const mxs = x + (mx - x) * scale, mys = y + dy + (my - y) * scale;
+      if (k === 0) ctx.moveTo(mxs, mys); else ctx.quadraticCurveTo(px, py, mxs, mys);
+    }
+    ctx.closePath();
+  };
+  ctx.fillStyle = 'rgba(10, 40, 60, 0.25)';
+  blob(r * 0.18, 1.02);
+  ctx.fill();
+  ctx.fillStyle = '#6f7787';
+  blob();
+  ctx.fill();
+  ctx.fillStyle = '#9aa3b3';
+  blob(-r * 0.1, 0.82);
+  ctx.fill();
+  ctx.fillStyle = '#b9c1cf';
+  ctx.beginPath();
+  ctx.ellipse(x - r * 0.3, y - r * 0.3, r * 0.28, r * 0.1, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  if (pool) {
+    ctx.fillStyle = '#2b9fb5';
+    ctx.beginPath();
+    ctx.ellipse(x + r * 0.1, y - r * 0.05, r * 0.5, r * 0.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#6fe0ec';
+    ctx.beginPath();
+    ctx.ellipse(x + r * 0.05, y - r * 0.09, r * 0.38, r * 0.12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.beginPath();
+    ctx.ellipse(x - r * 0.1, y - r * 0.12, r * 0.12, r * 0.035, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.strokeStyle = '#3c9a5a';
+  ctx.lineWidth = Math.max(2, r * 0.07);
+  ctx.lineCap = 'round';
+  for (let k = 0; k < 3; k++) {
+    const sx = x - r * 0.6 + k * r * 0.18;
+    ctx.beginPath();
+    ctx.moveTo(sx, y + r * 0.3);
+    ctx.quadraticCurveTo(sx - r * 0.25, y + r * 0.05, sx + r * 0.05, y - r * 0.25 - k * r * 0.08);
+    ctx.stroke();
+  }
+  ctx.fillStyle = ['#ff8a5c', '#ff6fae', '#ffd25a'][Math.floor(rng.next() * 3)];
+  star(ctx, x + r * 0.62, y + r * 0.22, r * 0.2);
 }
 
 function star(ctx, x, y, r) {
