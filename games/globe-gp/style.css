@@ -56,7 +56,7 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 }
 .card.wide { width: min(640px, 100%); }
 .card.small { width: min(380px, 100%); }
-@media (max-aspect-ratio: 23/20) { .card { max-height: 58vh; overflow-y: auto; padding: 16px 14px 14px; } .title-card { max-height: none; } }
+@media (max-aspect-ratio: 23/20) { .card { max-height: 58vh; overflow-y: auto; padding: 16px 14px 14px; } .title-card, .load-card { max-height: none; } .results-card, .card.small { max-height: 90vh; } }
 
 .logo { margin: 0; line-height: 0.9; font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; }
 .logo span { display: block; }
