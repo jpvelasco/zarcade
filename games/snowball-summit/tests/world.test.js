@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { World, STEP, physicsFor, CHASE_GAP } from '../src/world.js';
+import { World, STEP, physicsFor, CHASE_GAP, BUMP_DROP } from '../src/world.js';
+import { Autoplayer } from '../src/autoplayer.js';
 import { interaction, formatSize } from '../src/items.js';
 
 const level = (segments, o = {}) => ({ u: 20, start: 20, dx: 4, grow: 0.001, seed: 3, segments, goals: { size: 30, items: 1, time: 60 }, ...o });
@@ -103,4 +104,26 @@ test('stars are awarded for size, things and time once finished', () => {
   assert.equal(w.status, 'finished');
   assert.deepEqual(w.starChecks(), [true, true, false]);
   assert.equal(w.stars(), 2);
+});
+
+test('a bump knocks the newest things off the ball', () => {
+  const w = new World(level([{ t: 'slope', len: 2500, grade: 0.2, items: [['pinecone', 5]] }, { t: 'slope', len: 3000, grade: 0.2, items: [['bunny', 1]] }], { grow: 0 }));
+  run(w, 30, { push: 1 });
+  assert.equal(w.bumps, 1);
+  assert.equal(w.collected, 5 - BUMP_DROP);
+  assert.equal(w.byType.pinecone, 5 - BUMP_DROP);
+  assert.equal(w.thingsLost, BUMP_DROP);
+  assert.equal(w.stuck.length, 5 - BUMP_DROP);
+});
+
+test('things on balloons are only reached by jumping', () => {
+  const segs = [{ t: 'slope', len: 1500, grade: 0.2, items: [] }, { t: 'slope', len: 1500, grade: 0.2, items: [['pinecone', 3, true]], airD: 20 }, { t: 'slope', len: 1500, grade: 0.2 }];
+  const rolling = run(new World(level(segs, { grow: 0 })), 20, { push: 1 });
+  const air = rolling.terrain.items.filter((i) => i.air);
+  assert.equal(air.length, 3);
+  assert.ok(air.every((i) => i.y < rolling.terrain.groundY(i.x) - 30), 'they float above the snow');
+  assert.equal(rolling.collected, 0, 'rolling underneath misses them');
+  const ai = new Autoplayer();
+  const jumper = run(new World(level(segs, { grow: 0 })), 20, (w) => ai.controls(w));
+  assert.ok(jumper.collected >= 2, `a well-timed jump grabs them (${jumper.collected})`);
 });

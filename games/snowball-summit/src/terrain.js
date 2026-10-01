@@ -15,6 +15,7 @@
 // Segments can be appended later, which is how Endless Mountain grows.
 import { Rng } from './rng.js';
 import { ITEM_BY_ID } from './items.js';
+import { physicsFor } from './physics.js';
 
 export const SNOW = { none: 0, snow: 1, powder: 2, ice: 3 };
 export const SNOW_GROWTH = [0, 1, 1.7, 0];
@@ -151,23 +152,29 @@ export class Terrain {
     });
   }
 
-  // Things floating on party balloons: a little arc over the middle of the
-  // segment, high enough that only a jump reaches them.
+  // Things floating on party balloons, laid along the arc a full-speed jump
+  // by a ball of the planned size would take, so one good jump can sweep the
+  // whole bunch while rolling underneath reaches none of them.
   placeAir(seg, x0, x1, refs) {
     const rng = this.rng;
     const mid = (x0 + x1) / 2;
-    const lift0 = seg.airLift || (this.airLift ? this.airLift(mid) : 60);
+    const D = seg.airD || (this.airD ? this.airD(mid) : 40);
+    const { G, vmax, jumpH } = physicsFor(D);
+    const jv = Math.sqrt(2 * G * jumpH), T = (2 * jv) / G;
+    const v = vmax * 0.95;
+    const take = mid - (v * T) / 2;
+    const y0 = this.groundY(take) - D / 2;
     const n = refs.length;
-    const gap = lift0 * 0.75;
     refs.forEach((ref, k) => {
-      const x = mid + (k - (n - 1) / 2) * gap;
+      const t = T * (n > 1 ? 0.24 + (0.52 * k) / (n - 1) : 0.5);
+      const x = take + v * t;
       const id = this.resolve ? this.resolve(ref, x, rng) : ref;
       const def = ITEM_BY_ID[id];
       if (!def) throw new Error(`unknown item ${ref}`);
-      const c = n > 1 ? (k / (n - 1)) * 2 - 1 : 0;
-      const lift = lift0 * (1.15 - 0.35 * c * c);
+      const cy = y0 - (jv * t - 0.5 * G * t * t);
+      const y = cy + def.size / 2;
       this.items.push({
-        id: this.nextItemId++, type: id, x, y: this.groundY(x) - lift, size: def.size, w: def.w, air: true, lift,
+        id: this.nextItemId++, type: id, x, y, size: def.size, w: def.w, air: true, lift: this.groundY(x) - y,
         state: 'idle', flip: rng.chance(0.5), t: 0, vx: 0, vy: 0, spin: 0, rot: 0,
       });
     });
@@ -289,7 +296,7 @@ export class Terrain {
 export function buildTerrain(level) {
   const t = new Terrain({ dx: level.dx, seed: level.seed, startGrade: level.segments[0].grade ?? 0.25 });
   if (level.resolve) t.resolve = level.resolve;
-  if (level.airLift) t.airLift = level.airLift;
+  if (level.airD) t.airD = level.airD;
   for (const seg of level.segments) t.addSegment(seg);
   return t;
 }

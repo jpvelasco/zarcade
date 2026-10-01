@@ -3,9 +3,9 @@
 // controls each step always give the same run.
 import { buildTerrain } from './terrain.js';
 import { ITEM_BY_ID, PICK_RATIO, BUMP_RATIO } from './items.js';
+import { physicsFor } from './physics.js';
 
 export const STEP = 1 / 120;
-const REF = 20; // reference diameter (cm) the physics constants are tuned at
 // The Snow Cloud never falls further behind than this many ball widths, so
 // it stays looming at the left edge of the screen.
 export const CHASE_GAP = 6.5;
@@ -13,14 +13,7 @@ export const CHASE_GAP = 6.5;
 export const BUMP_DROP = 2;
 const MILESTONES = [25, 30, 40, 50, 60, 75, 100, 125, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000];
 
-// Size-scaled physics: a bigger ball falls harder and rolls faster, but less
-// than in proportion, so it feels heavier and grander without crawling.
-export function physicsFor(D) {
-  const s = D / REF;
-  const G = 980 * Math.sqrt(s);
-  const vmax = 250 * Math.pow(s, 0.75);
-  return { G, vmax, vnat: vmax * 0.72, jumpH: D * 1.3 + 10 * Math.sqrt(s) };
-}
+export { physicsFor };
 
 export class World {
   constructor(level, { avalanche = true } = {}) {

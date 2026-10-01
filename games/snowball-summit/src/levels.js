@@ -274,18 +274,18 @@ const SLOPES_RAW = [
 // ×0.85, time ×1.12 of a full-speed autoplayer run); tests/levels.test.js
 // checks the autoplayer still earns all three. Size in cm, time in seconds.
 const GOALS = [
-  { size: 51, items: 66, time: 35 },
-  { size: 58, items: 63, time: 34 },
-  { size: 64, items: 75, time: 38 },
-  { size: 78, items: 88, time: 38 },
-  { size: 100, items: 57, time: 46 },
-  { size: 104, items: 63, time: 51 },
-  { size: 143, items: 70, time: 53 },
-  { size: 156, items: 77, time: 59 },
-  { size: 347, items: 61, time: 62 },
-  { size: 386, items: 63, time: 68 },
-  { size: 394, items: 68, time: 69 },
-  { size: 613, items: 79, time: 75 }
+  { size: 48, items: 59, time: 35 },
+  { size: 58, items: 62, time: 35 },
+  { size: 62, items: 70, time: 37 },
+  { size: 72, items: 79, time: 38 },
+  { size: 95, items: 54, time: 47 },
+  { size: 103, items: 62, time: 50 },
+  { size: 148, items: 71, time: 53 },
+  { size: 144, items: 75, time: 59 },
+  { size: 335, items: 60, time: 61 },
+  { size: 385, items: 64, time: 68 },
+  { size: 400, items: 67, time: 70 },
+  { size: 669, items: 84, time: 75 }
 ];
 
 // Turn a raw slope into cm segments with tiers, gates and bridges resolved
@@ -324,7 +324,7 @@ function compile(raw, i, limits = LIMITS[i]) {
     segments,
     goals: GOALS[i],
     resolve: (ref, ix, rng) => resolveTier(ref, planAt(ix), peak.id, rng),
-    airLift: (ix) => planAt(ix) * 1.6,
+    airD: (ix) => planAt(ix),
   };
 }
 
@@ -335,15 +335,15 @@ const LIMITS = [
   null,
   { gates: [30], bridges: [] },
   { gates: [], bridges: [25] },
-  { gates: [35], bridges: [45] },
+  { gates: [30], bridges: [45] },
   null,
-  { gates: [], bridges: [70] },
+  { gates: [], bridges: [60] },
   { gates: [55, 90], bridges: [] },
-  { gates: [90, 140], bridges: [70] },
+  { gates: [90, 130], bridges: [70] },
   null,
   { gates: [], bridges: [170] },
-  { gates: [160, 300], bridges: [] },
-  { gates: [325, 500], bridges: [225] },
+  { gates: [160, 275], bridges: [] },
+  { gates: [325, 525], bridges: [225] },
 ];
 
 export const SLOPES = SLOPES_RAW.map((raw, i) => compile(raw, i));
@@ -398,7 +398,7 @@ export function generateSegments(rng, { u, D0, D1, count, gates = true, bridges 
     if (r < 0.5) { segs.push({ t: 'dip', len: rng.range(26, 34) * u, depth: rng.range(1.4, 2.4) * u, grade, items: itemsFor(rng, D, 20 * u) }); continue; }
     const items = itemsFor(rng, D, L);
     if (rng.chance(0.4)) items.push([rng.pick(palette(D).grab).id, 3, true]);
-    segs.push({ t: 'slope', len: L, grade, snow, bumps: rng.range(0, 0.4) * u, items, airLift: D * 1.6 });
+    segs.push({ t: 'slope', len: L, grade, snow, bumps: rng.range(0, 0.4) * u, items, airD: D });
   }
   for (const sg of segs) sg.u = u;
   return segs;

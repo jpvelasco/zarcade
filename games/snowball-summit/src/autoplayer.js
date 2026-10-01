@@ -27,11 +27,16 @@ export class Autoplayer {
         const it = items[i];
         if (it.state !== 'idle') continue;
         const gap = it.x - it.size * it.w * 0.5 - (b.x + b.r);
-        if (gap > lead + b.D) break;
+        if (gap > lead * 2.4 + b.D) break;
         if (gap < -b.r) continue;
         if (it.size > b.D * PICK_RATIO && it.size <= b.D * BUMP_RATIO && gap < lead && !it.air) { jump = true; break; }
-        // Balloon things: jump so the arc meets them.
-        if (it.air && it.size <= b.D * PICK_RATIO && it.y < b.y - b.r && gap < lead * 0.9 && gap > lead * 0.35) { jump = true; break; }
+        // Balloon things: jump at the moment the arc collects the most.
+        if (it.air && it.size <= b.D * PICK_RATIO && gap < lead * 2) {
+          const now = arcCount(world, 0, jv, G);
+          let later = 0;
+          for (let wait = 0.03; wait <= 0.36 && later <= now; wait += 0.03) later = Math.max(later, arcCount(world, wait, jv, G));
+          if (now > 0 && now >= later) { jump = true; break; }
+        }
       }
       // Steep rises: jump when the ground ahead climbs hard.
       if (!jump) {
@@ -43,6 +48,38 @@ export class Autoplayer {
     const push = this.skill >= 0.5 ? 1 : 0.6;
     return { push, brake: 0, jump };
   }
+}
+
+// How many balloon things would a jump started `wait` seconds from now
+// sweep through? Follows the sim's arc: ground speed kept, plus the forward
+// air push while speeding up.
+const AIR_PUSH = 0.18;
+export function arcCount(world, wait, jv, G) {
+  const b = world.ball;
+  const vx = Math.max(60, b.vx);
+  const x0 = b.x + vx * wait, y0 = b.y + world.terrain.slopeAt(b.x) * vx * wait;
+  const tAir = (2 * jv) / G;
+  const items = world.terrain.items;
+  const xEnd = x0 + vx * tAir + 0.5 * AIR_PUSH * G * tAir * tAir + b.D;
+  const near = [];
+  for (let i = world.itemLo; i < items.length; i++) {
+    const it = items[i];
+    if (it.x > xEnd) break;
+    if (it.air && it.state === 'idle' && it.size <= b.D * PICK_RATIO && it.x > x0) near.push(it);
+  }
+  if (!near.length) return 0;
+  const hit = new Set();
+  for (let k = 1; k <= 30; k++) {
+    const t = (k / 30) * tAir;
+    const x = x0 + vx * t + 0.5 * AIR_PUSH * G * t * t, y = y0 - (jv * t - 0.5 * G * t * t);
+    for (const it of near) {
+      if (hit.has(it)) continue;
+      const hw = it.size * it.w * 0.4;
+      const cx = Math.max(it.x - hw, Math.min(x, it.x + hw)), cy = Math.max(it.y - it.size * 0.85, Math.min(y, it.y));
+      if (Math.hypot(cx - x, cy - y) < b.r * 0.92) hit.add(it);
+    }
+  }
+  return hit.size;
 }
 
 // Run a whole level with the autoplayer. Returns the finished world.
