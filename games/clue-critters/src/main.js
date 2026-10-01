@@ -229,7 +229,7 @@ function show(id, keepPanels = false) {
 
 function focusFirst(root) {
   if (!root) return;
-  const el = root.querySelector('[autofocus], .btn.primary:not([disabled]), button:not([disabled]), a');
+  const el = ['[autofocus]', '.btn.primary:not([disabled])', 'button:not([disabled])', 'a'].map((q) => root.querySelector(q)).find(Boolean);
   if (el) setTimeout(() => el.focus({ preventScroll: true }), 30);
 }
 
@@ -287,6 +287,7 @@ function openMenu(id, build) {
   build();
   show(id);
   sound.play('page');
+  if (id === 'screen-story') setTimeout(() => (document.querySelector('.case-card.next') || document.querySelector('.case-card:not([disabled])'))?.focus({ preventScroll: false }), 40);
 }
 
 function back() {
@@ -511,6 +512,7 @@ function enterPlay() {
   buildTabs();
   setPlace(place, true);
   updateHud();
+  setTimeout(() => { if (mode === 'play' && !panelOpen()) spotEls[0]?.focus({ preventScroll: true }); }, 40);
   queueMicrotask(() => monitor.mark(performance.now()));
   prebake();
 }
@@ -567,6 +569,7 @@ function buildTabs() {
   });
 }
 
+let noteTimer = 0;
 function setPlace(p, quiet = false) {
   place = p;
   session.visit(p);
@@ -578,7 +581,11 @@ function setPlace(p, quiet = false) {
   const k = session.kase;
   const s = session.suspectAt(p);
   const name = byId(PLACES, k.places[p]).name;
-  $('place-note').textContent = s >= 0 && !session.talked.has(s) ? `${name}: tap things to search · talk to ${byId(CRITTERS, k.suspects[s]).name}!` : `${name}: tap things to search them`;
+  const note = $('place-note');
+  note.classList.remove('gone');
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => note.classList.add('gone'), 4500);
+  note.textContent = s >= 0 && !session.talked.has(s) ? `${name}: tap things to search · talk to ${byId(CRITTERS, k.suspects[s]).name}!` : `${name}: tap things to search them`;
   buildSpots();
   updateHud();
   if (!quiet) { sound.play('page'); persistSession(); }
@@ -590,6 +597,7 @@ function setPlace(p, quiet = false) {
 let spotEls = [];
 function buildSpots() {
   const layer = $('spots');
+  const had = spotEls.indexOf(document.activeElement);
   layer.innerHTML = '';
   spotEls = [];
   if (!session) return;
@@ -630,6 +638,7 @@ function buildSpots() {
     layer.appendChild(el);
     spotEls.push(el);
   }
+  if (had >= 0) spotEls[had]?.focus({ preventScroll: true });
 }
 
 function spotCenter(i) {
@@ -639,10 +648,12 @@ function spotCenter(i) {
 }
 
 let busy = false;
+let busySpot = -1;
 function searchSpot(i) {
   if (busy || mode !== 'play' || panelOpen()) return;
   sound.unlock();
   busy = true;
+  busySpot = spotEls.indexOf(document.activeElement) >= 0 ? i : -1;
   const c = spotCenter(i);
   searchAnim = { x: c.x, y: c.y, t: 0 };
   sound.play('search');
@@ -701,7 +712,8 @@ let dlgText = '';
 let dlgPitch = 1;
 let dlgReturn = null;
 function openDialog({ art, name, lines, pitch = 1 }) {
-  dlgReturn = document.activeElement;
+  const si = spotEls.indexOf(document.activeElement);
+  dlgReturn = si >= 0 ? si : busySpot >= 0 ? busySpot : document.activeElement;
   $('dlg-art').innerHTML = '';
   $('dlg-art').appendChild(art);
   $('dlg-name').textContent = name;
@@ -729,7 +741,7 @@ function closeDialog() {
   if (mode === 'play') $('spots').classList.remove('hidden');
   sound.play('tap');
   if (autoplay) return;
-  const target = dlgReturn && document.contains(dlgReturn) ? dlgReturn : null;
+  const target = typeof dlgReturn === 'number' ? spotEls[dlgReturn] : dlgReturn && document.contains(dlgReturn) ? dlgReturn : null;
   (target || spotEls[0])?.focus({ preventScroll: true });
 }
 

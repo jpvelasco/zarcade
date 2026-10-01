@@ -133,10 +133,8 @@ function* candidates(st, clues) {
       case 'whoHas': {
         const cat = clueCat(c);
         const v = c.t === 'whoAt' ? c.p : c.k;
-        for (let s = 0; s < n; s++) {
-          if (s === c.s || s === c.r) continue;
-          yield { rule: 'clue', clue: i, apply: () => narrow(st, cat, s, ~bit(v)) };
-        }
+        const others = [...Array(n).keys()].filter((s) => s !== c.s && s !== c.r);
+        yield { rule: 'clue', clue: i, apply: () => others.flatMap((s) => narrow(st, cat, s, ~bit(v))) };
         break;
       }
       default: break;
@@ -147,11 +145,8 @@ function* candidates(st, clues) {
     for (let s = 0; s < n; s++) {
       const v = only(st[cat][s]);
       if (v < 0) continue;
-      for (let o = 0; o < n; o++) {
-        if (o !== s && has(st[cat][o], v)) {
-          yield { rule: 'taken', s, cat, v, apply: () => narrow(st, cat, o, ~bit(v)) };
-        }
-      }
+      const others = [...Array(n).keys()].filter((o) => o !== s && has(st[cat][o], v));
+      if (others.length) yield { rule: 'taken', s, cat, v, apply: () => others.flatMap((o) => narrow(st, cat, o, ~bit(v))) };
     }
   }
   // 3. Only one suspect left who could fit a column.

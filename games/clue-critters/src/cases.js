@@ -166,7 +166,15 @@ export function stepLines(kase, step, clues) {
   const N = namesFor(kase);
   const facts = step.facts;
   const main = facts.find((f) => f.mark === 'yes') || facts[0];
-  const so = main ? `So ${factLine(N, main).replace(/^./, (x) => x.toLowerCase())}` : '';
+  let so = main ? `So ${factLine(N, main)}` : '';
+  // Several "no"s about one column read better as one sentence.
+  const sameCol = facts.length > 1 && !facts.some((f) => f.mark === 'yes') && facts.every((f) => f.cat === main.cat && f.v === main.v);
+  if (sameCol) {
+    const names = facts.map((f) => N.who[f.s]);
+    const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0];
+    const V = N[CAT_NAME[main.cat]][main.v];
+    so = main.cat === 'place' ? `So ${list} were not at the ${V}.` : `So ${list} did not have the ${V}.`;
+  }
   const c = step.clue != null ? clues[step.clue] : null;
   const quote = c ? `“${c.text || clueLine(kase, c)}”` : '';
   switch (step.rule) {
