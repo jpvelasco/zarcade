@@ -64,7 +64,10 @@ export class Audio {
 
   setMuted(muted) {
     this.muted = muted;
-    if (this.sfx) this.sfx.gain.setTargetAtTime(muted ? 0 : SFX_LEVEL, this.context.currentTime, 0.02);
+    if (!this.sfx) return;
+    const now = this.context.currentTime;
+    this.sfx.gain.cancelScheduledValues(now);
+    this.sfx.gain.setValueAtTime(muted ? 0 : SFX_LEVEL, now);
   }
 
   setMusicMuted(muted) {

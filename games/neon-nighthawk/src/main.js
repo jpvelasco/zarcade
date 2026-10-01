@@ -106,6 +106,7 @@ function makeWorld(seed, chapter, { attract = false, job = 0 } = {}) {
     get world() { return state.world; },
     get quality() { return renderer.qualityName; },
     renderer,
+    audio,
     startChapter,
     save: state.save,
   };
