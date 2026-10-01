@@ -7,15 +7,28 @@ import { Sfx } from './audio.js';
 import { renderMap, scrollToLevel } from './map.js';
 import { loadSave, writeSave, totalStars, recordWin } from './save.js';
 import { SPECIAL_LABELS } from './specials.js';
+import { frameMonitor } from './perf.js';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Telemetry is optional: the game still runs if telemetry.js is missing.
+const telemetry = window.Telemetry || null;
+const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
+
 // Reading `localStorage` throws when the browser blocks site storage; the
 // save helpers treat a null store as "nothing saved".
 const storage = (() => { try { return localStorage; } catch { return null; } })();
 const save = loadSave(storage);
+// Saving can fail (private mode, full or blocked storage); play on and
+// report it once.
+let saveWarned = false;
+function persist() {
+  if (writeSave(storage, save) || saveWarned) return;
+  saveWarned = true;
+  log.warn('save.failed', { 'storage.available': !!storage });
+}
 const sfx = new Sfx(save.muted);
 const view = new BoardView($('board'), { reduceMotion });
 
@@ -118,6 +131,7 @@ function startLevel(id, { keepSeed = false } = {}) {
   $('hud-tip').textContent = TIPS[(levelId - 1) % TIPS.length];
   toast(`Level ${levelId} · ${game.level.name}`, 1.6);
   if (demo) demo.reset();
+  log.event('level.start', { level: levelId, moves: game.moves, 'stars.best': save.stars[levelId] | 0, demo: params.has('demo') });
 }
 
 function layout() {
@@ -384,7 +398,7 @@ function resume() {
 function toggleMute() {
   save.muted = !save.muted;
   sfx.setMuted(save.muted);
-  writeSave(storage, save);
+  persist();
   $('btn-mute').textContent = save.muted ? '🔇' : '🔊';
   $('btn-pause-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
 }
@@ -417,7 +431,11 @@ function endLevel() {
   if (won) {
     const before = save.best[levelId] | 0;
     const result = recordWin(save, levelId, { score: game.score, stars });
-    writeSave(storage, save);
+    persist();
+    log.event('level.complete', {
+      level: levelId, stars, score: Math.round(game.score), 'moves.left': game.moves,
+      'chain.best': game.bestChain, 'best.new': result.newBest,
+    });
     lines.push(['Best score', result.best.toLocaleString()]);
     if (game.score > before) lines.push(['New personal best!']);
     if (game.bestChain > 1) lines.push(['Longest chain', `×${game.bestChain}`]);
@@ -432,6 +450,9 @@ function endLevel() {
     lines.push(['Score', Math.round(game.score).toLocaleString()]);
     for (const goal of game.goalStatus()) lines.push([goal.label, `${goal.have}/${goal.need}`]);
     buttons.push(['Try again', true, () => startLevel(levelId)]);
+    log.event('level.fail', {
+      level: levelId, score: Math.round(game.score), 'goals.left': game.goalStatus().filter((g) => !g.done).length,
+    });
   }
   buttons.push(['Reef map', false, () => toMap(levelId)]);
   $('res-lines').innerHTML = lines
@@ -503,8 +524,20 @@ function updatePointer(dt) {
   }
 }
 
+// Frame telemetry: slow frames, struggling 10 s windows, and a watchdog
+// outside the loop that notices when frames stop while the page is visible.
+const monitor = frameMonitor({
+  log,
+  snapshot: () => ({ mode, level: levelId, phase: game ? game.phase : 'none', busy: !!view.busy }),
+  visible: () => document.visibilityState === 'visible',
+  crashed: () => !!telemetry?.crashed,
+});
+setInterval(() => monitor.check(performance.now()), 1000);
+document.addEventListener('visibilitychange', () => monitor.reset(performance.now()));
+
 let last = performance.now();
 function frame(now) {
+  monitor.frame(now);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   updatePointer(dt);
@@ -522,8 +555,12 @@ function frame(now) {
     view.draw();
     updateHud(false);
   }
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
+
+// A crash inside a frame shows the crash screen instead of a frozen picture;
+// after a crash the guard returns early, so the loop stops rescheduling.
+const loop = telemetry ? telemetry.guard(frame, 'jelly-jam.frame') : frame;
 
 // A hands-off demo, handy for screenshots: ?demo plays itself.
 function demoStep(dt) {
@@ -549,6 +586,7 @@ $('btn-pause-mute').addEventListener('click', toggleMute);
 $('btn-pause-map').addEventListener('click', () => toMap(levelId));
 $('btn-continue').addEventListener('click', () => {
   if (game.useContinue()) {
+    log.event('continue.used', { level: levelId, moves: game.moves });
     show('play');
     toast(`+${CONTINUE_MOVES} moves!`, 1.4);
     sfx.chime('stripe');
@@ -578,11 +616,12 @@ if (params.has('demo')) {
   });
 }
 
+log.event('game.ready', { unlocked: save.unlocked, stars: totalStars(save) });
 if (params.has('level')) startLevel(Number(params.get('level')), { keepSeed: Boolean(params.get('seed')) });
 else if (params.has('map')) toMap();
 else toTitle();
 
-requestAnimationFrame(frame);
+requestAnimationFrame(loop);
 
 // Handy for poking at the game from the console.
 window.JJ = { get game() { return game; }, view, save, startLevel, toMap, sfx, LEVELS, COLOR_NAMES };

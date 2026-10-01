@@ -22,11 +22,14 @@ export function loadSave(storage) {
   }
 }
 
+// Returns false in private browsing or when storage is blocked: play on
+// without saving.
 export function writeSave(storage, save) {
   try {
     storage.setItem(SAVE_KEY, JSON.stringify(save));
+    return true;
   } catch {
-    /* private browsing: play on without saving */
+    return false;
   }
 }
 
