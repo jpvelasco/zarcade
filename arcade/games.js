@@ -154,6 +154,16 @@
       accent: '#ff8a1a',
       needsServer: true,
     },
+    {
+      slug: 'reel-rumble',
+      title: 'Reel Rumble',
+      tagline: 'Cast, hook and reel in 50 fish across five waters.',
+      description: 'A cheerful fishing adventure: time your cast, hook the bite and keep the line in the green to land fish from Willow Pond to the starry lagoon. Fill your fish book, upgrade your tackle and catch the five legends.',
+      genre: 'Sports',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#15a39c',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
