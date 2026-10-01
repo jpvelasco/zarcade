@@ -287,7 +287,11 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   cursor: default;
   border-radius: 20px;
 }
-.enemy .doodle { width: 100%; aspect-ratio: 1; }
+.enemy .doodle { width: 100%; aspect-ratio: 1; animation: bob 2.4s ease-in-out infinite; }
+.enemy:nth-child(2) .doodle { animation-delay: -0.8s; }
+.enemy:nth-child(3) .doodle { animation-delay: -1.6s; }
+@keyframes bob { 50% { translate: 0 -5px; } }
+.reduced .enemy .doodle { animation: none; }
 .enemy.big { width: clamp(170px, min(26vw, 46vh), 360px); }
 .enemy.small { width: clamp(110px, min(14vw, 27vh), 200px); }
 .enemy.targetable { cursor: pointer; }

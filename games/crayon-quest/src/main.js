@@ -466,7 +466,8 @@ function intentHTML(b, e) {
   const cls = t === 'atk' || t === 'atkdef' || t === 'atkdebuff' ? 'atk' : t;
   let inner = '';
   if (v.dmg !== undefined) inner += `${icon('slash')}${v.dmg}${v.hits > 1 ? `<span class="sub">×${v.hits}</span>` : ''}`;
-  if (t === 'def' || t === 'atkdef') inner += `${icon('shield')}${t === 'def' ? v.block : ''}`;
+  if (t === 'def') inner += `${icon('shield')}${v.block}`;
+  if (t === 'atkdef') inner += `<span class="mini">${icon('shield')}${v.block}</span>`;
   if (t === 'buff') inner += `${icon('up')}${v.power ? `+${v.power}` : ''}`;
   if (v.block && t === 'buff') inner += `<span class="mini">${icon('shield')}${v.block}</span>`;
   if (t === 'debuff' || t === 'atkdebuff') {
@@ -515,6 +516,7 @@ function renderBattle() {
       const size = def.role !== 'normal' ? ' big' : (def.art.scale || 1) < 0.9 ? ' small' : '';
       el = document.createElement('button');
       el.className = `enemy${size}${b.turn > 1 || e.uid > b.enemies.length ? ' arrive' : ''}`;
+      setTimeout(() => el.classList.remove('arrive'), 700);
       el.dataset.act = 'enemy';
       el.dataset.uid = e.uid;
       el.innerHTML = `<div class="intent-slot"></div><div class="doodle boil">${monsterSVG(e.id)}</div>
@@ -815,21 +817,24 @@ async function doEndTurn() {
   busy = true;
   sel = -1;
   aimUid = 0;
+  // The run can change under us (End this run from the pause menu).
+  const live = () => run && run.battle === b && !b.over;
   try {
     endPlayerTurn(run);
     drainEvents();
     renderBattle();
-    if (b.over) return;
+    if (!live()) return;
     banner("Monsters' turn", true);
     await wait(650);
+    if (!live()) return;
     beginEnemyTurn(run);
     drainEvents();
     renderBattle();
-    if (b.over) return;
     for (const e of b.enemies.slice()) {
-      if (b.over) break;
+      if (!live()) break;
       if (e.dead || !e.intent) continue;
       await wait(180);
+      if (!live()) break;
       captionOverride = describeIntent(b, e);
       enemyAct(run, e.uid);
       drainEvents();
@@ -837,7 +842,7 @@ async function doEndTurn() {
       await wait(560);
     }
     captionOverride = '';
-    if (!b.over) {
+    if (live()) {
       endEnemyTurn(run);
       drainEvents();
     }
@@ -877,7 +882,9 @@ async function battleOver() {
     const fresh = noteBossDefeated(profile);
     announceUnlocks(fresh);
   }
-  sync();
+  // If the player went to the title meanwhile, the reward waits for Continue.
+  if (screen === 'battle' || screen === 'map') sync();
+  else persist();
 }
 
 function announceUnlocks(ids, { quiet = false } = {}) {
@@ -1140,6 +1147,13 @@ const actions = {
     sound.unlock();
     show(run.phase === 'battle' ? 'battle' : 'map');
     if (run.phase === 'battle') buildBattle();
+    if (run.phase === 'battle' && !run.battle.over && run.battle.phase === 'enemy') {
+      // A save from the middle of a monster turn: let the monsters rest and
+      // hand the turn back.
+      endEnemyTurn(run);
+      takeEvents(run.battle);
+      renderBattle();
+    }
     sync();
     if (run.phase === 'battle' && run.battle.over) battleOver();
   },
