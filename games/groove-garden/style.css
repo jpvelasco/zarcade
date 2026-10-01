@@ -372,3 +372,10 @@ code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 6px; }
   .logo-notes i { animation: none; }
 }
 body.calm .card, body.calm .grade, body.calm .unlock, body.calm .logo-notes i { animation: none; }
+
+.touch-only { display: none; }
+@media (pointer: coarse) {
+  .touch-only { display: inline; }
+  .keys-only { display: none; }
+  .seg button, .btn.small { min-height: 44px; }
+}

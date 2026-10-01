@@ -115,6 +115,9 @@ export class Renderer {
     this.hitY = Math.round(H - clamp(H * 0.19, 96, 170));
     this.topY = 56;
     this.noteR = this.laneW * 0.32;
+    // On phones the lanes fill the width, so the garden grows in the strip
+    // under the hit line instead of beside the lanes.
+    this.narrow = this.hwX - 10 <= 70;
     this.bake();
   }
 
@@ -258,8 +261,15 @@ export class Renderer {
     const body = g.createLinearGradient(0, 0, 0, H);
     body.addColorStop(0, 'rgba(20,14,40,0)');
     body.addColorStop(0.12, 'rgba(20,14,40,0.5)');
-    body.addColorStop(0.85, 'rgba(18,12,32,0.68)');
-    body.addColorStop(1, 'rgba(18,12,32,0.4)');
+    if (this.narrow) {
+      // Clear below the targets so the garden strip shows through.
+      body.addColorStop(Math.min(0.97, hitY / H), 'rgba(18,12,32,0.68)');
+      body.addColorStop(Math.min(0.99, (hitY + laneW * 0.55) / H), 'rgba(18,12,32,0.12)');
+      body.addColorStop(1, 'rgba(18,12,32,0.05)');
+    } else {
+      body.addColorStop(0.85, 'rgba(18,12,32,0.68)');
+      body.addColorStop(1, 'rgba(18,12,32,0.4)');
+    }
     g.fillStyle = body;
     g.beginPath();
     g.roundRect(pad, 0, hwW, H, 22);
@@ -270,7 +280,7 @@ export class Renderer {
       glow.addColorStop(0, 'rgba(0,0,0,0)');
       glow.addColorStop(1, st.color + '33');
       g.fillStyle = glow;
-      g.fillRect(pad + l * laneW + 3, 0, laneW - 6, H);
+      g.fillRect(pad + l * laneW + 3, 0, laneW - 6, this.narrow ? hitY + laneW * 0.6 : H);
       if (l) {
         g.fillStyle = 'rgba(255,255,255,0.09)';
         g.fillRect(pad + l * laneW - 1, 0, 2, H);
@@ -717,7 +727,7 @@ export class Renderer {
       const wide = room > 70;
       const bx = wide ? (p.side < 0 ? 10 + p.x * (leftW - 20) : rightX + 10 + p.x * (rightW - 20)) : (p.x * W);
       const by = wide ? ground + p.depth * (H - ground - 8) : H - 4 - p.depth * 10;
-      const maxH = wide ? H * (0.07 + 0.13 * p.size) * (0.6 + p.depth * 0.6) : clamp(H - this.hitY - 50, 24, 70) * p.size;
+      const maxH = wide ? H * (0.07 + 0.13 * p.size) * (0.6 + p.depth * 0.6) : clamp(H - this.hitY - 56, 24, 84) * p.size;
       const pos = (this.plantPos[p.id] ||= [0, 0]);
       if (p.grow <= 0) {
         ctx.drawImage(this.bud, bx - 12, by - 18);
@@ -730,14 +740,14 @@ export class Renderer {
       const hx = bx + sway * h;
       const hy = by - h;
       pos[0] = hx; pos[1] = hy;
-      ctx.lineWidth = wide ? 5 : 3;
+      ctx.lineWidth = wide ? 5 : 4;
       ctx.beginPath();
       ctx.moveTo(bx, by);
       ctx.quadraticCurveTo(bx + sway * h * 0.2, by - h * 0.55, hx, hy);
       ctx.stroke();
       const ly = by - h * 0.4;
       const lx = bx + sway * h * 0.15;
-      const lw = (wide ? 34 : 22) * g, lh = lw / 2;
+      const lw = (wide ? 34 : 28) * g, lh = lw / 2;
       ctx.drawImage(this.leaf, lx, ly - lh / 2, lw, lh);
       ctx.save();
       ctx.translate(lx, ly + lh * 0.8);
@@ -745,7 +755,7 @@ export class Renderer {
       ctx.drawImage(this.leaf, 0, -lh / 2, lw, lh);
       ctx.restore();
       const bob = 1 + dance * 0.1 * Math.max(0, Math.cos(beat * Math.PI * 2));
-      const s = (wide ? 92 : 40) * p.size * (0.35 + 0.65 * g) * bob;
+      const s = (wide ? 92 : 54) * p.size * (0.35 + 0.65 * g) * bob;
       const kind = ['daisy', 'tulip', 'sunflower', 'bell', 'rose', 'lupin'].indexOf(p.kind);
       ctx.drawImage(this.flowers[p.hue][kind], hx - s / 2, hy - s / 2, s, s);
     }
@@ -826,6 +836,37 @@ export class Renderer {
     }
   }
 
+  // Combo in the middle of the lanes, under the notes so it never hides one.
+  drawCombo(hud) {
+    const { ctx, H } = this;
+    const combo = hud.combo;
+    if (combo !== this.comboValue) {
+      if (combo > this.comboValue && combo >= 5) this.comboPulse = 1;
+      this.comboValue = combo;
+      this.comboText = String(combo);
+    }
+    if (combo >= 5 && !hud.countdown) {
+      const cx = this.hwX + this.hwW / 2, cy = H * 0.3;
+      const k = 1 + (this.reduced ? 0 : this.comboPulse * 0.12);
+      const size = Math.round(clamp(this.laneW * 0.62, 36, 72) * k);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `900 ${size}px ${FONT}`;
+      ctx.lineWidth = 8;
+      ctx.globalAlpha = 0.92 * this.highwayAlpha;
+      ctx.strokeStyle = 'rgba(30,10,50,0.75)';
+      ctx.strokeText(this.comboText, cx, cy);
+      ctx.fillStyle = combo >= 50 ? '#ffe36b' : '#ffffff';
+      ctx.fillText(this.comboText, cx, cy);
+      ctx.font = `800 ${Math.round(size * 0.3)}px ${FONT}`;
+      ctx.lineWidth = 5;
+      ctx.strokeText('COMBO', cx, cy + size * 0.62);
+      ctx.fillStyle = '#ffd1ea';
+      ctx.fillText('COMBO', cx, cy + size * 0.62);
+      ctx.globalAlpha = this.highwayAlpha;
+    }
+  }
+
   drawHighway(state) {
     const { ctx, H, hwX, hitY, laneW, noteSize } = this;
     const session = state.session;
@@ -855,6 +896,7 @@ export class Renderer {
       const s = noteSize * (down ? 1.08 : 1);
       ctx.drawImage(rec, this.laneX(l) - s / 2, hitY - s / 2, s, s);
     }
+    if (state.hud) this.drawCombo(state.hud);
     if (session) this.drawNotes(session, visT, pps);
     // Hit rings and judgement words.
     for (let l = 0; l < this.lanes; l++) {
@@ -1009,33 +1051,6 @@ export class Renderer {
     ctx.fillStyle = '#ffd36b';
     ctx.fillRect(0, H - 5, W * clamp(hud.progress, 0, 1), 5);
 
-    // Combo in the middle of the lanes.
-    const combo = hud.combo;
-    if (combo !== this.comboValue) {
-      if (combo > this.comboValue && combo >= 5) this.comboPulse = 1;
-      this.comboValue = combo;
-      this.comboText = String(combo);
-    }
-    if (combo >= 5 && !hud.countdown) {
-      const cx = this.hwX + this.hwW / 2, cy = H * 0.3;
-      const k = 1 + (this.reduced ? 0 : this.comboPulse * 0.12);
-      const size = Math.round(clamp(this.laneW * 0.62, 36, 72) * k);
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = `900 ${size}px ${FONT}`;
-      ctx.lineWidth = 8;
-      ctx.globalAlpha = 0.92 * this.highwayAlpha;
-      ctx.strokeStyle = 'rgba(30,10,50,0.75)';
-      ctx.strokeText(this.comboText, cx, cy);
-      ctx.fillStyle = combo >= 50 ? '#ffe36b' : '#ffffff';
-      ctx.fillText(this.comboText, cx, cy);
-      ctx.font = `800 ${Math.round(size * 0.3)}px ${FONT}`;
-      ctx.lineWidth = 5;
-      ctx.strokeText('COMBO', cx, cy + size * 0.62);
-      ctx.fillStyle = '#ffd1ea';
-      ctx.fillText('COMBO', cx, cy + size * 0.62);
-      ctx.globalAlpha = 1;
-    }
     if (this.banner.life > 0) {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
