@@ -358,6 +358,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'hoop-heroes',
+      title: 'Hoop Heroes',
+      tagline: 'Flick it, swish it, beat the animal all-stars!',
+      description: 'Arcade basketball: flick to shoot, rattle the rim and set the ball on fire. Battle twelve animal rivals from the park to a low-gravity space station, nail trick shots, and come back for the daily shootout.',
+      genre: 'Sports',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ff7a2f',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
