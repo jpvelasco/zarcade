@@ -243,6 +243,23 @@ export class Shift {
     return best;
   }
 
+  // Tapping a customer hands them the best dish on the counter that they are
+  // waiting for: the same move as tapping the counter, aimed.
+  serveSeat(index) {
+    if (this.phase === 'done') return { ok: false, reason: 'over' };
+    const customer = this.seats[index] && this.seats[index].customer;
+    if (!customer || customer.state !== 'seated') return this.serve();
+    let best = null;
+    for (const dish of this.counter) {
+      const ticket = customer.tickets.find((t) => t.state !== 'served' && t.recipe === dish.recipe);
+      if (!ticket) continue;
+      const score = dish.quality === 'crispy' ? 1 : 0;
+      if (!best || score < best.score) best = { dish, ticket, score };
+    }
+    if (!best) return this.serve();
+    return this.handOver(best.dish, customer, best.ticket);
+  }
+
   serve() {
     if (this.phase === 'done') return { ok: false, reason: 'over' };
     if (!this.counter.length) {

@@ -392,3 +392,25 @@ test('a full counter of dishes nobody wants tidies itself so the shop never jams
   assert.equal(shift.active[0].kind, 'bear');
   assert.equal(shift.tapStation(1).ok, true);
 });
+
+test('tapping a customer serves that customer, and falls back to the best serve', () => {
+  const shift = new Shift(plan({
+    seats: 2,
+    customers: [{ at: 0, kind: 'bear', order: ['cocoa'] }, { at: 0, kind: 'bunny', order: ['cocoa'] }],
+  }), { effects: effects(['counter2']) });
+  run(shift, 0.1);
+  for (let i = 0; i < 2; i++) {
+    shift.tapStation(0);
+    run(shift, 3.1);
+    shift.tapStation(0);
+  }
+  // The bunny is the impatient one, so a plain serve would go to her first.
+  const res = shift.serveSeat(0);
+  assert.equal(res.ok, true);
+  assert.equal(res.seat, 0, 'the tapped seat was served');
+  assert.equal(shift.seats[0].customer.state, 'leaving');
+  // Tapping an empty seat still serves whoever is waiting.
+  const spare = shift.serveSeat(0);
+  assert.equal(spare.ok, true);
+  assert.equal(spare.seat, 1);
+});

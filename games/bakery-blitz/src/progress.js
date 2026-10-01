@@ -3,7 +3,7 @@
 // storage can be blocked or full and the game must still play.
 import { DAY_COUNT, chapterOf, starsFor } from './levels.js';
 import { getUpgrade, isAvailable } from './upgrades.js';
-import { BOOK_ORDER } from './recipes.js';
+import { BOOK_ORDER, CUSTOMERS } from './recipes.js';
 import { dailyOrders, orderProgress, ALL_ORDERS_BONUS, dateKey } from './daily.js';
 
 export const SAVE_KEY = 'bakery-blitz.v1';
@@ -21,6 +21,7 @@ export function defaultSave() {
     attempts: {},
     owned: [],
     book: [],
+    met: [],
     specials: [],
     bestCombo: 0,
     streak: 0,
@@ -45,6 +46,7 @@ export function loadSave(storage) {
     save.attempts = asObject(save.attempts);
     save.owned = asArray(save.owned).filter((id) => !!getUpgrade(id));
     save.book = asArray(save.book).filter((id) => BOOK_ORDER.includes(id));
+  save.met = asArray(save.met).filter((id) => !!CUSTOMERS[id]);
     save.specials = asArray(save.specials).slice(-40);
     save.coins = Math.max(0, save.coins | 0);
     save.earned = Math.max(save.coins, save.earned | 0);
@@ -130,6 +132,13 @@ export function recordDay(save, plan, result) {
 export function discover(save, recipeId) {
   if (!BOOK_ORDER.includes(recipeId) || save.book.includes(recipeId)) return false;
   save.book.push(recipeId);
+  return true;
+}
+
+// Who has been in. The recipe book shows the regulars you have met.
+export function meetCustomer(save, kind) {
+  if (!CUSTOMERS[kind] || save.met.includes(kind)) return false;
+  save.met.push(kind);
   return true;
 }
 

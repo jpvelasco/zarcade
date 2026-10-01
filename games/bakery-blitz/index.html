@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#3b1d12">
+  <meta name="description" content="Bakery Blitz: a cheerful time-management game. Mix, bake, decorate and serve a small-town bakery through 45 days.">
+  <title>Bakery Blitz — mix, bake, serve</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="bakery-blitz"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <div id="warm" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+
+  <!-- ------------------------------------------------------------- title -->
+  <section id="screen-title" class="screen">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <h1 class="logo"><span>Bakery</span><em>Blitz</em></h1>
+      <p class="tagline">Mix, bake, decorate and serve. Nobody ever yells in this bakery.</p>
+      <div id="dish-row" class="dish-row" aria-hidden="true"></div>
+      <ul class="howto">
+        <li><span class="ico" data-ico="station"></span><span><b>Tap a station</b> to start an order, tap again when it dings</span></li>
+        <li><span class="ico" data-ico="counter"></span><span><b>Tap the counter</b> to hand the next dish over</span></li>
+        <li><span class="ico" data-ico="heart"></span><span><b>Serve quickly</b> for combo tips — hearts never turn angry</span></li>
+      </ul>
+      <div class="row">
+        <button id="btn-play" class="btn primary">Open the bakery</button>
+        <button id="btn-map" class="btn">Day map</button>
+      </div>
+      <div class="row">
+        <button id="btn-shop" class="btn small">Kitchen shop</button>
+        <button id="btn-book" class="btn small">Recipe book</button>
+        <button id="btn-special" class="btn small">Today's special</button>
+      </div>
+      <p id="title-progress" class="muted"></p>
+      <div id="title-orders" class="orders-mini"></div>
+    </div>
+  </section>
+
+  <!-- --------------------------------------------------------- day map -->
+  <section id="screen-map" class="screen hidden">
+    <header class="bar">
+      <button class="btn small" data-to-title>← Title</button>
+      <h2>Day map</h2>
+      <p id="map-totals" class="totals"></p>
+    </header>
+    <div id="map-scroll" class="scroll"><div id="map-holder"></div></div>
+    <footer class="bar">
+      <button id="btn-map-shop" class="btn small">Kitchen shop</button>
+      <button id="btn-map-book" class="btn small">Recipe book</button>
+    </footer>
+  </section>
+
+  <!-- ----------------------------------------------------- kitchen shop -->
+  <section id="screen-shop" class="screen hidden">
+    <header class="bar">
+      <button class="btn small" data-back>← Back</button>
+      <h2>Kitchen shop</h2>
+      <p id="shop-coins" class="totals"></p>
+    </header>
+    <div class="scroll"><div id="shop-holder"></div></div>
+    <p id="shop-note" class="muted center"></p>
+  </section>
+
+  <!-- ------------------------------------------------------ recipe book -->
+  <section id="screen-book" class="screen hidden">
+    <header class="bar">
+      <button class="btn small" data-back>← Back</button>
+      <h2>Recipe book</h2>
+      <p id="book-count" class="totals"></p>
+    </header>
+    <div class="scroll"><div id="book-holder"></div></div>
+  </section>
+
+  <!-- ------------------------------------------------------- day briefing -->
+  <section id="screen-brief" class="screen overlay hidden">
+    <div class="card small">
+      <p id="brief-chapter" class="eyebrow"></p>
+      <h2 id="brief-name">Opening Day</h2>
+      <p id="brief-tip" class="tip-line"></p>
+      <div id="brief-menu" class="brief-menu"></div>
+      <div id="brief-goals" class="lines"></div>
+      <div class="row">
+        <button id="btn-brief-go" class="btn primary">Open up!</button>
+        <button id="btn-brief-back" class="btn">Day map</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------------- play -->
+  <section id="screen-play" class="screen play hidden">
+    <header id="hud">
+      <div class="hud-side">
+        <button id="btn-menu" class="icon-btn" aria-label="Pause">☰</button>
+        <div class="hud-day"><b id="hud-name">Opening Day</b><span id="hud-chapter">Cozy Mornings</span></div>
+      </div>
+      <div class="hud-side right">
+        <div id="hud-combo" class="combo-jar" aria-hidden="true"><b>×1</b></div>
+        <div class="coins"><span class="coin-dot" aria-hidden="true"></span><b id="hud-coins">0</b></div>
+        <div id="hud-stars" class="stars" aria-hidden="true"><i></i><i></i><i></i></div>
+        <button id="btn-mute" class="icon-btn" aria-label="Sound">🔊</button>
+      </div>
+      <div id="hud-clock"><div id="hud-clock-fill"></div></div>
+    </header>
+    <div id="stage">
+      <canvas id="shop" aria-label="The bakery. Tap a station to work it, tap the counter to serve."></canvas>
+      <div id="toast" class="toast hidden"></div>
+      <div id="tip" class="tip hidden"></div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------- pause -->
+  <section id="screen-pause" class="screen overlay hidden">
+    <div class="card small">
+      <h2>Taking five</h2>
+      <p id="pause-note" class="muted"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Back to work</button>
+        <button id="btn-restart" class="btn">Start the day again</button>
+        <button id="btn-pause-mute" class="btn">Sound: on</button>
+        <button id="btn-pause-map" class="btn">Day map</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ----------------------------------------------------------- results -->
+  <section id="screen-results" class="screen overlay hidden">
+    <div class="card small">
+      <h2 id="res-title">Day done!</h2>
+      <div id="res-stars" class="stars big" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p id="res-coins" class="big-score">0</p>
+      <p id="res-sub" class="muted"></p>
+      <div id="res-lines" class="lines"></div>
+      <div class="row" id="res-buttons"></div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+  <noscript><p class="muted" style="padding:2rem">Bakery Blitz needs JavaScript.</p></noscript>
+</body>
+</html>
