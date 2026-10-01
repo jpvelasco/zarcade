@@ -106,3 +106,18 @@ so no frame stalls. Tests use it to clear levels.
 - Faces are baked per expression (idle, blink, grin, worried) so drawing
   stays one `drawImage` per animal.
 - Height is shown in metres; 1 m ≈ a hippo's height.
+
+## Balance and verification notes
+
+- The solver tests drop exactly where the planner looked (with the same small
+  release wobble a person has), after waiting for the tower to calm down, so
+  a "clear" in the test is a real, replayable clear. All 32 levels and six
+  sample Daily Towers are cleared in `tests/solver-*.test.js` and
+  `tests/ai.test.js`.
+- Ten levels whose first seed the planner could not clear got a hand-picked
+  seed (`seed:` in `src/levels.js`), found by a seed search; goals and
+  animal counts stayed as designed. Bobbing Bay rafts were softened
+  (amplitude 0.5–0.9 m, rock ≤ 0.02 rad) after the first balance pass.
+- Daily pools weight round and pointy animals lower; goals are 4.5–6 m.
+- The browser autopilot spreads look-ahead over frames in 10-step slices,
+  so title-screen demos stay under ~3 ms of work per frame at CPU ×4.
