@@ -50,6 +50,16 @@ function decoTree(color) {
   return c;
 }
 
+function balloonSprite(color) {
+  const c = mk(80, 100);
+  const g = c.getContext('2d');
+  g.beginPath(); g.moveTo(40, 6); g.bezierCurveTo(76, 6, 76, 62, 40, 78); g.bezierCurveTo(4, 62, 4, 6, 40, 6); g.closePath();
+  g.fillStyle = color; g.fill(); g.lineWidth = 4; g.strokeStyle = '#3a2d4d'; g.stroke();
+  g.beginPath(); g.moveTo(34, 84); g.lineTo(46, 84); g.lineTo(40, 76); g.closePath(); g.fillStyle = color; g.fill(); g.stroke();
+  g.beginPath(); g.ellipse(28, 26, 7, 12, -0.5, 0, Math.PI * 2); g.fillStyle = 'rgba(255,255,255,0.6)'; g.fill();
+  return c;
+}
+
 function decoRock() {
   const c = mk(140, 90);
   const g = c.getContext('2d');
@@ -78,6 +88,7 @@ export class Renderer {
     this.puff = softDot('rgba(255,255,255,0.9)');
     this.glowWarm = softDot('rgba(255,220,140,0.8)');
     this.rock = decoRock();
+    this.balloons = ['#ff6f91', '#ffc531', '#5ec8f2', '#8bd96a', '#b48cff'].map(balloonSprite);
     this.hint = 0;
     this.resize();
   }
@@ -238,7 +249,10 @@ export class Renderer {
     const same = this.texts.find((t) => t.text === text);
     if (same) { same.life = same.max; return; }
     if (this.texts.length >= MAX_TEXTS) this.texts.shift();
-    this.texts.push({ text, x, y, color, size, life, max: life, follow, ox: follow ? x - follow.x : 0, oy: follow ? y - follow.y : 0 });
+    // Words that follow the ball stack upwards instead of overlapping.
+    const stack = follow ? this.texts.filter((t) => t.follow && t.life > t.max * 0.35).length : 0;
+    const lift = follow ? stack * follow.D * 0.42 : 0;
+    this.texts.push({ text, x, y, color, size, life, max: life, follow, ox: follow ? x - follow.x : 0, oy: follow ? y - follow.y - lift : 0 });
   }
 
   handleEvents(events, world) {
@@ -248,6 +262,7 @@ export class Renderer {
     for (const e of events) {
       switch (e.type) {
         case 'pick': {
+          if (e.air) this.emit('balloon', e.x, e.y - e.size * 1.6, D * 0.5, -D * 3, Math.max(e.size * 0.5, D * 0.1), 1.6, -D * 2, '#ff6f91');
           const n = Math.round(6 * burst);
           for (let i = 0; i < n; i++) this.emit('spark', e.x, e.y, (Math.random() - 0.5) * D * 4, -Math.random() * D * 4, D * 0.12, 0.6, D * 6);
           const def = ITEM_BY_ID[e.item];
@@ -257,7 +272,7 @@ export class Renderer {
         }
         case 'bump':
           for (let i = 0; i < Math.round(12 * burst); i++) this.emit('snow', b.x + b.r * 0.6, b.y, (Math.random() - 0.3) * D * 5, -Math.random() * D * 5, D * (0.08 + Math.random() * 0.12), 0.8, D * 10);
-          this.say('Bonk!', e.x, e.y - D * 0.4, '#ffb3c0', 1, 0.9);
+          this.say(e.drop ? `Bonk! ${e.drop} fell off` : 'Bonk!', b.x, b.y - D * 0.9, '#ffb3c0', 1, 1.1, b);
           this.shake = Math.max(this.shake, 0.5);
           break;
         case 'jump':
@@ -329,6 +344,7 @@ export class Renderer {
     this.drawFinish(g, world);
     this.drawGates(g, world);
     this.drawItems(g, world);
+    this.drawDropped(g, world);
     this.drawBall(g, world, opts.skin || 'snowy', opts.hat || 'none');
     this.drawParticles(g);
     this.drawAvalanche(g, world);
@@ -603,7 +619,18 @@ export class Renderer {
           g.globalAlpha = 1;
           continue;
         }
-        const X = this.X(it.x), Y = this.Y(it.y);
+        let X = this.X(it.x), Y = this.Y(it.y);
+        if (it.air) {
+          // Floating on a party balloon, bobbing gently.
+          const bob = this.reduced ? 0 : Math.sin(t * 2 + it.id) * h * 0.06;
+          Y += bob;
+          const bimg = this.balloons[it.id % this.balloons.length];
+          const bh = Math.max(h * 0.9, 18), bw = bh * 0.8;
+          const by = Y - h * 1.02 - bh * 1.35;
+          g.strokeStyle = '#3a2d4d'; g.lineWidth = Math.max(1, bh * 0.04);
+          g.beginPath(); g.moveTo(X, Y - h * 0.95); g.quadraticCurveTo(X + bw * 0.25, by + bh * 1.1, X, by + bh * 0.84); g.stroke();
+          g.drawImage(bimg, X - bw / 2, by, bw, bh);
+        }
         if (scenery) g.globalAlpha = 0.92;
         if (it.flip) {
           g.save(); g.translate(X, 0); g.scale(-1, 1);
@@ -623,6 +650,20 @@ export class Renderer {
         }
       }
     }
+  }
+
+  drawDropped(g, world) {
+    for (const it of world.dropped) {
+      const sp = itemSprite(it.type);
+      const h = it.size * this.s, w = h * sp.w, hh = h * sp.h;
+      g.save();
+      g.translate(this.X(it.x), this.Y(it.y - it.size / 2));
+      g.rotate(it.rot);
+      g.globalAlpha = Math.max(0, Math.min(1, (2.5 - it.t) * 2));
+      g.drawImage(sp.img, -w / 2, -hh / 2, w, hh);
+      g.restore();
+    }
+    g.globalAlpha = 1;
   }
 
   drawBall(g, world, skin, hat) {
@@ -701,6 +742,8 @@ export class Renderer {
         g.beginPath(); g.arc(X, Y, S, 0, Math.PI * 2); g.fill();
       } else if (p.kind === 'spark') {
         g.globalAlpha = a; g.drawImage(this.spark, X - S, Y - S, S * 2, S * 2);
+      } else if (p.kind === 'balloon') {
+        g.globalAlpha = a; const b0 = this.balloons[0]; g.drawImage(b0, X - S * 0.8, Y - S, S * 1.6, S * 2);
       } else if (p.kind === 'puff') {
         g.globalAlpha = a * 0.8; const r = S * (1.6 - p.life / p.max * 0.6); g.drawImage(this.puff, X - r, Y - r, r * 2, r * 2);
       } else {

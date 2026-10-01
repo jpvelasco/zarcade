@@ -256,6 +256,7 @@ function onCaught() {
   log.event('level.fail', { mode: current.kind, slope: current.kind === 'slope' ? current.level.id : 'daily', reason: 'caught', progress: Math.round(w.progress() * 100), size: sum.size });
   mode = 'caught';
   hideToast();
+  $('btn-caught-map').textContent = 'Slopes';
   $('caught-lines').innerHTML = [['Snowball size', formatSize(sum.size)], ['Things collected', sum.items], ['Rolled', `${Math.round(w.progress() * 100)}% of the slope`]]
     .map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join('');
   $('caught-extra').innerHTML = extras(out);
@@ -267,6 +268,7 @@ function onEndlessOver() {
   const dist = w.distance / 100;
   const out = recordEndless(save, { dist, size: Math.round(w.ball.D), byType: w.byType });
   persist();
+  $('btn-caught-map').textContent = 'Title screen';
   log.event('endless.end', { distance: Math.round(dist), size: Math.round(w.ball.D), items: w.collected, 'best.new': out.newBest, time: Math.round(w.time) });
   mode = 'caught';
   $('caught-lines').innerHTML = [

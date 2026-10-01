@@ -29,7 +29,9 @@ export class Autoplayer {
         const gap = it.x - it.size * it.w * 0.5 - (b.x + b.r);
         if (gap > lead + b.D) break;
         if (gap < -b.r) continue;
-        if (it.size > b.D * PICK_RATIO && it.size <= b.D * BUMP_RATIO && gap < lead) { jump = true; break; }
+        if (it.size > b.D * PICK_RATIO && it.size <= b.D * BUMP_RATIO && gap < lead && !it.air) { jump = true; break; }
+        // Balloon things: jump so the arc meets them.
+        if (it.air && it.size <= b.D * PICK_RATIO && it.y < b.y - b.r && gap < lead * 0.9 && gap > lead * 0.35) { jump = true; break; }
       }
       // Steep rises: jump when the ground ahead climbs hard.
       if (!jump) {
@@ -61,8 +63,8 @@ export function autoplay(level, { skill = 1, maxTime = 240, avalanche = true, co
 export function calibrate(level) {
   const w = autoplay(level);
   return {
-    size: Math.floor(w.ball.D * 0.85),
-    items: Math.floor(w.collected * 0.75),
-    time: Math.ceil((w.finishTime ?? w.time) * 1.25),
+    size: Math.floor(w.ball.D * 0.92),
+    items: Math.floor(w.collected * 0.85),
+    time: Math.ceil((w.finishTime ?? w.time) * 1.12),
   };
 }

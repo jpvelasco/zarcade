@@ -17,7 +17,8 @@ export const PEAKS = [
 // or by size tier relative to the slope's planned ball size at that spot:
 //   xs crumbs, s small, m medium (all grabbable), big (jump or bump),
 //   huge (scenery for now). Gates and bridges are relative too.
-const parse = (s) => (s ? s.trim().split(/\s+/).map((p) => { const [id, n] = p.split('*'); return [id, Number(n || 1)]; }) : []);
+// A leading ^ floats the things on party balloons (jump to grab them).
+const parse = (s) => (s ? s.trim().split(/\s+/).map((p) => { const up = p.startsWith('^'); const [id, n] = (up ? p.slice(1) : p).split('*'); return [id, Number(n || 1), up]; }) : []);
 const sl = (len, grade, items = '', o = {}) => ({ t: 'slope', len, grade, items, ...o });
 const rise = (len, h, items = '', o = {}) => ({ t: 'rise', len, h, items, ...o });
 const kick = (len, h, o = {}) => ({ t: 'kicker', len, h, ...o });
@@ -25,6 +26,8 @@ const dip = (len, depth, items = '', o = {}) => ({ t: 'dip', len, depth, items, 
 const gate = (rel = 0.9) => ({ t: 'gate', len: 16, rel, grade: 0.06 });
 const bridge = (len, rel, depth, items = '', o = {}) => ({ t: 'bridge', len, rel, depth, items, grade: 0.1, ...o });
 const fin = (items = '') => ({ t: 'finish', len: 70, grade: 0.06, items });
+
+const AIR_TIERS = ['s', 'm', 's', 'xs'];
 
 export const TIERS = { xs: [0.1, 0.22], s: [0.2, 0.34], m: [0.34, 0.47], big: [0.72, 1.25], huge: [1.7, 4] };
 
@@ -261,28 +264,28 @@ const SLOPES_RAW = [
       rise(36, 2.4, 'm*3'),
       sl(100, 0.32, 's*6 m*6 cabin*1 huge*1'),
       gate(0.9),
-      sl(80, 0.28, 's*4 m*5 cabin*2'),
+      sl(80, 0.28, 's*4 m*5 cabin*2 lodge*1'),
       fin('clocktower*1 icecastle*1'),
     ],
   },
 ];
 
-// Star targets baked from `calibrate` in autoplayer.js (size ×0.85, things
-// ×0.75, time ×1.25 of a full-speed autoplayer run); tests/levels.test.js
+// Star targets baked from `calibrate` in autoplayer.js (size ×0.92, things
+// ×0.85, time ×1.12 of a full-speed autoplayer run); tests/levels.test.js
 // checks the autoplayer still earns all three. Size in cm, time in seconds.
 const GOALS = [
-  { size: 48, items: 56, time: 40 },
-  { size: 52, items: 54, time: 40 },
-  { size: 59, items: 66, time: 43 },
-  { size: 68, items: 69, time: 43 },
-  { size: 90, items: 48, time: 52 },
-  { size: 96, items: 57, time: 59 },
-  { size: 120, items: 60, time: 59 },
-  { size: 148, items: 70, time: 66 },
-  { size: 307, items: 51, time: 70 },
-  { size: 382, items: 60, time: 76 },
-  { size: 356, items: 57, time: 78 },
-  { size: 561, items: 71, time: 84 }
+  { size: 51, items: 66, time: 35 },
+  { size: 58, items: 63, time: 34 },
+  { size: 64, items: 75, time: 38 },
+  { size: 78, items: 88, time: 38 },
+  { size: 100, items: 57, time: 46 },
+  { size: 104, items: 63, time: 51 },
+  { size: 143, items: 70, time: 53 },
+  { size: 156, items: 77, time: 59 },
+  { size: 347, items: 61, time: 62 },
+  { size: 386, items: 63, time: 68 },
+  { size: 394, items: 68, time: 69 },
+  { size: 613, items: 79, time: 75 }
 ];
 
 // Turn a raw slope into cm segments with tiers, gates and bridges resolved
@@ -293,9 +296,11 @@ function compile(raw, i, limits = LIMITS[i]) {
   const total = raw.segments.reduce((n, sg) => n + sg.len * u, 0);
   // Real players trail the plan a little, so things and gates are sized for 85 % of it.
   const planAt = (x) => 0.85 * u * Math.pow(raw.plan, Math.min(1, x / total));
-  let x = 0, gi = 0, bi = 0;
-  const segments = raw.segments.map((sg) => {
+  let x = 0, gi = 0, bi = 0, ai = 0;
+  const segments = raw.segments.map((sg, si) => {
     const out = { ...sg, items: parse(sg.items) };
+    // A bunch of balloon things over every third open stretch.
+    if (si % 3 === 2 && (sg.t === 'slope' || sg.t === 'dip' || sg.t === 'rise')) out.items.push([AIR_TIERS[ai++ % AIR_TIERS.length], 3 + (si % 2), true]);
     for (const k of ['len', 'h', 'depth', 'bumps']) if (out[k] != null) out[k] *= u;
     if (sg.t === 'gate') out.min = limits?.gates?.[gi++] ?? niceSize(planAt(x) * sg.rel);
     if (sg.t === 'bridge') out.max = limits?.bridges?.[bi++] ?? niceSize(planAt(x) * sg.rel);
@@ -319,6 +324,7 @@ function compile(raw, i, limits = LIMITS[i]) {
     segments,
     goals: GOALS[i],
     resolve: (ref, ix, rng) => resolveTier(ref, planAt(ix), peak.id, rng),
+    airLift: (ix) => planAt(ix) * 1.6,
   };
 }
 
@@ -329,15 +335,15 @@ const LIMITS = [
   null,
   { gates: [30], bridges: [] },
   { gates: [], bridges: [25] },
-  { gates: [30], bridges: [45] },
+  { gates: [35], bridges: [45] },
   null,
-  { gates: [], bridges: [60] },
+  { gates: [], bridges: [70] },
   { gates: [55, 90], bridges: [] },
-  { gates: [90, 150], bridges: [70] },
+  { gates: [90, 140], bridges: [70] },
   null,
   { gates: [], bridges: [170] },
-  { gates: [160, 275], bridges: [] },
-  { gates: [325, 475], bridges: [225] },
+  { gates: [160, 300], bridges: [] },
+  { gates: [325, 500], bridges: [225] },
 ];
 
 export const SLOPES = SLOPES_RAW.map((raw, i) => compile(raw, i));
@@ -390,7 +396,9 @@ export function generateSegments(rng, { u, D0, D1, count, gates = true, bridges 
     if (kickers && r < 0.25) { segs.push({ t: 'kicker', len: rng.range(14, 18) * u, h: rng.range(1.3, 1.9) * u, grade, items: [] }); continue; }
     if (r < 0.4) { segs.push({ t: 'rise', len: rng.range(24, 32) * u, h: rng.range(1.2, 2.2) * u, grade, items: itemsFor(rng, D, 15 * u) }); continue; }
     if (r < 0.5) { segs.push({ t: 'dip', len: rng.range(26, 34) * u, depth: rng.range(1.4, 2.4) * u, grade, items: itemsFor(rng, D, 20 * u) }); continue; }
-    segs.push({ t: 'slope', len: L, grade, snow, bumps: rng.range(0, 0.4) * u, items: itemsFor(rng, D, L) });
+    const items = itemsFor(rng, D, L);
+    if (rng.chance(0.4)) items.push([rng.pick(palette(D).grab).id, 3, true]);
+    segs.push({ t: 'slope', len: L, grade, snow, bumps: rng.range(0, 0.4) * u, items, airLift: D * 1.6 });
   }
   for (const sg of segs) sg.u = u;
   return segs;

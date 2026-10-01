@@ -118,7 +118,19 @@ export class Terrain {
     if (!seg.items || !seg.items.length) return;
     const rng = this.rng;
     const list = [];
-    for (const [id, count] of seg.items) for (let i = 0; i < count; i++) list.push(id);
+    const air = [];
+    const first = this.items.length;
+    for (const [id, count, up] of seg.items) for (let i = 0; i < count; i++) (up ? air : list).push(id);
+    if (air.length) this.placeAir(seg, x0, x1, air);
+    this.placeGround(list, x0, x1, bridge);
+    // Keep this segment's things sorted by x (earlier ones never move here).
+    const added = this.items.splice(first).sort((a, b) => a.x - b.x);
+    for (const it of added) this.items.push(it);
+  }
+
+  placeGround(list, x0, x1, bridge) {
+    if (!list.length) return;
+    const rng = this.rng;
     // Shuffle, then place stratified along the segment so things spread out.
     for (let i = list.length - 1; i > 0; i--) {
       const j = Math.floor(rng.float() * (i + 1));
@@ -134,6 +146,28 @@ export class Terrain {
       if (!def) throw new Error(`unknown item ${ref}`);
       this.items.push({
         id: this.nextItemId++, type: id, x, y: this.groundY(x), size: def.size, w: def.w,
+        state: 'idle', flip: rng.chance(0.5), t: 0, vx: 0, vy: 0, spin: 0, rot: 0,
+      });
+    });
+  }
+
+  // Things floating on party balloons: a little arc over the middle of the
+  // segment, high enough that only a jump reaches them.
+  placeAir(seg, x0, x1, refs) {
+    const rng = this.rng;
+    const mid = (x0 + x1) / 2;
+    const lift0 = seg.airLift || (this.airLift ? this.airLift(mid) : 60);
+    const n = refs.length;
+    const gap = lift0 * 0.75;
+    refs.forEach((ref, k) => {
+      const x = mid + (k - (n - 1) / 2) * gap;
+      const id = this.resolve ? this.resolve(ref, x, rng) : ref;
+      const def = ITEM_BY_ID[id];
+      if (!def) throw new Error(`unknown item ${ref}`);
+      const c = n > 1 ? (k / (n - 1)) * 2 - 1 : 0;
+      const lift = lift0 * (1.15 - 0.35 * c * c);
+      this.items.push({
+        id: this.nextItemId++, type: id, x, y: this.groundY(x) - lift, size: def.size, w: def.w, air: true, lift,
         state: 'idle', flip: rng.chance(0.5), t: 0, vx: 0, vy: 0, spin: 0, rot: 0,
       });
     });
@@ -255,6 +289,7 @@ export class Terrain {
 export function buildTerrain(level) {
   const t = new Terrain({ dx: level.dx, seed: level.seed, startGrade: level.segments[0].grade ?? 0.25 });
   if (level.resolve) t.resolve = level.resolve;
+  if (level.airLift) t.airLift = level.airLift;
   for (const seg of level.segments) t.addSegment(seg);
   return t;
 }

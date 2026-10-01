@@ -9,6 +9,8 @@ const REF = 20; // reference diameter (cm) the physics constants are tuned at
 // The Snow Cloud never falls further behind than this many ball widths, so
 // it stays looming at the left edge of the screen.
 export const CHASE_GAP = 6.5;
+// Things knocked off the ball by a bump.
+export const BUMP_DROP = 2;
 const MILESTONES = [25, 30, 40, 50, 60, 75, 100, 125, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000];
 
 // Size-scaled physics: a bigger ball falls harder and rolls faster, but less
@@ -42,6 +44,8 @@ export class World {
     this.events = [];
     this.stuck = [];
     this.tumbling = [];
+    this.dropped = []; // things knocked off the ball, drawn while they tumble
+    this.thingsLost = 0;
     this.collected = 0;
     this.byType = {};
     this.bumps = 0;
@@ -289,7 +293,7 @@ export class World {
     const before = b.D;
     const area = 0.32 * it.size * it.size * Math.min(1.6, it.w);
     this.grow(b, Math.sqrt(b.D * b.D + area) - b.D);
-    this.events.push({ type: 'pick', item: it.type, size: it.size, x: it.x, y: cy, waves: !!def.waves, ratio: it.size / before });
+    this.events.push({ type: 'pick', item: it.type, size: it.size, x: it.x, y: cy, waves: !!def.waves, ratio: it.size / before, air: !!it.air });
   }
 
   bump(b, it) {
@@ -301,12 +305,29 @@ export class World {
     it.vy = -Math.sqrt(2 * G * Math.max(it.size, b.D)) * 0.9;
     it.spin = 4 + it.size / b.D;
     this.bumps++;
-    const lost = b.D * 0.05;
-    this.grow(b, -lost);
+    // Bonk! A few of the newest things fall off the ball and tumble away.
+    const drop = Math.min(BUMP_DROP, this.stuck.length);
+    let area = 0;
+    for (let k = 0; k < drop; k++) {
+      const st = this.stuck.pop();
+      area += 0.32 * st.size * st.size * Math.min(1.6, st.w);
+      this.collected--;
+      this.byType[st.type]--;
+      if (!this.byType[st.type]) delete this.byType[st.type];
+      const a = st.ang + b.rot;
+      const fall = { id: -1, type: st.type, x: b.x + Math.cos(a) * b.r, y: b.y + Math.sin(a) * b.r + st.size / 2, size: st.size, w: st.w, state: 'tumble', t: 0, vx: -vnat * (0.2 + 0.2 * k), vy: -Math.sqrt(2 * G * b.D) * (0.5 + 0.2 * k), spin: 6, rot: 0, flip: false };
+      this.tumbling.push(fall);
+      this.dropped.push(fall);
+    }
+    this.thingsLost += drop;
+    const before = b.D;
+    const shrunk = Math.sqrt(Math.max(0, b.D * b.D - area)) * 0.96;
+    this.grow(b, shrunk - b.D);
+    const lost = before - b.D;
     b.vx *= 0.55;
     if (b.grounded) b.vy *= 0.55;
     b.squash = 0.45;
-    this.events.push({ type: 'bump', item: it.type, x: it.x, y: it.y - it.size / 2, lost });
+    this.events.push({ type: 'bump', item: it.type, x: it.x, y: it.y - it.size / 2, lost, drop });
   }
 
   updateTumbling(dt) {
@@ -318,7 +339,12 @@ export class World {
       it.x += it.vx * dt;
       it.y += it.vy * dt;
       it.rot += it.spin * dt;
-      if (it.t > 2.5) { it.state = 'gone'; this.tumbling.splice(i, 1); }
+      if (it.t > 2.5) {
+        it.state = 'gone';
+        this.tumbling.splice(i, 1);
+        const d = this.dropped.indexOf(it);
+        if (d >= 0) this.dropped.splice(d, 1);
+      }
     }
   }
 
