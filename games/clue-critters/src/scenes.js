@@ -18,6 +18,12 @@ function p(ctx, fill, stroke = INK, lw = 4) {
   if (fill) { ctx.fillStyle = fill; ctx.fill(); }
   if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke(); }
 }
+// A union of shapes (bushes, tree tops): stroke wide first, then fill, so
+// only the outer outline shows.
+function pu(ctx, fill, lw = 4) {
+  ctx.strokeStyle = INK; ctx.lineWidth = lw * 2; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.fillStyle = fill; ctx.fill();
+}
 function el(ctx, x, y, rx, ry, rot = 0) { ctx.beginPath(); ctx.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), rot, 0, Math.PI * 2); }
 function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
 
@@ -76,7 +82,7 @@ function tree(ctx, x, y, s = 1, fruit = null) {
   rr(ctx, x - 14 * s, y - 120 * s, 28 * s, 124 * s, 8 * s); p(ctx, '#9a6a3f');
   ctx.beginPath();
   for (const [dx, dy, r] of [[0, -200, 80], [-60, -150, 62], [60, -150, 62], [-30, -240, 56], [36, -236, 56]]) ctx.moveTo(x + (dx + r) * s, y + dy * s), ctx.arc(x + dx * s, y + dy * s, r * s, 0, Math.PI * 2);
-  p(ctx, '#5fbf5a');
+  pu(ctx, '#5fbf5a');
   el(ctx, x - 24 * s, y - 214 * s, 26 * s, 18 * s); p(ctx, 'rgba(255,255,255,0.18)', null);
   if (fruit) for (const [dx, dy] of [[-40, -160], [30, -200], [-10, -240], [60, -140], [-70, -200], [10, -150]]) { el(ctx, x + dx * s, y + dy * s, 11 * s, 11 * s); p(ctx, fruit, INK, 2.5); }
 }
@@ -135,7 +141,7 @@ function lamp(ctx, x, y) {
 // { w, h } in core units (the searchable area).
 
 export const PROPS = {
-  bush(ctx) { ctx.beginPath(); for (const [x, y, r] of [[-50, -40, 46], [0, -66, 56], [52, -40, 46], [0, -30, 50]]) { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, Math.PI * 2); } p(ctx, '#4fae4a'); el(ctx, -14, -86, 18, 12); p(ctx, 'rgba(255,255,255,0.2)', null); return { w: 200, h: 130 }; },
+  bush(ctx) { ctx.beginPath(); for (const [x, y, r] of [[-50, -40, 46], [0, -66, 56], [52, -40, 46], [0, -30, 50]]) { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, Math.PI * 2); } pu(ctx, '#4fae4a'); el(ctx, -14, -86, 18, 12); p(ctx, 'rgba(255,255,255,0.2)', null); return { w: 200, h: 130 }; },
   barrel(ctx) { rr(ctx, -46, -124, 92, 124, 26); p(ctx, '#b07a44'); for (const y of [-100, -24]) { rr(ctx, -48, y, 96, 12, 4); p(ctx, '#6a6a78'); } return { w: 100, h: 128 }; },
   crate(ctx) { rr(ctx, -62, -110, 124, 110, 6); p(ctx, '#d9a65a'); ctx.beginPath(); ctx.moveTo(-58, -106); ctx.lineTo(58, -4); ctx.moveTo(58, -106); ctx.lineTo(-58, -4); p(ctx, null, '#a8763a', 6); rr(ctx, -62, -110, 124, 110, 6); p(ctx, null); return { w: 128, h: 112 }; },
   flowerpot(ctx) { ctx.beginPath(); ctx.moveTo(-44, -70); ctx.lineTo(44, -70); ctx.lineTo(32, 0); ctx.lineTo(-32, 0); ctx.closePath(); p(ctx, '#e0784a'); rr(ctx, -50, -84, 100, 18, 6); p(ctx, '#e88a5a'); for (const [x, c] of [[-24, '#ff86b8'], [0, '#ffd23f'], [24, '#a97ae0']]) { ctx.beginPath(); ctx.moveTo(x, -84); ctx.lineTo(x, -134); p(ctx, null, '#3f9a3a', 5); el(ctx, x, -140, 15, 15); p(ctx, c); el(ctx, x, -140, 5, 5); p(ctx, '#fff3a0', null); } return { w: 110, h: 160 }; },
@@ -160,10 +166,10 @@ export const PROPS = {
 // stands (feet). Coordinates in the 1000×1000 core.
 
 const SLOTS = [
-  [140, 700], [360, 650], [880, 700], [180, 950], [420, 975], [880, 965],
+  [140, 700], [360, 650], [870, 700], [180, 950], [420, 975], [855, 965],
 ];
 const TALL_SLOTS = [
-  [300, 720], [700, 730], [290, 975], [300, 1270], [520, 1285], [710, 1275],
+  [300, 720], [690, 730], [290, 975], [300, 1270], [500, 1285], [695, 1275],
 ];
 
 export const PLACE_ART = {
@@ -348,7 +354,7 @@ export function layout(placeId, tall = false) {
     const box = PROPS[type](nullCtx);
     let scale = tall ? 0.95 : y > 850 ? 1.2 : 1.0;
     // keep tall props (the café table) inside the narrow view
-    if (tall && box.h > 200) scale = 0.75;
+    if (box.h > 200) scale = tall ? 0.75 : 0.8;
     return { type, x, y, scale, w: box.w * scale, h: box.h * scale };
   });
   const stand = tall ? { x: 610, y: 1080 } : art.stand || { x: 650, y: 870 };
