@@ -340,7 +340,7 @@ code, kbd { background: rgba(42, 29, 92, 0.1); padding: 1px 6px; border-radius: 
 }
 .rival-card {
   position: absolute;
-  top: calc(max(10px, env(safe-area-inset-top)) + 84px);
+  top: calc(max(10px, env(safe-area-inset-top)) + 104px);
   right: max(10px, env(safe-area-inset-right));
   display: flex;
   align-items: center;

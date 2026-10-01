@@ -6,7 +6,7 @@ import { LOCKER, itemState } from './cosmetics.js';
 import { dayDiff } from './rng.js';
 
 export const SAVE_KEY = 'hoop-heroes.v1';
-export const FLICK_REF = 2.4; // screen heights per second
+export const FLICK_REF = 2.7; // screen heights per second
 
 export function defaultSave() {
   return {

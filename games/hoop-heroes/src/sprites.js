@@ -521,8 +521,11 @@ export function blockerSprite(look = 'bear') {
 // at y = SCENE_HORIZON.
 export const SCENE_W = 1800, SCENE_H = 460, SCENE_HORIZON = 400;
 
+const sceneCache = new Map();
 export function scenery(court) {
+  if (sceneCache.has(court.id)) return sceneCache.get(court.id);
   const c = makeCanvas(SCENE_W, SCENE_H);
+  sceneCache.set(court.id, c);
   const g = c.getContext('2d');
   const r = rng(court.id.length * 101 + 7);
   const H0 = SCENE_HORIZON;

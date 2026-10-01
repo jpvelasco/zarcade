@@ -74,7 +74,7 @@ export class Renderer {
     this.canvas.style.width = `${W}px`;
     this.canvas.style.height = `${H}px`;
     const portrait = H > W;
-    this.f = portrait ? Math.min(W * 1.85, H * 1.0) : Math.min(W * 1.1, H * 1.02);
+    this.f = portrait ? Math.min(W * 1.6, H * 0.95) : Math.min(W * 1.1, H * 1.02);
     this.cx = W / 2;
     this.cy = H * (portrait ? 0.42 : 0.37);
     this.skyGrad = null;

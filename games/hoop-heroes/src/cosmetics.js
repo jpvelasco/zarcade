@@ -8,7 +8,7 @@ export const BALLS = [
   { id: 'planet', name: 'Ringed Planet', price: 160, colors: ['#9b7bff', '#5b3fd1'], seam: '#ffd98a', pattern: 'planet' },
   { id: 'disco', name: 'Disco', price: 220, colors: ['#d8e4ff', '#8aa0d6'], seam: '#ffffff', pattern: 'disco' },
   { id: 'rainbow', name: 'Rainbow', price: 0, trophy: 'beach', colors: ['#ff4f6d', '#ffb03a', '#ffe14d', '#4fd16b', '#3fb6ff', '#9b6bff'], seam: '#ffffff', pattern: 'rainbow' },
-  { id: 'gold', name: 'Golden Hoop', price: 0, trophy: 'gold', colors: ['#ffe27a', '#d89a12'], seam: '#7a4a00', pattern: 'classic' },
+  { id: 'gold', name: 'Golden Ball', price: 0, trophy: 'gold', colors: ['#ffe27a', '#d89a12'], seam: '#7a4a00', pattern: 'classic' },
 ];
 
 export const JERSEYS = [

@@ -132,7 +132,7 @@ export function measureFlick(d, now, screenH) {
   if (totalDy < MIN_FLICK_PX || now - d.t0 > MAX_FLICK_MS + 600) return null;
   let first = s[0];
   for (let i = s.length - 1; i >= 0; i--) {
-    if (last.t - s[i].t > SAMPLE_MS) { first = s[i]; break; }
+    if (last.t - s[i].t > SAMPLE_MS) break;
     first = s[i];
   }
   let dx = last.x - first.x, dy = first.y - last.y, dt = (last.t - first.t) / 1000;

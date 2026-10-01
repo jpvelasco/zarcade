@@ -810,6 +810,16 @@ if (location.protocol !== 'file:') {
     if (l) startRun({ type: 'trick', level: l, court: params.get('court') || save.equip.court, rules: trickRules(l, params.get('court') || save.equip.court) });
   }
   requestAnimationFrame(loop);
+  // Bake portraits and court scenery a piece at a time while idle, so menus
+  // and the first round on a new court open without a hitch.
+  const bake = [
+    ...COURTS.map((c) => () => scenery(c)),
+    ...RIVALS.map((r) => () => portrait(r.animal, r.color, '', 192)),
+    () => acePortrait(300), () => acePortrait(160), () => acePortrait(264),
+  ];
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 60));
+  const next = () => { const job = bake.shift(); if (!job) return; job(); idle(next, { timeout: 400 }); };
+  setTimeout(() => idle(next, { timeout: 400 }), 300);
 }
 
 window.HH = { get round() { return round; }, get rivalRound() { return rivalRound; }, get mode() { return mode; }, save, renderer, input, sound, startRun, startDaily, toTitle };
