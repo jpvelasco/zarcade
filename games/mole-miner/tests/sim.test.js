@@ -168,3 +168,17 @@ test('landing on the base pad docks once', () => {
   const ev = run(m, 2, (mm) => ({ ax: mm.pod.x > 2.2 ? -1 : 0, ay: 0 }));
   assert.equal(ev.filter((e) => e.type === 'dock').length, 1);
 });
+
+test('stopping near a one-tile shaft slips the pod in; driving past does not', () => {
+  const rows = ['BPP##.##B', 'B####.##B', 'B####.##B', 'B#######B', 'BBBBBBBBB'];
+  const w = makeWorld(rows);
+  const m = new Mine(w, STATS);
+  m.pod.x = 5.32; m.pod.y = -0.401; m.pod.docked = false; m.pod.grounded = true;
+  run(m, 0.8);
+  assert.ok(m.pod.y > 1, `fell into the shaft (y ${m.pod.y.toFixed(2)})`);
+  const m2 = new Mine(makeWorld(rows), STATS);
+  m2.pod.x = 3.6; m2.pod.y = -0.401; m2.pod.docked = false; m2.pod.grounded = true;
+  run(m2, 0.9, { ax: 1, ay: 0 });
+  assert.ok(m2.pod.y < 0, 'drove over the shaft');
+  assert.ok(m2.pod.x > 6.4, 'made it across');
+});

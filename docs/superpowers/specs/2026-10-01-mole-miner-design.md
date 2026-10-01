@@ -108,3 +108,14 @@ autoplayer that reaches the core from a fresh save.
 - Gems dug with a full hold are lost (toast warns); relics and fossils use a
   separate pocket and are never lost.
 - Saves store a compact diff of the tile grid against the regenerated seed.
+
+## Tuning notes (as shipped)
+
+- The autoplayer reaches the core in about 22-25 simulated minutes over 12-15
+  trips (it knows the whole map and never wastes a move); people take a few
+  times longer. Upgrade costs were cut after an early pass let the bot strip
+  the mine bare before it could afford the Frost Fan: the essentials for each
+  layer now cost under half of the ore above it (a test checks this).
+- Every gem sprite carries a sparkle and meadow pebbles are low-contrast, so
+  copper reads as treasure rather than gravel.
+- The title camera sits on the meadow and base; the demo pod digs below.
