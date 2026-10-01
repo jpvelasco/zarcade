@@ -1303,9 +1303,13 @@ function pollPad() {
 
 function layout() {
   const w = innerWidth, h = innerHeight;
-  const portrait = w / h <= 1 || w <= 760;
+  // Phones on their side put the player bars beside the board (style.css,
+  // "short landscape") so the board can use the full height.
+  const sideways = w > h && h <= 560;
+  const portrait = !sideways && (w / h <= 1 || w <= 760);
   let size;
-  if (portrait) size = Math.min(w - 28 - 12, h - 52 - 2 * 52 - 12 - 46 - 52 - 26);
+  if (sideways) size = Math.min(h - 28 - 12, w - 28 - 12 - 12 - 240);
+  else if (portrait) size = Math.min(w - 28 - 12, h - 52 - 2 * 52 - 12 - 46 - 52 - 26);
   else size = Math.min(h - 58 - 14 - 2 * 62 - 20, w - 300 - 22 - 28 - 20);
   size = Math.max(184, Math.floor(size / 8) * 8);
   document.documentElement.style.setProperty('--board', `${size}px`);

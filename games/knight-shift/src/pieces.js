@@ -67,7 +67,9 @@ export const THEMES = {
     particles: ['#ff7ab6', '#7be0c3', '#ffe36e', '#8f7bff'],
     fog: ['#b980c9', '#e9b3dc'],
     pieces: [
-      { top: '#ffffff', bottom: '#ffd7ea', outline: '#a3336e', detail: '#d0568f' },
+      // A deep berry outline and a lilac-white body keep white pieces clear
+      // of both the pale and the pink squares.
+      { top: '#ffffff', bottom: '#efe6ff', outline: '#6e1a4c', detail: '#b8407c', width: 4.4 },
       { top: '#8f7bff', bottom: '#4b2fb8', outline: '#22105e', detail: '#d9d0ff' },
     ],
   },
@@ -142,7 +144,7 @@ export function drawPiece(ctx, type, color, theme, x, y, size) {
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   ctx.strokeStyle = pc.outline;
-  ctx.lineWidth = 3.4;
+  ctx.lineWidth = pc.width || 3.4;
   ctx.stroke(p.body);
   ctx.strokeStyle = pc.detail;
   ctx.lineWidth = 2.6;

@@ -347,7 +347,7 @@ code { background: rgba(255, 255, 255, 0.12); padding: 2px 6px; border-radius: 6
 .btn:focus-visible, .arcade-link:focus-visible, .choice:focus-visible, .node:focus-visible, .power-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px #2f7dff; }
 .btn.primary { background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #000)); color: var(--accent-ink); border-color: transparent; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); }
 .btn.big { min-height: 58px; font-size: 20px; }
-.btn.small { min-height: 38px; padding: 6px 12px; font-size: 14px; }
+.btn.small { min-height: 44px; padding: 6px 12px; font-size: 14px; white-space: nowrap; }
 .btn.chip { min-width: 110px; }
 .btn.chip.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .btn[disabled] { opacity: 0.45; cursor: default; }
@@ -358,7 +358,7 @@ code { background: rgba(255, 255, 255, 0.12); padding: 2px 6px; border-radius: 6
   top: max(14px, env(safe-area-inset-top));
   left: max(14px, env(safe-area-inset-left));
   z-index: 25;
-  padding: 10px 16px;
+  padding: 12px 16px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.45);
   color: #fff;
@@ -452,7 +452,8 @@ code { background: rgba(255, 255, 255, 0.12); padding: 2px 6px; border-radius: 6
 .node .st { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 2px; font-size: 13px; color: #ffd84f; white-space: nowrap; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); letter-spacing: -1px; }
 .node .lock { font-size: 16px; }
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--chap); } 50% { box-shadow: 0 0 0 10px transparent; } }
-.pill { padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); font-weight: 900; color: #ffd84f; }
+.pill { padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); font-weight: 900; color: #ffd84f; white-space: nowrap; }
+body.theme-candy .pill { background: #ff5fa8; color: #fff; }
 
 /* Result */
 .result-avatar { width: 90px; height: 90px; margin: 0 auto 6px; }
@@ -503,6 +504,44 @@ code { background: rgba(255, 255, 255, 0.12); padding: 2px 6px; border-radius: 6
   .card { padding: 18px 16px 16px; }
   h2 { font-size: 26px; }
   .promo button { width: 54px; height: 54px; }
+}
+
+/* ------------------------------------------------------------ short landscape (phones on their side) */
+
+/* Matches layout() in main.js: wider than tall and at most 560px high. The
+   board takes the full height; the player bars join the side column, which
+   leaves the top centre free for the full-screen pill. */
+@media (min-aspect-ratio: 1001/1000) and (max-height: 560px) {
+  .app {
+    display: grid;
+    grid-template-columns: auto minmax(240px, 400px);
+    grid-template-rows: auto auto 1fr;
+    align-content: center;
+    justify-content: center;
+    gap: 6px 12px;
+    padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  }
+  .board-col { display: contents; }
+  .board-box { grid-column: 1; grid-row: 1 / span 3; padding: 6px; border-radius: 14px; width: calc(var(--board) + 12px); height: calc(var(--board) + 12px); }
+  #bar-top { grid-column: 2; grid-row: 1; margin-top: 44px; }
+  #bar-bottom { grid-column: 2; grid-row: 2; }
+  .side { grid-column: 2; grid-row: 3; width: auto; height: auto; min-height: 0; gap: 6px; }
+  .bar { min-height: 46px; padding: 4px 8px; border-radius: 14px; }
+  .avatar { width: 36px; height: 36px; }
+  .info { padding: 6px 12px; }
+  .info-status { font-size: 18px; }
+  .info-sub { font-size: 13px; }
+  .moves { display: none; }
+  .actions { margin-top: auto; }
+  .actions .btn { min-height: 46px; font-size: 15px; }
+  .card { padding: 14px 16px; }
+  .choice-grid { gap: 6px; }
+  .choice { padding: 6px 4px; gap: 2px; border-radius: 12px; }
+  .choice .desc, .choice .record { display: none; }
+  .choice .mode-icon { width: 30px; height: 30px; }
+  .choice .bot-face { width: 38px; height: 38px; }
+  .setup-card h3 { margin: 8px 2px 4px; font-size: 13px; }
+  #setup-desc { display: block; }
 }
 
 @media (prefers-reduced-motion: reduce) {
