@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0a3a5c">
+  <meta name="description" content="Deep Dive: pilot Bubbles the little yellow submarine, ping sonar, scan sea creatures and find the parts that open the deep ocean.">
+  <title>Deep Dive: explore the ocean with Bubbles</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="deep-dive"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Deep Dive ocean"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Deep Dive uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/deep-dive/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- In-play HUD -->
+  <div id="hud" class="hud hidden">
+    <div class="hud-tl">
+      <div class="o2" id="o2" role="meter" aria-label="Oxygen" aria-valuemin="0" aria-valuemax="100">
+        <span class="o2-icon" aria-hidden="true">O₂</span>
+        <div class="o2-bar"><div id="o2-fill" class="o2-fill"></div><div id="o2-tanks" class="o2-tanks"></div></div>
+      </div>
+      <div class="hud-line"><span id="depth" class="pill">0 m</span><span id="area-name" class="pill area">Sunny Shallows</span></div>
+      <div id="daily-chip" class="daily-chip"></div>
+    </div>
+    <div class="hud-tr">
+      <div class="mini-wrap">
+        <canvas id="minimap" width="180" height="120" aria-hidden="true"></canvas>
+        <span id="map-pct" class="mini-pct">0%</span>
+      </div>
+      <div class="hud-btns">
+        <button id="btn-map" class="icon-btn" aria-label="Map (M)" title="Map (M)">🗺️</button>
+        <button id="btn-book" class="icon-btn" aria-label="Sea book (B)" title="Sea book (B)">📖</button>
+        <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (N)">🔊</button>
+        <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+      </div>
+    </div>
+    <div class="hud-bl">
+      <span class="pill count" title="Creatures scanned">🐠 <b id="c-species">0</b></span>
+      <span class="pill count" title="Treasures found">💰 <b id="c-treasure">0</b></span>
+      <span class="pill count" title="Golden shells">🐚 <b id="c-shell">0</b></span>
+    </div>
+    <button id="btn-sonar" class="sonar-btn touch-only" aria-label="Sonar ping">
+      <span class="sonar-ring" aria-hidden="true"></span><span>Sonar</span>
+    </button>
+    <div id="keys-hint" class="keys-hint keys-only">
+      <b>WASD</b> / arrows swim · hold <b>mouse</b> to steer · <b>Space</b> sonar · <b>M</b> map · <b>B</b> book
+    </div>
+    <div id="banner" class="banner" aria-live="polite"></div>
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+    <div id="fact" class="fact hidden" role="status">
+      <canvas id="fact-art" width="200" height="140" aria-hidden="true"></canvas>
+      <div class="fact-body">
+        <p class="fact-new">New creature!</p>
+        <h3 id="fact-name"></h3>
+        <p id="fact-text"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <h1 class="logo" aria-label="Deep Dive"><span>Deep</span><span>Dive</span></h1>
+      <p class="tagline">Pilot <b>Bubbles</b> the little yellow sub. Ping sonar, scan sea creatures and find the parts that open the deep!</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Dive in!</button>
+        <div class="row">
+          <button class="btn" data-open="book">📖 Sea book</button>
+          <button class="btn" data-open="garage">🎨 Paint shop</button>
+        </div>
+        <div class="row">
+          <button class="btn" data-sound>🔊 Sound on</button>
+          <button class="btn" data-music>🎵 Music on</button>
+        </div>
+      </div>
+      <div id="title-daily" class="title-daily"></div>
+      <div id="title-stats" class="stats"></div>
+      <p class="controls keys-only"><b>Swim</b> WASD / arrows / hold mouse · <b>Sonar</b> Space / right-click · <b>Map</b> M · <b>Book</b> B · <b>Pause</b> Esc</p>
+      <p class="controls touch-only"><b>Hold</b> or drag to swim toward your finger · tap <b>Sonar</b> to ping</p>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Keep exploring</button>
+        <div class="row">
+          <button class="btn" data-open="map">🗺️ Map</button>
+          <button class="btn" data-open="book">📖 Sea book</button>
+        </div>
+        <button class="btn" data-open="garage">🎨 Paint shop</button>
+        <div class="row">
+          <button class="btn" data-sound>🔊 Sound on</button>
+          <button class="btn" data-music>🎵 Music on</button>
+        </div>
+        <button class="btn" data-title>Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-map" class="overlay dim hidden">
+    <div class="card wide map-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Ocean map</h2>
+        <span id="map-total" class="pill"></span>
+      </div>
+      <canvas id="bigmap" width="900" height="660" aria-label="Map of the explored ocean"></canvas>
+      <div id="map-lines" class="map-lines"></div>
+      <p class="muted small-print">Ping sonar to fill in the map. Yellow dots are treasure, pale gold are golden shells, blue are new parts.</p>
+    </div>
+  </section>
+
+  <section id="screen-book" class="overlay dim hidden">
+    <div class="card wide book-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Sea book</h2>
+        <span id="book-total" class="pill"></span>
+      </div>
+      <div id="book-tabs" class="tabs" role="tablist"></div>
+      <div id="book-grid" class="book-grid"></div>
+      <div id="book-detail" class="book-detail hidden">
+        <canvas id="detail-art" width="320" height="220" aria-hidden="true"></canvas>
+        <div>
+          <h3 id="detail-name"></h3>
+          <p id="detail-area" class="muted"></p>
+          <p id="detail-fact"></p>
+          <p id="detail-tip" class="muted"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-garage" class="overlay dim hidden">
+    <div class="card wide garage-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Paint shop</h2>
+        <span id="garage-total" class="pill"></span>
+      </div>
+      <div id="garage-grid" class="garage-grid"></div>
+    </div>
+  </section>
+
+  <section id="screen-part" class="overlay dim hidden">
+    <div class="card part-card">
+      <p class="eyebrow">New part!</p>
+      <div id="part-icon" class="part-icon" aria-hidden="true"></div>
+      <h2 id="part-name"></h2>
+      <p id="part-blurb"></p>
+      <p id="part-next" class="muted"></p>
+      <button id="btn-part-ok" class="btn primary big">Awesome!</button>
+    </div>
+  </section>
+
+  <section id="screen-out" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Out of air!</h2>
+      <p id="out-text" class="muted">Bubbles floated safely back to the dock. Nothing was lost!</p>
+      <div id="out-lines" class="res-lines"></div>
+      <button id="btn-out-ok" class="btn primary big">Dive again</button>
+      <p class="muted small-print">Tip: the surface and every dock refill your air.</p>
+    </div>
+  </section>
+
+  <section id="screen-ending" class="overlay dim hidden">
+    <div class="card">
+      <h2 class="rainbow">The Heart of the Sea!</h2>
+      <p>Bubbles found the glowing heart deep in the Volcanic Vent. You explored the whole ocean, from the sunny shallows to the hottest chimneys!</p>
+      <div id="ending-lines" class="res-lines"></div>
+      <p class="muted">There is still more to find: every creature, treasure and golden shell.</p>
+      <button id="btn-ending-ok" class="btn primary big">Keep exploring</button>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
