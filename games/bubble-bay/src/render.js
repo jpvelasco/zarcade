@@ -56,6 +56,7 @@ export class View {
     this.shake = 0;
     this.blink = 0;
     this.claw = 0;
+    this.cheer = 0;
     this.warn = 0;
     this.danger = 0;
     this.loadPop = 1;
@@ -451,7 +452,9 @@ export class View {
       total += len;
     }
     const shot = result.shot;
-    this.flight = { result, path, segs, total, d: 0, sprite: this.sprites.forShot(shot), shot, before, bounced: 0 };
+    // long bank shots speed up so no shot takes more than ~0.7 s
+    const speed = Math.max(SHOT_SPEED, total / 0.7);
+    this.flight = { result, path, segs, total, d: 0, speed, sprite: this.sprites.forShot(shot), shot, before, bounced: 0 };
     this.cells = before.cells.slice();
     this.drop = before.drop;
     this.loadPop = 0;
@@ -526,6 +529,10 @@ export class View {
       this.floater(`+${result.gained}`, CX[at], landY(at) - 0.6, ev.pops.length + ev.drops.length >= 10 ? '#ffe14d' : '#ffffff', ev.pops.length + ev.drops.length >= 10 ? 1.3 : 1);
     }
     if (ev.drops.length >= 6) this.hooks.bigDrop?.(ev.drops.length);
+    if (ev.freed.length || ev.drops.length >= 6 || ev.anchor) this.cheer = 1;
+    if (game.phase === 'aim' && game.creepIn === 1 && !game.goalMet()) {
+      this.floater('The plank moves next shot!', FIELD_W / 2, game.board.drop * ROW_H + 1.4, '#ffe14d', 0.62);
+    }
     if (result.creep) this.hooks.creep?.();
     this.loadPop = 0;
   }
@@ -594,6 +601,7 @@ export class View {
     this.blink -= dt;
     if (this.blink < -3.2) this.blink = 0.14;
     this.claw = Math.max(0, this.claw - dt * 4);
+    this.cheer = Math.max(0, this.cheer - dt * 1.6);
     this.loadPop = Math.min(1, this.loadPop + dt * 5);
     this.shake = Math.max(0, this.shake - dt * 3);
     // the ceiling eases down to the board's drop
@@ -608,7 +616,7 @@ export class View {
     if (this.flight) {
       const f = this.flight;
       const before = f.d;
-      f.d = Math.min(f.total, f.d + SHOT_SPEED * dt);
+      f.d = Math.min(f.total, f.d + f.speed * dt);
       const pos = this.flightPos(f.d);
       if (pos.seg - 1 > f.bounced && f.path[pos.seg - 1]?.bounce) { f.bounced = pos.seg - 1; this.hooks.bounce?.(); }
       if (f.zapAt) {
@@ -888,7 +896,8 @@ export class View {
     const game = this.game;
     if (!crab) return;
     const u = crab.u / dpr;
-    const bob = this.reduceMotion ? 0 : Math.sin(this.time * 2.4) * u * 0.05;
+    const hop = this.reduceMotion ? 0 : Math.abs(Math.sin(this.cheer * Math.PI * 3)) * this.cheer * u * 0.5;
+    const bob = (this.reduceMotion ? 0 : Math.sin(this.time * 2.4) * u * 0.05) - hop;
     const cx = this.X(FIELD_W / 2), cy = this.Y(LAUNCH_Y + 2.15) + bob;
     const lx = this.X(FIELD_W / 2), ly = this.Y(LAUNCH_Y) + bob * 0.5;
     const a = Math.PI / 2 - this.aim;

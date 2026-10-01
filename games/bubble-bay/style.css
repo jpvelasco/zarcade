@@ -250,7 +250,7 @@ body.playing #bay { display: none; }
 
 /* ---------------------------------------------------------------- map */
 
-#screen-map, #screen-cove { justify-content: flex-start; background: #0b4f73; }
+#screen-map, #screen-cove { justify-content: flex-start; background: linear-gradient(90deg, #0b4f73, #1f8fb0 50%, #0b4f73); }
 .map-scroll, .cove-scroll {
   flex: 1;
   width: 100%;
@@ -524,7 +524,8 @@ body.playing #bay { display: none; }
 /* --------------------------------------------------------- small screens */
 
 @media (max-width: 520px) {
-  .level-name { max-width: 30vw; padding: 5px 9px; }
+  .level-name { max-width: 25vw; padding: 5px 9px; }
+  .hud-left, .hud-right { gap: 5px; }
   .level-name b { font-size: 13px; }
   .goal-chip, .score-chip { font-size: 15px; min-height: 42px; }
   .goal-chip canvas { width: 28px; height: 28px; }
