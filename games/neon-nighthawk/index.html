@@ -11,6 +11,7 @@
 </head>
 <body>
   <canvas id="scene" aria-label="Neon Nighthawk city view"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
   <a class="arcade-link" id="arcade-link" href="../../index.html">← Arcade</a>
 
   <main id="hud" class="hud hidden" aria-live="polite">
@@ -99,7 +100,7 @@
         </label>
         <p class="muted small">Leave blank for the story city. Any code builds a different Vanta with the same story.</p>
       </details>
-      <p class="controls"><b>Ride</b> arrows / WASD / stick · <b>Dash</b> Space · <b>Pulse</b> E · <b>Echo</b> Q · <b>Drift</b> Shift · <b>Pause</b> Esc</p>
+      <p class="controls"><b>Ride</b> arrows / WASD / stick · <b>Dash</b> Space · <b>Pulse</b> E · <b>Echo</b> Q · <b>Drift</b> Shift · <b>Pause</b> Esc · <b>Mute</b> M</p>
     </div>
   </section>
 
@@ -210,6 +211,7 @@
         <button id="btn-resume" class="button primary">Resume</button>
         <button id="btn-restart" class="button">Restart job</button>
         <button id="btn-mute" class="button">Sound: on</button>
+        <button id="btn-music" class="button">Music: on</button>
         <button id="btn-quit" class="button">District map</button>
         <a class="button" href="../../index.html">Back to arcade</a>
       </div>

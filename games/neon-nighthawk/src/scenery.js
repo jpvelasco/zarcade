@@ -9,6 +9,7 @@ export const LOT = BLOCK - ROAD_HALF * 2; // a city block's lot, in world units
 export const FESTIVAL = ['#ff6b9a', '#ffc857', '#6df0bd', '#7fd1ff', '#c99bff', '#ff9e5c'];
 export const SIGN_COLORS = ['#ff5fb7', '#3fe5ff', '#ffc857', '#6df0bd', '#c775ff'];
 const ROOFS = ['garden', 'solar', 'tanks', 'vents', 'court'];
+const ROOF_SHIFTS = [0, 0, -40, 150, 175, 110];
 
 function roofFeatures(kind, w, h, random) {
   const features = [];
@@ -72,7 +73,9 @@ function makeBuilding(x, y, w, h, block, kind, random) {
     x, y, w, h,
     roofH,
     facade: h - roofH,
-    hue: block.hue + Math.floor(random() * 24) - 12,
+    // Mostly the block's cool hue, with warm terracotta, teal and plum roofs
+    // mixed in so a lit street looks like a festival, not a single colour.
+    hue: block.hue + ROOF_SHIFTS[Math.floor(random() * ROOF_SHIFTS.length)] + Math.floor(random() * 16) - 8,
     roof: kind,
     features: roofFeatures(kind, w, roofH, random),
     columns,

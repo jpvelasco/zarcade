@@ -21,6 +21,17 @@ button { color: inherit; }
 
 #scene { position: fixed; inset: 0; display: block; }
 
+/* Scanline tint and vignette over the city, composited by the browser so
+   the canvas does not repaint them every frame. */
+.vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, .5) 100%),
+    linear-gradient(rgba(124, 188, 255, .03), rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, .16));
+}
+
 .hidden { display: none !important; }
 
 .hud {
@@ -730,3 +741,9 @@ body.playing .arcade-link { display: none; }
   #minimap { width: 84px; height: 84px; }
   .comms { bottom: 200px; }
 }
+
+/* Lower render quality also drops the frosted-glass blur, which has to be
+   recomputed over the moving city every frame. */
+body.lite .card,
+body.lite .meter-stack,
+body.lite .arcade-link { backdrop-filter: none; }

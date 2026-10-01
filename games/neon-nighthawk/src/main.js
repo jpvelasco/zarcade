@@ -2,6 +2,7 @@ import { aiInput } from './ai.js';
 import { Audio } from './audio.js';
 import { DISTRICTS } from './contracts.js';
 import { clamp } from './math.js';
+import { songFor } from './music.js';
 import {
   PAINTS,
   UPGRADES,
@@ -30,8 +31,18 @@ const $ = (selector) => document.querySelector(selector);
 const screens = [...document.querySelectorAll('.overlay')];
 const scene = $('#scene');
 const minimap = $('#minimap');
-const renderer = new Renderer(scene);
 const query = new URLSearchParams(location.search);
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// `?quality=high|medium|low|lowest` pins the render quality; otherwise it
+// adapts to how fast frames arrive.
+const renderer = new Renderer(scene, {
+  quality: query.get('quality') || 'auto',
+  reducedMotion,
+  onQuality(change) {
+    log.info('render.quality', change);
+    document.body.classList.toggle('lite', renderer.levelIndex >= 2);
+  },
+});
 
 // Reading `localStorage` throws when the browser blocks site storage; the
 // save helpers treat a null store as "nothing saved".
@@ -55,14 +66,12 @@ const state = {
   cursorTimer: 0,
   sparkSound: 0,
 };
-const audio = new Audio(state.save.muted);
+const audio = new Audio({ muted: state.save.muted, musicMuted: state.save.musicMuted });
 
 const hud = $('#hud');
 const touch = $('#touch');
 const toast = $('#toast');
 const comms = $('#comms');
-const scanWarning = $('#scan-warning');
-const combo = $('#combo');
 
 function seedFromCode(code) {
   const clean = String(code || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -95,6 +104,8 @@ function makeWorld(seed, chapter, { attract = false, job = 0 } = {}) {
   applyPaint();
   window.NN = {
     get world() { return state.world; },
+    get quality() { return renderer.qualityName; },
+    renderer,
     startChapter,
     save: state.save,
   };
@@ -428,7 +439,7 @@ function togglePause(force) {
   state.paused = next;
   if (next) {
     hidePlayUi();
-    $('#btn-mute').textContent = `Sound: ${state.save.muted ? 'off' : 'on'}`;
+    updateSoundButtons();
     showScreen('screen-pause');
   } else {
     state.padLatch = true;
@@ -459,6 +470,7 @@ function commsMessage(speakerId, text, duration = 4200) {
 function processEvents() {
   const { world } = state;
   const events = world.events.splice(0);
+  if (events.length) renderer.effects(events, world, { attract: state.attract });
   if (state.attract) return;
   for (const event of events) {
     if (event.type === 'spark') {
@@ -471,7 +483,10 @@ function processEvents() {
     } else {
       audio.event(event);
     }
-    if (event.type === 'radio') commsMessage(event.speaker, event.text);
+    if (event.type === 'radio') {
+      commsMessage(event.speaker, event.text);
+      audio.duck(4);
+    }
     if (event.type === 'pickup') toastMessage(world.finalLeg ? `GOT IT! NOW TO ${world.target?.name.toUpperCase() || 'THE DROP'}` : 'NEXT STOP', 2300);
     if (event.type === 'stop' && event.left > 0) {
       const noun = { cell: 'SPARK CELL', piece: 'PIECE', drop: 'DROP' }[event.stop.kind] || 'STOP';
@@ -486,6 +501,7 @@ function processEvents() {
     if (event.type === 'scan') {
       toastMessage(event.limit ? `SCANNED ${event.count} / ${event.limit}` : 'SCANNED · HEAT RISING', 1500);
       commsMessage('halo', event.line, 3000);
+      audio.duck(3);
     }
     if (event.type === 'flux') toastMessage('FLUX SHIELD ABSORBED THE HIT', 1350);
     if (event.type === 'notice') toastMessage(event.text, 1350);
@@ -525,35 +541,69 @@ function objectiveText(world) {
   }
 }
 
+// The HUD is updated every frame, so writes only touch the DOM when a value
+// actually changes.
+const hudNodes = new Map();
+function node(id) {
+  let element = hudNodes.get(id);
+  if (!element) {
+    element = document.getElementById(id);
+    hudNodes.set(id, element);
+  }
+  return element;
+}
+function setText(id, value) {
+  const element = node(id);
+  if (element.$text !== value) {
+    element.$text = value;
+    element.textContent = value;
+  }
+}
+function setStyle(id, property, value) {
+  const element = node(id);
+  const key = `$${property}`;
+  if (element[key] !== value) {
+    element[key] = value;
+    element.style[property] = value;
+  }
+}
+function setClass(id, name, on) {
+  const element = node(id);
+  const key = `$class-${name}`;
+  if (element[key] !== on) {
+    element[key] = on;
+    element.classList.toggle(name, on);
+  }
+}
+
 function updateHud() {
   if (hud.classList.contains('hidden')) return;
   const world = state.world;
   const player = world.player;
   const heat = player.heat;
   const [phase, objective, where] = objectiveText(world);
-  $('#hud-district').textContent = `${world.contract.district.name.toUpperCase()} · ${world.contract.title.toUpperCase()}`;
-  $('#hud-job').textContent = `JOB ${world.contract.job + 1} / 3`;
-  const clock = $('#hud-clock');
-  clock.textContent = formatTime(world.contract.timeRemaining);
-  clock.classList.toggle('low', world.contract.timeRemaining < 10);
-  $('#hud-phase').textContent = phase;
-  $('#hud-objective').textContent = objective;
-  $('#hud-location').textContent = where;
-  $('#hud-sparks').textContent = `✦ ${world.sparksTaken} / ${world.contract.sparks.length}`;
-  $('#hud-scans').textContent = `SCANS ${world.scans} / ${world.contract.type.scanLimit}`;
-  $('#integrity-label').textContent = player.carrying ? 'CARGO' : 'BIKE';
-  $('#integrity-value').textContent = `${Math.max(0, Math.round(player.integrity))}%`;
-  $('#charge-value').textContent = Math.round(player.charge);
-  $('#heat-value').textContent = heat < 18 ? 'LOW' : heat < 42 ? 'WATCHED' : heat < 70 ? 'HOT' : 'LOCKDOWN';
-  $('#hud-integrity').style.width = `${clamp(player.integrity, 0, 100)}%`;
-  $('#hud-charge').style.width = `${clamp(player.charge / player.maxCharge * 100, 0, 100)}%`;
-  $('#hud-heat').style.width = `${heat}%`;
-  $('#ab-dash').classList.toggle('ready', player.charge >= world.stats.dashCost);
-  $('#ab-pulse').classList.toggle('ready', player.charge >= 28);
-  $('#ab-echo').classList.toggle('ready', player.charge >= 43 && player.echoCooldown <= 0);
-  scanWarning.classList.toggle('hidden', player.scan < 0.13);
-  scanWarning.style.opacity = String(clamp(player.scan * 1.35, 0.25, 1));
-  combo.textContent = player.combo > 1 ? `${player.combo}× STYLE CHAIN` : '';
+  setText('hud-district', `${world.contract.district.name.toUpperCase()} · ${world.contract.title.toUpperCase()}`);
+  setText('hud-job', `JOB ${world.contract.job + 1} / 3`);
+  setText('hud-clock', formatTime(world.contract.timeRemaining));
+  setClass('hud-clock', 'low', world.contract.timeRemaining < 10);
+  setText('hud-phase', phase);
+  setText('hud-objective', objective);
+  setText('hud-location', where);
+  setText('hud-sparks', `✦ ${world.sparksTaken} / ${world.contract.sparks.length}`);
+  setText('hud-scans', `SCANS ${world.scans} / ${world.contract.type.scanLimit}`);
+  setText('integrity-label', player.carrying ? 'CARGO' : 'BIKE');
+  setText('integrity-value', `${Math.max(0, Math.round(player.integrity))}%`);
+  setText('charge-value', String(Math.round(player.charge)));
+  setText('heat-value', heat < 18 ? 'LOW' : heat < 42 ? 'WATCHED' : heat < 70 ? 'HOT' : 'LOCKDOWN');
+  setStyle('hud-integrity', 'width', `${Math.round(clamp(player.integrity, 0, 100))}%`);
+  setStyle('hud-charge', 'width', `${Math.round(clamp(player.charge / player.maxCharge * 100, 0, 100))}%`);
+  setStyle('hud-heat', 'width', `${Math.round(heat)}%`);
+  setClass('ab-dash', 'ready', player.charge >= world.stats.dashCost);
+  setClass('ab-pulse', 'ready', player.charge >= 28);
+  setClass('ab-echo', 'ready', player.charge >= 43 && player.echoCooldown <= 0);
+  setClass('scan-warning', 'hidden', player.scan < 0.13);
+  setStyle('scan-warning', 'opacity', clamp(player.scan * 1.35, 0.25, 1).toFixed(2));
+  setText('combo', player.combo > 1 ? `${player.combo}× STYLE CHAIN` : '');
   renderer.drawMiniMap(minimap, world);
 }
 
@@ -672,6 +722,7 @@ function worldSnapshot() {
     patrols: world.patrols.length,
     sparks: world.contract.sparks.length,
     attract: state.attract,
+    quality: renderer.qualityName,
   };
 }
 
@@ -702,7 +753,10 @@ setInterval(() => {
     log.error('frame.stall', { 'stall.ms': Math.round(gap), ...worldSnapshot() });
   }
 }, 1000);
-document.addEventListener('visibilitychange', () => { lastFrameAt = performance.now(); });
+document.addEventListener('visibilitychange', () => {
+  lastFrameAt = performance.now();
+  audio.setHidden(document.visibilityState !== 'visible');
+});
 
 function frame(now) {
   const elapsed = now - state.lastFrame;
@@ -726,7 +780,11 @@ function frame(now) {
   processEvents();
   reconcileWorld();
   updateHud();
-  renderer.draw(state.world, { attract: state.attract, now });
+  audio.setSong(state.attract ? 'menu' : songFor(state.world.chapter));
+  audio.setPaused(state.paused);
+  // Hidden tabs pause frames; that gap should not count against quality.
+  const visible = document.visibilityState === 'visible';
+  renderer.draw(state.world, { attract: state.attract, now, elapsed: visible ? elapsed : 0 });
   if (now > state.toastUntil) toast.classList.remove('show');
   if (now > state.commsUntil) comms.classList.remove('show');
   requestAnimationFrame(loop);
@@ -753,11 +811,25 @@ $('#btn-restart').addEventListener('click', () => {
   state.paused = false;
   showBriefing();
 });
-$('#btn-mute').addEventListener('click', () => {
-  state.save.muted = !state.save.muted;
-  audio.setMuted(state.save.muted);
-  writeSave(storage, state.save);
+function updateSoundButtons() {
   $('#btn-mute').textContent = `Sound: ${state.save.muted ? 'off' : 'on'}`;
+  $('#btn-music').textContent = `Music: ${state.save.musicMuted ? 'off' : 'on'}`;
+}
+function setSound({ muted = state.save.muted, musicMuted = state.save.musicMuted }) {
+  state.save.muted = muted;
+  state.save.musicMuted = musicMuted;
+  audio.setMuted(muted);
+  audio.setMusicMuted(musicMuted);
+  writeSave(storage, state.save);
+  updateSoundButtons();
+}
+$('#btn-mute').addEventListener('click', () => {
+  audio.unlock();
+  setSound({ muted: !state.save.muted });
+});
+$('#btn-music').addEventListener('click', () => {
+  audio.unlock();
+  setSound({ musicMuted: !state.save.musicMuted });
 });
 $('#btn-quit').addEventListener('click', showMap);
 $('#btn-next').addEventListener('click', () => {
@@ -782,10 +854,11 @@ document.addEventListener('keydown', (event) => {
     return;
   }
   if (event.code === 'KeyM') {
-    state.save.muted = !state.save.muted;
-    audio.setMuted(state.save.muted);
-    writeSave(storage, state.save);
-    toastMessage(state.save.muted ? 'SOUND OFF' : 'SOUND ON', 900);
+    // M silences everything, or brings it all back.
+    const quiet = !(state.save.muted && state.save.musicMuted);
+    audio.unlock();
+    setSound({ muted: quiet, musicMuted: quiet });
+    toastMessage(quiet ? 'SOUND OFF' : 'SOUND ON', 900);
     return;
   }
   const playing = state.world.active && !state.paused && !state.screen && !state.attract;
