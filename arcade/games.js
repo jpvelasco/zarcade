@@ -248,6 +248,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'crayon-quest',
+      title: 'Crayon Quest',
+      tagline: 'Doodle deckbuilder: climb the sketchbook tower.',
+      description: 'A kid-friendly roguelite card adventure drawn in crayon. Draft cards, collect stickers and scribble out silly doodle monsters on a branching map, with a daily page and unlockable heroes.',
+      genre: 'Roguelite',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#ff6b35',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
