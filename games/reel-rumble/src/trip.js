@@ -86,6 +86,8 @@ export class Trip {
     const band = nearLure && lureIn ? bandAt(this.lure.y) : BANDS[Math.floor(this.rng() * 3)];
     const sp = rollFish(this.rng, this.table, { band, baitId: this.bait, baitBoost: nearLure ? 6 : 2 });
     if (!sp) return null;
+    // Legends are one of a kind.
+    if (sp.rarity === 'legendary' && this.fishes.some((f) => f.sp === sp)) return null;
     const pos = this.placeFor(sp, nearLure ? this.lure.x : null);
     if (!pos) return null;
     const f = {
@@ -94,7 +96,7 @@ export class Trip {
       vx: 0, vy: 0, face: -1, mode: 'swim', timer: range(this.rng, 1, 4),
       life: range(this.rng, 30, 60), wiggle: this.rng() * 6.28,
     };
-    if (nearLure && !anywhere) f.x = clamp(this.lure.x + (this.rng() < 0.5 ? -1 : 1) * 12, 2, SPAN + 4);
+    if (nearLure && !anywhere) f.x = clamp(this.lure.x + (this.rng() < 0.5 ? -1 : 1) * 9, 2, SPAN + 4);
     this.fishes.push(f);
     return f;
   }
@@ -151,11 +153,11 @@ export class Trip {
         if (f.life <= 0) { f.mode = 'leave'; f.tx = SPAN + 8; }
       } else if (f.mode === 'approach' || f.mode === 'curious') {
         if (!lureIn) { f.mode = 'swim'; f.timer = 0; continue; }
-        f.tx = this.lure.x + (f.x < this.lure.x ? -0.3 : 0.3);
+        f.tx = this.lure.x + (f.x < this.lure.x ? -0.1 : 0.1);
         f.ty = this.lure.y;
-        speed = f.mode === 'approach' ? 1.1 + 0.1 * f.sp.speed : 0.9;
+        speed = f.mode === 'approach' ? 2 + 0.25 * f.sp.speed : 1.2;
         const d = Math.hypot(this.lure.x - f.x, this.lure.y - f.y);
-        if (f.mode === 'approach' && d < 0.45 && (this.state === 'waiting' || this.state === 'sinking' || this.state === 'reeling')) {
+        if (f.mode === 'approach' && d < 0.7 && (this.state === 'waiting' || this.state === 'sinking' || this.state === 'reeling')) {
           this.startBite(f);
           continue;
         }
@@ -177,9 +179,9 @@ export class Trip {
       }
       const dx = f.tx - f.x, dy = f.ty - f.y;
       const d = Math.hypot(dx, dy) || 1;
-      const want = Math.min(speed, d * 2);
+      const want = Math.min(speed, d * 2 + 0.4);
       f.vx += ((dx / d) * want - f.vx) * Math.min(1, dt * 2.5);
-      f.vy += ((dy / d) * want * 0.6 - f.vy) * Math.min(1, dt * 2.5);
+      f.vy += ((dy / d) * want * (f.mode === 'approach' ? 1 : 0.6) - f.vy) * Math.min(1, dt * 2.5);
       f.x += f.vx * dt;
       f.y += f.vy * dt;
       const floor = this.bottom(clamp(f.x, 0, SPAN)) - 0.25;
@@ -191,10 +193,10 @@ export class Trip {
     // Respawn, and let the bait's smell bring fish when nothing is happening.
     this.spawnT -= dt;
     if (this.spawnT <= 0) {
-      const lured = lureIn && this.idleT > 6;
+      const lured = lureIn && this.idleT > 3.5;
       this.spawn({ nearLure: lured });
-      if (lured) this.idleT = 2;
-      this.spawnT = range(this.rng, 4, 8);
+      if (lured) this.idleT = 1;
+      this.spawnT = range(this.rng, 3, 6);
     }
 
     // Interest checks.
@@ -209,7 +211,7 @@ export class Trip {
       if (Math.hypot(f.x - this.lure.x, f.y - this.lure.y) > sense) continue;
       const likes = likesBait(f.sp, this.bait);
       if (likes) {
-        const p = (0.22 + (this.twitchT > 0 ? 0.15 : 0)) * (moving ? 1.6 : this.state === 'reeling' ? 0.4 : 1);
+        const p = (0.3 + (this.twitchT > 0 ? 0.15 : 0)) * (moving ? 1.6 : this.state === 'reeling' ? 0.4 : 1);
         if (this.rng() < p) {
           f.mode = 'approach';
           this.emit('approach', { fish: f.sp });

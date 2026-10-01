@@ -17,7 +17,7 @@ export function createBite(fish, rng, { hook = 1 } = {}) {
     fish, rng,
     phase: 'nibble', // nibble | bite | hooked | spooked | stolen
     nibblesLeft: nibbles,
-    timer: range(rng, 0.6, 1.3),
+    timer: range(rng, 0.4, 0.9),
     window: BITE_WINDOW * b.window * hook,
     t: 0,
     quality: null,
@@ -37,7 +37,7 @@ export function stepBite(bite, dt, press) {
       if (bite.nibblesLeft > 0) {
         bite.nibblesLeft--;
         bite.events.push({ type: 'nibble' });
-        bite.timer = range(bite.rng, 0.55, 1.35);
+        bite.timer = range(bite.rng, 0.45, 1.1);
       } else {
         bite.phase = 'bite';
         bite.t = 0;

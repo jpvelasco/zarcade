@@ -28,27 +28,27 @@ export function bandAt(depth) {
 // boat needed to get there; `ice` waters drop the lure through a hole.
 export const WATERS = [
   {
-    id: 'pond', name: 'Willow Pond', blurb: 'Lily pads, fireflies and a very old catfish.',
+    id: 'pond', short: 'Pond', name: 'Willow Pond', blurb: 'Lily pads, fireflies and a very old catfish.',
     minDepth: 1, maxDepth: 12, shelf: 44, boat: null, weathers: { clear: 4, cloudy: 3, rain: 2, fog: 2 },
     periods: PERIODS, accent: '#7ad86a', drift: 0,
   },
   {
-    id: 'river', name: 'Rushing River', blurb: 'Fast water, jumping trout and the River King.',
+    id: 'river', short: 'River', name: 'Rushing River', blurb: 'Fast water, jumping trout and the River King.',
     minDepth: 0.8, maxDepth: 10, shelf: 40, boat: 'canoe', weathers: { clear: 4, cloudy: 3, rain: 3 },
     periods: PERIODS, accent: '#5ab8ff', drift: 0.35,
   },
   {
-    id: 'coral', name: 'Coral Bay', blurb: 'Warm turquoise reef full of rainbow fish.',
+    id: 'coral', short: 'Coral Bay', name: 'Coral Bay', blurb: 'Warm turquoise reef full of rainbow fish.',
     minDepth: 1.2, maxDepth: 20, shelf: 50, boat: 'sailboat', weathers: { clear: 5, cloudy: 3, rain: 2 },
     periods: PERIODS, accent: '#2ee6d0', drift: 0,
   },
   {
-    id: 'frozen', name: 'Frozen Lake', blurb: 'Ice fishing under the northern lights.',
+    id: 'frozen', short: 'Frozen', name: 'Frozen Lake', blurb: 'Ice fishing under the northern lights.',
     minDepth: 18, maxDepth: 18, shelf: 1, boat: 'snowrunner', weathers: { clear: 4, snow: 4, fog: 2 },
     periods: PERIODS, accent: '#bfe8ff', drift: 0, ice: true, holeX: 13,
   },
   {
-    id: 'lagoon', name: 'Starfall Lagoon', blurb: 'A secret lagoon that only appears at night.',
+    id: 'lagoon', short: 'Lagoon', name: 'Starfall Lagoon', blurb: 'A secret lagoon that only appears at night.',
     minDepth: 1, maxDepth: 16, shelf: 46, boat: 'starferry', weathers: { clear: 4, fog: 2, meteor: 3 },
     periods: ['night'], accent: '#c58aff', drift: 0, nightOnly: true,
   },

@@ -24,7 +24,10 @@ export class Input {
       const t = e.target;
       const form = t && (t.tagName === 'BUTTON' || t.tagName === 'A' || t.tagName === 'INPUT');
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key) && (this.enabled || !form)) e.preventDefault();
-      if (!e.repeat) this.pressed.add(e.code);
+      if (!e.repeat) {
+        this.pressed.add(e.code);
+        if ((e.code === 'Space' || e.code === 'Enter') && this.enabled && !this.blocked) this.tapQueued = true;
+      }
       this.keys.add(e.code);
       if (e.code === 'Space' || e.code.startsWith('Arrow')) this.mode = 'keys';
     });
@@ -49,11 +52,13 @@ export class Input {
         this.mouse.down = true;
         this.mouse.x = e.clientX;
         this.mouse.y = e.clientY;
+        if (this.enabled) this.tapQueued = true;
         return;
       }
       e.preventDefault();
       this.mode = 'touch';
       this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.enabled) this.tapQueued = true;
       try { surface.setPointerCapture(e.pointerId); } catch { /* optional */ }
     });
     const end = (e) => {
@@ -84,6 +89,7 @@ export class Input {
     this.mouse.down = false;
     this.touches.clear();
     this.blocked = true; // a held button must be let go before it counts
+    this.tapQueued = false;
   }
 
   pollPad() {
@@ -97,6 +103,7 @@ export class Input {
     };
     for (const [k, v] of Object.entries(now)) if (v && !this.pad.buttons[k]) this.padEdges.add(k);
     if (Object.values(now).some(Boolean)) this.mode = 'pad';
+    if (now.a && !this.pad.buttons.a && this.enabled) this.tapQueued = true;
     this.pad.buttons = now;
     let x = Math.abs(ax) > 0.18 ? ax : 0;
     if (b(14)) x = -1;
@@ -116,7 +123,9 @@ export class Input {
       if (!hold) this.blocked = false;
       hold = false;
     }
-    const press = hold && !this.holdPrev;
+    // A tap shorter than a frame still counts as a press.
+    const press = (hold && !this.holdPrev) || (this.tapQueued && !this.blocked);
+    this.tapQueued = false;
     this.holdPrev = hold;
 
     let axis = (k('ArrowRight', 'KeyD') ? 1 : 0) - (k('ArrowLeft', 'KeyA') ? 1 : 0);

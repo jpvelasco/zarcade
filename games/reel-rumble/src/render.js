@@ -60,6 +60,7 @@ export class Renderer {
     this.camX = 0;
     this.sprites = new Map();
     this.particles = [];
+    this.fx = [];
     this.ripples = [];
     this.texts = [];
     this.shake = 0;
@@ -106,6 +107,7 @@ export class Renderer {
     if (!keepCamera) this.camX = 0;
     this.layers = { sky: null, under: null, shore: null, fog: null };
     this.particles.length = 0;
+    this.fx.length = 0;
     this.ripples.length = 0;
     this.initWeather();
     const tasks = [() => this.bakeSky(), () => this.bakeUnder(), () => this.bakeShore(), () => this.bakeExtras()];
@@ -169,7 +171,7 @@ export class Renderer {
       }
       if (period === 'night') this.drawMoon(g, W * 0.78, h * 0.22, Math.max(18, h * 0.07));
       if (water.id === 'frozen' && period === 'night') this.drawAurora(g, W, h);
-    } else if (weather !== 'rain' && weather !== 'fog') {
+    } else if (weather !== 'rain' && weather !== 'fog' && weather !== 'snow') {
       const sunY = period === 'day' ? h * 0.2 : h * 0.62;
       const sunX = period === 'dawn' ? W * 0.22 : period === 'dusk' ? W * 0.74 : W * 0.7;
       const r = Math.max(24, h * 0.08);
@@ -323,14 +325,16 @@ export class Renderer {
     g.beginPath();
     for (let x = 0; x <= SPAN + 10; x += 0.5) { const X = ox + x * pxX, Y = yAt(x) + 1.5; if (x === 0) g.moveTo(X, Y); else g.lineTo(X, Y); }
     g.stroke();
-    // Bank below the shore.
+    // Bank below the shore, sloping under the bottom.
+    const bankCol = { pond: ['#8a6a44', '#4a3826'], river: ['#7a7468', '#3e3a34'], coral: ['#d8c08a', '#9a8458'], frozen: ['#6a7488', '#2e3446'], lagoon: ['#4a3a7a', '#1e1640'] }[water.id];
     const bankG = g.createLinearGradient(0, 0, 0, hPx);
-    bankG.addColorStop(0, tint('#7a5a3a', period, weather));
-    bankG.addColorStop(1, tint('#3e2c1e', period, weather));
+    bankG.addColorStop(0, tint(bankCol[0], period, weather));
+    bankG.addColorStop(1, tint(bankCol[1], period, weather));
     g.fillStyle = bankG;
-    g.beginPath(); g.moveTo(0, 0); g.lineTo(ox + 4, 0); g.quadraticCurveTo(ox - 6, yAt(0) * 0.6, ox + pxX * 1.5, yAt(1.5)); g.lineTo(ox + pxX * 1.5, hPx); g.lineTo(0, hPx); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(ox + 4, 0); g.quadraticCurveTo(ox - 6, yAt(0) * 0.6, ox + pxX * 1.5, yAt(1.5));
+    g.quadraticCurveTo(ox - 10, hPx * 0.6, ox - 60, hPx); g.lineTo(0, hPx); g.closePath(); g.fill();
     g.fillStyle = 'rgba(0,0,0,0.12)';
-    for (let i = 0; i < 30; i++) { g.beginPath(); g.ellipse(rng() * ox, rng() * hPx, 3 + rng() * 8, 2 + rng() * 4, 0, 0, 7); g.fill(); }
+    for (let i = 0; i < 30; i++) { g.beginPath(); g.ellipse(rng() * (ox - 20), rng() * hPx, 3 + rng() * 8, 2 + rng() * 4, 0, 0, 7); g.fill(); }
     // Pebbles.
     for (let i = 0; i < 140; i++) {
       const x = rng() * (SPAN + 10);
@@ -494,7 +498,7 @@ export class Renderer {
     const cc = canvas(cw * dpr, ch * dpr);
     const c2 = cc.getContext('2d');
     c2.scale(dpr, dpr);
-    const grey = weather === 'rain' ? '#9aa4b0' : weather === 'cloudy' || weather === 'snow' ? '#dfe5ec' : period === 'dusk' ? '#ffd2c0' : period === 'night' ? '#4a5478' : '#ffffff';
+    const grey = period === 'night' ? (weather === 'clear' ? '#3a4470' : '#4a5478') : weather === 'rain' ? '#9aa4b0' : weather === 'cloudy' || weather === 'snow' ? '#dfe5ec' : period === 'dusk' ? '#ffd2c0' : '#ffffff';
     c2.fillStyle = grey;
     c2.globalAlpha = 0.9;
     for (const [x, y, r] of [[50, 58, 30], [90, 42, 38], [140, 50, 34], [175, 62, 24], [110, 66, 30]]) { c2.beginPath(); c2.arc(x, y, r, 0, 7); c2.fill(); }
@@ -506,13 +510,15 @@ export class Renderer {
       const f = fc.getContext('2d');
       f.scale(dpr, dpr);
       const rng = mulberry32(5);
-      for (let i = 0; i < 26; i++) {
-        const x = rng() * fw, y = 60 + rng() * 100, r = 60 + rng() * 90;
-        const fg = f.createRadialGradient(x, y, 0, x, y, r);
-        fg.addColorStop(0, 'rgba(235,240,248,0.5)');
-        fg.addColorStop(1, 'rgba(235,240,248,0)');
-        f.fillStyle = fg;
-        f.fillRect(x - r, y - r, r * 2, r * 2);
+      for (let i = 0; i < 30; i++) {
+        const x = rng() * fw, y = 95 + rng() * 30, r = 50 + rng() * 40;
+        for (const ox of [-fw, 0, fw]) {
+          const fg = f.createRadialGradient(x + ox, y, 0, x + ox, y, r);
+          fg.addColorStop(0, 'rgba(235,240,248,0.5)');
+          fg.addColorStop(1, 'rgba(235,240,248,0)');
+          f.fillStyle = fg;
+          f.fillRect(x + ox - r, y - r, r * 2, r * 2);
+        }
       }
       this.layers.fog = fc;
     }
@@ -625,6 +631,24 @@ export class Renderer {
     for (const t of this.texts) t.t += dt;
     this.texts = this.texts.filter((t) => t.t < 1.6);
     if (this.landAnim) { this.landAnim.t += dt; if (this.landAnim.t > 1.4) this.landAnim = null; }
+    // Legendary special moves get their own little effects.
+    const fi = trip.fight;
+    if (fi && fi.phase === 'special' && trip.hooked && this.fx.length < (this.reduced ? 20 : 60)) {
+      const f = trip.hooked;
+      const kind = fi.special;
+      const col = { mud: '#7a5a32', rapids: '#ffffff', frost: '#dff6ff', starburst: '#ffe36a' }[kind] || '#ffffff';
+      const n = this.reduced ? 1 : 2;
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2;
+        this.fx.push({
+          x: this.sx(f.x) + Math.cos(a) * 30, y: this.sy(f.y) + Math.sin(a) * 18,
+          vx: kind === 'rapids' ? 160 + Math.random() * 80 : Math.cos(a) * 30, vy: kind === 'mud' ? -10 : Math.sin(a) * 30,
+          t: 0, life: 0.8, r: kind === 'mud' ? 6 : kind === 'rapids' ? 1.5 : 2.5, col, streak: kind === 'rapids',
+        });
+      }
+    }
+    for (const p of this.fx) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; }
+    this.fx = this.fx.filter((p) => p.t < p.life);
     // Rain ripples.
     if (this.scene.weather === 'rain' && Math.random() < dt * 6) this.ripple(this.camX + Math.random() * this.span, 0.25);
     if (this.scene.weather === 'meteor') {
@@ -688,7 +712,7 @@ export class Renderer {
     }
     for (const c of this.clouds) {
       const x = ((c.x + t * c.v) % (W + 260)) - 220;
-      ctx.drawImage(this.layers.cloud, x, c.y * surfaceY, 220 * c.s, 90 * c.s);
+      ctx.drawImage(this.layers.cloud, x, c.y * surfaceY, 220 * c.s * this.k, 90 * c.s * this.k);
     }
     for (const m of this.meteors) {
       const p = m.t / 0.9;
@@ -1111,6 +1135,13 @@ export class Renderer {
   }
 
   drawParticles(ctx) {
+    for (const p of this.fx) {
+      ctx.globalAlpha = 0.8 * (1 - p.t / p.life);
+      ctx.fillStyle = p.col;
+      if (p.streak) ctx.fillRect(p.x, p.y, 16, p.r);
+      else { ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + p.t), 0, 7); ctx.fill(); }
+    }
+    ctx.globalAlpha = 1;
     ctx.fillStyle = 'rgba(230,248,255,0.9)';
     for (const p of this.particles) {
       ctx.globalAlpha = 1 - p.t / p.life;
@@ -1200,7 +1231,9 @@ export class Renderer {
     ctx.font = `800 ${Math.round(15 * Math.max(0.9, k))}px ui-rounded, system-ui, sans-serif`;
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(ui.fishLabel || fish.name, bx, by - 34);
+    const label = ui.fishLabel || fish.name;
+    ctx.fillText(label, bx, by - 34);
+    const nameW = ctx.measureText(label).width;
     ctx.textAlign = 'right';
     ctx.fillStyle = '#bfe8ff';
     ctx.fillText(ui.distLabel || '', bx + bw, by - 34);
@@ -1212,7 +1245,7 @@ export class Renderer {
     if (r.stages > 1) {
       for (let i = 0; i < r.stages; i++) {
         ctx.fillStyle = i < r.stages - r.stage + 1 ? '#ffd84f' : 'rgba(255,255,255,0.25)';
-        ctx.beginPath(); ctx.arc(bx + sw - 8 - i * 16, by - 44, 5, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.arc(bx + nameW + 14 + i * 16, by - 39, 5, 0, 7); ctx.fill();
       }
     }
     // Tension bar zones

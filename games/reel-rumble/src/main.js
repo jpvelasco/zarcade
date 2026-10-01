@@ -15,6 +15,7 @@ import { frameMonitor } from './perf.js';
 import { hashSeed, mulberry32 } from './rng.js';
 
 const STEP = 1 / 60;
+const COIN = '<i class="coin" aria-label="coins"></i>';
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -246,7 +247,7 @@ function showCatch() {
   const ri = RARITY_INFO[r.fish.rarity];
   $('catch-rarity').textContent = ri.name;
   $('catch-rarity').style.color = shadeText(ri.color);
-  const lines = [['Length', `${r.cm} cm`], ['Weight', `${r.kg} kg`], ['Coins', `+${r.coins} 🪙`]];
+  const lines = [['Length', `${r.cm} cm`], ['Weight', `${r.kg} kg`], ['Coins', `+${r.coins} ${COIN}`]];
   if (!rec.newSpecies) lines.push(['Your record', `${save.book[r.fish.id].kg} kg`]);
   $('catch-lines').innerHTML = lines.map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join('');
   $('catch-fact').textContent = r.fish.fact;
@@ -312,7 +313,7 @@ function showTourneyResult() {
   $('tourney-title').textContent = res.medal ? `${{ gold: '🥇 Gold', silver: '🥈 Silver', bronze: '🥉 Bronze' }[res.medal]}!` : 'So close!';
   $('tourney-sub').textContent = `${t.name} · your total ${run.kg} kg`;
   $('tourney-table').innerHTML = res.table.map((r, i) => `<div class="${r.you ? 'you' : ''}"><span>${i + 1}. ${r.name}</span><b>${r.kg} kg</b></div>`).join('');
-  $('tourney-prize').textContent = gain ? `+${gain} 🪙` : res.medal ? 'Medal kept!' : 'Try again any time!';
+  $('tourney-prize').innerHTML = gain ? `+${gain} ${COIN}` : res.medal ? 'Medal kept!' : 'Try again any time!';
   if (res.medal) sound.quest();
   showScreen('screen-tourney');
   updateHud();
@@ -325,7 +326,7 @@ function updateHud() {
   $('chip-place').textContent = w.name;
   const { period, weather } = trip ? { period: trip.period, weather: trip.weather } : conditions(save.water);
   $('chip-time').textContent = `${PERIOD_INFO[period].icon} ${hourLabel(save.clock.hour)} · ${WEATHER_INFO[weather].icon} ${WEATHER_INFO[weather].name}`;
-  $('chip-coins').textContent = `🪙 ${save.coins.toLocaleString('en-US')}`;
+  $('chip-coins').innerHTML = `${COIN} ${save.coins.toLocaleString('en-US')}`;
   const b = find('bait', save.equip.bait);
   $('btn-bait').innerHTML = `<span class="swatch" style="background:${b.color}"></span>${b.name}`;
   $('chip-tourney').classList.toggle('hidden', !tourney);
@@ -367,6 +368,7 @@ function updateHint(force = false) {
   const fighting = mode === 'fish' && trip?.state === 'fight';
   el.classList.toggle('raise', fighting);
   el.classList.toggle('touch', coarse);
+  el.classList.toggle('urgent', mode === 'fish' && trip?.state === 'bite');
   $('touch-steer').classList.toggle('hidden', !(coarse && fighting));
 }
 
@@ -405,7 +407,7 @@ function toTitle() {
   buildDemo();
   const n = speciesCaught(save);
   $('btn-play').textContent = save.stats.caught ? `Go fishing · ${WATER[save.water].name}` : 'Go fishing';
-  $('title-stats').textContent = n ? `📖 ${n} / ${FISH.length} fish · 🪙 ${save.coins.toLocaleString('en-US')}` : '';
+  $('title-stats').innerHTML = n ? `📖 ${n} / ${FISH.length} fish · ${COIN} ${save.coins.toLocaleString('en-US')}` : '';
   updateSoundButtons();
   showScreen('screen-title');
 }
@@ -427,7 +429,7 @@ function renderMap() {
       <div class="meta"><span>📖 ${got}/${fishOfWater(w.id).length}</span><span>${PERIOD_INFO[period].icon} ${PERIOD_INFO[period].name}</span><span>${WEATHER_INFO[weather].icon} ${WEATHER_INFO[weather].name}</span></div>`;
     const btn = document.createElement('button');
     btn.className = `btn ${open ? 'teal' : ''}`;
-    btn.textContent = open ? (trip && trip.water.id === w.id && menuFrom === 'fish' ? 'Back to fishing' : 'Fish here') : `Needs the ${boat.name} (${boat.price} 🪙)`;
+    btn.innerHTML = open ? (trip && trip.water.id === w.id && menuFrom === 'fish' ? 'Back to fishing' : 'Fish here') : `Needs the ${boat.name} (${boat.price} ${COIN})`;
     btn.addEventListener('click', () => {
       sound.click();
       if (!open) { shopTab = 'boat'; return openMenu('shop'); }
@@ -455,7 +457,7 @@ function statsLine(slot, it) {
   return `Opens ${WATER[it.water].name}`;
 }
 function renderShop() {
-  $('shop-coins').textContent = `🪙 ${save.coins.toLocaleString('en-US')}`;
+  $('shop-coins').innerHTML = `${COIN} ${save.coins.toLocaleString('en-US')}`;
   const tabs = $('shop-tabs');
   tabs.innerHTML = '';
   for (const slot of Object.keys(SLOTS)) {
@@ -482,7 +484,7 @@ function renderShop() {
       btn.disabled = shopTab === 'boat' || on;
       btn.addEventListener('click', () => { equip(save, shopTab, it.id); onEquipChanged(); renderShop(); });
     } else {
-      btn.textContent = block && block !== 'Not enough coins' ? block : `Buy · ${it.price} 🪙`;
+      btn.innerHTML = block && block !== 'Not enough coins' ? block : `Buy · ${it.price} ${COIN}`;
       btn.disabled = !!block;
       if (!block) btn.classList.add('primary');
       btn.addEventListener('click', () => {
@@ -550,7 +552,7 @@ function renderBook() {
     const b = document.createElement('button');
     b.className = `tab${w.id === bookWater ? ' on' : ''}`;
     const got = fishOfWater(w.id).filter((f) => save.book[f.id]?.n).length;
-    b.textContent = `${w.name} ${got}/${fishOfWater(w.id).length}`;
+    b.textContent = `${innerWidth < 700 ? w.short : w.name} ${got}/${fishOfWater(w.id).length}`;
     b.addEventListener('click', () => { bookWater = w.id; bookFish = null; sound.click(); renderBook(); });
     tabs.appendChild(b);
   }
@@ -627,7 +629,7 @@ const GILL_LINES = [
   'Legends only bite the Starlight Lure. Bring your strongest line and your best rod!',
 ];
 function renderGill() {
-  $('gill-coins').textContent = `🪙 ${save.coins.toLocaleString('en-US')}`;
+  $('gill-coins').innerHTML = `${COIN} ${save.coins.toLocaleString('en-US')}`;
   const tip = save.stats.caught === 0 ? GILL_LINES[0] : GILL_LINES[(save.stats.casts + save.quests.length) % GILL_LINES.length];
   $('gill-says').textContent = tip;
   const ql = $('quest-list');
@@ -639,7 +641,7 @@ function renderGill() {
     const el = document.createElement('div');
     el.className = `quest${done ? ' done' : ''}`;
     const pct = Math.round(Math.min(1, h / n) * 100);
-    el.innerHTML = `<h4>${done ? '✅ ' : ''}${q.title}<span>${q.reward} 🪙</span></h4><p>${q.text}</p><div class="bar"><i style="width:${pct}%"></i></div>`;
+    el.innerHTML = `<h4>${done ? '✅ ' : ''}${q.title}<span>${q.reward} ${COIN}</span></h4><p>${q.text}</p><div class="bar"><i style="width:${pct}%"></i></div>`;
     ql.appendChild(el);
   }
   const lockedCount = QUESTS.filter((q) => !save.quests.includes(q.id) && !openQuests(save).includes(q)).length;
@@ -658,7 +660,7 @@ function renderGill() {
     const medal = save.medals[t.id];
     const el = document.createElement('div');
     el.className = 'quest';
-    el.innerHTML = `<h4>${medal ? { gold: '🥇', silver: '🥈', bronze: '🥉' }[medal] + ' ' : '🏆 '}${t.name}<span>up to ${t.prizes.gold} 🪙</span></h4>
+    el.innerHTML = `<h4>${medal ? { gold: '🥇', silver: '🥈', bronze: '🥉' }[medal] + ' ' : '🏆 '}${t.name}<span>up to ${t.prizes.gold} ${COIN}</span></h4>
       <p>${open ? `Hook ${TOURNAMENT_FISH} fish at ${w.name}. Beat ${t.rivals.map(([n, kg]) => `${n} (${kg} kg)`).join(', ')}.` : `Unlocks after the "${QUESTS.find((q) => q.id === t.needs).title}" quest.`}</p>`;
     if (open) {
       const b = document.createElement('button');
@@ -843,7 +845,7 @@ function frame(now) {
   const ui = { attract: view === demo, touch: coarse };
   if (view === trip && trip?.fight) {
     const f = trip.fight;
-    ui.fishLabel = save.book[f.fish.id]?.n || f.fish.rarity === 'legendary' ? f.fish.name : 'Something big…';
+    ui.fishLabel = save.book[f.fish.id]?.n || f.fish.rarity === 'legendary' ? f.fish.name : 'Mystery fish!';
     ui.distLabel = `${Math.max(0, f.dist - 1.5).toFixed(0)} m`;
   }
   renderer.draw(view, ui);
@@ -855,6 +857,10 @@ const loop = telemetry ? telemetry.guard(frame, 'reel-rumble.frame') : frame;
 if (location.protocol !== 'file:') {
   log.event('game.ready', { species: speciesCaught(save), coins: save.coins, caught: save.stats.caught });
   updateSoundButtons();
+  const hour = parseFloat(params.get('hour'));
+  if (hour >= 0 && hour < 24) save.clock.hour = hour;
+  const day = parseInt(params.get('day'), 10);
+  if (day >= 1) save.clock.day = day;
   const w = params.get('water');
   if (w && WATER[w]) startFishing(w, { force: true }); else toTitle();
   requestAnimationFrame(loop);

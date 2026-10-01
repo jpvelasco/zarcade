@@ -314,6 +314,9 @@ function star(ctx, x, y, r) {
   ctx.fill();
 }
 
+const GLOWS = new Set(['glow', 'starkoi', 'crown', 'crystal', 'aurora']);
+const glowRy = (look, L) => Math.min(L * 0.62, (SHAPES[look.shape] || SHAPES.perch).h * L * 1.1 + L * 0.08);
+
 function seeded(seed) {
   let s = seed >>> 0;
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
@@ -329,14 +332,17 @@ export function drawFish(ctx, look, L, { silhouette = null } = {}) {
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   // Glow halo for glowing species.
-  if (!silhouette && (look.pattern === 'glow' || look.pattern === 'starkoi' || look.pattern === 'crown' || look.pattern === 'crystal' || look.pattern === 'aurora')) {
+  if (!silhouette && GLOWS.has(look.pattern)) {
+    const ry = glowRy(look, L);
+    ctx.save();
+    ctx.scale(1, ry / (L * 0.62));
     const gr = ctx.createRadialGradient(0, 0, L * 0.05, 0, 0, L * 0.62);
     gr.addColorStop(0, look.pattern === 'glow' ? look.accent : look.fin);
     gr.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.globalAlpha = 0.45;
     ctx.fillStyle = gr;
     ctx.beginPath(); ctx.arc(0, 0, L * 0.62, 0, 7); ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.restore();
   }
   const g0 = { H: (sh.h * L) / 2, x0: -L * 0.3, th: (sh.h * L) / 2 * 0.3 };
   // Tail and fins behind the body.
@@ -458,7 +464,8 @@ export function drawFish(ctx, look, L, { silhouette = null } = {}) {
 export function bakeFish(look, L, { silhouette = null, scale = 1 } = {}) {
   const sh = SHAPES[look.shape] || SHAPES.perch;
   const tallness = Math.max(sh.h * 2.6, sh.dorsal === 'sail' ? 1.0 : 0.8, sh.tail === 'bigfan' || sh.veil ? 1.4 : 0);
-  const w = Math.ceil(L * 1.5 * scale), h = Math.ceil(L * tallness * scale + 8 * scale);
+  const glowH = GLOWS.has(look.pattern) ? glowRy(look, L) * 2 / L : 0;
+  const w = Math.ceil(L * 1.5 * scale), h = Math.ceil(L * Math.max(tallness, glowH) * scale + 8 * scale);
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
