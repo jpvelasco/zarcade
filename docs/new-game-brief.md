@@ -150,7 +150,10 @@ layout (`Emulation.setDeviceMetricsOverride` + `Emulation.setTouchEmulationEnabl
 reduced motion, and frame times with `Emulation.setCPUThrottlingRate {rate: 4}`.
 Confirm `Telemetry.log.records()` shows your events and that a forced crash in
 the frame loop shows `#telemetry-crash` once. Zero console errors. Iterate on
-what you see until it looks great. Kill your Chrome and server at the end.
+what you see until it looks great. Kill your Chrome and server at the end by
+the PIDs you started (or `lsof -tiTCP:<port> -sTCP:LISTEN` on your own port).
+Never kill by name pattern (`pkill -f`, `killall`): other agents and the user
+run servers and Chrome on this machine too.
 
 ## Git
 

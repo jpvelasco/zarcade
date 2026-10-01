@@ -281,6 +281,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'potion-pals',
+      title: 'Potion Pals',
+      tagline: 'Mix anything. Discover everything. Collect pals.',
+      description: "Drop ingredients into a witch's cauldron to uncover 112 discoveries, and brew the potions that summon 32 pals into your treehouse.",
+      genre: 'Discovery',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#6fd49a',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
