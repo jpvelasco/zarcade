@@ -123,8 +123,8 @@ const FOLD_SHAPE = {
 export function bakePlane(fold, paper, { soak = 0, ppm = 46 } = {}) {
   const shape = FOLD_SHAPE[fold.shape] || FOLD_SHAPE.dart;
   const wet = Math.min(1, soak);
-  const ink = wet ? mix(paper.ink, '#7f8aa0', wet * 0.55) : paper.ink;
-  const trim = wet ? mix(paper.trim, '#6d7791', wet * 0.5) : paper.trim;
+  const ink = wet ? mix(paper.ink, '#8d9ab0', wet * 0.42) : paper.ink;
+  const trim = wet ? mix(paper.trim, '#7b869c', wet * 0.4) : paper.trim;
   return make(3.1, 1.9, ppm, (g) => {
     g.translate(0.2, 0.2);
     // Under wing first, then the top wing over it: a simple paper fold read.
@@ -150,7 +150,7 @@ export function bakePlane(fold, paper, { soak = 0, ppm = 46 } = {}) {
       g.globalAlpha = 1;
     }
     if (wet > 0.25) {
-      g.globalAlpha = 0.3 * wet;
+      g.globalAlpha = 0.18 * wet;
       poly(g, shape.top, '#5b6b86');
       g.globalAlpha = 1;
       for (let i = 0; i < 3; i += 1) {

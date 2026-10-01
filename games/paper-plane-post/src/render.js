@@ -18,7 +18,7 @@ const TRAIL = 46;
 const SOAK_STEPS = 4;
 const TAU = Math.PI * 2;
 // The paper is drawn larger than it collides: a generous, readable hero.
-const PLANE_SCALE = 1.5;
+const PLANE_SCALE = 1.8;
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -132,7 +132,7 @@ export class Renderer {
     const speed = Math.hypot(plane.vx, plane.vy);
     const wantZoom = 1
       + clamp((speed - 15) / 32, 0, 0.22)
-      + clamp((clearance - 16) / 90, 0, 0.5);
+      + clamp((clearance - 16) / 95, 0, 0.42);
     cam.zoom = lerp(cam.zoom, wantZoom, 1 - Math.exp(-dt * 2.2));
     if (!follow) return;
     const aheadX = clamp(plane.vx * 0.55, 0, 16);
