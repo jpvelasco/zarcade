@@ -371,6 +371,11 @@ table.keys th { color: var(--ink-soft); font-size: 13px; text-transform: upperca
 @media (pointer: coarse) {
   .hud-info { bottom: calc(150px + env(safe-area-inset-bottom)); }
 }
+/* Landscape phones: the timer fits between the stick and the buttons
+   instead of sitting on the arena. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .hud-info { bottom: max(12px, env(safe-area-inset-bottom)); }
+}
 @media (prefers-reduced-motion: reduce) {
   .card { animation: none; }
   .logo .l1, .logo .l2 { animation: none; }

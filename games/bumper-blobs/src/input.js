@@ -167,8 +167,10 @@ export class Input {
     const setKnob = () => {
       if (!t.stick) { base.classList.remove('active'); knob.style.transform = ''; return; }
       base.classList.add('active');
-      base.style.left = `${t.stick.ox}px`;
-      base.style.top = `${t.stick.oy}px`;
+      // The base sits inside the zone, which is not at the top of the page.
+      const zr = zone.getBoundingClientRect();
+      base.style.left = `${t.stick.ox - zr.left}px`;
+      base.style.top = `${t.stick.oy - zr.top}px`;
       knob.style.transform = `translate(${t.mx * STICK_R}px, ${t.my * STICK_R}px)`;
     };
     zone.addEventListener('pointerdown', (e) => {

@@ -16,6 +16,9 @@ npm run serve      # then open http://localhost:8000/games/bumper-blobs/
   their dash button to join. Pick a colour, face and hat, press dash again
   when ready. The match starts when everyone is ready (or press Start).
 - **Quick match vs bots**: you against three bots with your saved settings.
+  Bots give everyone a couple of seconds after GO before they start
+  dashing, and catch their breath between dashes, so rounds have time to
+  get going.
   Every keyboard scheme, every gamepad and touch all control your blob.
 
 ## Controls

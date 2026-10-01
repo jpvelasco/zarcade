@@ -5,10 +5,13 @@ import { onFloor } from './arenas.js';
 import { Rng, hashSeed } from './rng.js';
 import { BLOB } from './config.js';
 
+// `grace` is how long after "go" a bot only jostles for room before it
+// starts dashing, and `rest` is its breather after each dash. Both keep
+// rounds from ending a few seconds in, before a player has found their feet.
 export const BOT_TUNING = {
-  easy: { think: 0.5, aimErr: 0.55, margin: 55, charge: [0.1, 0.45], range: 190, aggression: 0.55, pound: 0.06, speed: 0.7, grab: 0.4, reckless: 0.25 },
-  normal: { think: 0.32, aimErr: 0.28, margin: 85, charge: [0.35, 0.8], range: 240, aggression: 0.8, pound: 0.12, speed: 0.9, grab: 0.7, reckless: 0.08 },
-  hard: { think: 0.1, aimErr: 0.07, margin: 105, charge: [0.6, 1], range: 280, aggression: 1, pound: 0.2, speed: 1, grab: 0.9, reckless: 0 },
+  easy: { think: 0.5, aimErr: 0.55, margin: 55, charge: [0.1, 0.45], range: 190, aggression: 0.55, pound: 0.06, speed: 0.7, grab: 0.4, reckless: 0.25, grace: 3, rest: 1.6 },
+  normal: { think: 0.32, aimErr: 0.28, margin: 85, charge: [0.35, 0.8], range: 240, aggression: 0.8, pound: 0.12, speed: 0.9, grab: 0.7, reckless: 0.08, grace: 2.5, rest: 1.2 },
+  hard: { think: 0.1, aimErr: 0.07, margin: 105, charge: [0.6, 1], range: 280, aggression: 1, pound: 0.2, speed: 1, grab: 0.9, reckless: 0, grace: 1.8, rest: 0.8 },
 };
 
 const RAYS = 12;
@@ -60,6 +63,7 @@ export class Bot {
     this.chargeGoal = 0.5;
     this.aim = 0;
     this.out = { mx: 0, my: 0, dash: false, pound: false };
+    this.restUntil = 0;
   }
 
   controls(world, dt) {
@@ -67,6 +71,7 @@ export class Bot {
     o.mx = 0; o.my = 0; o.dash = false; o.pound = false;
     const me = world.blobs[this.i];
     if (!me || me.out || me.falling || world.phase !== 'play') return o;
+    if (me.dashT > 0 || me.pound) this.restUntil = world.t + this.tune.rest;
     this.timer -= dt;
     if (this.timer <= 0) {
       this.timer = this.tune.think * (0.75 + this.rng.next() * 0.5);
@@ -91,7 +96,7 @@ export class Bot {
     const foes = world.blobs.filter((b) => b !== me && !b.out && !b.falling);
     // Ground-pound when crowded.
     const near = foes.filter((b) => Math.hypot(b.x - me.x, b.y - me.y) < BLOB.poundRadius * 0.7).length;
-    if (near && me.poundCd <= 0 && this.rng.next() < t.pound * near) {
+    if (near && !me.charging && me.poundCd <= 0 && world.t >= t.grace && world.t >= this.restUntil && this.rng.next() < t.pound * near) {
       this.plan = 'pound';
       return;
     }
@@ -193,7 +198,7 @@ export class Bot {
       const dx = foe.x - me.x, dy = foe.y - me.y;
       const d = Math.hypot(dx, dy) || 1;
       const lined = (dx * ux + dy * uy) / d; // 1 = foe is straight between us and their edge
-      const ready = me.dashCd <= 0;
+      const ready = me.dashCd <= 0 && world.t >= this.restUntil && world.t >= t.grace;
       if (me.charging) {
         // Aim at the foe while charging, release when charged or close.
         const a = Math.atan2(dy, dx) + this.aim;

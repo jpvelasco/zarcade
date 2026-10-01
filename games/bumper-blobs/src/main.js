@@ -760,7 +760,7 @@ function frame(now) {
       });
       // Phones in portrait: follow the touch player a little closer.
       const solo = g.humans.length === 1 && coarse && innerHeight > innerWidth ? w.blobs[g.humans[0]] : null;
-      renderer.setFocus(solo && !solo.out ? solo : null);
+      renderer.setFocus(solo && !solo.out ? solo : null, 1.25);
       renderer.handleEvents(w.events, w);
       sound.handle(w.events, w);
       w.events.length = 0;

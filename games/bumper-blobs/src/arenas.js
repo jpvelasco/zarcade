@@ -17,7 +17,7 @@ export const ARENAS = [
   },
   {
     id: 'rink', name: 'Frosty Rink', blurb: 'Super slippery ice. Brake early!',
-    kind: 'rect', w: 640, h: 500, round: 110, extent: 330, friction: 0.55, accelMul: 0.42,
+    kind: 'rect', w: 640, h: 500, round: 110, extent: 330, friction: 0.7, accelMul: 0.42,
     theme: { sky: ['#dff4ff', '#8fb8ff'], top: '#e8fbff', top2: '#a8e4ff', side: '#5a8fd6', rim: '#ffffff', deco: 'ice', glow: '#c8f2ff' },
   },
   {
@@ -50,12 +50,12 @@ export const ARENAS = [
   },
   {
     id: 'seesaw', name: 'Teeter Tower', blurb: 'A giant seesaw. Everyone slides to the low end.',
-    kind: 'seesaw', len: 720, wid: 250, extent: 360,
+    kind: 'seesaw', len: 720, wid: 300, extent: 360,
     theme: { sky: ['#fff4c2', '#ffc85a'], top: '#ffd98a', top2: '#e8a64a', side: '#9a5a22', rim: '#fff0c8', deco: 'planks', glow: '#ffe6a0' },
   },
   {
     id: 'cookie', name: 'Crumble Cookie', blurb: 'Tiles crack under you. Keep moving!',
-    kind: 'tiles', cols: 7, rows: 7, size: 86, gap: 6, cut: 2, crack: 1.2, press: 0.7, regrow: 7, extent: 330,
+    kind: 'tiles', cols: 7, rows: 7, size: 86, gap: 6, cut: 2, crack: 1.6, press: 1, regrow: 7, extent: 330,
     theme: { sky: ['#ffe9d6', '#e8a77a'], top: '#e9b77a', top2: '#c98a4c', side: '#7a4a24', rim: '#f8d6a6', deco: 'chips', glow: '#ffd2a0' },
   },
   {

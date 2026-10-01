@@ -44,7 +44,7 @@ test('bots line up and dash so the hit pushes the foe toward the edge', () => {
   place(me, 40, 0); place(foe, 180, 0);
   const bot = new Bot(0, 'hard', 1);
   let dashed = false;
-  run(w, 2.5, () => {
+  run(w, BOT_TUNING.hard.grace + 2.5, () => {
     const c = bot.controls(w, STEP);
     if (w.events.some((e) => e.type === 'dash')) dashed = true;
     return [c];
@@ -80,4 +80,41 @@ test('every difficulty has the full set of tuning knobs', () => {
   const keys = Object.keys(BOT_TUNING.normal).sort();
   for (const lvl of ['easy', 'normal', 'hard']) assert.deepEqual(Object.keys(BOT_TUNING[lvl]).sort(), keys);
   assert.ok(BOT_TUNING.hard.think < BOT_TUNING.normal.think && BOT_TUNING.normal.think < BOT_TUNING.easy.think);
+});
+
+test('bots only jostle for the opening grace, then rest between dashes', () => {
+  for (const lvl of ['easy', 'normal', 'hard']) {
+    const w = playWorld({ players: [{}, {}, {}, {}] });
+    const bots = w.blobs.map((b) => new Bot(b.i, lvl, 5 + b.i));
+    const dashes = [];
+    run(w, BOT_TUNING[lvl].grace + 6, () => {
+      for (const e of w.events) if (e.type === 'dash' || e.type === 'pound') dashes.push({ i: e.i, t: w.t });
+      w.events.length = 0;
+      return bots.map((bot) => bot.controls(w, STEP));
+    });
+    assert.ok(dashes.length > 0, `${lvl} bots attack after the grace`);
+    assert.ok(dashes.every((d) => d.t >= BOT_TUNING[lvl].grace), `${lvl} attacked at ${dashes[0].t.toFixed(2)}s`);
+    for (let i = 0; i < 4; i++) {
+      const mine = dashes.filter((d) => d.i === i);
+      for (let k = 1; k < mine.length; k++) {
+        assert.ok(mine[k].t - mine[k - 1].t >= BOT_TUNING[lvl].rest, `${lvl} bot ${i} dashed again after ${(mine[k].t - mine[k - 1].t).toFixed(2)}s`);
+      }
+    }
+  }
+});
+
+test('Normal and Hard bot rounds last long enough to get going', () => {
+  for (const lvl of ['normal', 'hard']) {
+    const lengths = [];
+    for (const arena of ARENAS) {
+      for (let seed = 1; seed <= 2; seed++) {
+        const { rounds } = simulateMatch({ mode: 'lbs', target: { lbs: 1 }, arena: arena.id }, [0, 1, 2, 3].map(() => ({ bot: lvl })), seed);
+        lengths.push(rounds[0].seconds);
+      }
+    }
+    lengths.sort((a, b) => a - b);
+    const median = lengths[lengths.length >> 1];
+    assert.ok(median >= 12, `${lvl} median round ${median.toFixed(1)}s`);
+    assert.ok(lengths[1] >= 3, `${lvl} short rounds: ${lengths.slice(0, 3).map((s) => s.toFixed(1))}`);
+  }
 });

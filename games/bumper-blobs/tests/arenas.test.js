@@ -89,9 +89,12 @@ test('cookie tiles crack under a blob, fall away, and regrow in respawn modes', 
     const st = createArenaState(arena('cookie'), { persistent });
     const tile = st.tiles.find((t) => t.x === 0 && t.y === 0);
     const blob = { x: 0, y: 0, radius: 30, grounded: true };
-    for (let t = 0; t < 2.8; t += 0.05) updateArena(st, 0.05, [blob], true);
+    const { press, crack } = arena('cookie');
+    // Tiles start cracking 2 s in, after `press` seconds of standing (it fills
+    // at 1.5 a second and drains at 0.5).
+    for (let t = 0; t < 2 + press + 0.2; t += 0.05) updateArena(st, 0.05, [blob], true);
     blob.grounded = false;
-    for (let t = 0; t < 1.6; t += 0.05) updateArena(st, 0.05, [blob], true);
+    for (let t = 0; t < crack + 0.1; t += 0.05) updateArena(st, 0.05, [blob], true);
     assert.equal(tile.gone, true);
     assert.equal(onFloor(st, 0, 0), false);
     for (let t = 0; t < 8; t += 0.05) updateArena(st, 0.05, [blob], true);
