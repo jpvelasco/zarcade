@@ -905,8 +905,9 @@ function updateStick(event) {
 stick.addEventListener('pointerdown', (event) => {
   stickPointer = event.pointerId;
   capture(stick, event.pointerId);
-  const rect = stick.getBoundingClientRect();
-  stickOrigin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  // Measure from where the thumb lands, not the pad's centre, so a touch
+  // anywhere on the pad starts at rest and a small slide steers.
+  stickOrigin = { x: event.clientX, y: event.clientY };
   updateStick(event);
   event.preventDefault();
 });
