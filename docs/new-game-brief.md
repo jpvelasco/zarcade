@@ -21,6 +21,26 @@ collections), and saves. Make it look awesome, cohesive and readable. No
 external assets or CDNs: draw with Canvas/SVG/CSS, synthesize audio with
 WebAudio, use system font stacks.
 
+## Make it sticky
+
+Players should want "one more go" and a reason to come back tomorrow. Pick
+the hooks that suit the game (at least three), all saved locally:
+
+- A visible progression path: a level map, stars, ranks, or an upgrade tree.
+- A collection with silhouettes for what's still missing (creatures,
+  stickers, hats, trophies).
+- Short-term goals: 2–3 rotating missions or challenges, with a reward.
+- A daily challenge or daily seed (derive it from the local date; same day,
+  same content) and a gentle streak counter.
+- Unlockable cosmetics that show up in play (skins, trails, decorations).
+- Personal bests shown on the title and results screens, with a "New best!"
+  moment.
+- Fast restarts: from fail to playing again in one tap, under two seconds.
+
+No ads, timers that nag, paid-currency patterns, or guilt ("your pet is
+sad"). Rewards should feel generous; kids should never get stuck behind a
+grind.
+
 ## Folder and wiring
 
 ```
@@ -142,7 +162,8 @@ git commit -m "Add <Title>, <pitch>" -- games/<slug> docs/superpowers/specs/<dat
 ```
 
 Never `git add -A`, never touch other folders (the arcade manifest, root
-files, other games), never rewrite history or push. If `.git/index.lock`
+files, other games), never rewrite history or push (the coordinator adds the
+manifest entry and pushes). If `.git/index.lock`
 exists, wait and retry. No co-author or generated-by lines.
 
 ## Final report
