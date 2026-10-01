@@ -22,7 +22,7 @@ test('a year of daily towers are all sensible', () => {
     const key = dateKey(new Date(2026, 0, 1 + d));
     const l = dailyLevel(key);
     flavours.add(l.flavour);
-    assert.ok(l.goal >= 4.5 && l.goal <= 6.5);
+    assert.ok(l.goal >= 4.5 && l.goal <= 6);
     assert.equal(l.sequence.length, l.limit);
     assert.ok(l.par < l.limit);
     const total = l.sequence.reduce((s, p) => s + flatHeight(p.animal), 0);

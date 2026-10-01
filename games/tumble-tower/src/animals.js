@@ -39,7 +39,7 @@ export const ANIMALS = [
   {
     id: 'turtle', name: 'Turtle', shape: () => polygonShape([[-1.2, -0.3], [1.2, -0.3], [0.8, 0.3], [-0.8, 0.3]]), density: 1,
     color: '#5cc96b', dark: '#2f8a45', belly: '#b9f0a8', cheek: '#ffb38a',
-    face: { x: 0.0, y: -0.02, s: 0.62 }, look: 'turtle', blurb: 'Flat and wide: a handy shelf.', starter: true,
+    face: { x: 0.0, y: -0.02, s: 0.78 }, look: 'turtle', blurb: 'Flat and wide: a handy shelf.', starter: true,
   },
   {
     id: 'penguin', name: 'Penguin', shape: () => boxShape(0.95, 1.6, 0.32), density: 1,

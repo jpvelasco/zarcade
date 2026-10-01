@@ -11,7 +11,7 @@ const SKY_TOP = 90, SKY_BOTTOM = -6; // metres covered by the baked sky strip
 const SEA_Y = -1.25;
 const MAX_PARTICLES = 240;
 const CONFETTI = ['#ff5e7a', '#ffd23f', '#3fd6ff', '#7cf06b', '#b57aff', '#ff9a3c'];
-const DUST = 'rgba(255, 255, 255, 0.85)';
+const DUST = 'rgba(255, 255, 255, 0.7)';
 const LABELS = Array.from({ length: 401 }, (_, i) => `${i} m`);
 
 function makeCanvas(w, h) {
@@ -37,6 +37,8 @@ export class Renderer {
     this.theme = THEME_BY_ID.sunny;
     this.camBottom = -2.6;
     this.camX = 0;
+    this.bottomPad = 0; // px kept clear for on-screen buttons
+    this.railY = 0;
     this.side = false; // menus on wide screens: tower to the right of the card
     this.scale = 0;
     this.time = 0;
@@ -67,7 +69,8 @@ export class Renderer {
 
   layout() {
     // Zoom range: close up while the tower is small, further out as it grows.
-    const viewW = Math.max(this.width + 5.2, 10.5);
+    const portrait = this.H > this.W * 1.3;
+    const viewW = portrait ? this.width + 2.6 : Math.max(this.width + 5.2, 10.5);
     this.maxScale = Math.min(this.W / viewW, this.H / 9.5);
     this.minScale = Math.min(this.W / viewW, this.H / 17);
     this.bakeScale = this.maxScale;
@@ -315,7 +318,7 @@ export class Renderer {
     for (const e of events) {
       if (e.type === 'impact') {
         const n = Math.min(8, Math.floor(e.speed * 1.5));
-        for (let i = 0; i < n; i++) this.spawn(0, e.x, e.y, (Math.random() - 0.5) * 2.5, Math.random() * 1.2, 0.5, 0.12 + Math.random() * 0.1, DUST);
+        for (let i = 0; i < n; i++) this.spawn(0, e.x + (Math.random() - 0.5) * 0.4, e.y, (Math.random() - 0.5) * 2.5, Math.random() * 1.2, 0.45, 0.05 + Math.random() * 0.06, DUST);
         if (e.body) this.squash.set(e.body, Math.min(0.09, e.speed * 0.025));
         if (e.speed > 3 && !this.reduced) this.shake = Math.min(0.12, this.shake + e.speed * 0.01);
       } else if (e.type === 'splash') {
@@ -341,11 +344,14 @@ export class Renderer {
       const ws = Math.max(this.minScale, Math.min(this.maxScale, this.H / need));
       this.scale += (ws - this.scale) * Math.min(1, dt * 1.6);
       this.viewH = this.H / this.scale;
-      const want = Math.max(-2.4, game.craneY + 3.2 - this.viewH);
+      const floor = -2.4 - this.bottomPad / this.scale;
+      const want = Math.max(floor, game.craneY + 3.2 - this.viewH);
       this.camBottom += (want - this.camBottom) * k;
       const wantX = this.side && this.W > 900 ? -(this.W * 0.2) / this.scale : 0;
       this.camX += (wantX - this.camX) * k;
       this.windX = game.windNow;
+      const railWant = Math.max(0, Math.min(this.H * 0.45, this.sy(game.craneY + 4.2)));
+      this.railY += (railWant - this.railY) * k;
     }
     this.shake = Math.max(0, this.shake - dt * 0.6);
     const g = -9;
@@ -388,7 +394,7 @@ export class Renderer {
     this.drawSeaFront(ctx);
     this.drawParticles(ctx);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    this.drawRuler(ctx, game);
+    if (opts.hud !== false) this.drawRuler(ctx, game);
     this.drawCraneRail(ctx, game, opts);
     this.drawHold(ctx, game);
     this.drawBanners(ctx);
@@ -500,7 +506,7 @@ export class Renderer {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.W, y); ctx.stroke();
     ctx.setLineDash([]);
     // flag on the right
-    const fx = this.sx(game.level.width / 2 + 1.2);
+    const fx = this.sx(-game.level.width / 2 + 0.2);
     ctx.globalAlpha = 1;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(fx - 1.5, y - 34, 3, 34);
@@ -593,7 +599,7 @@ export class Renderer {
     const topExt = this.extentUp(h.animal, h.angle);
     const cx = this.sx(h.x), cy = this.sy(y + topExt);
     ctx.strokeStyle = '#3d3355'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(cx, 20); ctx.lineTo(cx, cy - 8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, this.railY + 20); ctx.lineTo(cx, cy - 8); ctx.stroke();
     // claw
     ctx.strokeStyle = '#5b4f78'; ctx.lineWidth = 4; ctx.lineCap = 'round';
     ctx.beginPath();
@@ -626,14 +632,15 @@ export class Renderer {
     if (!game.held && game.phase !== 'settling') return;
     const g = this.girder, dpr = this.dpr;
     const gw = g.width / dpr, gh = g.height / dpr;
-    for (let x = 0; x < this.W; x += gw) ctx.drawImage(g, x, 0, gw, gh);
+    const ry = this.railY;
+    for (let x = 0; x < this.W; x += gw) ctx.drawImage(g, x, ry, gw, gh);
     const hx = game.held ? this.sx(game.held.x) : null;
     if (hx != null) {
       ctx.fillStyle = game.mode === 'pass' ? PLAYER_COLORS[game.turn] : '#ff7a59';
-      ctx.beginPath(); ctx.roundRect(hx - 18, 4, 36, 20, 6); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(hx - 18, ry + 4, 36, 20, 6); ctx.fill();
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'; ctx.lineWidth = 2; ctx.stroke();
       ctx.fillStyle = '#3d3355';
-      ctx.beginPath(); ctx.arc(hx - 9, 24, 4, 0, Math.PI * 2); ctx.arc(hx + 9, 24, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(hx - 9, ry + 24, 4, 0, Math.PI * 2); ctx.arc(hx + 9, ry + 24, 4, 0, Math.PI * 2); ctx.fill();
     }
     void opts;
   }
@@ -645,7 +652,7 @@ export class Renderer {
     ctx.font = '700 11px ui-rounded, system-ui, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    const step = s < 30 ? 2 : 1;
+    const step = this.viewH > 15 ? 2 : 1;
     for (let m = from; m <= to; m++) {
       const y = this.sy(m);
       const major = m % 5 === 0;
@@ -668,7 +675,7 @@ export class Renderer {
     if (!(game.holdTime > 0) || game.phase === 'won') return;
     const left = Math.max(1, Math.ceil(HOLD_SECONDS - game.holdTime));
     const frac = game.holdTime / HOLD_SECONDS;
-    const cx = this.W / 2, cy = Math.max(120, this.H * 0.3);
+    const cx = this.W / 2, cy = Math.max(120, Math.min(this.H * 0.25, 170));
     const r = 40;
     ctx.fillStyle = 'rgba(20, 16, 50, 0.45)';
     ctx.beginPath(); ctx.arc(cx, cy, r + 8, 0, Math.PI * 2); ctx.fill();

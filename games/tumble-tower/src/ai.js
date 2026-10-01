@@ -71,6 +71,8 @@ export function evaluate(game, cand, steps = SIM_STEPS) {
   if (gain > 2.2) score -= (gain - 2.2) * 0.6;
   // keep the new block's centre low relative to its own size
   score -= Math.max(0, body.y - (body.minY + body.maxY) / 2) * 0.2;
+  // keep faces the right way up when it makes no difference
+  if (cand.angle === 0) score += 0.03;
   // a flat top is something to build on; a point or a dome is not
   score += Math.min(1.6, topWidth(body)) * 0.35;
   // goal modes: once the line is reached, steadiness is all that matters
@@ -132,7 +134,7 @@ export class Autopilot {
   controls(game, dt = 1 / 60) {
     const h = game.held;
     if (!h || !game.canDrop()) { this.plan = null; this.it = null; this.forHeld = null; return {}; }
-    if (this.instant && this.forHeld !== h) {
+    if (this.forHeld !== h) {
       // wait for calm before looking ahead, so the plan sees the real tower
       if (game.calmTime < 0.3 && (this.waited = (this.waited || 0) + dt) < 4) return {};
       this.waited = 0;
@@ -159,7 +161,10 @@ export class Autopilot {
     const diff = p.angle - h.targetAngle;
     if (Math.abs(diff) > 0.01) c.rotate = diff > 0 ? 1 : -1;
     this.wait -= dt;
-    if (!c.rotate && Math.abs(h.x - tx) < 0.03 && Math.abs(h.angle - p.angle) < 0.01 && this.wait <= 0) c.drop = true;
+    if (!c.rotate && Math.abs(h.x - tx) < 0.03 && Math.abs(h.angle - p.angle) < 0.01 && this.wait <= 0) {
+      c.snap = { x: tx + JITTER.dx, angle: p.angle + JITTER.angle };
+      c.drop = true;
+    }
     return c;
   }
 }

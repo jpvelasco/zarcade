@@ -9,7 +9,7 @@ export function dateKey(d = new Date()) {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 // Every animal can appear (today's guest stars), whatever you've unlocked.
-const POOL = { hippo: 3, turtle: 2, giraffe: 2, panda: 1, penguin: 1, frog: 1, owl: 1, pig: 1, elephant: 2, hedgehog: 1, croc: 1, chick: 1 };
+const POOL = { hippo: 3, turtle: 2, giraffe: 2, panda: 0.6, penguin: 1, frog: 0.6, owl: 1, pig: 0.8, elephant: 2.5, hedgehog: 0.6, croc: 1.2, chick: 0.5 };
 
 const FLAVOURS = [
   { tag: 'Calm day', make: () => ({}) },
@@ -24,8 +24,8 @@ export function dailyLevel(key) {
   const r = rng(seed);
   const flavour = FLAVOURS[r.int(FLAVOURS.length)];
   const extra = flavour.make(r);
-  const goal = Math.round(r.range(4.5, 6.5) * 2) / 2;
-  const limit = Math.round(goal * 1.5) + 3;
+  const goal = Math.round(r.range(4.5, 6) * 2) / 2;
+  const limit = Math.round(goal * 1.6) + 3;
   const level = {
     index: -1,
     island: -1,

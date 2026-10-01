@@ -33,6 +33,10 @@ function persist() {
 }
 
 const renderer = new Renderer(canvas, { reducedMotion: reduced });
+const coarse = matchMedia('(hover: none) and (pointer: coarse)');
+const padRoom = () => { renderer.bottomPad = coarse.matches ? 96 : 0; };
+padRoom();
+coarse.addEventListener?.('change', padRoom);
 const input = new Input(canvas, {
   worldX: (cx) => renderer.worldX(cx),
   heldX: () => game?.held?.x ?? null,
@@ -259,10 +263,10 @@ function startEndless() {
   renderer.banner('Endless Tower', save.endlessBest ? `Beat ${save.endlessBest.toFixed(1)} m!` : 'How high can you go?', '#ffffff', 2);
 }
 
-function startPass(players = passPlayers) {
+function startPass(players = passPlayers, firstTurn = 0) {
   const seed = (Date.now() & 0x7fffffff) >>> 0;
-  begin(new Game({ mode: 'pass', seed, players, pool: poolFromSave() }), { kind: 'pass', index: -1, seed, players });
-  renderer.banner('Player 1', 'Your turn!', PLAYER_COLORS[0], 1.6);
+  begin(new Game({ mode: 'pass', seed, players, pool: poolFromSave(), firstTurn }), { kind: 'pass', index: -1, seed, players });
+  renderer.banner(`Player ${firstTurn + 1}`, 'Your turn!', PLAYER_COLORS[firstTurn], 1.6);
 }
 
 function restart() {
@@ -403,7 +407,8 @@ function onFail() {
   mode = 'fail';
   log.event('level.fail', { mode: run.kind, level: run.index + 1, reason: g.result.reason, height: +g.bestTop.toFixed(2), used: g.used, splashes: g.splashes });
   $('fail-title').textContent = g.result.reason === 'out' ? 'Out of animals!' : 'Tumble!';
-  $('fail-sub').textContent = g.result.reason === 'out' ? `So close! The tower reached ${g.top.toFixed(1)} of ${g.goal} m.` : 'The tower toppled over.';
+  const close = g.top >= g.goal * 0.7;
+  $('fail-sub').textContent = close ? `So close! The tower reached ${g.top.toFixed(1)} of ${g.goal} m.` : 'Splash! The animals went for a swim. Try again?';
   const tip = g.splashes > 1 ? 'Tip: put wide, flat animals near the bottom.' : g.level.wind ? 'Tip: lean into the wind a little.' : 'Tip: drop gently, right over the middle.';
   lines('fail-lines', [['Best height', `${g.bestTop.toFixed(1)} m`], ['Splashes', String(g.splashes)]], tip);
   showScreen('screen-fail');
@@ -434,7 +439,7 @@ function onOver() {
     $('over-new').classList.remove('hidden');
     $('over-new').textContent = `${winners.join(' & ')} win${winners.length === 1 ? 's' : ''}!`;
     $('over-height').textContent = `${g.bestTop.toFixed(1)} m`;
-    lines('over-lines', [['Animals stacked', String(g.used)], ['Turns', String(g.used)]], 'Rematch? The loser goes first!');
+    lines('over-lines', [['Animals stacked', String(g.used)], ['Rounds', String(Math.ceil(g.used / g.players))]], `Rematch? Player ${loser + 1} goes first!`);
     $('over-unlocks').innerHTML = '';
     $('btn-again').textContent = 'Rematch';
   }
@@ -493,9 +498,8 @@ click('btn-retry', restart);
 click('btn-fail-map', () => (run.kind === 'climb' ? toMap() : toTitle()));
 click('btn-again', () => {
   if (run.kind === 'pass') {
-    // the loser goes first: rotate players so they are Player 1's turn
-    startPass(run.players);
-    game.turn = Math.max(0, game.loser);
+    // the loser goes first in the rematch
+    startPass(run.players, Math.max(0, game.loser));
   } else restart();
 });
 const turnBtn = $('btn-turn'), dropBtn = $('btn-drop');
@@ -617,7 +621,7 @@ function frame(now) {
     }
   }
   renderer.update(mode === 'paused' ? 0 : dt, game);
-  renderer.draw(game, { canDrop: game?.canDrop() });
+  renderer.draw(game, { canDrop: game?.canDrop(), hud: mode === 'play' || mode === 'paused' });
   if (toastTimer > 0) { toastTimer -= dt; if (toastTimer <= 0) $('toast').classList.add('hidden'); }
   requestAnimationFrame(loop);
 }

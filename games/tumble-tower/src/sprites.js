@@ -162,8 +162,8 @@ function insideClip(ctx, shape, fn) {
 const LOOKS = {
   hippo(ctx, shape, a, o) {
     ctx.fillStyle = a.color;
-    for (const sx of [-0.55, 0.62]) { circle(ctx, sx + o.x, -0.6 + o.y, 0.14); ctx.fill(); ctx.strokeStyle = a.dark; ctx.lineWidth = 0.05; ctx.stroke(); }
-    ctx.fillStyle = a.cheek; for (const sx of [-0.55, 0.62]) { circle(ctx, sx + o.x, -0.6 + o.y, 0.06); ctx.fill(); }
+    for (const sx of [-0.55, 0.62]) { circle(ctx, sx + o.x, -0.68 + o.y, 0.14); ctx.fill(); ctx.strokeStyle = a.dark; ctx.lineWidth = 0.05; ctx.stroke(); }
+    ctx.fillStyle = a.cheek; for (const sx of [-0.55, 0.62]) { circle(ctx, sx + o.x, -0.7 + o.y, 0.06); ctx.fill(); }
     bodyBase(ctx, shape, a);
     insideClip(ctx, shape, () => {
       ctx.fillStyle = a.belly;

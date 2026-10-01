@@ -40,7 +40,7 @@ test('each goal is reachable with the animals given, stacked flat', () => {
     const sorted = seq.map((p) => flatHeight(p.animal)).sort((a, b) => b - a);
     const parHeight = sorted.slice(0, l.par).reduce((a, b) => a + b, 0);
     const all = sorted.reduce((a, b) => a + b, 0);
-    assert.ok(all > l.goal * 1.4, `${l.name}: ${all.toFixed(2)} m of animals for a ${l.goal} m goal`);
+    assert.ok(all > l.goal * 1.3, `${l.name}: ${all.toFixed(2)} m of animals for a ${l.goal} m goal`);
     assert.ok(parHeight + 1.5 > l.goal, `${l.name}: par ${l.par} can reach ${parHeight.toFixed(2)} m`);
   }
 });

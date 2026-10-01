@@ -20,7 +20,7 @@ export const PLAYER_COLORS = ['#ff7a59', '#3fa9ff', '#5fd35a', '#b57aff'];
 // mode: climb | daily | endless | pass | attract
 // level: a LEVELS entry (climb), a daily level, or null for endless/pass.
 export class Game {
-  constructor({ mode = 'climb', level = null, seed = 1, players = 2, pool = null } = {}) {
+  constructor({ mode = 'climb', level = null, seed = 1, players = 2, pool = null, firstTurn = 0 } = {}) {
     this.mode = mode;
     this.goalMode = mode === 'climb' || mode === 'daily';
     this.level = level || { goal: null, limit: Infinity, par: 0, width: 6, pool: pool || { hippo: 3, turtle: 2, giraffe: 2, panda: 1 }, wind: null, ice: 0, mover: null, seed };
@@ -28,7 +28,7 @@ export class Game {
     this.goal = this.goalMode ? this.level.goal : null;
     this.limit = this.goalMode ? this.level.limit : Infinity;
     this.players = mode === 'pass' ? Math.max(2, Math.min(4, players)) : 1;
-    this.turn = 0;
+    this.turn = mode === 'pass' ? Math.max(0, Math.min(this.players - 1, firstTurn)) : 0;
     this.time = 0;
     this.events = [];
     this.phase = 'aim'; // aim | settling | won | lost
