@@ -320,7 +320,7 @@ export function itemSprite(id, frame = 0) {
   let s = cache.get(key);
   if (s) return s;
   const def = ITEM_BY_ID[id];
-  const H = def.size >= 200 ? 256 : 160;
+  const H = def.size >= 900 ? 512 : def.size >= 200 ? 256 : 160;
   const W = Math.round(H * def.w);
   const pad = Math.round(H * 0.06);
   const c = canvas(W + pad * 2, H + pad * 2);
