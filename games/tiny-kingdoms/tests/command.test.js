@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Commander } from '../src/command.js';
 import { World } from '../src/sim.js';
-import { makeView, hitNode, nearestInDirection } from '../src/view.js';
+import { makeView, hitNode, nearestInDirection, mapBounds } from '../src/view.js';
 
 const N = (x, y, type, owner, troops) => ({ x, y, type, owner, troops });
 const world = () => new World({ seed: 1, nodes: [
@@ -97,6 +97,13 @@ test('the view maps world and screen both ways, turning tall screens', () => {
       assert.ok(Math.abs(back.x - p.x) < 1e-6 && Math.abs(back.y - p.y) < 1e-6);
     }
   }
+  // Fitting to a map's buildings zooms in but keeps the round trip exact.
+  const b = mapBounds([{ x: 300, y: 400 }, { x: 900, y: 600 }]);
+  assert.ok(b.x1 - b.x0 >= 760 && b.y1 - b.y0 >= 480);
+  const z = makeView(1366, 860, {}, b);
+  assert.ok(z.s > makeView(1366, 860).s);
+  const q = z.toWorld(...Object.values(z.toScreen(500, 500)));
+  assert.ok(Math.abs(q.x - 500) < 1e-6 && Math.abs(q.y - 500) < 1e-6);
   // On a phone your side (world left) is at the bottom.
   const v = makeView(390, 844);
   assert.ok(v.toScreen(100, 500).y > v.toScreen(1500, 500).y);

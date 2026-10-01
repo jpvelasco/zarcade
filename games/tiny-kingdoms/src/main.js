@@ -336,7 +336,7 @@ function showTip() {
       'They march over! More soldiers than the number on the cottage wins it.',
       'Grab more buildings, then capture the red castle to win!',
     ],
-    1: [null, 'Drag through two of your buildings, then onto a target: they all go together!'],
+    1: [null, 'Take a cottage first. Then drag through both of your buildings onto a target: they all march together!'],
     2: [null, 'Windmills grow soldiers super fast. Capture them first!'],
     3: [null, match.hero ? 'Tap the hero button, then send: Sir Pip hits extra hard!' : 'Gather your buildings and attack together!'],
   }[lv];
@@ -760,10 +760,10 @@ function openKingdom() {
     const colors = colorsUnlocked();
     const cbox = $('kd-colors');
     cbox.innerHTML = '';
-    for (const col of COLORS) {
+    for (const col of Object.keys(COLOR_UNLOCKS).map(colorById)) {
       const open = colors.includes(col.id);
       const b = el('button', `swatch${save.color === col.id ? ' on' : ''}${open ? '' : ' locked'}`);
-      b.style.background = open ? col.fill : '';
+      b.style.background = open ? col.fill : `linear-gradient(rgba(221,214,200,0.7), rgba(221,214,200,0.7)), ${col.fill}`;
       b.title = open ? col.name : `${col.name}: unlock with ${unlockText(COLOR_UNLOCKS[col.id])}`;
       b.setAttribute('aria-label', b.title);
       if (!open) b.append(el('span', 'req', unlockText(COLOR_UNLOCKS[col.id])));
@@ -813,7 +813,8 @@ function pause() {
   mode = 'paused';
   sound.setMusicLevel(0.4);
   const w = match.world;
-  $('pause-info').textContent = `${match.spec.name} · ${formatTime(w.time)} · ${w.stats[ME].sends} sends`;
+  const n = w.stats[ME].sends;
+  $('pause-info').textContent = `${match.spec.name} · ${formatTime(w.time)} · ${n} send${n === 1 ? '' : 's'}`;
   refreshPauseButtons();
   showScreen('screen-pause');
 }

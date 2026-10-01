@@ -57,11 +57,12 @@ uses the world's seeded RNG.
 Pick one hero before a match. Press the hero button (H / gamepad Y) and your
 next send carries the hero (cooldown 25 s):
 
-- **Sir Pip** the knight (clear map 4): the squad hits 1.5× as hard.
-- **Wren** the ranger (clear map 10): the squad marches twice as fast.
-- **Old Moss** the wizard (clear map 18): the building it lands on gets a
+- **Sir Pip** the knight (after 3 campaign wins, so she arrives on map 4):
+  the squad hits 1.5× as hard.
+- **Wren** the ranger (9 wins): the squad marches twice as fast.
+- **Old Moss** the wizard (17 wins): the building it lands on gets a
   magic shield, defence ×2 for 15 s.
-- **Shepherd Bo** (clear map 26): the building it lands on grows twice as
+- **Shepherd Bo** (25 wins): the building it lands on grows twice as
   fast for 20 s.
 
 ## Campaign
@@ -75,9 +76,19 @@ rivals, and normal then hard difficulty. A new building gets a one-card
 introduction the first time it appears.
 
 **Stars**: winning gives ★. Each map lists two more goals from: *win within
-the par time*, *never lose a building*, *win in N sends or fewer*. Par times
-are generous (about 1.5–2× what the reference bot takes). The next map opens
-on any win, so nobody gets stuck.
+the par time*, *never lose a building*, *win in N sends or fewer*. Goals count
+once met in any win, so stars add up across replays (a generous design call
+for kids). Par times are 2.5× the reference bot's time plus a minute (at
+least 2:30); the sends goal comes from the number of buildings to take
+(the bot sends far more often than a person needs to). The next map opens on
+any win, so nobody gets stuck.
+
+Maps 1–4 use a fifth, internal difficulty, **Gentle** (thinks every 6 s, one
+building at a time, long grace period). A test checks that a slower bot
+(the reference bot at Normal) wins each of maps 1–8 in most tries.
+
+Campaign seeds are tuned with a search script: a seed is kept only if the
+reference bot wins it against six differently seeded rival runs.
 
 ## Sticky hooks
 
@@ -109,7 +120,11 @@ on any win, so nobody gets stuck.
   button (tap or hold-and-drag), B clears, X toggles ½/All, Y hero, LB selects
   all, Start pauses.
 
-Design call: letters for every building (targets) and toggle-select for own
+Design calls: the view zooms to fit the map's buildings (with a minimum
+size), so small maps get big buildings. Squads over water are drawn as
+little rowboats. AIs skip squads under three soldiers to keep the board tidy.
+
+Letters for every building (targets) and toggle-select for own
 buildings keeps "select by letter, then pick a target" to two key presses.
 Reinforcing your own building from the keyboard is Shift+letter.
 

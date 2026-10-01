@@ -2,7 +2,7 @@
 // building art are baked into offscreen canvases on resize or new scene;
 // each frame blits those and draws squads, labels and effects.
 import { BUILDINGS, WORLD_W, WORLD_H, NEUTRAL_COLOR, HEROES } from './data.js';
-import { makeView, PAD } from './view.js';
+import { makeView, mapBounds, PAD } from './view.js';
 import { makeRng } from './rng.js';
 import { sendCount } from './sim.js';
 import { INK, makeCanvas, drawBuilding, drawBuildingLive, drawSoldier, drawBoat, drawHeroToken } from './sprites.js';
@@ -312,7 +312,7 @@ export class Renderer {
     this.canvas.height = Math.round(h * dpr);
     this.canvas.style.width = `${w}px`;
     this.canvas.style.height = `${h}px`;
-    this.view = makeView(w, h, insets);
+    this.view = makeView(w, h, insets, this.scene ? this.bounds : null);
     this.grainPattern = this.ctx.createPattern(this.grain, 'repeat');
     this.sprites.clear();
     if (this.scene) this.bake();
@@ -322,10 +322,11 @@ export class Renderer {
   setScene(scene) {
     this.scene = scene;
     this.shapes = islandShapes(scene.world.nodes, scene.world.map.seed ?? 1);
+    this.bounds = mapBounds(scene.world.nodes);
+    this.view = makeView(this.w, this.h, this.insets, this.bounds);
     this.particles.length = 0;
     this.arrows.length = 0;
     this.nodeFx = scene.world.nodes.map(() => ({ squash: 0, hit: 0 }));
-    this.order = null;
     this.shake = 0;
     this.bake();
   }
@@ -350,6 +351,10 @@ export class Renderer {
     g.fillStyle = v;
     g.fillRect(0, 0, w, h);
     this.bg = bg;
+    // Buildings never move: sort them top to bottom once per layout.
+    const nodes = this.scene.world.nodes;
+    const sy = nodes.map((n) => this.view.toScreen(n.x, n.y).y);
+    this.order = nodes.map((n) => n.id).sort((a, b) => sy[a] - sy[b]);
     // Sparkles on the sea.
     const rng = makeRng(99);
     this.glints = [];
@@ -402,7 +407,7 @@ export class Renderer {
     const key = `hero|${id}|${pal.id}`;
     let c = this.sprites.get(key);
     if (c) return c;
-    const px = Math.ceil(this.soldierSize() * 2 * this.dpr);
+    const px = Math.ceil(this.heroSize() * this.dpr);
     c = makeCanvas(px, px);
     drawHeroToken(c.getContext('2d'), id, pal, px);
     this.sprites.set(key, c);
@@ -410,6 +415,7 @@ export class Renderer {
   }
 
   soldierSize() { return Math.max(10, 21 * this.view.s); }
+  heroSize() { return Math.max(28, 54 * this.view.s); }
   boatSize() { return Math.max(20, 40 * this.view.s); }
   fontPx() { return Math.round(Math.max(13, Math.min(21, 26 * this.view.s))); }
 
@@ -576,9 +582,7 @@ export class Renderer {
     }
 
     // Buildings, top to bottom on screen.
-    const order = this.order || (this.order = world.nodes.map((n) => n.id));
-    order.sort((a, b) => v.toScreen(world.nodes[a].x, world.nodes[a].y).y - v.toScreen(world.nodes[b].x, world.nodes[b].y).y);
-    for (const id of order) this.drawNode(world.nodes[id], ui, selected, me);
+    for (const id of this.order) this.drawNode(world.nodes[id], ui, selected, me);
 
     // Drag preview.
     if (ui.preview) this.drawPreview(ui.preview, world, me);
@@ -803,7 +807,7 @@ export class Renderer {
     }
     if (m.hero) {
       const hs = this.heroSprite(m.hero, m.owner);
-      const H = this.soldierSize() * 2;
+      const H = this.heroSize();
       ctx.drawImage(hs, p.x + dx * H * 0.6 - H / 2, p.y + dy * H * 0.6 - H * 0.75, H, H);
     }
     // Count chip.
@@ -887,7 +891,7 @@ export function drawThumbnail(canvas, map, theme, palettes) {
   const ctx = canvas.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const nodes = map.nodes.map((n, id) => ({ ...n, id, r: BUILDINGS[n.type].r }));
-  const view = makeView(w, h);
+  const view = makeView(w, h, {}, mapBounds(nodes));
   const shapes = islandShapes(nodes, map.seed ?? 1);
   paintIslands(ctx, w, h, view, shapes, THEMES[theme] || THEMES.clover, map.seed ?? 1, { nodes, detail: 0.35 });
   for (const n of nodes) {
