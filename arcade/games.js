@@ -347,6 +347,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'bubble-bay',
+      title: 'Bubble Bay',
+      tagline: 'Pop seaside bubbles and rescue baby otters.',
+      description: 'Help Coral the crab aim her shell launcher, match three or more and drop whole clusters to rescue 30 named baby otters across 65 seaside levels. Rainbow, bomb and lightning bubbles, a daily tide puzzle with a streak, and boosters earned by playing.',
+      genre: 'Puzzle',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#2fb3c6',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
