@@ -1,0 +1,40 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { encodeLevel, decodeLevel, cleanName } from '../src/code.js';
+import { LEVELS } from '../src/levels.js';
+import { parseLevel, levelRows, program, runProgram } from '../src/rules.js';
+
+test('every campaign level survives a share code round trip', () => {
+  for (const def of LEVELS) {
+    const code = encodeLevel(def);
+    assert.match(code, /^RR1\.[A-Za-z0-9_-]+(\.[^\s]+)?$/);
+    const { def: back, error } = decodeLevel(code);
+    assert.equal(error, undefined, def.id);
+    const a = parseLevel(def);
+    const b = parseLevel(back);
+    assert.deepEqual(levelRows(b), levelRows(a), def.id);
+    assert.deepEqual(b.start, a.start);
+    assert.deepEqual(b.limits, a.limits);
+    assert.equal([...b.ops].sort().join(''), [...a.ops].sort().join(''));
+    assert.equal(b.par, def.par);
+    assert.equal(back.name, def.name.replace(/[^A-Za-z0-9 !?'-]/g, '').trim());
+    assert.equal(runProgram(b, program(def.solution.main, def.solution.p1 || '')).win, true);
+  }
+});
+
+test('typos and junk are caught with friendly messages', () => {
+  const code = encodeLevel(LEVELS[5]);
+  const body = code.split('.')[1];
+  const flipped = body.slice(0, 12) + (body[12] === 'A' ? 'B' : 'A') + body.slice(13);
+  assert.match(decodeLevel(`RR1.${flipped}`).error, /wrong/);
+  assert.match(decodeLevel('hello').error, /does not look/);
+  assert.match(decodeLevel('RR1.AB').error, /short/);
+  assert.ok(decodeLevel(`  ${code}  `).def, 'whitespace is fine');
+});
+
+test('names are cleaned and kept short', () => {
+  assert.equal(cleanName('  <b>My   Cool Level!!</b> with extra words '), 'bMy Cool Level!!b');
+  assert.equal(cleanName('x'.repeat(40)).length, 18);
+  const def = { ...LEVELS[0], name: 'Zig & Zag' };
+  assert.equal(decodeLevel(encodeLevel(def)).def.name, 'Zig Zag');
+});
