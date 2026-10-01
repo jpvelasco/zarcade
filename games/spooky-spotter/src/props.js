@@ -4,7 +4,8 @@
 //   fam    family, so a room can ask for "something shelf-shaped" here
 //   w      [min, max] width in world units (a room is 1000 tall)
 //   ratio  [min, max] height / width
-//   layer  draw layer: 1 wall, 2 furniture, 3 floor clutter, 4 front, 5 frame
+//   layer  draw layer: 1 wall and ceiling, 2 furniture, 3 rugs, 4 floor clutter,
+//          5 front (curtains, crates to peek around), 6 cobwebs and dust
 //   solid  rects [x, y, w, h] in fractions of the prop box that visually block
 //          whatever is drawn behind them. [] means see-through decoration.
 //   slots  [fx, fy, kind] spots on this prop where a small thing can hide,
@@ -56,27 +57,27 @@ const defs = [
     solid: FULL, slots: [[0.5, 0.3, 'nook'], [0.5, 0.03, 'high'], [0.08, 0.86, 'nook']] },
   { id: 'sofa', fam: 'seat', w: [360, 460], ratio: [0.5, 0.68], layer: 2, base: 'floor',
     solid: FULL, slots: [[0.3, 0.24, 'nook'], [0.7, 0.24, 'nook'], [0.5, 0.03, 'high']] },
-  { id: 'stool', fam: 'seat', w: [110, 150], ratio: [1.0, 1.35], layer: 3, base: 'floor',
+  { id: 'stool', fam: 'seat', w: [110, 150], ratio: [1.0, 1.35], layer: 4, base: 'floor',
     solid: [[0.05, 0, 0.9, 0.2], [0.35, 0.2, 0.3, 0.8]], slots: [[0.5, 0.02, 'table'], [0.5, 0.6, 'nook']] },
   { id: 'rockingChair', fam: 'seat', w: [200, 260], ratio: [1.1, 1.4], layer: 2, base: 'floor',
     solid: [[0.1, 0, 0.75, 0.9], [0, 0.9, 1, 0.1]], slots: [[0.45, 0.42, 'nook'], [0.9, 0.8, 'nook']] },
-  { id: 'cushionPile', fam: 'soft', w: [160, 220], ratio: [0.5, 0.7], layer: 4, base: 'floor',
+  { id: 'cushionPile', fam: 'soft', w: [160, 220], ratio: [0.5, 0.7], layer: 5, base: 'floor',
     solid: FULL, slots: [[0.1, 0.5, 'under'], [0.9, 0.5, 'under'], [0.5, 0.03, 'high']] },
 
   // ------------------------------------------------------------- chests
-  { id: 'trunk', fam: 'chest', w: [230, 300], ratio: [0.55, 0.75], layer: 3, base: 'floor',
+  { id: 'trunk', fam: 'chest', w: [230, 300], ratio: [0.55, 0.75], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.3, 0.03, 'high'], [0.7, 0.03, 'high'], [0.04, 0.6, 'nook']] },
-  { id: 'crate', fam: 'chest', w: [150, 210], ratio: [0.8, 1.05], layer: 3, base: 'floor',
+  { id: 'crate', fam: 'chest', w: [150, 210], ratio: [0.8, 1.05], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.06, 0.55, 'nook']] },
-  { id: 'crateFront', fam: 'front', w: [170, 240], ratio: [0.75, 1.0], layer: 4, base: 'floor',
+  { id: 'crateFront', fam: 'front', w: [170, 240], ratio: [0.75, 1.0], layer: 5, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [-0.04, 0.45, 'behind'], [1.04, 0.45, 'behind']] },
-  { id: 'barrel', fam: 'chest', w: [150, 200], ratio: [1.1, 1.4], layer: 3, base: 'floor',
+  { id: 'barrel', fam: 'chest', w: [150, 200], ratio: [1.1, 1.4], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.03, 0.7, 'nook']] },
-  { id: 'sack', fam: 'chest', w: [130, 180], ratio: [1.0, 1.3], layer: 3, base: 'floor',
+  { id: 'sack', fam: 'chest', w: [130, 180], ratio: [1.0, 1.3], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.95, 0.75, 'nook']] },
-  { id: 'suitcase', fam: 'chest', w: [170, 230], ratio: [0.45, 0.62], layer: 3, base: 'floor',
+  { id: 'suitcase', fam: 'chest', w: [170, 230], ratio: [0.45, 0.62], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.35, 0.03, 'high'], [0.75, 0.03, 'high']] },
-  { id: 'hatbox', fam: 'chest', w: [120, 160], ratio: [0.65, 0.85], layer: 3, base: 'floor',
+  { id: 'hatbox', fam: 'chest', w: [120, 160], ratio: [0.65, 0.85], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.04, 0.5, 'nook']] },
 
   // --------------------------------------------------------- tall things
@@ -107,37 +108,37 @@ const defs = [
     solid: [[0.15, 0, 0.7, 0.62], [0.44, 0.62, 0.12, 0.38]], slots: [[0.5, 0.86, 'nook'], [0.07, 0.3, 'hook']] },
 
   // --------------------------------------------------------- floor plants
-  { id: 'fern', fam: 'plant', w: [180, 250], ratio: [1.0, 1.35], layer: 3, base: 'floor',
+  { id: 'fern', fam: 'plant', w: [180, 250], ratio: [1.0, 1.35], layer: 4, base: 'floor',
     solid: [[0.2, 0.55, 0.6, 0.45]], slots: [[0.5, 0.3, 'nook'], [0.12, 0.85, 'nook'], [0.88, 0.85, 'nook']] },
-  { id: 'potPlant', fam: 'plant', w: [150, 200], ratio: [1.1, 1.5], layer: 3, base: 'floor',
+  { id: 'potPlant', fam: 'plant', w: [150, 200], ratio: [1.1, 1.5], layer: 4, base: 'floor',
     solid: [[0.25, 0.5, 0.5, 0.5], [0.3, 0.1, 0.4, 0.4]], slots: [[0.5, 0.68, 'nook'], [0.9, 0.9, 'nook']] },
-  { id: 'tallPalm', fam: 'plant', w: [210, 280], ratio: [1.5, 2.0], layer: 3, base: 'floor',
+  { id: 'tallPalm', fam: 'plant', w: [210, 280], ratio: [1.5, 2.0], layer: 4, base: 'floor',
     solid: [[0.32, 0.62, 0.36, 0.38]], slots: [[0.5, 0.5, 'nook'], [0.1, 0.9, 'nook']] },
-  { id: 'vineBox', fam: 'plant', w: [220, 300], ratio: [0.6, 0.85], layer: 4, base: 'floor',
+  { id: 'vineBox', fam: 'plant', w: [220, 300], ratio: [0.6, 0.85], layer: 5, base: 'floor',
     solid: FULL, slots: [[0.04, 0.4, 'behind'], [0.96, 0.4, 'behind'], [0.5, 0.03, 'high']] },
-  { id: 'mushrooms', fam: 'plant', w: [130, 180], ratio: [0.6, 0.85], layer: 3, base: 'floor',
+  { id: 'mushrooms', fam: 'plant', w: [130, 180], ratio: [0.6, 0.85], layer: 4, base: 'floor',
     solid: [[0.1, 0.3, 0.8, 0.7]], slots: [[0.5, 0.03, 'high'], [0.95, 0.6, 'nook']] },
 
   // ------------------------------------------------------- small clutter
-  { id: 'bookStack', fam: 'clutter', w: [120, 170], ratio: [0.55, 0.8], layer: 3, base: 'floor',
+  { id: 'bookStack', fam: 'clutter', w: [120, 170], ratio: [0.55, 0.8], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.04, 0.5, 'nook']] },
-  { id: 'bucket', fam: 'clutter', w: [110, 150], ratio: [0.9, 1.15], layer: 3, base: 'floor',
+  { id: 'bucket', fam: 'clutter', w: [110, 150], ratio: [0.9, 1.15], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.95, 0.65, 'nook']] },
-  { id: 'wateringCan', fam: 'clutter', w: [130, 170], ratio: [0.8, 1.05], layer: 3, base: 'floor',
+  { id: 'wateringCan', fam: 'clutter', w: [130, 170], ratio: [0.8, 1.05], layer: 4, base: 'floor',
     solid: [[0.1, 0.1, 0.75, 0.9]], slots: [[0.5, 0.03, 'high'], [0.95, 0.6, 'nook']] },
-  { id: 'bottles', fam: 'clutter', w: [120, 170], ratio: [0.9, 1.2], layer: 3, base: 'floor',
+  { id: 'bottles', fam: 'clutter', w: [120, 170], ratio: [0.9, 1.2], layer: 4, base: 'floor',
     solid: [[0.08, 0.08, 0.84, 0.92]], slots: [[0.5, 0.95, 'nook'], [0.02, 0.7, 'nook']] },
-  { id: 'pots', fam: 'clutter', w: [140, 190], ratio: [0.6, 0.85], layer: 3, base: 'floor',
+  { id: 'pots', fam: 'clutter', w: [140, 190], ratio: [0.6, 0.85], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.96, 0.6, 'nook']] },
-  { id: 'cheeseWheel', fam: 'clutter', w: [120, 160], ratio: [0.7, 0.95], layer: 3, base: 'floor',
+  { id: 'cheeseWheel', fam: 'clutter', w: [120, 160], ratio: [0.7, 0.95], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.03, 0.6, 'nook']] },
-  { id: 'toyBlocks', fam: 'clutter', w: [130, 180], ratio: [0.5, 0.72], layer: 3, base: 'floor',
+  { id: 'toyBlocks', fam: 'clutter', w: [130, 180], ratio: [0.5, 0.72], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.95, 0.5, 'nook']] },
-  { id: 'rolledRugs', fam: 'clutter', w: [150, 200], ratio: [0.7, 0.95], layer: 3, base: 'floor',
+  { id: 'rolledRugs', fam: 'clutter', w: [120, 160], ratio: [0.8, 1.0], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.05, 0.55, 'nook']] },
-  { id: 'dustpan', fam: 'clutter', w: [120, 160], ratio: [0.6, 0.85], layer: 3, base: 'floor',
+  { id: 'dustpan', fam: 'clutter', w: [120, 160], ratio: [0.6, 0.85], layer: 4, base: 'floor',
     solid: [[0.15, 0.2, 0.8, 0.8]], slots: [[0.5, 0.03, 'high']] },
-  { id: 'logPile', fam: 'clutter', w: [160, 220], ratio: [0.5, 0.7], layer: 3, base: 'floor',
+  { id: 'logPile', fam: 'clutter', w: [160, 220], ratio: [0.5, 0.7], layer: 4, base: 'floor',
     solid: FULL, slots: [[0.5, 0.03, 'high'], [0.03, 0.5, 'nook']] },
 
   // -------------------------------------------------------- wall mounted
@@ -173,21 +174,21 @@ const defs = [
     solid: [], slots: [[0.3, 1.3, 'hook'], [0.7, 1.3, 'hook']] },
 
   // ------------------------------------------------- front layer and soft
-  { id: 'rug', fam: 'rug', w: [360, 480], ratio: [0.3, 0.42], layer: 4, base: 'floor',
+  { id: 'rug', fam: 'rug', w: [360, 480], ratio: [0.3, 0.42], layer: 3, base: 'floor',
     solid: FULL, slots: [[0.06, 0.3, 'under'], [0.94, 0.3, 'under'], [0.5, -0.1, 'under']] },
-  { id: 'rugRound', fam: 'rug', w: [300, 400], ratio: [0.42, 0.55], layer: 4, base: 'floor',
+  { id: 'rugRound', fam: 'rug', w: [300, 400], ratio: [0.42, 0.55], layer: 3, base: 'floor',
     solid: [[0.04, 0.1, 0.92, 0.9]], slots: [[0.08, 0.35, 'under'], [0.92, 0.35, 'under']] },
-  { id: 'curtain', fam: 'curtain', w: [170, 230], ratio: [3.0, 3.8], layer: 4, base: 'ceiling',
+  { id: 'curtain', fam: 'curtain', w: [170, 230], ratio: [3.0, 3.8], layer: 5, base: 'ceiling',
     solid: FULL, slots: [[-0.02, 0.86, 'behind'], [1.02, 0.86, 'behind'], [-0.02, 0.5, 'behind'], [1.02, 0.5, 'behind']] },
-  { id: 'tablecloth', fam: 'front', w: [280, 360], ratio: [0.5, 0.7], layer: 4, base: 'floor',
+  { id: 'tablecloth', fam: 'front', w: [210, 275], ratio: [0.5, 0.7], layer: 5, base: 'floor',
     solid: FULL, slots: [[0.02, 0.6, 'behind'], [0.98, 0.6, 'behind'], [0.5, 0.06, 'table']] },
-  { id: 'screenFold', fam: 'front', w: [250, 330], ratio: [1.4, 1.8], layer: 4, base: 'floor',
+  { id: 'screenFold', fam: 'front', w: [250, 330], ratio: [1.4, 1.8], layer: 5, base: 'floor',
     solid: FULL, slots: [[-0.03, 0.75, 'behind'], [1.03, 0.75, 'behind']] },
 
   // ------------------------------------------------------- frame / decor
-  { id: 'cobweb', fam: 'frame', w: [160, 240], ratio: [0.8, 1.0], layer: 5, base: 'free',
+  { id: 'cobweb', fam: 'frame', w: [160, 240], ratio: [0.8, 1.0], layer: 6, base: 'free',
     solid: [], slots: [] },
-  { id: 'dustMote', fam: 'frame', w: [60, 110], ratio: [0.9, 1.1], layer: 5, base: 'free',
+  { id: 'dustMote', fam: 'frame', w: [60, 110], ratio: [0.9, 1.1], layer: 6, base: 'free',
     solid: [], slots: [] },
 ];
 

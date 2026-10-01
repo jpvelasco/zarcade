@@ -213,7 +213,7 @@ function makeProp(rng, def, { cx, baseY, depth, box, flip }) {
 }
 
 function floorDepthOf(room, h) {
-  return (h - room.floorY * h) * 0.52;
+  return (h - room.floorY * h) * 0.68;
 }
 
 // ------------------------------------------------------------------ scene
@@ -273,8 +273,8 @@ export function buildScene({ room = 'library', mode = 'find', seed = 1, box, ite
   for (let i = 0; i < count; i++) {
     const pdef = pickDef(rng, def.clutter.pools);
     if (!pdef) continue;
-    const depth = rng.range(0.26, 0.82);
-    const size = sizeFor(rng, pdef, 0.86 + 0.34 * depth);
+    const depth = rng.range(0.22, 0.95);
+    const size = sizeFor(rng, pdef, 0.82 + 0.2 * depth);
     let cx = 0;
     for (let tries = 0; tries < 8; tries++) {
       cx = rng.range(size.w * 0.55, W - size.w * 0.55);
@@ -289,7 +289,7 @@ export function buildScene({ room = 'library', mode = 'find', seed = 1, box, ite
     if (spot.optional && rng.chance(0.45)) continue;
     const pdef = pickDef(rng, spot.pools);
     if (!pdef) continue;
-    const depth = rng.range(0.8, 1);
+    const depth = rng.range(0.82, 1.08);
     const size = sizeFor(rng, pdef, 0.95 + 0.2 * depth);
     const cx = rng.range(spot.x[0], spot.x[1]) * W;
     let baseY = floorY + depth * floorDepth + size.h * 0.06;
@@ -419,7 +419,7 @@ function placeTarget({ rng, scene, slots, usedSlots, covers, itemId, placed, flo
     else {
       let below = 0;
       for (const p of scene.props) {
-        if (p.layer <= 3 && p.baseY <= bx.y + bx.h && p.z > below) below = p.z;
+        if (p.layer <= 4 && p.baseY <= bx.y + bx.h && p.z > below) below = p.z;
       }
       z = below + 0.5;
     }
@@ -447,7 +447,7 @@ function placeTarget({ rng, scene, slots, usedSlots, covers, itemId, placed, flo
 // Last resort: an unobstructed spot at the very front of the room.
 function openFloorTarget({ rng, scene, covers, item, placed, floorY }) {
   const { w: W, h: H } = scene.box;
-  const topZ = scene.props.reduce((m, p) => (p.layer <= 4 && p.z > m ? p.z : m), 0) + 0.5;
+  const topZ = scene.props.reduce((m, p) => (p.layer <= 5 && p.z > m ? p.z : m), 0) + 0.5;
   for (let tries = 0; tries < 220; tries++) {
     const w = item.w;
     const h = item.h;

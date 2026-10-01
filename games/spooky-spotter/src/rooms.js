@@ -36,8 +36,8 @@ export const ROOMS = [
     clutter: { count: [7, 10], pools: ['bookStack', 'bookStack', 'stool', 'crate', 'potPlant', 'hatbox', 'rolledRugs', 'bottles'] },
     front: [
       { x: [0.26, 0.74], pools: ['rug', 'rugRound'] },
-      { x: [0.02, 0.14], pools: ['curtain'] },
-      { x: [0.84, 0.98], pools: ['curtain', 'screenFold'] },
+      { x: [0.012, 0.055], pools: ['curtain'] },
+      { x: [0.945, 0.988], pools: ['curtain', 'screenFold'] },
       { x: [0.18, 0.80], pools: ['crateFront', 'cushionPile'], optional: true },
     ],
   },
@@ -69,7 +69,7 @@ export const ROOMS = [
     clutter: { count: [8, 11], pools: ['barrel', 'sack', 'bucket', 'pots', 'cheeseWheel', 'bottles', 'stool', 'logPile', 'crate'] },
     front: [
       { x: [0.28, 0.72], pools: ['rug', 'tablecloth'] },
-      { x: [0.02, 0.14], pools: ['curtain'] },
+      { x: [0.012, 0.055], pools: ['curtain'] },
       { x: [0.20, 0.84], pools: ['crateFront', 'cushionPile'], optional: true },
     ],
   },
@@ -101,7 +101,7 @@ export const ROOMS = [
     clutter: { count: [9, 12], pools: ['crate', 'suitcase', 'hatbox', 'toyBlocks', 'rolledRugs', 'bookStack', 'stool', 'barrel', 'sack'] },
     front: [
       { x: [0.24, 0.76], pools: ['rug', 'rugRound'] },
-      { x: [0.03, 0.15], pools: ['curtain', 'screenFold'] },
+      { x: [0.015, 0.06], pools: ['curtain', 'screenFold'] },
       { x: [0.16, 0.86], pools: ['crateFront', 'cushionPile'] },
     ],
   },
@@ -134,7 +134,7 @@ export const ROOMS = [
     front: [
       { x: [0.26, 0.74], pools: ['rugRound', 'rug'] },
       { x: [0.14, 0.86], pools: ['vineBox', 'crateFront'] },
-      { x: [0.02, 0.14], pools: ['curtain'], optional: true },
+      { x: [0.012, 0.055], pools: ['curtain'], optional: true },
     ],
   },
   {
@@ -168,8 +168,8 @@ export const ROOMS = [
     clutter: { count: [7, 10], pools: ['stool', 'sideTable', 'potPlant', 'bookStack', 'hatbox', 'cushionPile', 'bottles', 'fern'] },
     front: [
       { x: [0.22, 0.78], pools: ['rug', 'rugRound'] },
-      { x: [0.02, 0.14], pools: ['curtain'] },
-      { x: [0.86, 0.99], pools: ['curtain'] },
+      { x: [0.012, 0.055], pools: ['curtain'] },
+      { x: [0.945, 0.988], pools: ['curtain'] },
       { x: [0.26, 0.74], pools: ['tablecloth', 'cushionPile'], optional: true },
     ],
   },
@@ -202,7 +202,7 @@ export const ROOMS = [
     front: [
       { x: [0.26, 0.74], pools: ['rug', 'rugRound'], optional: true },
       { x: [0.14, 0.88], pools: ['crateFront'] },
-      { x: [0.02, 0.14], pools: ['curtain'], optional: true },
+      { x: [0.012, 0.055], pools: ['curtain'], optional: true },
     ],
   },
   {
@@ -233,8 +233,8 @@ export const ROOMS = [
     clutter: { count: [8, 11], pools: ['bookStack', 'stool', 'crate', 'bottles', 'potPlant', 'hatbox', 'rolledRugs', 'toyBlocks'] },
     front: [
       { x: [0.24, 0.76], pools: ['rugRound', 'rug'] },
-      { x: [0.02, 0.14], pools: ['curtain'] },
-      { x: [0.84, 0.98], pools: ['curtain', 'screenFold'], optional: true },
+      { x: [0.012, 0.055], pools: ['curtain'] },
+      { x: [0.945, 0.988], pools: ['curtain', 'screenFold'], optional: true },
     ],
   },
 ];

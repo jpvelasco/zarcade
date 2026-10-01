@@ -80,7 +80,7 @@ export function buildDiff({ room = 'library', seed = 1, box, count = null } = {}
   function mutatePass({ minW, minH, minFraction, gap, margin }) {
     const pool = [];
     for (const p of base.props) {
-      if (p.layer > 4 || p.fam === 'frame' || touched.has(p.z)) continue;
+      if (p.layer > 5 || p.fam === 'frame' || touched.has(p.z)) continue;
       if (p.w < minW || p.h < minH) continue;
       if (p.x < 8 || p.x + p.w > W - 8) continue;
       const mask = visibility(base.props, p);
@@ -202,7 +202,7 @@ function addInGap(rng, base, def, changes, W, H, round) {
     }
   }
   if (!best || best.room < 14) return null;
-  const topZ = base.props.reduce((m, p) => (p.layer <= 4 && p.z > m ? p.z : m), 0) + 0.6 + round * 0.01;
+  const topZ = base.props.reduce((m, p) => (p.layer <= 5 && p.z > m ? p.z : m), 0) + 0.6 + round * 0.01;
   return {
     def: pdef.id, fam: pdef.fam, layer: 4, x: best.region.x, y: best.region.y, w, h,
     depth: 0.9, flip: rng.chance(0.4), tone: rng.next(), vr: (rng.next() * 4294967296) >>> 0,
@@ -215,7 +215,7 @@ function addInGap(rng, base, def, changes, W, H, round) {
 function addProp(rng, base, def, near) {
   const pool = def.clutter.pools;
   const { w: W, h: H } = base.box;
-  const topZ = base.props.reduce((m, p) => (p.layer <= 4 && p.z > m ? p.z : m), 0) + 0.6;
+  const topZ = base.props.reduce((m, p) => (p.layer <= 5 && p.z > m ? p.z : m), 0) + 0.6;
   for (let tries = 0; tries < 40; tries++) {
     const pdef = PROPS[rng.pick(pool)];
     if (!pdef) continue;
@@ -228,7 +228,7 @@ function addProp(rng, base, def, near) {
     const baseY = Math.min(H - 24, base.floorY + rng.range(0.55, 0.95) * base.floorDepth);
     if (baseY - h < 20) continue;
     return {
-      def: pdef.id, fam: pdef.fam, layer: 4, x: cx - w / 2, y: baseY - h, w, h,
+      def: pdef.id, fam: pdef.fam, layer: 5, x: cx - w / 2, y: baseY - h, w, h,
       depth: 0.9, flip: rng.chance(0.4), tone: rng.next(), vr: (rng.next() * 4294967296) >>> 0,
       baseY, z: topZ, added: true,
     };

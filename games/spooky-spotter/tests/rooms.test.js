@@ -16,7 +16,7 @@ test('prop definitions are sane', () => {
     seen.add(p.id);
     assert.ok(p.w[0] > 0 && p.w[1] >= p.w[0], `${p.id} width`);
     assert.ok(p.ratio[0] > 0 && p.ratio[1] >= p.ratio[0], `${p.id} ratio`);
-    assert.ok(p.layer >= 1 && p.layer <= 5, `${p.id} layer`);
+    assert.ok(p.layer >= 1 && p.layer <= 6, `${p.id} layer`);
     assert.ok(Array.isArray(p.solid), `${p.id} solid`);
     for (const r of p.solid) {
       assert.equal(r.length, 4, `${p.id} cover rect`);
@@ -53,6 +53,13 @@ test('every room recipe points at real props and tiles its width', () => {
     assert.ok(room.floorY > 0.6 && room.floorY < 0.8, `${room.id} floor line`);
     for (const key of ['wall', 'wall2', 'trim', 'floor', 'floor2', 'glow', 'dusk']) {
       assert.match(room.palette[key], /^#[0-9a-f]{6}$/i, `${room.id} palette ${key}`);
+    }
+    // Curtains belong at the very edges of the picture, not across the middle
+    // of a wall of furniture.
+    for (const spot of room.front) {
+      if (!spot.pools.includes('curtain')) continue;
+      const atEdge = spot.x[1] < 0.1 || spot.x[0] > 0.9;
+      assert.ok(atEdge, `${room.id} hangs a curtain at ${spot.x[0]}–${spot.x[1]}`);
     }
     let edge = 0;
     for (const bay of room.bays) {
