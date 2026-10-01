@@ -45,6 +45,8 @@ input.bindTouch({ zone: $('stick-zone'), base: $('stick-base'), knob: $('stick-k
 const SCREENS = ['screen-title', 'screen-setup', 'screen-join', 'screen-howto', 'screen-collection', 'screen-pause', 'screen-round', 'screen-podium'];
 const MENU_MODES = ['title', 'setup', 'join', 'howto', 'collection'];
 const autopilot = params.has('autopilot');
+// Debug: ?speed=4 fast-forwards the simulation (handy for checking results screens).
+const simSpeed = Math.max(0.25, Math.min(8, Number(params.get('speed')) || 1));
 let seedBase = params.has('seed') ? (parseInt(params.get('seed'), 10) >>> 0) : (Date.now() >>> 0);
 
 let mode = 'title';
@@ -314,7 +316,7 @@ function updateJoinStatus() {
   const ready = join.slots.filter((s) => s.ready).length;
   let text;
   if (!humans) text = coarse ? 'Tap Join to play!' : 'Waiting for players…';
-  else if (ready < humans) text = `${ready}/${humans} ready · press your dash button when you're ready`;
+  else if (ready < humans) text = `${ready}/${humans} ready · ${coarse ? 'tap Ready or Start' : "press your dash button when you're ready"}`;
   else text = 'Everyone is ready!';
   $('join-status').textContent = text;
   $('btn-start').disabled = humans === 0;
@@ -579,7 +581,8 @@ function toCollection() {
     tg.insertAdjacentHTML('beforeend', `<div class="trophy${got ? ' got' : ''}"><i>🏆</i><div><b>${t.name}</b><span>${t.text}</span></div></div>`);
   }
   const s = save.stats;
-  $('stat-line').textContent = `${s.matches} matches · ${s.wins} wins · ${s.roundWins} rounds won · ${s.bonks} bonks · ${s.ringouts} knock-offs · ${s.pounds} pounds · ${s.coins} coins`;
+  const n = (v, one, many) => `${v} ${v === 1 ? one : many}`;
+  $('stat-line').textContent = [n(s.matches, 'match', 'matches'), n(s.wins, 'win', 'wins'), n(s.roundWins, 'round won', 'rounds won'), n(s.bonks, 'bonk', 'bonks'), n(s.ringouts, 'knock-off', 'knock-offs'), n(s.pounds, 'pound', 'pounds'), n(s.coins, 'coin', 'coins')].join(' · ');
 }
 
 // ------------------------------------------------------------ pause & sound
@@ -698,7 +701,7 @@ const logoSoft = new SoftBody();
 let logoT = 0;
 
 function stepWorld(world, dt, controlsFor) {
-  accumulator += dt;
+  accumulator += dt * simSpeed;
   let first = true;
   while (accumulator >= STEP) {
     const c = controlsFor(first);
@@ -763,7 +766,7 @@ function frame(now) {
       w.events.length = 0;
       if (w.phase === 'done') {
         if (g.outro === 0) onRoundDone();
-        g.outro -= dt;
+        g.outro -= dt * simSpeed;
         if (g.outro <= 0) finishRound();
       }
     } else {

@@ -287,6 +287,9 @@ export class Sound {
     const c = this.ctx;
     if (!c || !this.musicOn) { if (c) this.nextTime = c.currentTime + 0.1; return; }
     const stepDur = 60 / this.tempo / 2;
+    // After a stall (background tab, slow device) skip ahead instead of
+    // firing a burst of queued notes.
+    if (this.nextTime < c.currentTime - 0.1) this.nextTime = c.currentTime + 0.05;
     while (this.nextTime < c.currentTime + 0.2) {
       this.playStep(this.stepN, this.nextTime);
       this.nextTime += stepDur;

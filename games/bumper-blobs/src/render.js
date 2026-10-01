@@ -24,6 +24,7 @@ const POWER_LOOK = {
 const BONKS = ['BONK!', 'BOING!', 'WHAM!', 'SPLAT!', 'KAPOW!', 'BOOP!', 'SMOOSH!'];
 const FALLS = ['RING OUT!', 'BYE BYE!', 'SEE YA!', 'WHEEE!'];
 const DASH = [10, 12];
+const NO_DASH = [];
 
 // Small deterministic random for decorations.
 function lcg(seed) {
@@ -1130,7 +1131,7 @@ export class Renderer {
           ctx.lineWidth = 3;
           ctx.setLineDash(DASH);
           ctx.beginPath(); ctx.arc(0, 0, a.r, 0, TAU); ctx.stroke();
-          ctx.setLineDash([]);
+          ctx.setLineDash(NO_DASH);
         }
         break;
       }
@@ -1394,7 +1395,7 @@ export class Renderer {
       ctx.setLineDash(DASH);
       ctx.lineDashOffset = -this.time * 30;
       ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, TAU); ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.setLineDash(NO_DASH);
       ctx.lineDashOffset = 0;
       // Timer arc until it moves.
       ctx.strokeStyle = 'rgba(255,255,255,0.85)';
@@ -1668,8 +1669,8 @@ export class Renderer {
     ctx.drawImage(this.clouds, this.w - drift, 0, this.w, this.h);
     const W = this.w, H = this.h;
     const portrait = H > W;
-    const unit = Math.min(W / 7, H / (portrait ? 9 : 6.5));
-    const baseY = portrait ? H * 0.5 : H * 0.62;
+    const unit = Math.min(W / 7, H / (portrait ? 9 : 7.5));
+    const baseY = portrait ? H * 0.46 : H * 0.5;
     const steps = [
       { place: 1, x: W / 2, h: unit * 1.7, color: '#ffd23a' },
       { place: 2, x: W / 2 - unit * 1.7, h: unit * 1.15, color: '#d8e2f0' },

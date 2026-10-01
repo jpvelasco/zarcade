@@ -44,7 +44,7 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
   padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
 }
 .overlay.dim { background: radial-gradient(ellipse at center, rgba(90, 30, 120, 0.08), rgba(90, 30, 120, 0.38)); }
-.round-overlay { align-items: flex-start; padding-top: max(70px, env(safe-area-inset-top)); pointer-events: none; }
+.round-overlay { align-items: flex-end; padding-bottom: max(64px, calc(env(safe-area-inset-bottom) + 56px)); pointer-events: none; }
 .round-overlay .card { pointer-events: auto; }
 .podium-overlay { align-items: flex-end; }
 
@@ -224,7 +224,7 @@ code { background: rgba(0, 0, 0, 0.07); padding: 2px 6px; border-radius: 6px; }
 .slot.joined { border-style: solid; border-color: var(--slot, #ff5fa8); background: #fff; }
 .slot.ready { box-shadow: 0 0 0 4px var(--slot, #ff5fa8) inset; }
 .slot.bot { border-style: solid; border-color: #d9c3f0; background: rgba(255, 255, 255, 0.7); }
-.slot .who { font-weight: 900; font-size: 18px; }
+.slot .who { font-weight: 900; font-size: 18px; max-width: 100%; padding: 0 40px 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .slot .dev { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
 .slot canvas { width: 120px; height: 120px; }
 .slot .empty-text { margin: auto 0; font-weight: 900; font-size: 17px; color: var(--ink-soft); line-height: 1.35; }

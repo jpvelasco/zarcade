@@ -45,7 +45,8 @@ export class Input {
 
     addEventListener('keydown', (e) => {
       const map = CODE_MAP.get(e.code);
-      if (this.captureKeys && map) e.preventDefault();
+      // P, M and Esc are the game's own hotkeys everywhere (pause, mute, back).
+      if ((this.captureKeys && map) || e.code === 'KeyP' || e.code === 'KeyM' || e.code === 'Escape') e.preventDefault();
       else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) && !isFormTarget(e.target)) e.preventDefault();
       this.keys.add(e.code);
       if (e.repeat) return;
