@@ -215,6 +215,28 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'pocket-zoo',
+      title: 'Pocket Zoo',
+      tagline: 'Hatch mystery eggs. Build the coziest zoo.',
+      description: 'Hatch eggs to discover 42 cuddly animals, build and upgrade habitats across six biomes, and welcome visitors who drop coins as they stroll by.',
+      genre: 'Tycoon',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#5ac85a',
+      needsServer: true,
+      isNew: true,
+    },
+    {
+      slug: 'dino-dash',
+      title: 'Dino Dash',
+      tagline: 'Run, little dino! Dodge, jump, roll, grab amber.',
+      description: 'Sprint a baby dinosaur down a three-lane prehistoric valley, dodging logs, geysers and pterodactyls while a goofy volcano burps out Lavvy, a lava blob who wants a hug. Finish missions, collect dinos and hats, and take on the Daily Dash.',
+      genre: 'Runner',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#5fcf5a',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
