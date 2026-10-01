@@ -130,7 +130,7 @@ code { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 6p
 .btn.primary:hover { box-shadow: 0 8px 30px rgba(255, 79, 216, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.35) inset; }
 .btn.big { min-height: 58px; font-size: 21px; border-radius: 18px; }
 .row .btn { white-space: nowrap; }
-.btn.small { min-height: 38px; padding: 6px 12px; font-size: 14px; }
+.btn.small { min-height: 44px; padding: 6px 12px; font-size: 14px; }
 
 .icon-btn {
   width: 44px;
@@ -256,9 +256,9 @@ code { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 6p
 .c-map line.lit { stroke: var(--accent); stroke-dasharray: none; stroke-width: 2; filter: drop-shadow(0 0 3px var(--accent)); }
 .star-btn {
   position: absolute;
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.6);
   background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--accent) 60%, #1a1040) 60%);
@@ -270,10 +270,10 @@ code { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 6p
   padding: 0;
 }
 .star-btn:hover:not([disabled]) { transform: scale(1.15); }
-.star-btn .n { display: block; line-height: 36px; }
+.star-btn .n { display: block; line-height: 40px; }
 .star-btn .s { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 1px; font-size: 10px; color: var(--gold); white-space: nowrap; letter-spacing: -1px; text-shadow: 0 1px 2px #000; }
-.star-btn.boss { width: 48px; height: 48px; margin: -24px 0 0 -24px; background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--accent2) 70%, #1a1040) 60%); }
-.star-btn.boss .n { line-height: 44px; font-size: 20px; }
+.star-btn.boss { width: 52px; height: 52px; margin: -26px 0 0 -26px; background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--accent2) 70%, #1a1040) 60%); }
+.star-btn.boss .n { line-height: 48px; font-size: 20px; }
 .star-btn.next { animation: beckon 1.2s ease-in-out infinite; }
 .star-btn[disabled] { cursor: default; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.35); box-shadow: none; }
 @keyframes beckon {
@@ -300,6 +300,42 @@ code { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 6p
   .levels-head h2 { font-size: 22px; }
   .level-grid { grid-template-columns: 1fr; }
   .tagline { font-size: 15px; }
+}
+
+/* Touch players see touch wording; everyone else sees keys and mouse. */
+.touch-only { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .touch-only { display: block; }
+  .keys-only { display: none; }
+}
+
+/* Short screens (a phone held sideways): squeeze the cards so every
+   button fits without scrolling. */
+@media (max-height: 520px) {
+  .overlay { padding-top: 8px; padding-bottom: 8px; }
+  .card { padding: 14px 20px 12px; }
+  .title-card { padding-top: 14px; width: min(560px, 100%); }
+  .logo h1 { font-size: 46px; flex-direction: row; gap: 0.3em; }
+  .logo .l2 { margin-left: 0; }
+  .logo-comet { width: 18px; height: 18px; top: -4%; right: 2%; }
+  .tagline { font-size: 14px; margin: 6px 0 0; }
+  .controls { margin-top: 8px; }
+  h2 { font-size: 22px; margin-bottom: 2px; }
+  p { margin: 4px 0; }
+  .row, .col { margin-top: 8px; gap: 8px; }
+  .btn.big { min-height: 48px; font-size: 19px; }
+  .stars { font-size: 30px; margin: 0; }
+  .big-score { font-size: 28px; margin: 0; }
+  .res-lines { grid-template-columns: 1fr 1fr; gap: 4px; margin: 6px 0 2px; }
+  .res-lines div { padding: 5px 10px; font-size: 13px; }
+  .res-lines .tip { grid-column: 1 / -1; }
+  #screen-clear .col, #screen-over .col, #screen-victory .col { flex-direction: row; flex-wrap: wrap; }
+  #screen-clear .col .btn, #screen-over .col .btn, #screen-victory .col .btn { flex: 1 1 auto; }
+  #screen-clear .card, #screen-over .card, #screen-victory .card { width: min(600px, 100%); }
+  #screen-pause .card { width: min(520px, 100%); }
+  #screen-pause .col { display: grid; grid-template-columns: 1fr 1fr; }
+  #screen-pause .col .row { display: contents; }
+  #screen-pause h2 { margin-bottom: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
