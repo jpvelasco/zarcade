@@ -95,9 +95,9 @@ export function starThresholds(pieces, bears, beanCount) {
 }
 
 function finish(def, b, meta) {
-  const maxX = Math.max(...b.pieces.map((p) => p.x + p.w / 2), ...b.bears.map((p) => p.x + 1), ...b.terrain.map((t) => t.x + t.w / 2), 26);
+  const maxX = Math.max(...b.pieces.map((p) => p.x + p.w / 2), ...b.bears.map((p) => p.x + 1), ...b.terrain.map((t) => t.x + t.w / 2), 20);
   const maxY = Math.max(...b.pieces.map((p) => p.y + p.h / 2), ...b.bears.map((p) => p.y + 1), ...b.terrain.map((t) => t.y + t.h / 2), 8);
-  const width = Math.max(30, Math.ceil(maxX + 3));
+  const width = Math.max(24, Math.ceil(maxX + 2.5));
   return {
     ...meta,
     name: def.name,

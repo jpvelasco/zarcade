@@ -88,7 +88,7 @@ export function worldCleared(save, w) {
 
 export function isUnlocked(save, i) {
   if (i <= 0) return true;
-  return !!(save.stars[i - 1] || save.skipped[i - 1]);
+  return !!(save.stars[i] || save.stars[i - 1] || save.skipped[i - 1]);
 }
 
 // The first level the player hasn't cleared yet (or the last level).

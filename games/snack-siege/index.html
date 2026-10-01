@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#ff9f80">
+  <meta name="description" content="Snack Siege: fling jelly-bean heroes with special powers at wobbly candy forts and pop the grumpy gummy bears.">
+  <title>Snack Siege — fling beans, topple candy forts</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="snack-siege"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Snack Siege playfield"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Snack Siege uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/snack-siege/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud" class="hud hidden">
+    <div class="hud-left">
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+      <button id="btn-restart" class="icon-btn" aria-label="Restart level" title="Restart (R)">↻</button>
+      <div id="hud-level" class="chip"></div>
+    </div>
+    <div class="hud-right">
+      <div class="score-box">
+        <div id="hud-score" class="hud-score">0</div>
+        <div class="hud-sub"><span id="hud-stars" class="hud-stars" aria-hidden="true"><i>★</i><i>★</i><i>★</i></span><span id="hud-bears"></span></div>
+      </div>
+      <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+    </div>
+  </div>
+  <div id="power-hint" class="power-hint hidden" aria-live="polite"></div>
+  <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Snack Siege">
+        <h1><span class="l1">Snack</span><span class="l2">Siege</span></h1>
+        <div class="logo-beans" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i></div>
+      </div>
+      <p class="tagline">Fling jelly-bean heroes, topple wobbly candy forts, and pop every grumpy gummy bear!</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-map" class="btn">🗺️ Level map</button>
+          <button id="btn-daily" class="btn daily-btn">📅 Daily fort</button>
+        </div>
+        <div class="row">
+          <button id="btn-skins" class="btn">🎯 Slingshots<span id="skins-badge" class="badge hidden">new</span></button>
+          <button class="btn" data-sound>🔊 Sound on</button>
+          <button class="btn" data-music>🎵 Music on</button>
+        </div>
+      </div>
+      <p id="title-best" class="muted"></p>
+      <p class="controls keys-only"><b>Aim</b> drag the bean back, or ↑ ↓ ← → &nbsp; <b>Launch</b> let go / Space &nbsp; <b>Power</b> click / Space &nbsp; <b>Pause</b> Esc</p>
+      <p class="controls touch-only"><b>Drag</b> anywhere to pull back, let go to fling. <b>Tap</b> while flying to use the bean's power.</p>
+      <p class="rotate-tip touch-only">Tip: turn your phone sideways for a bigger view.</p>
+    </div>
+  </section>
+
+  <section id="screen-map" class="overlay dim hidden">
+    <div class="card wide map-card">
+      <div class="map-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Level map</h2>
+        <span id="map-stars" class="pill"></span>
+      </div>
+      <div id="world-tabs" class="world-tabs" role="tablist"></div>
+      <div id="map-path" class="map-path"></div>
+      <p id="map-info" class="muted center">Pick a level</p>
+      <div class="row">
+        <button id="btn-map-daily" class="btn daily-btn">📅 Daily fort</button>
+        <button id="btn-map-skins" class="btn">🎯 Slingshots</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-skins" class="overlay dim hidden">
+    <div class="card wide skins-card">
+      <div class="map-head">
+        <button id="btn-skins-back" class="btn small">← Back</button>
+        <h2>Slingshots</h2>
+        <span id="skins-count" class="pill"></span>
+      </div>
+      <p class="muted center">Earn stars, clear worlds and beat daily forts to unlock new slingshots.</p>
+      <div id="skin-grid" class="skin-grid"></div>
+    </div>
+  </section>
+
+  <section id="screen-bean" class="overlay dim hidden">
+    <div class="card small bean-card">
+      <p class="eyebrow">New bean!</p>
+      <canvas id="bean-preview" width="200" height="150" aria-hidden="true"></canvas>
+      <h2 id="bean-name"></h2>
+      <p id="bean-blurb"></p>
+      <div class="col"><button id="btn-bean-ok" class="btn primary">Let's fling!</button></div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-pause-restart" class="btn">Restart level</button>
+        <button id="btn-pause-map" class="btn">Level map</button>
+        <div class="row">
+          <button class="btn" data-sound>🔊 Sound on</button>
+          <button class="btn" data-music>🎵 Music on</button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-win" class="overlay dim hidden">
+    <div class="card">
+      <h2 id="win-title">Fort smashed!</h2>
+      <p id="win-sub" class="muted"></p>
+      <div id="win-stars" class="stars" aria-hidden="true"></div>
+      <p id="win-score" class="big-score"></p>
+      <p id="win-best" class="best-line"></p>
+      <div id="win-lines" class="res-lines"></div>
+      <p id="win-unlock" class="unlock hidden"></p>
+      <div class="col">
+        <button id="btn-next" class="btn primary">Next level →</button>
+        <div class="row">
+          <button id="btn-replay" class="btn">↻ Replay</button>
+          <button id="btn-win-map" class="btn">🗺️ Map</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-lose" class="overlay dim hidden">
+    <div class="card small">
+      <h2>So close!</h2>
+      <p id="lose-sub" class="muted"></p>
+      <p id="lose-tip" class="tip-line"></p>
+      <div class="col">
+        <button id="btn-retry" class="btn primary">↻ Try again</button>
+        <button id="btn-skip" class="btn hidden">Skip ahead →</button>
+        <button id="btn-lose-map" class="btn">🗺️ Level map</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
