@@ -10,6 +10,10 @@
   const $ = (id) => document.getElementById(id);
   const TAU = Math.PI * 2;
 
+  // Telemetry is optional: the game still runs if telemetry.js is missing.
+  const telemetry = window.Telemetry || null;
+  const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
+
   const params = new URLSearchParams(location.search);
   const AUTOPLAY = params.has('autoplay');
   const UNLOCK_ALL = params.has('unlock');
@@ -38,8 +42,14 @@
   function safeStorage() {
     try { return window.localStorage; } catch { return null; }
   }
-  // ?autoplay is a debug mode: it never writes the player's save.
-  function persist() { if (!AUTOPLAY) Rules.writeSave(safeStorage(), save); }
+  // ?autoplay is a debug mode: it never writes the player's save. Saving can
+  // fail (private mode, full or blocked storage); play on and report it once.
+  let saveWarned = false;
+  function persist() {
+    if (AUTOPLAY || Rules.writeSave(safeStorage(), save) || saveWarned) return;
+    saveWarned = true;
+    log.warn('save.failed', { 'storage.available': !!safeStorage() });
+  }
 
   // ------------------------------------------------------------ layout
 
@@ -144,6 +154,7 @@
     const w = Holes.WORLDS[worldIndex];
     const holes = Holes.holesIn(w.id);
     round = { worldIndex, world: w, holes, index, scores: holes.map(() => null), picked: holes.map(() => false) };
+    log.event('round.start', { world: w.id, hole: index + 1, holes: holes.length, autoplay: AUTOPLAY });
     audio.unlock();
     startHole();
   }
@@ -218,6 +229,10 @@
     round.picked[round.index] = play.pickedUp;
     const rec = Rules.recordHole(save, def, play.strokes, play.pickedUp);
     persist();
+    log.event('hole.complete', {
+      world: round.world.id, hole: round.index + 1, 'hole.id': def.id, par: def.par, strokes: play.strokes,
+      stars: rec.stars, 'picked.up': !!play.pickedUp, penalties: play.penalties || 0, 'best.new': rec.newBest,
+    });
     renderer.celebrate(name.text, name.tier);
     audio.cheer(name.tier);
     play.result = { name, rec };
@@ -274,6 +289,7 @@
 
   function retryHole() {
     audio.click();
+    log.event('hole.retry', { world: round.world.id, hole: round.index + 1, strokes: play ? play.strokes : 0 });
     round.scores[round.index] = null;
     round.picked[round.index] = false;
     startHole();
@@ -287,6 +303,7 @@
     const rec = Rules.recordRound(save, round.world.id, total);
     persist();
     const stars = round.holes.reduce((n, h, i) => n + Rules.starsFor(round.scores[i], h.par, round.picked[i]), 0);
+    log.event('round.complete', { world: round.world.id, strokes: total, par, stars, 'best.new': rec.newBest });
     $('res-kicker').textContent = 'Round complete';
     $('res-title').textContent = `${round.world.name} cleared!`;
     $('res-score').textContent = `${total} strokes (${fmtDiff(total - par)})`;
@@ -600,8 +617,23 @@
 
   // ------------------------------------------------------------ loop
 
+  // Frame telemetry: slow frames, struggling 10 s windows, and a watchdog
+  // outside the loop that notices when frames stop while the page is visible.
+  const monitor = window.MoonshotPerf.frameMonitor({
+    log,
+    snapshot: () => ({
+      mode, world: round ? round.world.id : 'none', hole: round ? round.index + 1 : 0,
+      status: play ? play.status : 'none', attract: !!attract,
+    }),
+    visible: () => document.visibilityState === 'visible',
+    crashed: () => !!(telemetry && telemetry.crashed),
+  });
+  setInterval(() => monitor.check(performance.now()), 1000);
+  document.addEventListener('visibilitychange', () => monitor.reset(performance.now()));
+
   let last = performance.now();
   function frame(now) {
+    monitor.frame(now);
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     pollPad(dt);
@@ -648,8 +680,11 @@
       }
       renderer.render(play, view);
     }
-    requestAnimationFrame(frame);
+    requestAnimationFrame(loop);
   }
+  // A crash inside a frame shows the crash screen instead of a frozen picture;
+  // after a crash the guard returns early, so the loop stops rescheduling.
+  const loop = telemetry ? telemetry.guard(frame, 'moonshot-golf.frame') : frame;
 
   // ------------------------------------------------------------ wiring
 
@@ -666,6 +701,10 @@
 
   drawMuteIcon();
   layout();
+  log.event('game.ready', {
+    'worlds.completed': Object.keys(save.completed).length,
+    'holes.played': Object.keys(save.best).length,
+  });
 
   // Debug and testing: ?hole=7 jumps straight to a hole, ?unlock opens every
   // world, ?autoplay lets the autoputter play.
@@ -678,7 +717,7 @@
     toWorlds();
     startAttract();
   } else toTitle();
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 
   window.MG = { get play() { return play; }, get mode() { return mode; }, get round() { return round; }, renderer, save, startRound, shoot, aim };
 })();

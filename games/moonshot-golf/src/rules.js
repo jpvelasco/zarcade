@@ -54,8 +54,15 @@
     return x && typeof x === 'object' && !Array.isArray(x) ? { ...x } : {};
   }
 
+  // Returns false when nothing was saved (storage full, disabled or blocked).
   function writeSave(storage, save) {
-    try { storage && storage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* storage full or blocked */ }
+    if (!storage) return false;
+    try {
+      storage.setItem(SAVE_KEY, JSON.stringify(save));
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   // Record a finished hole. Returns stars and whether it beat the old best.

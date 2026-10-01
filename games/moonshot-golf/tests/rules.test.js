@@ -33,8 +33,10 @@ test('save round-trips under the namespaced key and survives junk', () => {
   assert.deepEqual(s, R.freshSave());
   s.muted = true;
   R.recordHole(s, HOLES[0], 3);
-  R.writeSave(st, s);
+  assert.equal(R.writeSave(st, s), true);
   assert.ok(st.map.has('moonshot-golf.v1'));
+  assert.equal(R.writeSave(null, s), false);
+  assert.equal(R.writeSave({ setItem() { throw new Error('quota'); } }, s), false);
   assert.deepEqual(R.loadSave(st), s);
   assert.deepEqual(R.loadSave(memoryStorage({ 'moonshot-golf.v1': '{oops' })), R.freshSave());
   assert.deepEqual(R.loadSave(memoryStorage({ 'moonshot-golf.v1': '{"v":9}' })), R.freshSave());
