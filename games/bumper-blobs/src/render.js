@@ -1669,7 +1669,9 @@ export class Renderer {
     ctx.drawImage(this.clouds, this.w - drift, 0, this.w, this.h);
     const W = this.w, H = this.h;
     const portrait = H > W;
-    const unit = Math.min(W / 7, H / (portrait ? 9 : 7.5));
+    // Four places span ±3.85 units (4th step at +3.1, 1.5 wide), so size the
+    // unit to fit them all on narrow screens.
+    const unit = Math.min(W / (pd.ranking.length > 3 ? 8.2 : 7), H / (portrait ? 9 : 7.5));
     const baseY = portrait ? H * 0.46 : H * 0.5;
     const steps = [
       { place: 1, x: W / 2, h: unit * 1.7, color: '#ffd23a' },
