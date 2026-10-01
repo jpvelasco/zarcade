@@ -16,7 +16,7 @@ export function targetVisitors(rate) {
 // Where an animal may stand inside habitat i (feet position).
 export function roamBox(i) {
   const p = plotRect(i);
-  return { x0: p.x + 34, x1: p.x + p.w - 34, y0: p.y + 62, y1: p.y + p.h - 22 };
+  return { x0: p.x + 40, x1: p.x + p.w - 40, y0: p.y + 76, y1: p.y + p.h - 20 };
 }
 
 export class Actors {
@@ -135,8 +135,8 @@ export class Actors {
     let best = null;
     let bestD = Infinity;
     for (const a of this.animals.values()) {
-      const r = 34 * a.size + 6;
-      const cy = a.y - 26 * a.size;
+      const r = 42 * a.size + 6;
+      const cy = a.y - 34 * a.size;
       const d = Math.hypot(x - a.x, y - cy);
       if (d < r && d < bestD) { best = a; bestD = d; }
     }

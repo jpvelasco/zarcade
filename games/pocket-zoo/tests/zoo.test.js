@@ -58,7 +58,7 @@ test('upgrades raise capacity and stop at the top level', () => {
   for (let l = 1; l < MAX_LEVEL; l++) assert.equal(zoo.upgrade(0).ok, true);
   assert.equal(zoo.habitat(0).level, MAX_LEVEL);
   assert.equal(zoo.upgrade(0).ok, false);
-  assert.equal(zoo.capacity(0), 4);
+  assert.equal(zoo.capacity(0), 3);
 });
 
 test('petting and snacks raise Joy, which fades back gently', () => {

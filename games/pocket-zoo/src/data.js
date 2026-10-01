@@ -37,8 +37,8 @@ export const HABITAT_LEVELS = [
   { cap: 2, mult: 1 },
   { cap: 3, mult: 1.3 },
   { cap: 3, mult: 1.7 },
-  { cap: 4, mult: 2.2 },
-  { cap: 4, mult: 3 },
+  { cap: 3, mult: 2.2 },
+  { cap: 3, mult: 3 },
 ];
 export const MAX_LEVEL = HABITAT_LEVELS.length;
 export const PLOTS_PER_BIOME = 3;
