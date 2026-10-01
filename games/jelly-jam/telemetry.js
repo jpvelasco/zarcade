@@ -402,7 +402,8 @@
     });
     const handlers = install(win, logger, { arcadeHref: script && script.dataset.arcade });
     logger.event('session.start', { referrer: win.document.referrer ? new URL(win.document.referrer).pathname : '' });
-    return { log: logger, ...handlers };
+    // Copy descriptors, not values: a spread would freeze `crashed` at false.
+    return Object.defineProperties({ log: logger }, Object.getOwnPropertyDescriptors(handlers));
   }
 
   const Telemetry = {

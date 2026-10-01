@@ -133,31 +133,45 @@ test('every game ships an identical copy, loaded before its own scripts', () => 
   }
 });
 
-test('install reports crashes once and exposes a live crashed flag', () => {
+test('in a browser it boots itself, shows one crash screen, and keeps crashed live', () => {
+  const vm = require('node:vm');
   const listeners = {};
   const appended = [];
-  const doc = {
+  const element = () => ({ style: {}, dataset: {}, setAttribute() {}, append() {}, addEventListener() {}, focus() {} });
+  const document = {
+    currentScript: { dataset: { service: 'demo-game' } },
+    referrer: '',
+    visibilityState: 'visible',
     body: { append: (node) => appended.push(node) },
     getElementById: () => (appended.length ? appended[0] : null),
-    createElement: () => ({ style: {}, setAttribute() {}, append() {}, addEventListener() {}, focus() {} }),
+    createElement: element,
     addEventListener() {},
   };
-  const win = {
-    document: doc,
+  const storage = memoryStorage();
+  const window = {
+    document,
+    localStorage: storage,
+    location: { pathname: '/games/demo-game/index.html', search: '', origin: 'http://localhost' },
+    navigator: { userAgent: 'test', language: 'en' },
+    screen: { width: 800, height: 600 },
+    devicePixelRatio: 1,
     addEventListener: (type, fn) => { listeners[type] = fn; },
     setInterval() {},
+    setTimeout: (fn) => fn(),
   };
-  doc.defaultView = win;
-  const log = logger();
-  const handlers = T.install(win, log);
-  const view = Object.defineProperties({}, Object.getOwnPropertyDescriptors(handlers));
-  assert.equal(view.crashed, false);
-  const frame = handlers.guard(() => { throw new Error('in frame'); }, 'frame');
+  document.defaultView = window;
+  const source = fs.readFileSync(path.join(ROOT, 'arcade', 'telemetry.js'), 'utf8');
+  vm.runInNewContext(source, { window, URLSearchParams, URL, Date, Math, JSON, Object, Array, String, Number, Promise });
+  const Telemetry = window.Telemetry;
+  assert.equal(Telemetry.log.service, 'demo-game');
+  assert.equal(Telemetry.crashed, false);
+  const frame = Telemetry.guard(() => { throw new Error('in frame'); }, 'frame');
   frame();
   frame();
-  assert.equal(view.crashed, true, 'the copied getter stays live');
+  assert.equal(Telemetry.crashed, true, 'crashed stays a live getter after boot');
   assert.equal(appended.length, 1, 'one crash screen');
-  assert.equal(log.recentErrors().length, 1, 'later frames are skipped, not re-reported');
+  assert.equal(Telemetry.log.recentErrors().length, 1, 'later frames are skipped, not re-reported');
+  assert.equal(JSON.parse(storage.data['demo-game.v1.log']).at(-1).severity, 'FATAL');
   listeners.unhandledrejection({ reason: new Error('audio blocked') });
-  assert.equal(log.recentErrors().at(-1).severity, 'ERROR');
+  assert.equal(Telemetry.log.recentErrors().at(-1).severity, 'ERROR');
 });
