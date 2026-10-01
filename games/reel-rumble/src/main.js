@@ -12,7 +12,7 @@ import { drawFish, bakeFish } from './fishart.js';
 import { loadSave, writeSave, recordCatch, markSeen } from './progress.js';
 import { QUESTS, openQuests, questProgress, settleQuests, TOURNAMENTS, TOURNAMENT_BY_ID, TOURNAMENT_FISH, tournamentOpen, newTournament, tournamentCount, tournamentResult, awardMedal } from './quests.js';
 import { frameMonitor } from './perf.js';
-import { hashSeed, mulberry32 } from './rng.js';
+import { hashSeed } from './rng.js';
 
 const STEP = 1 / 60;
 const COIN = '<i class="coin" aria-label="coins"></i>';
@@ -221,7 +221,7 @@ function onEvents(events) {
 
 function showCatch() {
   const r = trip.result;
-  const { period, weather } = { period: trip.period, weather: trip.weather };
+  const { period, weather } = trip;
   const rec = recordCatch(save, r);
   const done = settleQuests(save, { result: r, water: save.water, period, weather });
   persist();
@@ -868,5 +868,5 @@ if (location.protocol !== 'file:') {
 
 window.RR = {
   get trip() { return trip; }, get demo() { return demo; }, get mode() { return mode; }, save, renderer, input, sound,
-  FISH_BY_ID, startFishing, startTourney: (id) => startTourney(TOURNAMENT_BY_ID[id]), persist, mulberry32,
+  FISH_BY_ID, startFishing, startTourney: (id) => startTourney(TOURNAMENT_BY_ID[id]), persist,
 };

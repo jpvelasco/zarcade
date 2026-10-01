@@ -18,7 +18,6 @@ export class Input {
     this.padEdges = new Set();
     this.enabled = false;
     this.holdPrev = false;
-    this.aimPointer = null; // clientX of the pointer aiming the cast
 
     addEventListener('keydown', (e) => {
       const t = e.target;
