@@ -12,7 +12,8 @@ test('save round-trips and tolerates junk', () => {
   const s = memoryStorage();
   const save = defaultSave();
   save.stardust = 77;
-  writeSave(s, save);
+  assert.equal(writeSave(s, save), true);
+  assert.equal(writeSave({ setItem() { throw new Error('quota'); } }, save), false);
   assert.equal(loadSave(s).stardust, 77);
   s.setItem(SAVE_KEY, 'nope');
   assert.deepEqual(loadSave(s), defaultSave());

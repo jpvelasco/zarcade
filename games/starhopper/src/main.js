@@ -7,10 +7,15 @@ import { Audio } from './audio.js';
 import { BIOMES } from './biomes.js';
 import { HOME, planet, children, visiblePlanets, isReachable, depthOf, parentOf } from './galaxy.js';
 import { loadSave, writeSave, statsFor, UPGRADES, PAINTS, upgradeCost, buyUpgrade, recordArrival, MENU, menuPrice } from './progress.js';
+import { frameMonitor } from './perf.js';
 
 const STEP = 1 / 60;
 const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
+
+// Telemetry is optional: the game still runs if telemetry.js is missing.
+const telemetry = window.Telemetry || null;
+const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
 
 const save = loadSave(localStorage);
 const input = new Input();
@@ -25,6 +30,14 @@ renderer.toneMappingExposure = 1.1;
 let world = null, view = null;
 let mode = 'menu'; // menu | flight | paused | shop | results
 let endTimer = 0, accumulator = 0;
+// Saving can fail (private mode, full storage); play on and report it once.
+let saveWarned = false;
+function persist() {
+  if (writeSave(localStorage, save) || saveWarned) return;
+  saveWarned = true;
+  log.warn('save.failed', { mode });
+}
+
 let selected = save.selected && visiblePlanets(save.cleared).includes(save.selected) ? save.selected : children(HOME)[0];
 
 function resize() {
@@ -119,7 +132,7 @@ function selectPlanet(id, rerender = true) {
   if (id !== selected && reach) {
     selected = id;
     save.selected = id;
-    writeSave(localStorage, save);
+    persist();
     load(selected, { attract: true });
     if (rerender) return renderGalaxy();
   }
@@ -148,7 +161,8 @@ function renderHangar() {
     buy.disabled = cost === null || save.stardust < cost;
     buy.addEventListener('click', () => {
       if (!buyUpgrade(save, key)) return;
-      writeSave(localStorage, save);
+      persist();
+      log.event('hangar.upgrade', { upgrade: key, level: save.upgrades[key], stardust: save.stardust });
       audio.unlock();
       audio.handleEvents([{ type: 'pickup', kind: 'power' }]);
       renderHangar();
@@ -165,7 +179,7 @@ function renderHangar() {
     sw.setAttribute('aria-label', `Paint ${color}`);
     sw.addEventListener('click', () => {
       save.paint = color;
-      writeSave(localStorage, save);
+      persist();
       view.jet.userData.paint.color.set(color);
       renderHangar();
     });
@@ -182,6 +196,7 @@ function launch(id = selected) {
   hud.reset(world);
   input.clearPressed();
   showScreen(null);
+  log.event('planet.start', { planet: world.planet.id, biome: world.planet.biome, depth: world.planet.depth });
 }
 
 function pause() {
@@ -223,8 +238,9 @@ function renderShop() {
       const fromRun = Math.min(p.dust, price);
       p.dust -= fromRun;
       save.stardust -= price - fromRun;
-      writeSave(localStorage, save);
+      persist();
       world.applyMenuItem(item.id);
+      log.event('shop.purchase', { item: item.id, price, planet: world.planet.id });
       audio.handleEvents([{ type: 'pickup', kind: 'power' }]);
       renderShop();
     });
@@ -249,6 +265,10 @@ function showResults() {
   if (world.status === 'finished') {
     const res = recordArrival(save, pl, world.result());
     $('res-title').textContent = `Arrived at ${pl.name}!`;
+    log.event('planet.complete', {
+      planet: pl.id, depth: pl.depth, stars: res.stars, score: p.score, kills: p.kills,
+      hull: Math.round((p.hull / p.maxHull) * 100), stardust: res.earned, revealed: res.revealed.length,
+    });
     $('res-stars').classList.remove('hidden');
     starEls.forEach((s, i) => s.classList.toggle('on', i < res.stars));
     $('res-score').textContent = `${p.score.toLocaleString()} points`;
@@ -260,6 +280,10 @@ function showResults() {
   } else {
     save.stardust += p.dust;
     $('res-title').textContent = 'Ship destroyed!';
+    log.event('planet.fail', {
+      planet: pl.id, depth: pl.depth, reason: 'destroyed', score: p.score,
+      progress: Math.round(Math.min(1, p.s / world.journey.length) * 100),
+    });
     $('res-stars').classList.add('hidden');
     $('res-score').textContent = `${Math.round(Math.min(1, p.s / world.journey.length) * 100)}% of the way to ${pl.name}`;
     lines.push(['Stardust kept', `✨ ${p.dust}`], ['Tip: roll with Q / E to deflect shots, and upgrade in the hangar']);
@@ -267,7 +291,7 @@ function showResults() {
   }
   buttons.push(['Hangar', false, () => toMenu('screen-hangar')]);
   save.selected = selected;
-  writeSave(localStorage, save);
+  persist();
   $('res-lines').innerHTML = lines.map(([a, b]) => (b === undefined ? `<div class="highlight">${a}</div>` : `<div><span>${a}</span><b>${b}</b></div>`)).join('');
   const row = $('res-buttons');
   row.innerHTML = '';
@@ -297,14 +321,14 @@ $('btn-view').addEventListener('click', toggleView);
 $('btn-mute').addEventListener('click', () => {
   save.muted = !save.muted;
   audio.setMuted(save.muted);
-  writeSave(localStorage, save);
+  persist();
   $('btn-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 
 function toggleView() {
   save.view = save.view === 'cockpit' ? 'chase' : 'cockpit';
-  writeSave(localStorage, save);
+  persist();
   if (view && !world.player.autopilot) view.viewMode = save.view;
 }
 
@@ -323,8 +347,20 @@ function updatePointer(dt, playing) {
   }
 }
 
+// Frame telemetry: slow frames, struggling 10 s windows, and a watchdog
+// outside the loop that notices when frames stop while the page is visible.
+const monitor = frameMonitor({
+  log,
+  snapshot: () => ({ mode, planet: world ? world.planet.id : 'none', status: world ? world.status : 'none' }),
+  visible: () => document.visibilityState === 'visible',
+  crashed: () => !!telemetry?.crashed,
+});
+setInterval(() => monitor.check(performance.now()), 1000);
+document.addEventListener('visibilitychange', () => monitor.reset(performance.now()));
+
 let last = performance.now();
 function frame(now) {
+  monitor.frame(now);
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   updatePointer(dt, mode === 'flight');
@@ -365,13 +401,18 @@ function frame(now) {
   }
   if (view && mode !== 'paused' && mode !== 'shop') view.update(dt);
   if (view) view.render();
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
 
+// A crash inside a frame shows the crash screen instead of a frozen picture;
+// after a crash the guard returns early, so the loop stops rescheduling.
+const loop = telemetry ? telemetry.guard(frame, 'starhopper.frame') : frame;
+
 if (location.protocol !== 'file:') {
+  log.event('game.ready', { visited: Object.keys(save.cleared).length, stars: Object.values(save.cleared).reduce((a, b) => a + b, 0), stardust: save.stardust });
   if (params.has('planet')) launch(params.get('planet'));
   else toMenu('screen-title');
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
 
 window.SH = { get world() { return world; }, get view() { return view; }, save, launch, input, planet };
