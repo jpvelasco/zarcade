@@ -124,6 +124,16 @@
       accent: '#8bd266',
       needsServer: true,
     },
+    {
+      slug: 'knight-shift',
+      title: 'Knight Shift',
+      tagline: 'Chess with a twist, for everyone.',
+      description: 'Play friendly bots from Pip the Pawn to Grandmaster Owl, sneak through Fog of War, grab Power Squares, try Chess960, and climb a 35-puzzle trail.',
+      genre: 'Strategy',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ffcf5a',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
