@@ -237,7 +237,8 @@ function sync() {
 
 function renderTitle() {
   $('#logo').innerHTML = `${letterSpans('Crayon', 3)}<span class="wordbreak"></span>${letterSpans('Quest', 11)}`;
-  const heroId = profile.unlocked.includes(profile.lastHero) ? profile.lastHero : 'kid';
+  if (run) mergeAlbum(profile, run);
+  const heroId = run && run.phase !== 'over' ? run.hero : profile.unlocked.includes(profile.lastHero) ? profile.lastHero : 'kid';
   $('#title-hero').innerHTML = heroSVG(heroId);
   const met = profile.album.monsters.length ? profile.album.monsters : ['blob', 'eraser'];
   const pickA = met[Math.floor(Math.random() * met.length)];
@@ -1084,6 +1085,7 @@ function showResults() {
 
 let albumTab = 'cards';
 function showAlbum() {
+  if (run) mergeAlbum(profile, run);
   const a = profile.album;
   const tabs = ['cards', 'monsters', 'stickers'].map((t) => `<button class="btn small${t === albumTab ? ' on' : ''}" data-act="tab" data-id="${t}">${t[0].toUpperCase() + t.slice(1)} ${a[t].length}/${t === 'cards' ? CARDS.length : t === 'monsters' ? MONSTERS.length : STICKERS.length}</button>`).join('');
   let grid = '';

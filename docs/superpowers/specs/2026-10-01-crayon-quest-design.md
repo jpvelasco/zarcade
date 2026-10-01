@@ -47,10 +47,12 @@ run lasts 15–25 minutes.
   (shields; unlocked by finishing any run), Paint Wizard (smudge; unlocked by
   beating any boss), Eraser Ninja (cheap cards and draw; unlocked by beating
   two bosses in total or winning a run). Unlocks are generous on purpose.
-- 44 cards, every one with an upgraded version.
-- 18 monsters across three pages (Pencil Woods, Marker Marsh, Rainbow Roof),
+- 50 cards (34 shared, 4 hero starters, 12 hero signatures), every one
+  with an upgraded version.
+- 21 monsters across three pages (Pencil Woods, Marker Marsh, Rainbow Roof),
   including 3 elites and 3 bosses (King Scribble, Inky the Blot, the Grand
-  Smudge), each with a simple move pattern.
+  Smudge), each with a simple move pattern. Bosses call helpers (never more
+  than three monsters at once).
 - 18 sticker relics with simple hooks (start of battle, start of turn, end of
   battle, passive stat changes).
 
@@ -115,9 +117,11 @@ resuming and the daily seed are all exact.
 
 `tests/bot.test.js` runs a heuristic bot (blocks when it would take damage,
 kills when it can, plays Magic early, drafts by a tier list, rests when low)
-over many seeds per hero, and asserts it wins sometimes but not always,
-and that a random-play bot does clearly worse. Numbers were tuned with that
-sim.
+over 40 seeds per hero, and asserts it wins sometimes (15–80%), clears page 1
+in most runs, and that a random-play bot does clearly worse. Numbers were
+tuned with a 150-seed sim: the bot wins about 38–49% depending on hero and
+random play never wins. The Grand Smudge was reordered so its big hit never
+lands while the hero is Soggy.
 
 ## Design calls
 
@@ -125,6 +129,10 @@ sim.
   hands and keyboards.
 - "Gentle mode" setting (monsters have 25% less HP) for younger kids; the
   daily page always uses normal mode so it's comparable.
+- Monster turns animate one monster at a time; saves are skipped mid monster
+  turn, so a reload replays End turn from the last clean state.
+- Each page has its own faint scenery behind battles (pencil trees, marsh
+  reeds, a rainbow over the rooftops).
 - Debug params: `?seed=N`, `?hero=id`, `?autopilot` (the bot plays in the
   browser, used for route checks), `?crash` (throws in the frame loop once,
   for crash-screen checks).
