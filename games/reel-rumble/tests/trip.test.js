@@ -81,3 +81,22 @@ test('sniffing fish that dislike the bait are reported once per species', () => 
   }
   assert.ok(sniffs > 0);
 });
+
+test('a fish always comes over within about 20 seconds of the lure settling', () => {
+  let worst = 0;
+  for (let seed = 1; seed <= 40; seed++) {
+    const trip = new Trip({ ...base, seed });
+    trip.step(1 / 60, { hold: true });
+    for (let i = 0; i < 40; i++) trip.step(1 / 60, { hold: true });
+    trip.step(1 / 60, { hold: false });
+    let waited = 0;
+    for (let i = 0; i < 60 * 60; i++) {
+      trip.step(1 / 60, {});
+      if (trip.state === 'waiting' || trip.state === 'sinking') waited += 1 / 60;
+      if (trip.events.some((e) => e.type === 'approach') || trip.state === 'nibble') break;
+      trip.events.length = 0;
+    }
+    worst = Math.max(worst, waited);
+  }
+  assert.ok(worst < 20, `waited ${worst.toFixed(1)} s for a fish`);
+});

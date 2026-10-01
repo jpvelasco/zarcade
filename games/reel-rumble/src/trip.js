@@ -10,6 +10,9 @@ import { createBite, stepBite, biteDone } from './bite.js';
 import { createFight, stepFight, LAND_DIST } from './fight.js';
 import { mulberry32, hashSeed, range, clamp } from './rng.js';
 
+// Seconds of no interest before the keenest nearby fish comes over anyway.
+const PATIENCE_S = 10;
+
 export const SPAN = 60; // metres of water on screen
 const BAND_RANGE = { shallow: [0.5, 3], mid: [3, 8], deep: [8, 30] };
 const MOVING_LURES = new Set(['minnow', 'spinner', 'feather', 'icejig', 'starjig', 'starlight']);
@@ -200,7 +203,24 @@ export class Trip {
     }
 
     // Interest checks.
-    if (!lureIn || this.fishes.some((f) => f.mode === 'approach' || f.mode === 'nibble')) return;
+    if (!lureIn || this.fishes.some((f) => f.mode === 'approach' || f.mode === 'nibble')) {
+      this.patienceT = 0;
+      return;
+    }
+    // Patience: if nothing has come over in a while, the nearest fish that
+    // likes this bait swims over, so a wait never drags on for young anglers.
+    this.patienceT = (this.patienceT || 0) + dt;
+    if (this.patienceT > PATIENCE_S) {
+      const keen = this.fishes
+        .filter((f) => f.mode === 'swim' && this.inReach(f) && likesBait(f.sp, this.bait))
+        .sort((a, b) => Math.hypot(a.x - this.lure.x, a.y - this.lure.y) - Math.hypot(b.x - this.lure.x, b.y - this.lure.y))[0];
+      if (keen) {
+        keen.mode = 'approach';
+        this.patienceT = 0;
+        this.emit('approach', { fish: keen.sp, patient: true });
+        return;
+      }
+    }
     this.interestT -= dt;
     if (this.interestT > 0) return;
     this.interestT = 0.25;
