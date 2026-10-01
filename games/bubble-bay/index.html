@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#2fb3c6">
+  <meta name="description" content="Bubble Bay: a seaside bubble shooter. Help Coral the crab pop bubbles and rescue baby otters.">
+  <title>Bubble Bay — seaside bubble shooter</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="bubble-bay"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <div id="bay" aria-hidden="true">
+    <div class="sun"></div>
+    <div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- ------------------------------------------------------------ title -->
+  <section id="screen-title" class="screen">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="title-wrap">
+      <h1 class="logo" aria-label="Bubble Bay"><span class="l1">Bubble</span><span class="l2">Bay</span></h1>
+      <canvas id="title-art" class="title-art" aria-hidden="true"></canvas>
+      <p class="tagline">Help <b>Coral the crab</b> pop bubbles and rescue the baby otters!</p>
+      <div class="menu">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-map" class="btn">🗺️ Seaside map</button>
+          <button id="btn-daily" class="btn sea">🌊 Daily Tide</button>
+        </div>
+        <button id="btn-cove" class="btn otter">Otter Cove</button>
+      </div>
+      <p id="title-progress" class="progress"></p>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------------- map -->
+  <section id="screen-map" class="screen hidden">
+    <header class="bar">
+      <button class="btn small" data-to-title>← Title</button>
+      <h2>Seaside map</h2>
+      <p id="map-stars" class="stars-count"></p>
+    </header>
+    <div id="map-scroll" class="map-scroll"><div id="map-holder"></div></div>
+    <footer class="bar tabs" id="area-tabs"></footer>
+  </section>
+
+  <!-- ------------------------------------------------------------- cove -->
+  <section id="screen-cove" class="screen hidden">
+    <header class="bar">
+      <button class="btn small" data-to-title>← Title</button>
+      <h2>Otter Cove</h2>
+      <p id="cove-count" class="stars-count"></p>
+    </header>
+    <div class="cove-scroll">
+      <p class="cove-note">Every otter you rescue comes to live here. Who's still out in the bay?</p>
+      <div id="cove-grid" class="cove-grid"></div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------- play -->
+  <section id="screen-play" class="screen hidden">
+    <canvas id="board" aria-label="Bubble board. Aim Coral's shell and fire bubbles to match three or more."></canvas>
+    <header id="hud" class="hud">
+      <div class="hud-left">
+        <button id="btn-pause" class="icon-btn" aria-label="Pause">❚❚</button>
+        <div class="level-name"><b id="hud-level">Level 1</b><span id="hud-name"></span></div>
+      </div>
+      <div class="hud-right">
+        <div id="hud-goal" class="goal-chip" aria-live="polite"><canvas id="goal-icon"></canvas><span id="goal-text">0/0</span></div>
+        <div class="score-chip"><span id="hud-score">0</span><span id="hud-stars" class="stars" aria-hidden="true"><i>★</i><i>★</i><i>★</i></span></div>
+      </div>
+    </header>
+    <footer id="dock" class="dock">
+      <div class="boosters" role="group" aria-label="Boosters">
+        <button class="booster" data-booster="rainbow" aria-label="Rainbow bubble booster"><canvas></canvas><b>0</b><kbd>1</kbd></button>
+        <button class="booster" data-booster="bomb" aria-label="Bomb bubble booster"><canvas></canvas><b>0</b><kbd>2</kbd></button>
+        <button class="booster" data-booster="zap" aria-label="Lightning bubble booster"><canvas></canvas><b>0</b><kbd>3</kbd></button>
+      </div>
+      <button id="btn-retry" class="icon-btn retry" aria-label="Retry level">↻</button>
+    </footer>
+    <div id="banner" class="banner hidden"><b id="banner-title"></b><span id="banner-goal"></span></div>
+    <div id="tip" class="tip hidden"></div>
+    <div id="toast" class="toast hidden"></div>
+  </section>
+
+  <!-- ------------------------------------------------------------ pause -->
+  <section id="screen-pause" class="screen overlay hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-goal" class="muted"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart level</button>
+        <button id="btn-pause-mute" class="btn">Sound: on</button>
+        <button id="btn-pause-map" class="btn">Seaside map</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+      <p class="keys">Aim: drag, mouse or ←/→ · Fire: release or Space · Swap: tap Coral or ↓</p>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- results -->
+  <section id="screen-results" class="screen overlay hidden">
+    <div class="card small results">
+      <h2 id="res-title">Level cleared!</h2>
+      <div id="res-stars" class="stars big" aria-hidden="true"><i>★</i><i>★</i><i>★</i></div>
+      <p id="res-score" class="big-score">0</p>
+      <p id="res-best" class="best"></p>
+      <div id="res-otters" class="res-otters"></div>
+      <div id="res-lines" class="lines"></div>
+      <div class="col" id="res-buttons"></div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+  <noscript><p style="padding:2rem">Bubble Bay needs JavaScript.</p></noscript>
+</body>
+</html>
