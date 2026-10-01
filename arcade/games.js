@@ -114,6 +114,16 @@
       accent: '#4fb2ec',
       needsServer: true,
     },
+    {
+      slug: 'sprout-valley',
+      title: 'Sprout Valley',
+      tagline: 'A cozy farm life: grow, befriend, celebrate.',
+      description: 'Till, plant and water through four short seasons, raise chickens, cows and a goat, and sell your harvest at the bin or the Saturday market. Make friends with six villagers and win the Egg Hunt, Lantern Night, Harvest Fair and Snow Festival.',
+      genre: 'Life sim',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#8bd266',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
