@@ -164,6 +164,16 @@
       accent: '#15a39c',
       needsServer: true,
     },
+    {
+      slug: 'groove-garden',
+      title: 'Groove Garden',
+      tagline: 'Tap to the beat and watch your garden bloom.',
+      description: 'A joyful rhythm game with twelve original songs, from lo-fi and disco to chiptune and waltz, all synthesized live. Hit the falling shapes in time and your garden blooms, dances and lights up.',
+      genre: 'Rhythm',
+      controls: ['keyboard', 'touch', 'mouse', 'gamepad'],
+      accent: '#ff7eb6',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
