@@ -126,9 +126,9 @@ test('missions progress, pay out and rotate in a fresh one', () => {
 test('the flick reference adapts gently and stays in range', () => {
   const s = defaultSave();
   for (let i = 0; i < 10; i++) adaptFlick(s, 4);
-  assert.ok(s.flickRef > 2.4 && s.flickRef < 4);
+  assert.ok(s.flickRef > 2.7 && s.flickRef < 4);
   for (let i = 0; i < 400; i++) adaptFlick(s, 50);
-  assert.equal(s.flickRef, 5);
+  assert.equal(s.flickRef, 4.5);
   adaptFlick(s, NaN);
-  assert.equal(s.flickRef, 5);
+  assert.equal(s.flickRef, 4.5);
 });

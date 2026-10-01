@@ -43,7 +43,8 @@ export class Input {
       this.mode = e.pointerType === 'mouse' ? 'mouse' : 'touch';
       if (!this.enabled) return;
       e.preventDefault();
-      surface.setPointerCapture?.(e.pointerId);
+      try { surface.setPointerCapture?.(e.pointerId); } catch { // synthetic or already-ended pointers can't be captured
+      }
       const now = performance.now();
       this.drag = { id: e.pointerId, samples: [{ x: e.clientX, y: e.clientY, t: now }], t0: now, x0: e.clientX, y0: e.clientY };
       this.trail.length = 0;

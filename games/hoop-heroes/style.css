@@ -434,3 +434,6 @@ code, kbd { background: rgba(42, 29, 92, 0.1); padding: 1px 6px; border-radius: 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+@media (max-width: 600px) {
+  .fire-badge { top: auto; bottom: max(16px, env(safe-area-inset-bottom)); }
+}

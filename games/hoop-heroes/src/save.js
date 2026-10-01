@@ -194,6 +194,6 @@ export function buyItem(save, kind, item) {
 // The player's flick reference drifts toward their own flicks.
 export function adaptFlick(save, flick) {
   if (!(flick > 0)) return;
-  const r = save.flickRef * Math.pow(flick / save.flickRef, 0.12);
-  save.flickRef = Math.max(1.2, Math.min(5, r));
+  const r = save.flickRef * Math.pow(flick / save.flickRef, 0.06);
+  save.flickRef = Math.max(1.6, Math.min(4.5, r));
 }
