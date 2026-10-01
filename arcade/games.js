@@ -270,6 +270,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'bakery-blitz',
+      title: 'Bakery Blitz',
+      tagline: 'Mix, bake, decorate, serve. Nobody ever yells.',
+      description: 'Run a small-town bakery through 45 cheerful days: tap stations to mix, bake and decorate, watch the oven, and serve fast for combo tips. Spend coins on a second oven, comfy chairs and a helper mouse.',
+      genre: 'Time management',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ff9d4d',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
