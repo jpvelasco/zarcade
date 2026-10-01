@@ -250,7 +250,7 @@ export class Editor {
     this.$('ed-share').disabled = !d.par || !!problem;
     this.$('ed-test').disabled = !!problem;
     const lv = this.level();
-    this.renderer.setLevel(lv, 'custom');
+    this.renderer.setLevel(lv, 'custom', 0);
     this.renderer.cursor = this.keyboardCursor ? this.cursor : null;
   }
 

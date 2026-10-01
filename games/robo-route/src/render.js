@@ -59,8 +59,9 @@ export class Renderer {
     if (this.level) this.layout();
   }
 
-  setLevel(level, themeName = 'yard') {
+  setLevel(level, themeName = 'yard', rot = null) {
     this.level = level;
+    this.rot = rot ?? bestRotation(level);
     this.themeName = THEMES[themeName] ? themeName : 'yard';
     this.theme = THEMES[this.themeName];
     this.particles.length = 0;
@@ -77,8 +78,9 @@ export class Renderer {
     let maxH = 0;
     for (const c of lv.cells) if (c) maxH = Math.max(maxH, c.h);
     // Extents for tw = 1: width (w+h)/2, height (w+h)/4 + heights + base + Bolt.
-    const ew = (lv.w + lv.h) / 2;
-    const eh = (lv.w + lv.h) / 4 + maxH * 0.22 + 0.2 + 0.62;
+    const { vw, vh } = this.viewDims();
+    const ew = (vw + vh) / 2;
+    const eh = (vw + vh) / 4 + maxH * 0.22 + 0.2 + 0.62;
     const tw = Math.max(26, Math.min(availW / ew, availH / eh, 150));
     this.tw = tw;
     this.th = tw / 2;
@@ -87,14 +89,46 @@ export class Renderer {
     const boardW = ew * tw;
     const boardH = eh * tw;
     // Origin: the screen point of cell (0,0)'s top-face centre at height 0.
-    this.ox = ins.left + (availW + 24 - boardW) / 2 + lv.h * tw / 2;
+    this.ox = ins.left + (availW + 24 - boardW) / 2 + vh * tw / 2;
     this.oy = ins.top + (availH + 20 - boardH) / 2 + 0.62 * tw + maxH * this.bh + this.th / 2;
     this.bakeBlocks();
     this.bakeGlow();
   }
 
+  viewDims() {
+    const lv = this.level;
+    return this.rot % 2 ? { vw: lv.h, vh: lv.w } : { vw: lv.w, vh: lv.h };
+  }
+
+  // Board coordinates to view coordinates (the camera can turn in 90° steps).
+  toView(x, y) {
+    const lv = this.level;
+    switch (this.rot) {
+      case 1: return { vx: lv.h - 1 - y, vy: x };
+      case 2: return { vx: lv.w - 1 - x, vy: lv.h - 1 - y };
+      case 3: return { vx: y, vy: lv.w - 1 - x };
+      default: return { vx: x, vy: y };
+    }
+  }
+
+  fromView(vx, vy) {
+    const lv = this.level;
+    switch (this.rot) {
+      case 1: return { x: vy, y: lv.h - 1 - vx };
+      case 2: return { x: lv.w - 1 - vx, y: lv.h - 1 - vy };
+      case 3: return { x: lv.w - 1 - vy, y: vx };
+      default: return { x: vx, y: vy };
+    }
+  }
+
   screen(x, y, h) {
-    return { x: this.ox + (x - y) * this.tw / 2, y: this.oy + (x + y) * this.th / 2 - h * this.bh };
+    const { vx, vy } = this.toView(x, y);
+    return { x: this.ox + (vx - vy) * this.tw / 2, y: this.oy + (vx + vy) * this.th / 2 - h * this.bh };
+  }
+
+  rotate(step = 1) {
+    this.rot = (this.rot + step + 4) % 4;
+    if (this.level) this.layout();
   }
 
   // ------------------------------------------------------------ baking
@@ -144,7 +178,7 @@ export class Renderer {
     const bh = this.bh * d;
     const base = this.base * d;
     for (let h = 0; h <= 4; h++) {
-      for (const col of ['', 'r', 'b']) {
+      for (const col of ['', 'r', 'b']) for (const odd of [0, 1]) {
         const depth = base + h * bh;
         const c = canvas(tw + 4, th + depth + 4);
         const g = c.getContext('2d');
@@ -183,12 +217,17 @@ export class Renderer {
           g.stroke();
         }
         // Top face with a soft inner bevel.
-        g.fillStyle = col ? pal.top2 : (h % 2 ? this.theme.top2 : this.theme.top);
+        g.fillStyle = col ? pal.top2 : this.theme.top2;
         diamond(g, ax, ay, tw, th);
         g.fill();
-        g.fillStyle = col ? pal.top : this.theme.top;
-        diamond(g, ax, ay - th * 0.04, tw * 0.84, th * 0.84);
+        g.fillStyle = col ? pal.top : (odd ? this.theme.top2 : this.theme.top);
+        diamond(g, ax, ay - th * 0.03, tw * 0.88, th * 0.88);
         g.fill();
+        if (!col && odd) {
+          g.fillStyle = 'rgba(255,255,255,0.18)';
+          diamond(g, ax, ay - th * 0.03, tw * 0.88, th * 0.88);
+          g.fill();
+        }
         g.strokeStyle = 'rgba(255,255,255,0.5)';
         g.lineWidth = Math.max(1, 1.2 * d);
         g.beginPath();
@@ -213,7 +252,11 @@ export class Renderer {
           }
           g.restore();
         }
-        this.blocks.set(`${h}${col}`, { c, ax, ay });
+        g.strokeStyle = 'rgba(0,0,0,0.1)';
+        g.lineWidth = Math.max(1, d);
+        diamond(g, ax, ay, tw, th);
+        g.stroke();
+        this.blocks.set(`${h}${col}${odd}`, { c, ax, ay });
       }
     }
   }
@@ -295,12 +338,17 @@ export class Renderer {
     const lv = this.level;
     const bolt = view.bolt;
     // Bolt sorts with the cell he is in front of while moving.
-    const boltKey = bolt ? Math.max(Math.round(bolt.x) + Math.round(bolt.y), Math.round(bolt.fx ?? bolt.x) + Math.round(bolt.fy ?? bolt.y)) : -1;
+    let boltKey = -1;
+    if (bolt) {
+      const bv = this.toView(bolt.x, bolt.y);
+      boltKey = Math.ceil(bv.vx + bv.vy - 1e-6);
+    }
     let boltDrawn = !bolt;
-    const sum = lv.w + lv.h - 2;
+    const { vw, vh } = this.viewDims();
+    const sum = vw + vh - 2;
     for (let s = 0; s <= sum; s++) {
-      for (let x = Math.max(0, s - lv.h + 1); x <= Math.min(lv.w - 1, s); x++) {
-        const y = s - x;
+      for (let vx = Math.max(0, s - vh + 1); vx <= Math.min(vw - 1, s); vx++) {
+        const { x, y } = this.fromView(vx, s - vx);
         const cell = cellAt(lv, x, y);
         if (cell) this.drawCell(x, y, cell, view);
       }
@@ -310,6 +358,13 @@ export class Renderer {
       }
     }
     if (!boltDrawn) this.drawBoltOnBoard(bolt, view);
+    if (bolt && view.chevron) this.drawChevron(bolt);
+    // X-ray: a faint Bolt on top so tall blocks in front never hide him.
+    if (bolt && this.occluded(bolt)) {
+      ctx.globalAlpha = 0.38;
+      this.drawBoltOnBoard(bolt, { ...view, chevron: false, ghost: true });
+      ctx.globalAlpha = 1;
+    }
     this.drawParticles();
     if (this.flash > 0) {
       this.flash = Math.max(0, this.flash - dt * 2);
@@ -321,10 +376,30 @@ export class Renderer {
     }
   }
 
+  // Is any block in front of Bolt tall enough to cover him?
+  occluded(b) {
+    const lv = this.level;
+    const bv = this.toView(b.x, b.y);
+    const sum = bv.vx + bv.vy;
+    const diff = bv.vx - bv.vy;
+    const h = b.h + (b.lift || 0) * 2.2;
+    for (let y = 0; y < lv.h; y++) {
+      for (let x = 0; x < lv.w; x++) {
+        const c = lv.cells[y * lv.w + x];
+        if (!c) continue;
+        const v = this.toView(x, y);
+        const ds = v.vx + v.vy - sum;
+        if (ds < 0.5 || Math.abs(v.vx - v.vy - diff) > 1.2) continue;
+        if ((c.h - h) * 0.22 > ds * 0.25 - 0.12) return true;
+      }
+    }
+    return false;
+  }
+
   drawCell(x, y, cell, view) {
     const ctx = this.ctx;
     const d = this.dpr;
-    const spr = this.blocks.get(`${cell.h}${cell.c}`);
+    const spr = this.blocks.get(`${cell.h}${cell.c}${(x + y) & 1}`);
     const p = this.screen(x, y, cell.h);
     ctx.drawImage(spr.c, p.x - spr.ax / d, p.y - spr.ay / d, spr.c.width / d, spr.c.height / d);
     const lv = this.level;
@@ -429,26 +504,15 @@ export class Renderer {
     const p = this.screen(b.x, b.y, b.h);
     // Shadow on whatever floor is below.
     const lift = b.lift || 0;
-    ctx.fillStyle = 'rgba(0,0,0,0.22)';
-    ctx.beginPath();
-    ctx.ellipse(floor.x, floor.y, tw * (0.2 - lift * 0.03), tw * (0.1 - lift * 0.015), 0, 0, Math.PI * 2);
-    ctx.fill();
-    // A chevron on the floor shows which way Bolt faces.
-    if (view.chevron) {
-      const dx = [0.5, 0.5, -0.5, -0.5][Math.round(b.d) & 3];
-      const dy = [-0.25, 0.25, 0.25, -0.25][Math.round(b.d) & 3];
-      const cx = floor.x + dx * tw * 0.62;
-      const cy = floor.y + dy * tw * 0.62;
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    if (!view.ghost) {
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
       ctx.beginPath();
-      ctx.moveTo(cx + dx * tw * 0.16, cy + dy * tw * 0.16);
-      ctx.lineTo(cx - dy * tw * 0.2, cy + dx * tw * 0.1);
-      ctx.lineTo(cx + dy * tw * 0.2, cy - dx * tw * 0.1);
-      ctx.closePath();
+      ctx.ellipse(floor.x, floor.y, tw * (0.2 - lift * 0.03), tw * (0.1 - lift * 0.015), 0, 0, Math.PI * 2);
       ctx.fill();
     }
+    const dv = (Math.round(b.d) + this.rot) & 3;
     drawBolt(ctx, p.x, p.y - lift * tw * 0.5, tw, {
-      d: b.d,
+      d: dv,
       paint: view.paint,
       topper: view.topper,
       mood: b.mood,
@@ -459,6 +523,25 @@ export class Renderer {
       tilt: b.tilt || 0,
       spin: b.spin || 0,
     });
+  }
+
+  // A chevron on the floor ahead shows which way Bolt faces.
+  drawChevron(b) {
+    const ctx = this.ctx;
+    const tw = this.tw;
+    const floor = this.screen(b.x, b.y, b.floorH ?? b.h);
+    const dv = (Math.round(b.d) + this.rot) & 3;
+    const dx = [0.5, 0.5, -0.5, -0.5][dv];
+    const dy = [-0.25, 0.25, 0.25, -0.25][dv];
+    const cx = floor.x + dx * tw * 0.62;
+    const cy = floor.y + dy * tw * 0.62;
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.beginPath();
+    ctx.moveTo(cx + dx * tw * 0.16, cy + dy * tw * 0.16);
+    ctx.lineTo(cx - dy * tw * 0.2, cy + dx * tw * 0.1);
+    ctx.lineTo(cx + dy * tw * 0.2, cy - dx * tw * 0.1);
+    ctx.closePath();
+    ctx.fill();
   }
 
   drawParticles() {
@@ -495,7 +578,8 @@ export class Renderer {
         const p = this.screen(x, y, c ? c.h : 0);
         const dx = Math.abs(px - p.x) / (this.tw / 2);
         const dy = Math.abs(py - p.y) / (this.th / 2);
-        if (dx + dy <= 1 && (!best || x + y > best.x + best.y)) best = { x, y };
+        const v = this.toView(x, y);
+        if (dx + dy <= 1 && (!best || v.vx + v.vy > best.s)) best = { x, y, s: v.vx + v.vy };
       }
     }
     return best;
@@ -519,6 +603,26 @@ export class Renderer {
     }
     ctx.restore();
   }
+}
+
+// The camera turn that keeps tall blocks at the back, so they hide the least.
+export function bestRotation(level) {
+  let best = 0;
+  let bestCost = Infinity;
+  for (let k = 0; k < 4; k++) {
+    let cost = 0;
+    for (let y = 0; y < level.h; y++) {
+      for (let x = 0; x < level.w; x++) {
+        const c = level.cells[y * level.w + x];
+        if (!c || !c.h) continue;
+        const vx = k === 1 ? level.h - 1 - y : k === 2 ? level.w - 1 - x : k === 3 ? y : x;
+        const vy = k === 1 ? x : k === 2 ? level.h - 1 - y : k === 3 ? level.w - 1 - x : y;
+        cost += c.h * c.h * (vx + vy);
+      }
+    }
+    if (cost < bestCost - 1e-9) { bestCost = cost; best = k; }
+  }
+  return best;
 }
 
 const CONFETTI = ['#ff5e7a', '#ffd23f', '#3fd0c9', '#a684ff', '#7fe0a0', '#ff9a3c'];

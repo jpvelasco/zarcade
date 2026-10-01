@@ -34,10 +34,7 @@
       </div>
     </div>
     <div class="hud-right">
-      <div class="par" id="par-pill" title="Use this many tiles or fewer for 3 stars">
-        <span class="par-stars" aria-hidden="true">★★★</span><span>≤ <b id="par-n">3</b></span>
-      </div>
-      <button id="btn-hint" class="icon-btn" aria-label="Hint" title="Hint (H)"></button>
+      <button id="btn-view" class="icon-btn" aria-label="Turn the camera (V)" title="Turn the camera (V)"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 13a10 10 0 0 1 18-3" fill="none" stroke-width="3.4" stroke-linecap="round"/><path d="M25 4v7h-7" fill="none" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 20l8 4 8-4-8-4z" fill="#1d2a3a" stroke="none"/></svg></button>
       <button id="btn-mute" class="icon-btn" aria-label="Sound" title="Sound (M)">🔊</button>
       <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
     </div>
@@ -51,7 +48,13 @@
       <div id="brushes" class="brushes hidden" role="group" aria-label="Colour brushes"></div>
     </div>
     <div id="strips" class="strips"></div>
-    <div id="goal" class="goal" aria-live="off"></div>
+    <div class="goal-row">
+      <div id="goal" class="goal" aria-live="off"></div>
+      <div class="par" id="par-pill" title="Use this many tiles or fewer for 3 stars">
+        <span class="par-stars" aria-hidden="true">★★★</span><span>≤ <b id="par-n">3</b></span>
+      </div>
+      <button id="btn-hint" class="hint-btn" aria-label="Hint (H)" title="Hint (H)"></button>
+    </div>
     <div id="controls" class="controls">
       <button id="btn-reset" class="ctl" aria-label="Reset (X)" title="Reset Bolt (X)"></button>
       <button id="btn-run" class="ctl run" aria-label="Run (Space)" title="Run (Space)"></button>

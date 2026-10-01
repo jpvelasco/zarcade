@@ -12,7 +12,7 @@ import {
 import { dailyLevel, dayKey } from './daily.js';
 import { encodeLevel, decodeLevel } from './code.js';
 import { loadSave, writeSave, clearSave } from './save.js';
-import { Renderer, drawBolt, THEMES } from './render.js';
+import { Renderer, drawBolt, drawTopper, THEMES } from './render.js';
 import { Animator } from './animator.js';
 import { Panel } from './panel.js';
 import { Editor, draftFromDef, blankDraft } from './editor.js';
@@ -135,6 +135,17 @@ function relayout() {
   const playing = mode === 'play' || mode === 'paused';
   const narrow = innerWidth < 520;
   renderer.inset = playing ? { top: narrow ? 50 : 58, bottom: 4, left: 0, right: 0 } : mode === 'editor' ? { top: 56, bottom: 0, left: 0, right: 0 } : { top: 0, bottom: 0, left: 0, right: 0 };
+  if (playing && matchMedia('(max-width: 860px), (orientation: portrait)').matches) {
+    // Phones: give the board whatever the program panel does not need.
+    const pnl = $('panel');
+    const cs = getComputedStyle(pnl);
+    let need = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    const kids = [...pnl.children].filter((k) => !k.classList.contains('hidden'));
+    for (const k of kids) need += k === $('strips') ? k.scrollHeight : k.offsetHeight;
+    need += parseFloat(cs.rowGap || cs.gap || 6) * (kids.length - 1) + 3;
+    const boardH = Math.max(innerHeight * 0.36, Math.min(innerHeight * 0.6, innerHeight - need));
+    document.documentElement.style.setProperty('--board-h', `${Math.round(boardH)}px`);
+  }
   if (mode === 'title') {
     // Show the demo board beside (or above) the title card.
     const r = document.querySelector('.title-card').getBoundingClientRect();
@@ -287,7 +298,7 @@ function startLevel(def, kind = 'campaign', opts = {}) {
   log.event('level.start', { level: kind === 'campaign' ? def.id : kind, kind, par: def.par });
   const teach = def.teach && kind === 'campaign' ? [...new Set(def.teach.match(/@@|[^@]|@/g))] : [];
   const fresh = teach.filter((k) => !state.seenTeach[k]);
-  if (fresh.length) setTimeout(() => { if (current && current.def === def) openTeach(fresh); }, 350);
+  if (fresh.length && !autopilot) setTimeout(() => { if (current && current.def === def) openTeach(fresh); }, 350);
   if (autopilot && def.solution) {
     current.prog.main.length = 0;
     current.prog.p1.length = 0;
@@ -295,7 +306,11 @@ function startLevel(def, kind = 'campaign', opts = {}) {
     current.prog.main.push(...ref.main);
     current.prog.p1.push(...ref.p1);
     panel.setProgram(current.prog);
-    setTimeout(() => { if (current && current.def === def && runner.status === 'idle') run(); }, 500);
+    const go = () => {
+      if (!autopilot || !current || current.def !== def) return;
+      if (runner.status === 'idle' && !modal) run(); else if (runner.status === 'idle') setTimeout(go, 400);
+    };
+    setTimeout(go, 500);
   }
   dirty = true;
 }
@@ -406,6 +421,11 @@ function resetRun(quiet = false) {
 function stopRun() {
   runner.run = null;
   runner.status = 'idle';
+}
+
+function turnCamera() {
+  renderer.rotate(1);
+  sound.play('turn', { dir: 1 });
 }
 
 function cycleSpeed() {
@@ -636,7 +656,7 @@ function bugChip(id) {
 
 function resultNext() {
   modal = null;
-  if (current.editorTest) { const def = current.def; backToEditor(); openShare(def); return; }
+  if (current.editorTest) { backToEditor(); openShare(editor.def()); return; }
   const nextId = current.kind === 'campaign' ? nextLevel(state, current.def.id) : null;
   if (nextId) startLevel(LEVEL[nextId], 'campaign');
   else toMap(current.kind === 'campaign' ? current.def.world : mapWorld);
@@ -895,8 +915,8 @@ function openGarage() {
           c.width = 68;
           c.height = 68;
           const g2 = c.getContext('2d');
-          g2.scale(2, 2);
-          drawTopperIcon(g2, it.id);
+          g2.translate(34, 44);
+          drawTopper(g2, 0, 0, 260, it.id, 1);
           b.appendChild(c);
         }
         const label = document.createElement('span');
@@ -925,10 +945,6 @@ function openGarage() {
   });
 }
 
-function drawTopperIcon(g, id) {
-  // Reuse Bolt's topper art at icon size.
-  drawBolt(g, 17, 64, 60, { d: 2, paint: { body: '#c8d2e4', dark: '#9aa6bc' }, topper: id, t: 1 });
-}
 
 function bugCanvas(id, size) {
   const c = document.createElement('canvas');
@@ -1229,6 +1245,7 @@ $('map-title-btn').addEventListener('click', toTitle);
 $('btn-map').addEventListener('click', () => { sound.play('click'); toMap(current?.def.world || mapWorld); });
 $('btn-hint').addEventListener('click', openHint);
 $('btn-mute').addEventListener('click', toggleMute);
+$('btn-view').addEventListener('click', turnCamera);
 $('btn-pause').addEventListener('click', pause);
 $('btn-resume').addEventListener('click', resume);
 $('btn-help').addEventListener('click', openHelp);
@@ -1327,6 +1344,9 @@ addEventListener('keydown', (e) => {
     case 't':
       cycleSpeed();
       break;
+    case 'v':
+      turnCamera();
+      break;
     case 'h':
       openHint();
       break;
@@ -1370,6 +1390,11 @@ addEventListener('keydown', (e) => {
   }
 });
 
+// Mouse and touch clicks should not leave focus on a button, or Space (Run)
+// would press that button again. Keyboard focus is untouched.
+document.addEventListener('click', (e) => {
+  if (e.detail > 0) e.target.closest?.('button')?.blur();
+});
 addEventListener('resize', relayout);
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 addEventListener('pointermove', () => { pointerIdle = 0; });
@@ -1393,7 +1418,9 @@ const titleBolt = $('title-bolt').getContext('2d');
 let last = performance.now();
 let time = 0;
 
+const frameCost = [];
 function frame(now) {
+  const t0 = performance.now();
   monitor.frame(now);
   if (crashNext) { crashNext = false; throw new Error('Robo Route test crash'); }
   const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
@@ -1432,6 +1459,8 @@ function frame(now) {
   updatePointer(dt);
   saveClock += dt;
   if (saveClock > 4) { saveClock = 0; if (dirty) persist(); }
+  frameCost.push(performance.now() - t0);
+  if (frameCost.length > 300) frameCost.shift();
   requestAnimationFrame(loop);
 }
 
@@ -1512,6 +1541,11 @@ window.RR = {
     onEdit();
   },
   crashNextFrame() { crashNext = true; },
+  frameStats() {
+    const d = frameCost.slice().sort((a, b) => a - b);
+    const q = (p) => +(d[Math.min(d.length - 1, Math.floor(d.length * p))] || 0).toFixed(2);
+    return { n: d.length, p50: q(0.5), p95: q(0.95), max: q(1) };
+  },
   setAutopilot(v) { autopilot = v; },
   starsFor,
 };
