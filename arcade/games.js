@@ -259,6 +259,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'tiny-trains',
+      title: 'Tiny Trains',
+      tagline: 'Lay toy track and get every train home.',
+      description: 'A toy-train track-laying puzzle: draw wooden track, switches and crossings so each coloured train reaches its station. 48 levels, a daily delivery, collectible engines and a sandbox.',
+      genre: 'Puzzle',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#e8504a',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
