@@ -389,7 +389,8 @@ h2 {
 /* Portrait phones: the screen sits at the top, controls get the space below. */
 @media (orientation: portrait) {
   body { place-items: start center; }
-  #stage { width: 100vw; margin-top: max(48px, env(safe-area-inset-top)); border-radius: 0; box-shadow: 0 0 0 4px #0c0806; }
+  /* Sit the screen a little lower, nearer the thumbs, instead of hugging the top. */
+  #stage { width: 100vw; margin-top: max(48px, env(safe-area-inset-top), calc((100vh - 56.25vw - 360px) * 0.55)); border-radius: 0; box-shadow: 0 0 0 4px #0c0806; }
   .touch { height: calc(100vh - 56.25vw - 60px); max-height: 360px; }
   .touch-stick { bottom: 50%; transform: translateY(50%); }
   .touch-buttons { bottom: 50%; transform: translateY(50%); }
@@ -413,3 +414,29 @@ h2 {
 @media (prefers-reduced-motion: reduce) {
   .button:active, .touch-button.down { transform: none; }
 }
+
+/* Portrait phones get a nudge towards the much bigger landscape view. */
+.rotate-hint { display: none; }
+@media (orientation: portrait) and (pointer: coarse) {
+  .touch:not(.hidden) ~ .rotate-hint {
+    position: fixed;
+    left: 50%;
+    top: calc(max(48px, env(safe-area-inset-top), calc((100vh - 56.25vw - 360px) * 0.55)) + 56.25vw + 18px);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(12, 8, 6, 0.6);
+    color: #f5e6c8;
+    font: 700 13px/1.2 system-ui, sans-serif;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .rotate-hint span { display: inline-block; animation: rotate-nudge 2.4s ease-in-out infinite; }
+}
+@keyframes rotate-nudge { 0%, 55%, 100% { transform: rotate(0); } 70%, 85% { transform: rotate(-90deg); } }
+@media (prefers-reduced-motion: reduce) { .rotate-hint span { animation: none; } }
