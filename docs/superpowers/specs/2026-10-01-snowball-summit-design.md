@@ -12,12 +12,19 @@ The snowball rolls downhill on its own. The player only:
 - **jumps** (Up / W / Space / tap / A button).
 
 Rolling over fresh snow grows the ball (powder grows faster, ice not at all;
-rolled snow leaves a packed track that does not grow again). Things smaller
-than about half the ball's diameter stick to it and add to its size. Things
-up to about 1.8× the diameter are obstacles: bumping one chips off some snow,
-slows the ball, and knocks the thing tumbling out of the way, so the ball can
-never get stuck. Jumping over them saves the snow. Anything larger is scenery
-the ball rolls past (until a later, bigger run).
+rolled snow leaves a packed track that does not grow again). Things up to
+0.55× the ball's diameter stick to it and add their area. Things up to 1.4×
+are obstacles: bumping one knocks the two newest things off the ball (they
+no longer count), chips 4 % of snow, slows the ball, and sends the obstacle
+tumbling out of the way, so the ball can never get stuck behind it. Jumping
+over obstacles saves your things. Anything larger is scenery the ball rolls
+past.
+
+**Balloon bunches**: every third open stretch has 3–4 things floating on
+party balloons, laid along the arc a full-speed jump by a ball of the planned
+size takes. Rolling underneath reaches none; one well-timed jump sweeps the
+bunch. With bumps this is what separates "hold speed-up" (about 29 of 36
+stars) from good play (36).
 
 Picked-up things stay stuck on the rolling ball; penguins, bunnies and birds
 keep waving from inside it. Tiny things relative to the ball sink into the
@@ -36,11 +43,20 @@ snow so the ball stays readable.
 
 ### Avalanche
 
-On some slopes a friendly snow cloud with a smiling face rolls after you. It
-moves at a fixed per-slope speed (a little slower than a ball left alone
-reaches, tuned with the autoplayer) and catches up quickly if far behind so
-it stays on screen as a threat. If it reaches you the run ends ("The Snow
-Cloud caught you! It just wanted a hug.") with one-tap retry.
+On six slopes a friendly snow cloud with a smiling face rolls after you. Its
+speed is a per-slope factor (1.1–1.25) of the ball's natural rolling speed,
+slower uphill, ramping in over the first seconds, and it never falls more
+than 6.5 ball widths behind, so its puffy face looms at the left edge.
+Holding speed-up outruns it; a ball that never speeds up is caught a quarter
+to two thirds of the way down. When a gate blocks you the Snow Pal holds the
+cloud back for a moment. If it reaches you the run ends ("The Snow Cloud
+caught you! It just wanted a hug.") with one-tap retry.
+
+### Nobody gets stuck
+
+A ball that sits still for 2.5 s without braking (in a gully, behind a rise)
+gets a push from a Snow Pal until it is clear and heading downhill. A test
+checks every slope finishes with no input at all.
 
 ## Content
 
@@ -54,7 +70,14 @@ Cloud caught you! It just wanted a hug.") with one-tap retry.
      bears, yetis, gondolas, cabins, ski lodges, balloons.
 - Slopes are hand-built from a small segment DSL (slope, rise, kicker, dip,
   gate, bridge, finish) with seeded item scatter, so they are handcrafted but
-  compact and deterministic.
+  compact and deterministic. Things are named by id or by size tier (xs, s,
+  m, big, huge) against each slope's planned growth curve, so what you meet
+  always suits the size you're likely to be; signature things (penguins,
+  igloos, yetis, the Ice Castle) are placed by name.
+- Gate and bridge limits are baked from autoplayer runs: gates at 90 % of the
+  smaller of a full-skill and a gentle run's size there; bridges just under
+  the greedy run's size, so grabbing everything before a bridge breaks it
+  (a time cost) and holding back lets you cross.
 - **Endless Mountain**: chunks generated from a seed as you roll, scale and
   item palette climbing with distance, the avalanche always chasing and
   slowly speeding up. Score is distance; bests saved.
@@ -64,10 +87,12 @@ Cloud caught you! It just wanted a hug.") with one-tap retry.
 ### Stars
 
 Three independent stars per slope: final **size** ≥ target, **things
-collected** ≥ target, **time** ≤ par. Targets are calibrated from the
-autoplayer's run (size ×0.9, items ×0.8, time ×1.15) and baked into the level
-data; a test checks the autoplayer still meets them. Finishing a slope always
-unlocks the next, and finishing a peak opens the next peak (no star gates).
+collected** ≥ target, **time** ≤ par. Targets are calibrated from a
+full-speed autoplayer run (size ×0.92, things ×0.85, time ×1.12) and baked
+into the level data; a test checks the autoplayer still earns all three. The
+daily slope's goals are computed the same way, a little each idle title
+frame. Finishing a slope always unlocks the next, and finishing a peak opens
+the next peak (no star gates).
 
 ## Sticky hooks
 
@@ -90,10 +115,11 @@ unlocks the next, and finishing a peak opens the next peak (no star gates).
 - `src/terrain.js` heightfield builder from segments (appendable for
   endless), ground queries, ball support/contact, bridges, gates.
 - `src/levels.js` peaks, the 12 slopes, daily and endless generators.
+- `src/physics.js` size-scaled constants shared by the sim and the builder.
 - `src/world.js` fixed-step (120 Hz) simulation: physics, growth, items,
-  gates, bridges, avalanche, scoring, events, stars.
-- `src/autoplayer.js` heuristic driver (jumps obstacles, pushes for time,
-  brakes before pickups it would overshoot). Also the title attract mode.
+  gates, bridges, avalanche, Snow Pal nudge, events, stars.
+- `src/autoplayer.js` driver: pushes, jumps obstacles, predicts jump arcs to
+  sweep balloon bunches. Used by tests, calibration and the attract mode.
 - `src/progress.js` save (`snowball-summit.v1`), results, unlocks, museum,
   streak.
 - Browser-only: `sprites.js` (baked item/skin/hat canvases), `render.js`,
@@ -111,3 +137,7 @@ out as the ball grows.
 - Only the avalanche can end a run. Slopes without it always finish.
 - Each slope starts at its peak's start size (so stars are about that run,
   not carried-over growth).
+- Things found on a run that is restarted or abandoned still go into the
+  museum (generous; the run's stars don't count).
+- Endless Mountain changes peak backdrop every three chunks; all backdrops
+  are baked ahead in idle title frames so the switch never hitches.

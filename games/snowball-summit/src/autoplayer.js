@@ -98,7 +98,28 @@ export function autoplay(level, { skill = 1, maxTime = 240, avalanche = true, co
 
 // Star targets from an autoplayer run: a good player should beat them.
 export function calibrate(level) {
-  const w = autoplay(level);
+  return goalsFrom(autoplay(level));
+}
+
+// The same run spread over many frames: call step(ms) until it returns goals.
+export function calibration(level, maxTime = 240) {
+  const w = new World(level);
+  const ai = new Autoplayer();
+  let goals = null;
+  return {
+    step(budgetMs = 3) {
+      const t0 = performance.now();
+      while (!goals && performance.now() - t0 < budgetMs) {
+        for (let i = 0; i < 60 && w.status === 'play' && w.time < maxTime; i++) { w.step(STEP, ai.controls(w)); w.events.length = 0; }
+        if (w.status !== 'play' || w.time >= maxTime) goals = goalsFrom(w);
+      }
+      return goals;
+    },
+    finish() { while (!goals) this.step(50); return goals; },
+  };
+}
+
+function goalsFrom(w) {
   return {
     size: Math.floor(w.ball.D * 0.92),
     items: Math.floor(w.collected * 0.85),

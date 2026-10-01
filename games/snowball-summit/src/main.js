@@ -4,7 +4,7 @@ import { World, STEP } from './world.js';
 import { Renderer, clock, things } from './render.js';
 import { Input } from './input.js';
 import { Sound } from './audio.js';
-import { Autoplayer, calibrate } from './autoplayer.js';
+import { Autoplayer, calibration } from './autoplayer.js';
 import { SLOPES, PEAKS, SLOPES_PER_PEAK, dailySlope, endlessLevel } from './levels.js';
 import { ITEMS, ITEM_BY_ID, formatSize } from './items.js';
 import { localDateKey, hashString } from './rng.js';
@@ -45,7 +45,13 @@ let bannerTimer = 0;
 let isAttract = false;
 let attractPilot = new Autoplayer();
 const autopilot = params.has('autoplay') || params.has('autopilot') ? new Autoplayer() : null;
-const dailyGoals = new Map();
+// Today's daily star goals come from an autoplayer run, worked out a little
+// at a time while the title is idle (or all at once if Daily is picked first).
+const dailyCal = new Map();
+function dailyCalibration(key) {
+  if (!dailyCal.has(key)) dailyCal.set(key, calibration(dailySlope(key)));
+  return dailyCal.get(key);
+}
 
 const SCREENS = ['screen-title', 'screen-map', 'screen-wardrobe', 'screen-museum', 'screen-pause', 'screen-results', 'screen-caught', 'screen-victory'];
 
@@ -153,8 +159,7 @@ function startSlope(i) {
 function startDaily() {
   const key = localDateKey();
   const lv = dailySlope(key);
-  if (!dailyGoals.has(key)) dailyGoals.set(key, calibrate(lv));
-  lv.goals = dailyGoals.get(key);
+  lv.goals = dailyCalibration(key).finish();
   begin('daily', lv);
 }
 
@@ -527,6 +532,7 @@ function frame(now) {
   updatePointer(dt);
   if (!spritesReady) spritesReady = warmSprites(5);
   else if (!skiesReady && mode !== 'play') skiesReady = renderer.warmSkies();
+  else if (mode !== 'play' && mode !== 'paused') dailyCalibration(localDateKey()).step(2.5);
 
   const esc = input.consume('Escape');
   if (esc || input.consume('KeyP') || input.consumePad('start')) {
