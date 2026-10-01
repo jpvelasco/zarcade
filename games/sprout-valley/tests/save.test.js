@@ -56,3 +56,32 @@ test('storage helpers tolerate blocked or corrupt storage', () => {
   assert.ok(clearSave(s));
   assert.equal(loadWorld(s), null);
 });
+
+test('quitting mid-day resumes at the same time with watered soil and the bin', () => {
+  const w = freshWorld(4);
+  w.minute = 14 * 60 + 30;
+  w.soil[600] = 1; w.wet[600] = 1;
+  w.add('turnip', 3);
+  w.ship('turnip', 3);
+  w.player.x = 20.5; w.player.y = 19.5;
+  const back = deserialize(JSON.parse(JSON.stringify(serialize(w))));
+  assert.equal(Math.floor(back.minute), 14 * 60 + 30);
+  assert.equal(back.wet[600], 1);
+  assert.deepEqual(back.bin, { turnip: 3 });
+  assert.equal(back.player.x, 20.5);
+  assert.equal(back.weather, w.weather);
+});
+
+test('an egg hunt in progress resumes with the eggs still to find', () => {
+  const w = freshWorld(4);
+  w.day = 3; w.startDay();
+  w.minute = 10 * 60;
+  w.step(0.01, {});
+  const egg = w.pickups.find((p) => p.festival);
+  w.player.x = egg.x + 0.5; w.player.y = egg.y + 0.5;
+  w.step(0.01, {});
+  assert.equal(w.fest.eggs, 1);
+  const back = deserialize(JSON.parse(JSON.stringify(serialize(w))));
+  assert.equal(back.fest.eggs, 1);
+  assert.equal(back.pickups.filter((p) => p.festival).length, 11);
+});

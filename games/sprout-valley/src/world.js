@@ -184,6 +184,7 @@ export class World {
 
   startDay(first = false) {
     this.minute = DAY_START;
+    this.pickups = this.pickups.filter((pk) => !pk.festival);
     this.setupDay();
     const p = this.player;
     p.x = PLAYER_START[0] + 0.5; p.y = PLAYER_START[1] + 0.5; p.dir = 'down';
