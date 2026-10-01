@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0e3a52">
+  <meta name="description" content="Reel Rumble: a cheerful fishing adventure. Cast, hook and reel in 50 fish across five waters, fill your collection book and catch the legends.">
+  <title>Reel Rumble — a cheerful fishing adventure</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="reel-rumble"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Reel Rumble fishing spot"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Reel Rumble uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/reel-rumble/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- In-play HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <div id="chip-place" class="chip place"></div>
+      <div id="chip-time" class="chip"></div>
+      <div id="chip-coins" class="chip coins"></div>
+      <div id="chip-tourney" class="chip tourney hidden"></div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-bait" class="icon-btn wide" title="Change bait (B)" aria-label="Change bait"></button>
+      <button id="btn-wait" class="icon-btn" title="Wait for the next time of day (T)" aria-label="Wait">⏳</button>
+      <button id="btn-hud-book" class="icon-btn" title="Collection book" aria-label="Collection book">📖</button>
+      <button id="btn-hud-map" class="icon-btn" title="Map" aria-label="Map">🗺️</button>
+      <button id="btn-mute" class="icon-btn" title="Sound (M)" aria-label="Mute">🔊</button>
+      <button id="btn-pause" class="icon-btn" title="Pause (Esc)" aria-label="Pause">❚❚</button>
+    </div>
+  </div>
+  <div id="hint" class="hint hidden" aria-live="polite"></div>
+  <div id="touch-steer" class="touch-steer hidden">
+    <button id="steer-left" class="steer-btn" aria-label="Steer left">◀</button>
+    <button id="steer-right" class="steer-btn" aria-label="Steer right">▶</button>
+  </div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- Title -->
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Reel Rumble">
+        <svg class="logo-fish" viewBox="0 0 120 70" aria-hidden="true">
+          <path d="M18 35 C30 10 70 8 92 30 C96 34 96 36 92 40 C70 62 30 60 18 35 Z" fill="#ffb84a" stroke="#8a4a10" stroke-width="3"/>
+          <path d="M22 35 L4 18 L8 35 L4 52 Z" fill="#ff8a3a" stroke="#8a4a10" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M50 14 C56 2 70 4 74 18" fill="#ff8a3a" stroke="#8a4a10" stroke-width="3"/>
+          <circle cx="80" cy="30" r="5.5" fill="#fff" stroke="#8a4a10" stroke-width="2"/>
+          <circle cx="81.5" cy="30" r="3" fill="#1a1a1a"/>
+          <path d="M60 30 C62 36 62 40 58 46" fill="none" stroke="#8a4a10" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <h1><span class="l1">Reel</span><span class="l2">Rumble</span></h1>
+      </div>
+      <p class="tagline">Cast your line, hook something wonderful, and fill your fish book!</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Go fishing</button>
+        <div class="row">
+          <button class="btn" data-open="map">🗺️ Map</button>
+          <button class="btn" data-open="book">📖 Fish book</button>
+        </div>
+        <div class="row">
+          <button class="btn" data-open="shop">🎣 Tackle shop</button>
+          <button class="btn" data-open="gill">👴 Grandpa Gill</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>Sound: on</button>
+          <button class="btn small" data-music>Music: on</button>
+        </div>
+      </div>
+      <p id="title-stats" class="muted"></p>
+      <p class="controls">
+        <b>Cast</b> hold &amp; let go · Space · A &nbsp; <b>Aim</b> point · ← → &nbsp; <b>Hook</b> tap when the bobber dives &nbsp; <b>Reel</b> hold · Space · A / RT &nbsp; <b>Steer</b> ← → · stick &nbsp; <b>Pause</b> Esc / P
+      </p>
+    </div>
+  </section>
+
+  <!-- Map -->
+  <section id="screen-map" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Where to?</h2>
+        <span id="map-clock" class="pill"></span>
+      </div>
+      <div id="map-grid" class="map-grid"></div>
+    </div>
+  </section>
+
+  <!-- Shop -->
+  <section id="screen-shop" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Tackle Shop</h2>
+        <span id="shop-coins" class="pill"></span>
+      </div>
+      <div id="shop-tabs" class="tabs" role="tablist"></div>
+      <div id="shop-grid" class="shop-grid"></div>
+    </div>
+  </section>
+
+  <!-- Collection book -->
+  <section id="screen-book" class="overlay dim hidden">
+    <div class="card wide book-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Fish Book</h2>
+        <span id="book-count" class="pill"></span>
+      </div>
+      <div id="book-tabs" class="tabs" role="tablist"></div>
+      <div class="book-body">
+        <div id="book-grid" class="book-grid"></div>
+        <div id="book-detail" class="book-detail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grandpa Gill: quests and tournaments -->
+  <section id="screen-gill" class="overlay dim hidden">
+    <div class="card wide gill-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Grandpa Gill</h2>
+        <span id="gill-coins" class="pill"></span>
+      </div>
+      <div class="gill-top">
+        <svg class="gill-face" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="56" r="34" fill="#f2c49a"/>
+          <path d="M18 44 Q50 4 82 44 Z" fill="#3a7a5a"/>
+          <rect x="10" y="40" width="80" height="8" rx="4" fill="#2a5a40"/>
+          <path d="M26 66 Q50 100 74 66 Q62 76 50 74 Q38 76 26 66 Z" fill="#f4f4f4"/>
+          <circle cx="38" cy="56" r="4" fill="#2a2a2a"/><circle cx="62" cy="56" r="4" fill="#2a2a2a"/>
+          <path d="M30 49 L44 51 M56 51 L70 49" stroke="#e8e8e8" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="50" cy="64" rx="6" ry="5" fill="#e09a7a"/>
+          <path d="M40 70 Q50 64 60 70" stroke="#f4f4f4" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M62 30 L70 22 L74 30" fill="#ffd84f"/>
+        </svg>
+        <p id="gill-says" class="bubble"></p>
+      </div>
+      <div class="gill-cols">
+        <div><h3>Quests</h3><div id="quest-list" class="quest-list"></div></div>
+        <div><h3>Tournaments</h3><div id="tourney-list" class="quest-list"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bait picker -->
+  <section id="screen-bait" class="overlay dim hidden">
+    <div class="card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Bait box</h2>
+        <span></span>
+      </div>
+      <div id="bait-grid" class="bait-grid"></div>
+      <p class="muted">Different fish bite different bait. Your fish book remembers what worked.</p>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Keep fishing</button>
+        <div class="row">
+          <button class="btn" data-open="map">🗺️ Map</button>
+          <button class="btn" data-open="book">📖 Book</button>
+        </div>
+        <div class="row">
+          <button class="btn" data-open="shop">🎣 Shop</button>
+          <button class="btn" data-open="gill">👴 Gill</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>Sound: on</button>
+          <button class="btn small" data-music>Music: on</button>
+        </div>
+        <button id="btn-title" class="btn">Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Catch card -->
+  <section id="screen-catch" class="overlay hidden">
+    <div class="card catch-card">
+      <div id="catch-badges" class="badges"></div>
+      <canvas id="catch-art" class="catch-art" width="560" height="300" aria-hidden="true"></canvas>
+      <h2 id="catch-name"></h2>
+      <p id="catch-rarity" class="rarity"></p>
+      <div id="catch-lines" class="res-lines"></div>
+      <p id="catch-fact" class="fact"></p>
+      <div class="col">
+        <button id="btn-keep" class="btn primary">Keep fishing</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tournament results -->
+  <section id="screen-tourney" class="overlay dim hidden">
+    <div class="card">
+      <h2 id="tourney-title"></h2>
+      <p id="tourney-sub" class="muted"></p>
+      <div id="tourney-table" class="res-lines"></div>
+      <p id="tourney-prize" class="big-score"></p>
+      <div class="col">
+        <button id="btn-tourney-done" class="btn primary">Thanks, Gill!</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
