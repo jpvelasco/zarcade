@@ -980,13 +980,14 @@ export class Game {
 
   stepFox(dt) {
     const p = this.player, f = this.fox;
-    if (p.moving || p.action) {
+    const lastT = f.trail[f.trail.length - 1];
+    if (!lastT || Math.hypot(lastT.x - p.x, lastT.y - p.y) > 1.5) {
       f.trail.push({ x: p.x, y: p.y });
-      if (f.trail.length > 18) f.trail.shift();
+      if (f.trail.length > 14) f.trail.shift();
       f.sit = 0;
     } else f.sit += dt;
-    const target = f.trail.length > 12 ? f.trail[0] : null;
-    if (target) {
+    const target = f.trail.length > 10 ? f.trail[0] : null;
+    if (target && Math.hypot(target.x - p.x, target.y - p.y) > 12) {
       const dx = target.x - f.x, dy = target.y - f.y;
       f.x += dx * Math.min(1, dt * 7);
       f.y += dy * Math.min(1, dt * 7);

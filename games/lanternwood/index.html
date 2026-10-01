@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#14112b">
+  <meta name="description" content="Lanternwood: a cozy top-down adventure. Help Wren the lamplighter and Tumble the fox relight the Great Lantern.">
+  <title>Lanternwood — relight the Great Lantern</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="lanternwood"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Lanternwood"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Lanternwood uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/lanternwood/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="loading" class="loading">Lighting the lanterns…</div>
+
+  <div id="hud-buttons" class="hud-buttons hidden">
+    <button id="btn-bag" class="icon-btn" aria-label="Bag and quests" title="Bag (I)">🎒</button>
+    <button id="btn-map" class="icon-btn" aria-label="Map" title="Map (M)">🗺️</button>
+    <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+  </div>
+
+  <div id="touch" class="touch hidden" aria-hidden="true">
+    <div id="stick-zone" class="stick-zone">
+      <div id="stick-base" class="stick-base"><div id="stick-knob" class="stick-knob"></div></div>
+    </div>
+    <div class="touch-buttons">
+      <button class="tbtn tbtn-talk" data-touch="interact" aria-label="Talk">💬</button>
+      <button class="tbtn tbtn-item" data-touch="item" aria-label="Use item"><canvas id="touch-item" width="64" height="64"></canvas></button>
+      <button class="tbtn tbtn-a" data-touch="attack" aria-label="Sword">⚔️</button>
+      <button class="tbtn tbtn-swap" data-touch="cycle" aria-label="Swap item">⇄</button>
+    </div>
+  </div>
+
+  <section id="dialogue" class="dialogue hidden" aria-live="polite">
+    <div class="dlg-box">
+      <canvas id="dlg-portrait" class="dlg-portrait" width="112" height="112"></canvas>
+      <div class="dlg-body">
+        <div id="dlg-name" class="dlg-name"></div>
+        <p id="dlg-text" class="dlg-text"></p>
+        <div id="dlg-choices" class="dlg-choices"></div>
+        <div id="dlg-more" class="dlg-more">▼</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="itemget" class="itemget hidden" aria-live="polite">
+    <div class="ig-card">
+      <canvas id="ig-icon" width="96" height="96"></canvas>
+      <div>
+        <div id="ig-name" class="ig-name"></div>
+        <div id="ig-text" class="ig-text"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Lanternwood">
+        <span class="logo-lantern" aria-hidden="true"><span></span></span>
+        <h1>Lanternwood</h1>
+      </div>
+      <p class="tagline">The Great Lantern has gone out! Help Wren the lamplighter and Tumble the fox find the three Flame Shards.</p>
+      <div class="col">
+        <button id="btn-continue" class="btn primary big">Continue</button>
+        <button id="btn-slots" class="btn">Adventure slots</button>
+        <div class="row">
+          <button class="btn" data-sound>🔊 Sound on</button>
+          <button class="btn" data-music>🎵 Music on</button>
+        </div>
+      </div>
+      <p class="controls"><b>Move</b> arrows / WASD &nbsp; <b>Sword</b> Space / J &nbsp; <b>Item</b> K &nbsp; <b>Talk</b> E &nbsp; <b>Swap</b> Q &nbsp; <b>Bag</b> I &nbsp; <b>Map</b> M &nbsp; <b>Pause</b> Esc</p>
+    </div>
+  </section>
+
+  <section id="screen-slots" class="overlay dim hidden">
+    <div class="card slots-card">
+      <div class="head-row">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Adventure slots</h2>
+        <span></span>
+      </div>
+      <div id="slot-list" class="slot-list"></div>
+      <p class="muted small-print">Lanternwood saves at every lantern statue and after every big moment.</p>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-where" class="muted"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <div class="row">
+          <button id="btn-pause-bag" class="btn">🎒 Bag</button>
+          <button id="btn-pause-map" class="btn">🗺️ Map</button>
+        </div>
+        <div class="row">
+          <button class="btn" data-sound>🔊 Sound on</button>
+          <button class="btn" data-music>🎵 Music on</button>
+        </div>
+        <button id="btn-quit" class="btn">Save &amp; go to title</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-bag" class="overlay dim hidden">
+    <div class="card wide bag-card">
+      <div class="head-row">
+        <button class="btn small" data-close>← Back</button>
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="items" role="tab">Bag</button>
+          <button class="tab" data-tab="quests" role="tab">Quests</button>
+        </div>
+        <span id="bag-berries" class="pill"></span>
+      </div>
+      <div id="tab-items" class="tab-pane">
+        <p class="muted">Pick the item for <b id="bag-key">K</b>.</p>
+        <div id="item-grid" class="item-grid"></div>
+        <div id="bag-extras" class="bag-extras"></div>
+      </div>
+      <div id="tab-quests" class="tab-pane hidden">
+        <ul id="quest-list" class="quest-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-map" class="overlay dim hidden">
+    <div class="card wide map-card">
+      <div class="head-row">
+        <button class="btn small" data-close>← Back</button>
+        <h2 id="map-title">Lanternwood</h2>
+        <button id="btn-map-toggle" class="btn small hidden">World</button>
+      </div>
+      <canvas id="map-canvas" class="map-canvas" width="640" height="400"></canvas>
+      <p id="map-legend" class="muted small-print"></p>
+    </div>
+  </section>
+
+  <section id="screen-down" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Wren needs a little rest</h2>
+      <p class="muted">Tumble curls up beside her. Everything you found is safe in your satchel.</p>
+      <div class="col">
+        <button id="btn-rest" class="btn primary">Continue from the lantern statue</button>
+        <button class="btn" data-title>Title screen</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-ending" class="overlay dim hidden">
+    <div class="card ending-card">
+      <h2 class="glow-text">Lanternwood glows again!</h2>
+      <p>The Great Lantern blazes gold. Windows light up all over the village, the fireflies dance, and the Shade King, a little shy, sits in the warm glow with everyone else.</p>
+      <p class="muted">"You can't have shadows without light," Wren tells him. He smiles a wobbly shadow smile.</p>
+      <div id="ending-stats" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-keep" class="btn primary">Keep exploring</button>
+        <button class="btn" data-title>Title screen</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
