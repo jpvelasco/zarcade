@@ -146,6 +146,7 @@ function toTitle() {
   $('btn-daily').textContent = save.daily.done[key] != null ? '🐛 Daily Critter ✓' : streak ? `🐛 Daily Critter · 🔥${streak}` : '🐛 Daily Critter';
   const bits = [`★ ${totalStars(save)} / ${MAX_STARS}`, `${solvedCount(save)} pictures`];
   if (streak) bits.push(`🔥 ${streak}-day streak`);
+  else if (save.daily.best) bits.push(`best streak ${save.daily.best}`);
   $('title-stats').textContent = bits.join(' · ');
   syncToggles();
   show('title', 'screen-title');
@@ -1041,6 +1042,10 @@ addEventListener('resize', () => { renderer.resize(); updateInsets(); });
 addEventListener('orientationchange', () => setTimeout(() => { renderer.resize(); updateInsets(); }, 150));
 addEventListener('pagehide', () => saveProgress());
 for (const el of document.querySelectorAll('button, .btn')) el.addEventListener('pointerdown', () => sound.unlock());
+// Tool buttons tapped with a pointer give focus back to the board, so Space
+// paints instead of pressing the last button again.
+$('toolbar').addEventListener('click', (e) => { if (e.detail > 0) e.target.closest('button')?.blur(); });
+$('hint-bubble').addEventListener('click', (e) => { if (e.detail > 0) e.target.closest('button')?.blur(); });
 
 buildLogo();
 applyTheme();
