@@ -38,7 +38,7 @@ test('monitor logs throttled long frames and a degraded summary, with the snapsh
   const monitor = frameMonitor({ log, snapshot: () => ({ level: 3 }) });
   let t = 1000;
   monitor.frame(t); // first frame only starts the clock
-  for (let i = 0; i < 100; i++) monitor.frame((t += 16));
+  for (let i = 0; i < 250; i++) monitor.frame((t += 16)); // past the startup warm-up
   monitor.frame((t += 250));
   monitor.frame((t += 250)); // within 5 s: not logged again
   assert.deepEqual(names(), ['frame.long']);
@@ -90,4 +90,22 @@ test('watchdog stays quiet while hidden, after a crash, and after a visibility r
   crashed = true;
   assert.equal(monitor.check(20000), false, 'crashed');
   assert.deepEqual(names(), []);
+});
+
+test('slow frames while starting up or loading a scene are tagged, not counted as degraded', () => {
+  const { records, log, names } = recorder();
+  const monitor = frameMonitor({ log });
+  let t = 0;
+  monitor.frame(t);
+  monitor.frame((t += 1900)); // first render: shader compile, sprite baking
+  assert.equal(records[0].attributes.phase, 'startup');
+  while (t < 9000) monitor.frame((t += 16));
+  monitor.mark(t);
+  monitor.frame((t += 400)); // a new level builds
+  assert.equal(records.at(-1).attributes.phase, 'loading');
+  while (t < 25000) monitor.frame((t += 16));
+  assert.deepEqual(names(), ['frame.long', 'frame.long'], 'no perf.degraded for warm-up hitches');
+  // After warm-up, the same hitch counts.
+  monitor.frame((t += 400));
+  assert.equal(records.at(-1).attributes.phase, 'play');
 });

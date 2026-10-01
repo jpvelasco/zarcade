@@ -56,6 +56,28 @@ function loadTrack(index, forRace) {
   view = new RaceView(renderer, world, { paint: save.paint });
   view.cam.mode = forRace ? 'chase' : 'orbit';
   resize();
+  warmUp(view);
+}
+
+// Compiling a new scene's shaders on first draw can stall a frame for a
+// second or more on a cold GPU cache. Compile them in parallel first, and
+// hold drawing and the race countdown until they're ready.
+function warmUp(target) {
+  target.ready = false;
+  const started = performance.now();
+  const done = () => {
+    target.ready = true;
+    log.info('scene.ready', { track: trackIndex + 1, 'compile.ms': Math.round(performance.now() - started) });
+  };
+  Promise.resolve()
+    .then(() => renderer.compileAsync(target.scene, target.camera))
+    .then(done, (error) => {
+      log.exception(error, { 'error.source': 'compileAsync' });
+      done();
+    });
+  // The monitor is created further down this module; by the time this
+  // microtask runs, module setup has finished.
+  queueMicrotask(() => monitor.mark(performance.now()));
 }
 
 // ------------------------------------------------------------ screens
@@ -283,7 +305,7 @@ function frame(now) {
   }
   if (input.consume('KeyM')) $('btn-mute').click();
 
-  if (mode === 'race') {
+  if (mode === 'race' && view.ready) {
     const controls = input.read();
     accumulator += dt;
     while (accumulator >= STEP) {
@@ -308,7 +330,7 @@ function frame(now) {
   }
 
   if (view && mode !== 'paused') view.update(dt);
-  if (view) view.render();
+  if (view && view.ready) view.render();
   requestAnimationFrame(loop);
 }
 

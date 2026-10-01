@@ -5,6 +5,10 @@ export const LONG_FRAME_MS = 100;
 export const STALL_MS = 1500;
 export const SUMMARY_MS = 10000;
 const LONG_FRAME_LOG_GAP_MS = 5000;
+// Frames this soon after load or a scene change are expected to be slow
+// (shader compiles, sprite baking). They are logged, tagged by phase, but
+// kept out of the steady-state summary.
+const WARMUP_MS = 3000;
 
 export class FrameStats {
   constructor(window = 240) {
@@ -59,6 +63,8 @@ export function frameMonitor({ log, snapshot = () => ({}), visible = () => true,
   let statsAt = 0;
   let lastLongLog = -Infinity;
   let stalled = false;
+  let warmFrom = null;
+  let warmPhase = 'startup';
 
   return {
     frame(now) {
@@ -66,6 +72,7 @@ export function frameMonitor({ log, snapshot = () => ({}), visible = () => true,
         // The first frame only starts the clock: loading time is not a frame.
         lastFrameAt = now;
         statsAt = now;
+        warmFrom = now;
         return;
       }
       const elapsed = now - lastFrameAt;
@@ -75,10 +82,11 @@ export function frameMonitor({ log, snapshot = () => ({}), visible = () => true,
       }
       lastFrameAt = now;
       if (!visible()) return;
-      stats.add(elapsed);
+      const phase = now - warmFrom < WARMUP_MS ? warmPhase : 'play';
+      if (phase === 'play') stats.add(elapsed);
       if (elapsed >= LONG_FRAME_MS && now - lastLongLog > LONG_FRAME_LOG_GAP_MS) {
         lastLongLog = now;
-        log.warn('frame.long', { 'frame.ms': Math.round(elapsed), ...snapshot() });
+        log.warn('frame.long', { 'frame.ms': Math.round(elapsed), phase, ...snapshot() });
       }
       if (now - statsAt >= SUMMARY_MS) {
         statsAt = now;
@@ -93,6 +101,11 @@ export function frameMonitor({ log, snapshot = () => ({}), visible = () => true,
       stalled = true;
       log.error('frame.stall', { 'stall.ms': Math.round(gap), ...snapshot() });
       return true;
+    },
+    // A new scene is loading (a track, a level): its first frames may be slow.
+    mark(now, phase = 'loading') {
+      warmFrom = now;
+      warmPhase = phase;
     },
     reset(now) {
       if (lastFrameAt !== null) lastFrameAt = now;
