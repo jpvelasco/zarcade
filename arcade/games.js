@@ -94,6 +94,16 @@
       accent: '#ffd166',
       needsServer: true,
     },
+    {
+      slug: 'letter-lagoon',
+      title: 'Letter Lagoon',
+      tagline: 'Spell words. Pop bubbles. Free the sea critters.',
+      description: 'Swipe bubbly letters to fill crosswords across nine reef zones, with a friendly crab, word meanings, a daily puzzle and an aquarium of every critter you rescue.',
+      genre: 'Word',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#39d6e6',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
