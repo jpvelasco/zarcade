@@ -414,7 +414,7 @@ const ICON_COLORS = {
   boss: '#ffb300', coin: '#ffc93c', bolt: '#ffd23f', cards: '#3f7fd6', smiley: '#ffd23f', rocket: '#ff8a65',
   clover: '#66bb6a', piggy: '#f48fb1', thumb: '#ffca28', cloud: '#90caf9', banana: '#fff176', cactus: '#43a047',
   sunflower: '#fbc02d', unicorn: '#f8bbd0', owl: '#8d6e63', crown: '#ffb300', skull: '#e0e0e0', lock: '#9aa7b8',
-  hp: '#ef5350', question: '#3d8bfd',
+  hp: '#ef5350', question: '#3d8bfd', pause: '#2d2a32',
 };
 
 function iconBody(rng, name, c) {
@@ -549,6 +549,8 @@ function iconBody(rng, name, c) {
       return E(22, 28, 15, 13) + P([[26, 16], [36, 2], [32, 18]], '#ffd23f') + L([[10, 18], [6, 30], [12, 40]], '#ab47bc', 4) + E(26, 26, 2.4, 2.4, INK, { hatch: false });
     case 'owl':
       return E(24, 26, 16, 18) + E(18, 22, 6, 6, '#fff', { hatch: false }) + E(30, 22, 6, 6, '#fff', { hatch: false }) + E(18, 22, 2.4, 2.4, INK, { hatch: false }) + E(30, 22, 2.4, 2.4, INK, { hatch: false }) + P([[22, 30], [26, 30], [24, 34]], '#ffb300');
+    case 'pause':
+      return P([[12, 8], [20, 8], [20, 40], [12, 40]], INK, { hatch: false }) + P([[28, 8], [36, 8], [36, 40], [28, 40]], INK, { hatch: false });
     case 'lock':
       return P([[10, 22], [38, 22], [38, 44], [10, 44]]) + L([[16, 22], [16, 12], [24, 6], [32, 12], [32, 22]], INK, 4);
     default:

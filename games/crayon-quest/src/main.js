@@ -337,7 +337,7 @@ function topbarHTML() {
     <span class="spacer"></span>
     <span class="stickers">${stickers}</span>
     <button class="icon-btn deck-btn" data-act="deck" title="Your deck (V)" aria-label="Your deck, ${deckCount} cards">${icon('cards')}<span>${deckCount}</span></button>
-    <button class="icon-btn" data-act="pause" title="Pause (Esc)" aria-label="Pause">❚❚</button>`;
+    <button class="icon-btn" data-act="pause" title="Pause (Esc)" aria-label="Pause">${icon('pause')}</button>`;
 }
 
 // ------------------------------------------------------------ map
@@ -1270,7 +1270,7 @@ const actions = {
   piles() { showDeck(); },
   deck() { showDeck(); },
   close2() {
-    if (modal2Kind === 'deck' && paused) {
+    if ((modal2Kind === 'deck' || modal2Kind === 'help') && paused) {
       paused = false;
       modal2Kind = null;
       pause();
@@ -1636,6 +1636,30 @@ function autoStep() {
   sync();
 }
 
+// Bake the doodle art caches a little at a time while the title is up, so
+// no later click has to generate a pile of SVG at once.
+function warmArt() {
+  const jobs = [];
+  for (const name of Object.keys(NODE_NAMES)) jobs.push(() => icon(name));
+  for (const h of HEROES) {
+    jobs.push(() => heroSVG(h.id));
+    jobs.push(() => heroSVG(h.id, { frames: 1 }));
+    jobs.push(() => heroSVG(h.id, { pose: 'attack' }));
+  }
+  for (const k of Object.values(KIND_COLOR)) for (let v = 0; v < 3; v++) jobs.push(() => frameSVG(k, v, { fill: '#fffdf5' }));
+  for (const c of CARDS) jobs.push(() => icon(c.icon));
+  for (const m of MONSTERS) jobs.push(() => monsterSVG(m.id));
+  for (let f = 0; f < 3; f++) jobs.push(() => sceneSVG(f));
+  for (const n of ['pause', 'coin', 'hp', 'cards', 'shield', 'slash', 'up', 'trick', 'summon', 'drop', 'splash', 'dizzy', 'muscle', 'lock', 'question', 'star']) jobs.push(() => icon(n));
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(() => fn({ timeRemaining: () => 8 }), 16));
+  const step = (deadline) => {
+    const until = performance.now() + Math.min(8, deadline.timeRemaining());
+    while (jobs.length && performance.now() < until) jobs.shift()();
+    if (jobs.length) idle(step);
+  };
+  idle(step);
+}
+
 // A crash inside a frame shows the crash screen instead of a frozen picture;
 // after a crash the guard returns early, so the loop stops rescheduling.
 const loop = telemetry ? telemetry.guard(frame, 'crayon-quest.frame') : frame;
@@ -1655,6 +1679,7 @@ if (location.protocol !== 'file:') {
     if (run.phase === 'battle') buildBattle();
     sync();
   } else show('title');
+  warmArt();
   requestAnimationFrame(loop);
 }
 

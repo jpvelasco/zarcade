@@ -35,7 +35,7 @@ npm run serve        # from the repo root
 | Use a card with no target | click / tap it again | Enter / Space |
 | End turn | End turn button | E |
 | Look at your cards | pile buttons, deck button | V |
-| Pause | ❚❚ button | Esc / P |
+| Pause | pause button (top right) | Esc / P |
 | Mute | Sound button | M |
 | Map and menus | click / tap | arrow keys, Enter |
 
