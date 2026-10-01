@@ -312,7 +312,10 @@ export class Renderer {
           this.pop('Splat!', e.x, e.y + 0.8, '#ffe08a', 0.55, 0.8);
           break;
         case 'combo':
-          this.pop(`Combo ×${e.n}!`, e.x, e.y + 1.5, RAINBOW[e.n % RAINBOW.length], 0.6 + Math.min(0.5, e.n * 0.04), 1.2);
+          // Milestones only, lifted above the score pops so they stay readable.
+          if (e.n === 3 || e.n === 5 || e.n === 8 || (e.n > 8 && e.n % 4 === 0)) {
+            this.pop(`Combo ×${e.n}!`, e.x, e.y + 2.4, RAINBOW[e.n % RAINBOW.length], 0.62 + Math.min(0.45, e.n * 0.03), 1.3);
+          }
           break;
         case 'power': {
           const b = BEANS[e.bean];

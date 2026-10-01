@@ -99,7 +99,9 @@ export class Input {
       if (k.has('ArrowDown') || k.has('KeyS')) { this.kb.angle = Math.max(-0.5, this.kb.angle - dt * 0.9); changed = true; }
       if (k.has('ArrowRight') || k.has('KeyD')) { this.kb.power = Math.min(1, this.kb.power + dt * 0.6); changed = true; }
       if (k.has('ArrowLeft') || k.has('KeyA')) { this.kb.power = Math.max(0.25, this.kb.power - dt * 0.6); changed = true; }
-      if (changed) { this.kb.active = true; this.mode = 'keys'; }
+      if (changed) this.mode = 'keys';
+      // Once you play with keys, the aim arc stays up from turn to turn.
+      if (this.mode === 'keys') this.kb.active = true;
       if (this.kb.active) this.pull = this.kbPull();
     }
     for (const code of ['Space', 'Enter', 'NumpadEnter']) {
@@ -110,7 +112,6 @@ export class Input {
         if (!this.kb.active) { this.kb.active = true; this.pull = this.kbPull(); continue; }
         this.actions.push({ type: 'launch', pull: this.kbPull() });
         this.pull = null;
-        this.kb.active = false;
       }
     }
   }
