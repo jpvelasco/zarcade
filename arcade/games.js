@@ -424,6 +424,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'clue-critters',
+      title: 'Clue Critters',
+      tagline: 'Sniff out clues and solve cozy village mysteries!',
+      description: 'Help Detective Pip the beagle search Whiskerton, interview animal suspects and fill in a clue grid to catch who ate the pie or borrowed the mayor’s hat. Twelve story cases, endless new ones and a daily mystery.',
+      genre: 'Mystery',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#ff9b2f',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
