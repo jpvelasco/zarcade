@@ -7,7 +7,7 @@ export const SAVE_KEY = 'tiny-kingdoms.v1';
 
 export function defaultSave() {
   return {
-    stars: {}, best: {}, wins: 0, played: 0,
+    stars: {}, goals: {}, best: {}, wins: 0, played: 0,
     color: 'bluebell', emblem: 'crown', hero: null,
     daily: { lastWin: null, streak: 0, bestStreak: 0, best: {} },
     skirmish: { best: {}, wins: 0, size: 'medium', rivals: 1, difficulty: 'normal' },
@@ -26,6 +26,7 @@ export function loadSave(storage) {
     return {
       ...base, ...data,
       stars: { ...obj(data.stars) },
+      goals: { ...obj(data.goals) },
       best: { ...obj(data.best) },
       daily: { ...base.daily, ...obj(data.daily), best: { ...obj(obj(data.daily).best) } },
       skirmish: { ...base.skirmish, ...obj(data.skirmish), best: { ...obj(obj(data.skirmish).best) } },
@@ -118,13 +119,18 @@ export function activeHero(save) {
 export function recordCampaign(save, index, result) {
   const lv = CAMPAIGN[index];
   const before = unlockSnapshot(save);
-  const { stars, met } = starsFor(lv, result);
+  const { met } = starsFor(lv, result);
   const prev = save.stars[lv.id] || 0;
+  // Goals count once met, even in different wins: stars only ever grow.
+  const ever = (save.goals[lv.id] || []).slice(0, lv.goals.length);
+  if (result.won) met.forEach((m, k) => { if (m) ever[k] = true; });
+  const stars = result.won ? 1 + lv.goals.filter((g, k) => ever[k]).length : 0;
   const prevBest = save.best[lv.id];
   save.played++;
   let newBest = false;
   if (result.won) {
     save.wins++;
+    save.goals[lv.id] = lv.goals.map((g, k) => !!ever[k]);
     if (stars > prev) save.stars[lv.id] = stars;
     if (prevBest == null || result.time < prevBest) {
       newBest = prevBest != null;

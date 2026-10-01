@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#3497bf">
+  <title>Tiny Kingdoms — a bite-size island strategy game</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="tiny-kingdoms"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Island battlefield"></canvas>
+
+  <header id="hud" class="hud hidden" aria-label="Match status">
+    <div class="hud-left">
+      <button id="btn-pause" class="icon-btn" title="Pause (Esc)" aria-label="Pause">❚❚</button>
+      <div class="hud-title"><b id="hud-name"></b><span id="hud-time">0:00</span></div>
+    </div>
+    <div id="hud-kingdoms" class="hud-kingdoms" aria-live="polite"></div>
+  </header>
+
+  <footer id="hud-bottom" class="hud-bottom hidden">
+    <div id="strength" class="strength" aria-hidden="true"></div>
+    <div class="hud-actions">
+      <button id="btn-amount" class="amount-btn" title="Send half or all (Space)"><span class="half">½</span><span class="all">All</span></button>
+      <button id="btn-hero" class="hero-btn hidden" title="Hero (H)" aria-label="Hero"><canvas id="hero-icon" width="96" height="96"></canvas><span class="hero-ring"></span><span id="hero-state" class="hero-state"></span></button>
+    </div>
+  </footer>
+
+  <div id="tip" class="tip hidden" aria-live="polite"></div>
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <canvas id="title-crown" class="title-crown" width="120" height="120" aria-hidden="true"></canvas>
+      <p class="kicker">A bite-size strategy game</p>
+      <h1 class="logo"><span class="w1">Tiny</span> <span class="w2">Kingdoms</span></h1>
+      <p class="tagline">Grow little round soldiers, march them across storybook islands, and win every castle, mill and tower!</p>
+      <div class="menu">
+        <button id="btn-campaign" class="btn primary big">Campaign</button>
+        <button id="btn-daily" class="btn wide-btn"><b>Daily skirmish</b><small id="daily-sub"></small></button>
+        <div class="row">
+          <button id="btn-skirmish" class="btn">Skirmish</button>
+          <button id="btn-kingdom" class="btn">My kingdom</button>
+        </div>
+      </div>
+      <p id="title-progress" class="muted"></p>
+      <p class="controls keys-only"><b>Drag</b> from your buildings to a target · drag <b>through</b> several to gather them · <b>letters</b> pick buildings · <b>Space</b> half/all · <b>H</b> hero · <b>Esc</b> pause</p>
+      <p class="controls touch-only"><b>Drag</b> from your buildings to a target, or <b>tap</b> one then <b>tap</b> a target. Drag through several to send them all!</p>
+    </div>
+  </section>
+
+  <section id="screen-map" class="overlay hidden">
+    <div class="sheet">
+      <div class="sheet-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>World map</h2>
+        <span id="map-stars" class="stars-total"></span>
+      </div>
+      <div id="regions" class="regions"></div>
+    </div>
+  </section>
+
+  <section id="screen-brief" class="overlay hidden">
+    <div class="card brief-card">
+      <p id="brief-kicker" class="kicker"></p>
+      <h2 id="brief-title"></h2>
+      <canvas id="brief-thumb" class="thumb"></canvas>
+      <div id="brief-intro" class="intro hidden"></div>
+      <div id="brief-rivals" class="rivals"></div>
+      <ul id="brief-goals" class="goals"></ul>
+      <p id="brief-best" class="muted"></p>
+      <div id="brief-heroes" class="hero-pick"></div>
+      <div class="row">
+        <button class="btn" data-back>← Back</button>
+        <button id="btn-start" class="btn primary big">March!</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-skirmish" class="overlay hidden">
+    <div class="card brief-card">
+      <p class="kicker">Skirmish</p>
+      <h2>Make an island</h2>
+      <canvas id="sk-thumb" class="thumb"></canvas>
+      <div class="opt"><span>Size</span><div class="seg" id="sk-size"></div></div>
+      <div class="opt"><span>Rivals</span><div class="seg" id="sk-rivals"></div></div>
+      <div class="opt"><span>Rivals are</span><div class="seg" id="sk-diff"></div></div>
+      <div id="sk-who" class="rivals"></div>
+      <p id="sk-best" class="muted"></p>
+      <div id="sk-heroes" class="hero-pick"></div>
+      <div class="row">
+        <button class="btn" data-back>← Back</button>
+        <button id="btn-reroll" class="btn">New island</button>
+        <button id="btn-sk-start" class="btn primary big">March!</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-kingdom" class="overlay hidden">
+    <div class="card brief-card">
+      <p class="kicker">My kingdom</p>
+      <h2 id="kd-title">Banner &amp; colours</h2>
+      <canvas id="kd-banner" class="kd-banner" width="160" height="200" aria-hidden="true"></canvas>
+      <h3>Colour</h3>
+      <div id="kd-colors" class="swatches"></div>
+      <h3>Emblem</h3>
+      <div id="kd-emblems" class="swatches"></div>
+      <h3>Heroes</h3>
+      <div id="kd-heroes" class="hero-cards"></div>
+      <p id="kd-stats" class="muted"></p>
+      <div class="row"><button class="btn primary" data-back>Done</button></div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-info" class="muted"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart</button>
+        <div class="row tight">
+          <button id="btn-sound" class="btn">Sound: on</button>
+          <button id="btn-music" class="btn">Music: on</button>
+        </div>
+        <button id="btn-letters" class="btn">Building letters: off</button>
+        <button id="btn-leave" class="btn">Leave battle</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay dim hidden">
+    <div class="card">
+      <h2 id="res-title"></h2>
+      <div id="res-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <p id="res-sub" class="big"></p>
+      <ul id="res-goals" class="goals"></ul>
+      <div id="res-lines" class="res-lines"></div>
+      <div id="res-unlocks" class="unlocks"></div>
+      <div id="res-buttons" class="row"></div>
+    </div>
+  </section>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card small">
+      <h2>One quick step</h2>
+      <p>This game uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/tiny-kingdoms/</code></p>
+      <a class="btn" href="../../index.html">← Arcade</a>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

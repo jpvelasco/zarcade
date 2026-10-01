@@ -41,10 +41,27 @@ test('any win opens the next map; stars and bests only improve', () => {
   assert.equal(three.stars, 3);
   assert.equal(three.newBest, true);
   const worse = recordCampaign(save, 0, { won: true, time: 500, sends: 99, lost: 2 });
+  assert.equal(worse.stars, 3);
   assert.equal(save.stars.m1, 3);
   assert.equal(worse.newBest, false);
   assert.equal(save.best.m1, 60);
   assert.equal(totalStars(save), 3);
+});
+
+test('goals met in different wins add up', () => {
+  const save = defaultSave();
+  const [g1, g2] = CAMPAIGN[0].goals;
+  assert.equal(g1.type, 'time');
+  assert.equal(g2.type, 'keep');
+  assert.equal(recordCampaign(save, 0, { won: true, time: 10, sends: 5, lost: 2 }).stars, 2); // fast
+  const r = recordCampaign(save, 0, { won: true, time: 9999, sends: 5, lost: 0 }); // kept everything
+  assert.equal(r.stars, 3);
+  assert.equal(r.improved, true);
+  assert.deepEqual(save.goals.m1, [true, true]);
+  // A loss never counts goals.
+  const s2 = defaultSave();
+  recordCampaign(s2, 0, { won: false, time: 10, sends: 1, lost: 0 });
+  assert.equal(s2.goals.m1, undefined);
 });
 
 test('heroes join as the campaign goes on', () => {
