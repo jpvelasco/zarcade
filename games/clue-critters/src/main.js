@@ -474,7 +474,7 @@ function beginCase(kase, m) {
   meta = { ...m, key: caseKey(m) };
   const resume = save.active && save.active.key === meta.key ? save.active.session : null;
   session = new Session(kase, resume);
-  place = 0;
+  place = resume && save.active.place < kase.n ? save.active.place | 0 : 0;
   startedAt = performance.now();
   lastFind = performance.now();
   log.event('level.start', { kind: m.kind, difficulty: kase.difficulty, suspects: kase.n, story: m.index ?? -1, resumed: !!resume });
@@ -526,7 +526,7 @@ function prebake() {
 
 function persistSession() {
   if (!session) return;
-  save.active = { key: meta.key, session: session.toJSON() };
+  save.active = { key: meta.key, place, session: session.toJSON() };
   persist();
 }
 

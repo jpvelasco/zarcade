@@ -11,6 +11,8 @@ export const HORIZON = 560;
 // screens see a narrower, taller slice with the props stacked in rows.
 export const CORE = { x0: 0, x1: 1000, top: 30, bottom: 1000 };
 export const TALL_CORE = { x0: 200, x1: 800, top: 30, bottom: 1300 };
+// Very short, wide views (a phone on its side) crop the sky and roofs.
+export const SHORT_CORE = { x0: 0, x1: 1000, top: 330, bottom: 1000 };
 
 function p(ctx, fill, stroke = INK, lw = 4) {
   if (fill) { ctx.fillStyle = fill; ctx.fill(); }
@@ -363,7 +365,7 @@ const nullCtx = new Proxy({}, { get: () => () => {} });
 
 export function fitCore(w, h) {
   const tall = h > w * 1.25;
-  const c = tall ? TALL_CORE : CORE;
+  const c = tall ? TALL_CORE : h < w * 0.45 ? SHORT_CORE : CORE;
   const s = Math.min(w / (c.x1 - c.x0), h / (c.bottom - c.top));
   const ox = (w - (c.x1 - c.x0) * s) / 2 - c.x0 * s;
   // Spare height goes to the sky, so the ground and props sit at the bottom.
