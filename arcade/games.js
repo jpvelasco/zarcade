@@ -104,6 +104,16 @@
       accent: '#39d6e6',
       needsServer: true,
     },
+    {
+      slug: 'riverlight',
+      title: 'Riverlight',
+      tagline: 'Turn the stones. Guide the glowing stream.',
+      description: 'A calm tile-turning puzzle across 72 gardens in six seasons: lead the stream from the spring to every flower over lily-pad bridges, sluice gates, frozen twins and hex stones. No timers, no fail state, plus an endless zen garden.',
+      genre: 'Puzzle',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#4fb2ec',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
