@@ -31,7 +31,9 @@ them chuff, toot and drop their passengers off.
 - A run fails on a crash, when a train runs off the end of its track, or when
   the trains repeat a state (going round and round). Fail shows the spot and
   goes straight back to editing with the layout kept (one tap).
-- Win when every train is delivered. Stars: ★★★ at par (the solver's fewest
+- Win when every train is delivered and every station has had a train
+  (each platform has passengers waiting, which lets a queue of same-coloured
+  trains be sent to different paint sheds and stations). Stars: ★★★ at par (the solver's fewest
   pieces), ★★ within par + max(2, ⌈par/4⌉), ★ for any win.
 
 ## Solver
@@ -93,6 +95,17 @@ title loops wrap at the detected cycle). WebAudio for toots, chuffs, clacks,
 bells and a soft music loop. Save key `tiny-trains.v1`.
 
 ## Design calls
+
+- Wide levels are turned a quarter turn on tall phone screens (the puzzle is
+  identical; tests check the turned levels solve within the same par), so
+  squares stay big enough for small fingers.
+- Par is computed once by the full IDA* search and stored with each level;
+  tests re-solve every level within its par and replay the answer in the
+  real simulation, and confirm par is optimal on the quick levels. If a
+  player ever beats par they still get three stars and a "Super-duper
+  track!" moment.
+- Hints and the daily puzzle are solved in a module Web Worker so a frame
+  never stalls.
 
 - Tunnels and paint sheds are fixed level features rather than tray pieces:
   that keeps the solver tractable and the tray simple for kids.

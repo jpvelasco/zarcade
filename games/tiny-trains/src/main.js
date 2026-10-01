@@ -12,7 +12,7 @@ import {
 import { SKINS, skinByKey, isUnlocked, ruleText } from './skins.js';
 import { titleScene, sandboxBoard, packSandbox, refreshTrains } from './demo.js';
 import { generateDaily } from './daily.js';
-import { COLORS, COLOR_HEX, COLOR_LABEL, DX, DY, opposite } from './pieces.js';
+import { COLORS, COLOR_HEX, COLOR_LABEL, DX, DY } from './pieces.js';
 import { frameMonitor } from './perf.js';
 
 const $ = (id) => document.getElementById(id);
@@ -158,6 +158,8 @@ function toTitle() {
     ? `★ ${stars} of ${LEVEL_COUNT * 3} · ${solved} of ${LEVEL_COUNT} levels${streak ? ` · 🔥 ${streak}-day streak` : ''}`
     : `${LEVEL_COUNT} puzzles across ${WORLDS.length} worlds, plus a daily delivery`;
   $('btn-play').textContent = solved ? `Continue · level ${next}` : 'Play';
+  const doneToday = save.daily.days[dateKey(new Date())] !== undefined;
+  $('btn-daily').textContent = doneToday ? '📅 Daily ✓' : '📅 Daily · new!';
 }
 
 function nextLevelId() {
@@ -517,7 +519,7 @@ function updateHud() {
   if (!play) return;
   const { kind, level, editor } = play;
   if (kind === 'level') {
-    $('hud-world').textContent = `${WORLDS[level.world].icon} ${WORLDS[level.world].name} · ${level.id}`;
+    $('hud-world').textContent = `${WORLDS[level.world].icon} Level ${level.id} · ${WORLDS[level.world].name}`;
     $('hud-name').textContent = level.name;
   } else if (kind === 'daily') {
     $('hud-world').textContent = `📅 Daily Delivery · ${level.date}`;
@@ -529,8 +531,7 @@ function updateHud() {
   const n = editor.count;
   if (kind === 'sandbox') $('hud-pieces').textContent = `${n} piece${n === 1 ? '' : 's'} · ${play.board.trains.length} train${play.board.trains.length === 1 ? '' : 's'}`;
   else {
-    const stars = starsFor(level.par, n);
-    $('hud-pieces').innerHTML = `${n} piece${n === 1 ? '' : 's'} · <span class="gold">★★★</span> at ${level.par}${n && n > level.par ? ` <span class="muted">(${'★'.repeat(stars)})</span>` : ''}`;
+    $('hud-pieces').innerHTML = `${n} piece${n === 1 ? '' : 's'} · <span class="gold">★★★</span> at ${level.par}`;
   }
   for (const b of document.querySelectorAll('.tool')) {
     const t = b.dataset.tool;
@@ -742,7 +743,6 @@ function stepRun(dt) {
   view.time += (dt / TICK_SECONDS) * speed;
   const loops = r.outcome === 'loop' && (play.kind === 'sandbox' || mode === 'title');
   if (!loops && view.time > r.endTime) view.time = r.endTime;
-  const T = loops ? wrapTime(r, view.time) : view.time;
   const tick = Math.floor(view.time);
   while (play.lastTick < tick) {
     play.lastTick++;
@@ -756,7 +756,6 @@ function stepRun(dt) {
     play.finished = true;
     finishRun();
   }
-  void T;
 }
 
 function eventsAt(r, t) {
@@ -1258,4 +1257,3 @@ window.TT = {
   startLevel, startSandbox, toMap, toTitle, toShed, go, hint,
   crashTest() { forceCrash = true; },
 };
-void opposite;
