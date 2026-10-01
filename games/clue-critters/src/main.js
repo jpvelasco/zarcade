@@ -1,5 +1,5 @@
 // Browser entry: screens, the scene canvas, input, sound, saves, telemetry.
-import { CRITTERS, PLACES, THINGS, MYSTERIES, byId } from './data.js';
+import { CRITTERS, PLACES, MYSTERIES, byId } from './data.js';
 import { DIFFICULTY, generateCase, dailyCase, namesFor } from './cases.js';
 import { STORY_CASES, STORY, CHAPTERS } from './story.js';
 import { Session, autoPlan, autoStep } from './session.js';
@@ -10,7 +10,7 @@ import {
 } from './progress.js';
 import { dayKey } from './rng.js';
 import { bakeCritter, bakeIcon, drawPlaceIcon, drawThingIcon, drawMysteryItem, drawClueItem, PIP_CRITTER, makeCanvas, star } from './art.js';
-import { bakePlace, bakeTitle, fitCore } from './scenes.js';
+import { bakePlace, bakeTitle } from './scenes.js';
 import { Sound } from './audio.js';
 import { speak, stopSpeaking, speechSupported } from './speech.js';
 import { frameMonitor } from './perf.js';
@@ -207,7 +207,6 @@ let lastFind = 0;
 let revealT = 0;
 let autoplay = null;
 let pointerIdle = 0;
-let bob = 0;
 
 const OVERLAYS = ['screen-title', 'screen-story', 'screen-endless', 'screen-book', 'screen-friends', 'screen-wardrobe', 'screen-settings', 'screen-pause', 'screen-intro', 'screen-result', 'reveal', 'dlg', 'board', 'accuse'];
 const PANELS = new Set(['dlg', 'board', 'accuse']);
@@ -1471,7 +1470,6 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   const t = now / 1000;
-  bob += dt;
   if (resize() && mode === 'play') buildSpots();
   sound.tick();
   // pointer hiding during play
