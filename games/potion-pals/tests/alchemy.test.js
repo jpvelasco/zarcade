@@ -176,6 +176,21 @@ test('finishing a request pays a scroll and a new one rolls in', () => {
   assert.ok(!a.state.requests.some((r) => r.target === req.target));
 });
 
+test('a scroll buys the exact answer to a request, once', () => {
+  const a = fresh();
+  simulate(a, 30);
+  a.rollRequests();
+  a.state.scrolls = 1;
+  assert.equal(a.state.requests[0].told, false);
+  const res = a.tellRequest(0);
+  assert.equal(res.ok, true);
+  assert.equal(res.target, a.state.requests[0].target);
+  assert.equal(a.state.scrolls, 0);
+  assert.equal(a.tellRequest(0).reason, 'told');
+  assert.equal(a.tellRequest(1).reason, 'scrolls');
+  assert.equal(a.tellRequest(9).ok, false);
+});
+
 test('a scroll reveals one input at a time, and known recipes are free', () => {
   const a = fresh();
   a.state.scrolls = 2;

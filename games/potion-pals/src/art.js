@@ -523,17 +523,15 @@ export function drawItem(ctx, id, s) {
   ctx.restore();
 }
 
-// A silhouette for the book: the same glyph in one flat shade, so a missing
-// discovery still shows its shape. Drawn into a scratch canvas and stamped at
-// low alpha, which avoids filter() entirely.
+// A silhouette for the book: the real glyph, faded almost away. It teases the
+// shape and a hint of colour without naming anything. Drawn into a scratch
+// canvas and stamped at low alpha, which avoids filter() entirely.
 export function drawSilhouette(ctx, id, s) {
-  const it = ITEM[id];
-  if (!it) return;
-  const fn = SHAPES[it.shape] || SHAPES.blob;
+  if (!ITEM[id]) return;
   const tmp = makeCanvas(s, s);
-  fn(tmp.getContext('2d'), s, '#6a5a7a', '#6a5a7a', Math.max(1.4, s * 0.034));
+  drawItem(tmp.getContext('2d'), id, s);
   ctx.save();
-  ctx.globalAlpha = 0.34;
+  ctx.globalAlpha = 0.26;
   ctx.drawImage(tmp, 0, 0);
   ctx.restore();
 }
@@ -914,6 +912,18 @@ function featureOverlay(ctx, s, p) {
     star(ctx, s * 0.2, s * 0.36, s * 0.05, 4, 0.3); body(ctx, '#fff6c0', 0);
     star(ctx, s * 0.82, s * 0.44, s * 0.04, 4, 0.3); body(ctx, '#fff6c0', 0);
   }
+}
+
+// A pal you have not met: the same shape, asleep, in one flat shade. Stamped
+// from a scratch canvas because some bodies set their own globalAlpha.
+export function drawPalSilhouette(ctx, id, s) {
+  if (!PAL[id]) return;
+  const tmp = makeCanvas(s, s);
+  drawPal(tmp.getContext('2d'), id, s, true);
+  ctx.save();
+  ctx.globalAlpha = 0.3;
+  ctx.drawImage(tmp, 0, 0);
+  ctx.restore();
 }
 
 export function drawPal(ctx, id, s, shut = false) {

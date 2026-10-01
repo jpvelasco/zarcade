@@ -91,7 +91,12 @@ export function normalize(raw, seed = 1) {
     s.requests = raw.requests
       .filter((r) => r && PAL[r.pal] && ITEM[r.target] && s.pals[r.pal])
       .slice(0, REQUEST_SLOTS)
-      .map((r) => ({ pal: r.pal, target: r.target, tags: Array.isArray(r.tags) ? r.tags.slice(0, 2) : ITEM[r.target].tags.slice(0, 2) }));
+      .map((r) => ({
+        pal: r.pal,
+        target: r.target,
+        tags: Array.isArray(r.tags) ? r.tags.slice(0, 2) : ITEM[r.target].tags.slice(0, 2),
+        told: !!r.told,
+      }));
   }
   if (raw.daily && typeof raw.daily === 'object') {
     s.daily = {
@@ -325,10 +330,22 @@ export class Alchemy {
       const pal = (free.length ? free : owned)[this.rng.int(free.length || owned.length)];
       const tags = ITEM[target].tags;
       const two = tags.length >= 2 ? [tags[0], tags[1]] : [tags[0]];
-      this.state.requests.push({ pal, target, tags: two });
+      this.state.requests.push({ pal, target, tags: two, told: false });
       taken.add(target);
       usedPals.add(pal);
     }
+  }
+
+  // Spend a scroll to have a pal say exactly what it is after.
+  tellRequest(i) {
+    const req = this.state.requests[i];
+    if (!req) return { ok: false };
+    if (req.told) return { ok: false, reason: 'told' };
+    if (this.state.scrolls < 1) return { ok: false, reason: 'scrolls' };
+    this.state.scrolls--;
+    req.told = true;
+    this.events.push({ type: 'told', target: req.target });
+    return { ok: true, target: req.target };
   }
 
   completeRequests(id) {

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#2b1a44">
+  <meta name="description" content="Potion Pals: a cozy alchemy discovery game. Mix ingredients in a witch's cauldron, find 112 discoveries and summon 32 pals who live in your treehouse.">
+  <title>Potion Pals — mix, discover, collect pals</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="potion-pals"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Your witch's treehouse and its bubbling cauldron"></canvas>
+
+  <section id="file-warning" class="overlay dim hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Potion Pals uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/potion-pals/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <div class="pill" id="pill-found" title="Discoveries">
+        <span class="pi" aria-hidden="true">🔮</span>
+        <span class="pt"><b id="hud-found">0</b><small>of 112 found</small></span>
+      </div>
+      <div class="pill small" id="pill-scrolls" title="Hint scrolls">
+        <span class="pi" aria-hidden="true">📜</span>
+        <span class="pt"><b id="hud-scrolls">0</b><small>scrolls</small></span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+  </div>
+
+  <!-- Shelf tray -->
+  <div id="tray" class="hidden">
+    <div class="tray-top">
+      <button id="tool-book" class="tool" title="Discovery book (B)"><span class="ti">📖</span><span class="tl">Book</span><b id="book-count">0/112</b></button>
+      <button id="tool-quests" class="tool" title="Pal requests (Q)"><span class="ti">✨</span><span class="tl">Requests</span><span class="badge hidden" id="badge-quests"></span></button>
+      <button id="tool-daily" class="tool" title="Mystery potion (D)"><span class="ti">🌙</span><span class="tl">Mystery</span><span class="badge hidden" id="badge-daily"></span></button>
+      <div class="find-wrap">
+        <button id="tool-find" class="tool" title="Find an ingredient (F)"><span class="ti">🔍</span><span class="tl">Find</span></button>
+        <input id="find" type="search" placeholder="Find an ingredient…" aria-label="Find an ingredient" autocomplete="off">
+      </div>
+      <button id="btn-brew" class="btn primary brew">Brew<small id="brew-hint">pick 2 or 3</small></button>
+    </div>
+    <p id="hint" class="hint" aria-live="polite"></p>
+    <div id="shelf" class="shelf" role="group" aria-label="Ingredient shelf"></div>
+  </div>
+
+  <div id="ghost" class="ghost hidden" aria-hidden="true"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- Title -->
+  <section id="screen-title" class="overlay title-overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo-pals" id="logo-pals" aria-hidden="true"></div>
+      <h1 class="logo" aria-label="Potion Pals"><span class="w1">Potion</span> <span class="w2">Pals</span></h1>
+      <p class="tagline">Drop things in the cauldron and see what happens. 112 discoveries, 32 pals, one very messy treehouse.</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Open the workshop</button>
+        <div class="row">
+          <button id="btn-title-book" class="btn">📖 Book</button>
+          <button class="btn" data-sound>🔊 Sound on</button>
+          <button class="btn" data-music>🎵 Music on</button>
+        </div>
+      </div>
+      <p id="title-best" class="best"></p>
+      <p class="controls keys-only"><b>Drag</b> or <b>click</b> ingredients into the pot · <b>Space</b> brews · <b>B</b> book · <b>Esc</b> pauses</p>
+      <p class="controls touch-only"><b>Drag</b> or <b>tap</b> ingredients into the pot · <b>Tap a pal</b> to say hello</p>
+    </div>
+  </section>
+
+  <!-- Sheets: book, requests, mystery, help -->
+  <section id="screen-sheet" class="overlay dim hidden" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="card sheet" id="sheet-card">
+      <div class="sheet-head">
+        <h2 id="sheet-title">Title</h2>
+        <button class="close-btn" id="sheet-close" aria-label="Close">✕</button>
+      </div>
+      <div id="sheet-body" class="sheet-body"></div>
+    </div>
+  </section>
+
+  <!-- Brew result -->
+  <section id="screen-result" class="overlay dim hidden" role="dialog" aria-modal="true" aria-labelledby="result-name">
+    <div class="card result-card" id="result-card">
+      <div class="result-art" id="result-art" aria-hidden="true"></div>
+      <div class="tags" id="result-tags"></div>
+      <h2 id="result-name">Thing</h2>
+      <p class="fact" id="result-blurb"></p>
+      <div class="pal-intro hidden" id="pal-intro">
+        <div class="pal-art" id="pal-art" aria-hidden="true"></div>
+        <div>
+          <h3 id="pal-name">Pal</h3>
+          <p id="pal-bio"></p>
+        </div>
+      </div>
+      <p class="extra" id="result-extra"></p>
+      <div class="row">
+        <button id="result-ok" class="btn primary">Lovely!</button>
+        <button id="result-again" class="btn">Brew it again</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="screen-pause" class="overlay dim hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+    <div class="card small">
+      <h2 id="pause-title">Paused</h2>
+      <p class="muted">The cauldron keeps warm.</p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <div class="row">
+          <button class="btn" data-sound>🔊 Sound on</button>
+          <button class="btn" data-music>🎵 Music on</button>
+        </div>
+        <button id="btn-help" class="btn">How to play</button>
+        <button id="btn-title" class="btn">Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
