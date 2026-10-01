@@ -128,7 +128,8 @@ export class World {
     if (pulling) {
       if (!pl.held) this.events.push({ type: 'plungerPull' });
       pl.held = true;
-      pl.pull = Math.min(1, pl.pull + dt / PLUNGE.pullTime);
+      // Touch swipes set the pull directly; keys and pads pull over time.
+      pl.pull = ctl.pull != null ? ctl.pull : Math.min(1, pl.pull + dt / PLUNGE.pullTime);
     } else if (pl.held) {
       pl.held = false;
       this.launch(pl.pull);
@@ -403,9 +404,11 @@ export class World {
         this.serve({ auto: true });
       } else if (decision === 'endBall') {
         this.state = 'bonus';
+        const ball = this.rules.ball;
         this.lastBonus = this.rules.endBall();
+        this.lastBonus.ball = ball;
         this.between = this.lastBonus.tilted ? 2.2 : BETWEEN_BALLS;
-        this.events.push({ type: 'endBall', bonus: this.lastBonus });
+        this.events.push({ type: 'endBall', ball, bonus: this.lastBonus });
       }
     }
   }

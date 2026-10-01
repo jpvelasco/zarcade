@@ -106,7 +106,7 @@ export const SHOTS = [
   { id: 'leftOrbit', name: 'LEFT ORBIT', arrow: { x: 45, y: 548, a: -PI / 2 } },
   { id: 'spinner', name: 'SPINNER', arrow: { x: 177, y: 540, a: -PI / 2 } },
   { id: 'blackHole', name: 'BLACK HOLE', arrow: { x: 302, y: 548, a: -PI / 2 } },
-  { id: 'ramp', name: 'COMET RAMP', arrow: { x: 440, y: 640, a: -PI / 2 } },
+  { id: 'ramp', name: 'COMET RAMP', arrow: { x: 440, y: 652, a: -PI / 2 } },
   { id: 'rightOrbit', name: 'RIGHT ORBIT', arrow: { x: 559, y: 548, a: -PI / 2 } },
 ];
 
@@ -118,10 +118,10 @@ export const INSERTS = {
   shootAgain: { x: 302, y: 1060 },
   ballSave: { x: 302, y: 905 },
   kickback: { x: 43, y: 950 },
-  lock: { x: 302, y: 660 },
-  extraBall: { x: 302, y: 528 },
-  frenzy: { x: 302, y: 690 },
-  jackpot: { x: 440, y: 690 },
+  lock: { x: 344, y: 546 },
+  extraBall: { x: 260, y: 546 },
+  frenzy: { x: 302, y: 652 },
+  jackpot: { x: 440, y: 694 },
 };
 
 // Switches. Lines report crossings; `layer` limits which balls they see.

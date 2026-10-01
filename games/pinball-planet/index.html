@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b0730">
+  <meta name="description" content="Pinball Planet: a space pinball table with real flipper feel. Visit five planets, smash the asteroid field and lock balls in the Black Hole for multiball.">
+  <title>Pinball Planet — space pinball</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="pinball-planet"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body class="layout-portrait">
+  <canvas id="game" aria-label="Pinball Planet table"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Pinball Planet uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/pinball-planet/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="loading" class="loading">Warming up the flippers…</div>
+
+  <div id="hud-buttons" class="hud-buttons hidden">
+    <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (N)">🔊</button>
+    <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+  </div>
+
+  <aside id="side" class="side hidden" aria-live="polite">
+    <div class="side-head">
+      <div><span class="k">Ball</span><b id="sd-ball">1 / 3</b></div>
+      <div><span class="k">High score</span><b id="sd-best">0</b></div>
+    </div>
+    <h3>Missions</h3>
+    <ul class="missions">
+      <li id="m-tour"><b>🪐 Planet Tour</b><span>Shoot a flashing arrow to visit its planet. Visit all five!</span><i class="pips" id="p-tour"></i></li>
+      <li id="m-frenzy"><b>☄️ Asteroid Field</b><span>Smash all three asteroids for a points frenzy.</span><i class="pips" id="p-frenzy"></i></li>
+      <li id="m-hole"><b>🕳️ Black Hole</b><span>The Comet Ramp lights the lock. Lock two balls for multiball.</span><i class="pips" id="p-hole"></i></li>
+    </ul>
+    <p class="side-tip" id="sd-tip"></p>
+    <p class="keys"><b>Flip</b> Shift · Z / M · ← → <br><b>Launch</b> hold Space · ↓ <b>Nudge</b> X / C <br><b>Pause</b> Esc / P <b>Sound</b> N</p>
+  </aside>
+
+  <div id="touch-hints" class="touch-hints hidden" aria-hidden="true">
+    <span class="th left">hold to flip</span>
+    <span class="th mid" id="th-plunge">swipe down to launch ↓</span>
+    <span class="th right">hold to flip</span>
+  </div>
+
+  <section id="screen-title" class="overlay panel hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Pinball Planet">
+        <span class="logo-planet" aria-hidden="true"></span>
+        <h1><span class="l1">Pinball</span><span class="l2">Planet</span></h1>
+      </div>
+      <p class="tagline">Flip, nudge and orbit your way across the galaxy!</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-scores" class="btn">High scores</button>
+          <button id="btn-help" class="btn">How to play</button>
+        </div>
+        <div class="row">
+          <button class="btn" data-sound>Sound: on</button>
+          <button class="btn" data-music>Music: on</button>
+        </div>
+      </div>
+      <p id="title-best" class="muted"></p>
+      <p class="controls">
+        <b>Flip</b> Shift · Z / M · tap sides · LB / RB &nbsp; <b>Launch</b> hold Space · swipe down · A &nbsp; <b>Nudge</b> X / C
+      </p>
+    </div>
+  </section>
+
+  <section id="screen-scores" class="overlay panel dim hidden">
+    <div class="card">
+      <h2>High scores</h2>
+      <ol id="score-list" class="score-list"></ol>
+      <div class="col">
+        <button class="btn primary" data-title>← Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-help" class="overlay panel dim hidden">
+    <div class="card help-card">
+      <h2>How to play</h2>
+      <p>Launch the ball with the plunger, then keep it in play with the flippers. You get <b>3 balls</b>.</p>
+      <ul class="help-list">
+        <li><b>🪐 Planet Tour</b> A flashing arrow means a planet is waiting. Shoot it to visit! Light more planets by rolling through the <b>U F O</b> lanes or smashing the asteroids.</li>
+        <li><b>☄️ Asteroid Field</b> Knock down all three asteroids for 20 seconds where everything scores big.</li>
+        <li><b>🕳️ Black Hole</b> Shoot the Comet Ramp to light the lock, then sink the ball in the Black Hole. Lock two balls for <b>multiball</b> and jackpots!</li>
+        <li><b>🎯 Skill shot</b> A soft launch drops the ball into a U F O lane. Hit the flashing one for 500,000. The flippers move the flashing lane.</li>
+        <li><b>💡 Tips</b> Hold a flipper up to <i>catch</i> the ball, then let it roll and flip at the right moment. Nudge to save a ball, but too much and it's <b>TILT</b>!</li>
+      </ul>
+      <p class="controls"><b>Flip</b> Left/Right Shift, Z / M, ← → · touch the left or right side · LB/LT and RB/RT<br>
+        <b>Launch</b> hold Space or ↓, let go · swipe down and let go · hold A<br>
+        <b>Nudge</b> X / C · X / B &nbsp; <b>Pause</b> Esc / P / Start &nbsp; <b>Sound</b> N</p>
+      <div class="col">
+        <button class="btn primary" data-title>← Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart game</button>
+        <div class="row">
+          <button class="btn" data-sound>Sound: on</button>
+          <button class="btn" data-music>Music: on</button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-initials" class="overlay dim hidden">
+    <div class="card">
+      <h2>New high score!</h2>
+      <p id="ini-score" class="big-score"></p>
+      <p class="muted">Enter your initials</p>
+      <div class="initials" id="initials" role="group" aria-label="Initials">
+        <div class="slot"><button class="arrow" data-slot="0" data-dir="-1" aria-label="Previous letter">▲</button><span class="letter" id="ini-0">A</span><button class="arrow" data-slot="0" data-dir="1" aria-label="Next letter">▼</button></div>
+        <div class="slot"><button class="arrow" data-slot="1" data-dir="-1" aria-label="Previous letter">▲</button><span class="letter" id="ini-1">A</span><button class="arrow" data-slot="1" data-dir="1" aria-label="Next letter">▼</button></div>
+        <div class="slot"><button class="arrow" data-slot="2" data-dir="-1" aria-label="Previous letter">▲</button><span class="letter" id="ini-2">A</span><button class="arrow" data-slot="2" data-dir="1" aria-label="Next letter">▼</button></div>
+      </div>
+      <p class="muted small-print">Type letters, or use the arrows / flippers. Enter to save.</p>
+      <div class="col">
+        <button id="btn-ini-ok" class="btn primary">Save score</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-over" class="overlay panel dim hidden">
+    <div class="card">
+      <h2>Game over</h2>
+      <p id="over-score" class="big-score"></p>
+      <div id="over-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-again" class="btn primary">Play again</button>
+        <div class="row">
+          <button id="btn-over-scores" class="btn">High scores</button>
+          <button class="btn" data-title>Title screen</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
