@@ -552,12 +552,13 @@ export class Renderer {
     }
   }
 
-  measure(text) {
-    let w = this.widthCache.get(text);
+  measure(text, fs) {
+    const key = `${fs}|${text}`;
+    let w = this.widthCache.get(key);
     if (w === undefined) {
       w = this.ctx.measureText(text).width;
       if (this.widthCache.size > 600) this.widthCache.clear();
-      this.widthCache.set(text, w);
+      this.widthCache.set(key, w);
     }
     return w;
   }
@@ -576,7 +577,7 @@ export class Renderer {
       const k = prev + ((locked ? 1.12 : 1) - prev) * 0.3;
       this.lockScale.set(m.id, k);
       const word = m.word;
-      const tw = this.measure(word);
+      const tw = this.measure(word, fs);
       const padX = fs * 0.45;
       const w = (tw + padX * 2) * k;
       const h = fs * 1.5 * k;
@@ -611,11 +612,11 @@ export class Renderer {
       ctx.textAlign = 'left';
       const typed = word.slice(0, m.typed);
       const tx = padX;
-      const typedW = typed ? this.measure(typed) : 0;
+      const typedW = typed ? this.measure(typed, fs) : 0;
       if (typed) { ctx.fillStyle = '#2e9e44'; ctx.fillText(typed, tx, baseY); }
       const next = word[m.typed];
       if (next !== undefined) {
-        const nw = next === ' ' ? fs * 0.4 : this.measure(next);
+        const nw = next === ' ' ? fs * 0.4 : this.measure(next, fs);
         ctx.fillStyle = locked ? '#ffe9b0' : 'rgba(255,177,61,0.25)';
         ctx.fillRect(tx + typedW - 1, baseY - fs * 0.82, nw + 2, fs * 1.0);
         ctx.fillStyle = '#ff7a1a';

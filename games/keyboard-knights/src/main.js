@@ -324,7 +324,12 @@ function onCleared() {
     'combo.max': sum.maxCombo, bonks: sum.bonks, 'best.new': out.newBestWpm,
   });
   if (st.daily && !out.dailyRepeat) log.event('daily.complete', { streak: out.streak, tier: st.tier });
-  for (const u of out.unlocked) log.event('unlock.earned', { slot: u.slot, item: u.id });
+  for (const u of out.unlocked) {
+    log.event('unlock.earned', { slot: u.slot, item: u.id });
+    // Still in the starter kit? Put the new thing on straight away.
+    if (save.equipped[u.slot] === ITEMS[u.slot][0].id) { equip(save, u.slot, u.id); u.equipped = true; }
+  }
+  if (out.unlocked.some((u) => u.equipped)) { persist(); renderer.setLook(save.equipped); }
   mode = 'results';
   const title = st.boss && !st.daily ? `${BESTIARY.find((x) => x.id === st.boss).name} is poofed!` : st.lesson ? 'Lesson complete!' : st.daily ? 'Daily quest done!' : 'Stage clear!';
   $('res-title').textContent = title;
@@ -352,13 +357,14 @@ function onCleared() {
     const img = u.slot === 'armour' ? knightSprite(u.id, 0, 128) : u.slot === 'sword' ? swordSprite(u.id, 128) : petSprite(u.id, 128);
     item.appendChild(spriteCanvas(img, 44));
     const t = document.createElement('span');
-    t.innerHTML = `<b>Unlocked!</b> ${u.name}`;
+    t.innerHTML = `<b>Unlocked!</b> ${u.name}${u.equipped ? ' · wearing it now' : ''}`;
     item.appendChild(t);
     un.appendChild(item);
   }
   if (out.unlocked.length) setTimeout(() => sound.unlockJingle(), 900);
   const next = nextFor(st);
-  $('btn-next').textContent = next ? `Next · ${next.name} →` : st.daily ? 'Quest map' : 'Quest map';
+  $('btn-next').textContent = next ? `Next · ${next.name} →` : st.lesson ? 'Lessons' : 'Quest map';
+  $('btn-res-map').classList.toggle('hidden', !next);
   sound.win(sum.stars);
   showScreen('screen-results');
 }
