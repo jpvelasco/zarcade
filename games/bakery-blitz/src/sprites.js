@@ -813,7 +813,7 @@ export class Sprites {
     const art = DISH_ART[id];
     this.dish[id] = bake(DISH_BOX, DISH_BOX, (ctx, w) => art(ctx, w, recipe.color));
     const crispy = bake(DISH_BOX, DISH_BOX, (ctx, w) => art(ctx, w, recipe.color));
-    tint(crispy, '#4a2a12', 0.5);
+    tint(crispy, '#6b3a14', 0.42);
     this.crispy[id] = crispy;
     return this.dish[id];
   }
@@ -822,8 +822,6 @@ export class Sprites {
     return quality === 'crispy' ? this.crispy[id] : this.dish[id];
   }
 }
-
-export const SPRITE_BOXES = { DISH_BOX, STATION_BOX, CUSTOMER_BOX };
 
 // Where the food sits inside each station's picture, in station-sprite units:
 // in the bowl, behind the oven door, on the icing plate.

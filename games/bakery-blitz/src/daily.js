@@ -2,9 +2,9 @@
 // orders from the notice board, and the bonus shift they belong to. All of it
 // is derived from the local date, so the same day always brings the same
 // special, and nothing needs a server.
-import { Rng, hashSeed } from './rng.js';
+import { Rng } from './rng.js';
 import { RECIPES, getCustomer } from './recipes.js';
-import { CHAPTERS, DAYS_PER_CHAPTER, planPar } from './levels.js';
+import { CHAPTERS, planPar } from './levels.js';
 
 export function dateKey(date = new Date()) {
   const y = date.getFullYear();

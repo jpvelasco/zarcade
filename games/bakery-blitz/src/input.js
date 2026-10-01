@@ -16,7 +16,6 @@ export const PAUSE_KEYS = ['Escape', 'KeyP'];
 export const MUTE_KEYS = ['KeyM'];
 export const LEFT_KEYS = ['ArrowLeft', 'KeyA'];
 export const RIGHT_KEYS = ['ArrowRight', 'KeyD'];
-export const PICK_KEYS = ['ArrowUp', 'KeyW', 'ArrowDown', 'KeyS', 'Tab'];
 
 // One gamepad, edge-triggered. `hit(name)` is true only on the frame a button
 // goes down, so holding a button does not spam the kitchen.

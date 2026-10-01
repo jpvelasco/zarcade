@@ -428,7 +428,7 @@ function updateHud(force = false) {
   }
   const jar = $('hud-combo');
   jar.classList.toggle('on', shift.combo > 1);
-  if (shift.combo > 1) jar.firstChild.textContent = `×${(1 + 0.125 * (shift.combo - 1)).toFixed(2).replace(/0$/, '')}`;
+  if (shift.combo > 1) jar.firstChild.textContent = `×${shift.combo} tips`;
   const left = shift.left;
   $('hud-clock-fill').style.width = `${(left / plan.seconds) * 100}%`;
   $('hud-clock').classList.toggle('low', left <= 15);

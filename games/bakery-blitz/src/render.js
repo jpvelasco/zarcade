@@ -1,7 +1,7 @@
 // Draws the bakery. Reads the shift and never changes it. The shop itself is
 // baked into one backdrop canvas per layout, so a frame is blits, paths for
 // faces and bubbles, and a capped handful of particles.
-import { RECIPES, STATIONS, CUSTOMERS, heartsFor } from './recipes.js';
+import { STATIONS, CUSTOMERS, heartsFor } from './recipes.js';
 import { Sprites, STATION_SLOTS, roundRect, makeCanvas } from './sprites.js';
 
 const MAX_PARTICLES = 150;
@@ -652,6 +652,17 @@ export class ShopView {
     ctx.clearRect(-8, -8, w + 16, h + 16);
     ctx.drawImage(this.backdrop, 0, 0, w, h);
 
+    // Point at a station and the order it would start lights up, so the
+    // automatic choice never feels like a mystery.
+    this.wouldStart = null;
+    const aim = this.hover && this.hover.kind === 'station'
+      ? shift.stations[this.hover.index]
+      : (this.cursor >= 0 ? shift.stations[this.cursor] : null);
+    if (aim && !aim.item) {
+      const ticket = shift.nextTicketFor(aim);
+      this.wouldStart = ticket ? ticket.id : null;
+    }
+
     this.drawQueue();
     for (let i = 0; i < shift.seats.length; i++) this.drawSeat(i);
     if (this.caseLayer) ctx.drawImage(this.caseLayer, 0, 0, w, h);
@@ -833,6 +844,11 @@ export class ShopView {
         ctx.strokeStyle = '#ff3d6e';
         ctx.lineWidth = 3;
         ctx.stroke();
+      } else if (this.wouldStart === ticket.id) {
+        roundRect(ctx, chip.x - 3, chip.y - 3, size + 6, size + 6, size * 0.3);
+        ctx.strokeStyle = 'rgba(255,157,77,0.9)';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
       }
     }
   }
@@ -932,8 +948,8 @@ export class ShopView {
     ctx.fillText(`${station.index + 1}`, box.x + 5 + badge / 2, box.y - lift + 5 + badge * 0.56);
     ctx.textBaseline = 'alphabetic';
 
-    ctx.fillStyle = 'rgba(74,44,26,0.6)';
-    ctx.font = `600 ${Math.round(Math.min(box.w * 0.15, 15))}px ui-rounded, system-ui, sans-serif`;
+    ctx.fillStyle = 'rgba(74,44,26,0.78)';
+    ctx.font = `700 ${Math.round(Math.min(box.w * 0.16, 16))}px ui-rounded, system-ui, sans-serif`;
     ctx.fillText(STATIONS[station.kind].short, box.x + box.w / 2, box.y - lift + box.h - 4);
 
     if (!item) return;
@@ -977,6 +993,12 @@ export class ShopView {
     } else {
       const bell = Math.min(box.w * 0.22, 30);
       ctx.drawImage(this.sprites.bell, box.x + box.w - bell - 6, box.y - lift + 6 + pop, bell, bell);
+    }
+    if (item.quality === 'crispy') {
+      ctx.fillStyle = '#5a3418';
+      ctx.textAlign = 'center';
+      ctx.font = `700 ${Math.round(Math.min(dishSize * 0.3, 15))}px ui-rounded, system-ui, sans-serif`;
+      ctx.fillText('crispy', cx, cy + dishSize * 0.95);
     }
     if (station.bakes && item.state === 'ready' && item.scorch > 0 && item.scorch < 1) {
       // a little hurry-up bar under the bake
@@ -1092,5 +1114,3 @@ export function paintCustomer(canvas, kindId, size = 72, sprites = null) {
   ctx.drawImage(pack.customer[kindId], 0, 0, size, size);
   return pack;
 }
-
-export const RECIPE_COLORS = Object.fromEntries(Object.entries(RECIPES).map(([id, r]) => [id, r.color]));
