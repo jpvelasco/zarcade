@@ -7,6 +7,10 @@
   const $ = (id) => document.getElementById(id);
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Telemetry is optional: the game still runs if telemetry.js is missing.
+  const telemetry = window.Telemetry || null;
+  const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
+
   // Each color also has a glyph so the game stays playable without color vision.
   const COLORS = [
     { name: 'amber', hex: '#ffc94d', glyph: 'circle' },
@@ -40,8 +44,15 @@
   function readSave() {
     try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { return {}; }
   }
+  let saveWarned = false;
   function writeSave() {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* storage unavailable */ }
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+    } catch (error) {
+      // Storage unavailable (private mode, full quota): play on, report once.
+      if (!saveWarned) log.warn('save.failed', { 'exception.message': String(error && error.message || error) });
+      saveWarned = true;
+    }
   }
 
   // ---------- audio (synthesized, no assets) ----------
@@ -394,6 +405,7 @@
     state.lastTick = 0;
     state.mode = 'playing';
     showScreen(null);
+    log.event('night.start', { night: n, target: state.cfg.target, twist: state.cfg.twist || 'none' });
   }
 
   function endNight() {
@@ -415,12 +427,14 @@
       $('res-primary').textContent = 'Next night →';
       $('res-secondary').textContent = 'Replay night';
       audio.fanfare(stars);
+      log.event('night.complete', { night: state.night, stars, score: state.score, target: state.cfg.target, total: state.total });
     } else {
       $('res-title').textContent = 'The jar isn’t full yet';
       $('res-detail').textContent = `Only ${state.cfg.target - state.score} glow to go. You’ve got this!`;
       $('res-primary').textContent = 'Try again';
       $('res-secondary').textContent = 'Title screen';
       audio.sad();
+      log.event('night.fail', { night: state.night, score: state.score, target: state.cfg.target });
     }
     $('res-primary').onclick = () => {
       if (passed) state.totalBefore = state.total;
@@ -1280,6 +1294,7 @@
   // ---------- wiring ----------
   $('btn-continue').addEventListener('click', () => {
     audio.unlock();
+    log.event('continue.used', { night: save.bestNight + 1 });
     state.total = 0;
     state.totalBefore = 0;
     startNight(save.bestNight + 1);
@@ -1330,14 +1345,30 @@
     }
   }
 
+  // Frame telemetry: slow frames, struggling 10 s windows, and a watchdog
+  // outside the loop that notices when frames stop while the page is visible.
+  const monitor = window.GlowPerf.frameMonitor({
+    log,
+    snapshot: () => ({ mode: state.mode, night: state.night, flies: state.flies.length, particles: state.particles.length }),
+    visible: () => document.visibilityState === 'visible',
+    crashed: () => !!(telemetry && telemetry.crashed),
+  });
+  setInterval(() => monitor.check(performance.now()), 1000);
+  document.addEventListener('visibilitychange', () => monitor.reset(performance.now()));
+
   let last = performance.now();
   function frame(now) {
+    monitor.frame(now);
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     updatePointer(dt, state.mode === 'playing');
     update(dt);
     render();
-    requestAnimationFrame(frame);
+    requestAnimationFrame(loop);
   }
-  requestAnimationFrame(frame);
+  // A crash inside a frame shows the crash screen instead of a frozen picture;
+  // after a crash the guard returns early, so the loop stops rescheduling.
+  const loop = telemetry ? telemetry.guard(frame, 'glowloop.frame') : frame;
+  log.event('game.ready', { 'best.night': save.bestNight, 'best.total': save.bestTotal });
+  requestAnimationFrame(loop);
 })();
