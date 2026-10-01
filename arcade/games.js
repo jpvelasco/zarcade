@@ -369,6 +369,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'tiny-kingdoms',
+      title: 'Tiny Kingdoms',
+      tagline: 'March little soldiers across storybook islands.',
+      description: 'A bite-size strategy game: grow soldiers in castles, windmills and towers, then send them marching to capture the islands from three crafty rival rulers. 32 campaign maps, heroes, banners and a daily skirmish.',
+      genre: 'Strategy',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#3d7fe0',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
