@@ -25,7 +25,7 @@ npm run serve        # from the repo root
 | Reel in to recast | hold | hold | hold Space | hold A |
 | Hook a bite | click when the bobber dives | tap | Space | A |
 | Reel during a fight | hold / let go | hold / let go | hold Space / let go | hold A, or squeeze RT |
-| Steer against the fish | | ◀ ▶ buttons | ← → / A D | stick |
+| Steer against the fish | move left / right | ◀ ▶ buttons | ← → / A D | stick |
 | Change bait | bait button | bait button | B | Y |
 | Wait for the next time of day | ⏳ button | ⏳ button | T | |
 | Pause | ❚❚ button | ❚❚ button | Esc / P | Start |

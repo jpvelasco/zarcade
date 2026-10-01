@@ -37,6 +37,7 @@ function persist() {
 
 const renderer = new Renderer(canvas, { reducedMotion: reduced });
 const input = new Input(canvas);
+if (coarse) input.mode = 'touch'; // touch wording before the first touch
 const sound = new Sound({ muted: save.muted, music: save.music });
 
 let mode = 'title'; // title | fish | paused | menu | catch | tourney
@@ -139,8 +140,10 @@ function announceScene() {
 
 function startFishing(waterId = save.water, { force = false } = {}) {
   sound.unlock();
-  const w = WATER[waterId];
-  if (w.boat && !owns(save, 'boat', w.boat) && !force) return;
+  let w = WATER[waterId];
+  // A water without its boat (left over from a ?water= visit) falls back to
+  // the pond instead of leaving the Go fishing button dead.
+  if (w.boat && !owns(save, 'boat', w.boat) && !force) { waterId = 'pond'; w = WATER.pond; }
   if (w.nightOnly && periodOf(save.clock.hour) !== 'night') {
     const h = save.clock.hour;
     save.clock = advanceClock(save.clock, h < 20 ? 20 - h : 0);
@@ -346,14 +349,14 @@ function hintFor(t) {
   const pad = input.mode === 'pad';
   const hold = touch ? 'Touch the water and hold' : pad ? 'Hold A' : input.mode === 'mouse' ? 'Hold the mouse button' : 'Hold Space';
   switch (t.state) {
-    case 'ready': return `${hold} to charge your cast${touch ? '' : pad ? ' · stick aims' : ' · ← → aim'}`;
+    case 'ready': return `${hold} to charge your cast${touch ? '' : pad ? ' · stick aims' : input.mode === 'mouse' ? ' · point to aim' : ' · ← → aim'}`;
     case 'charging': return 'Let go when the meter reaches the white mark!';
     case 'flying': return '';
     case 'sinking': case 'waiting': return `Wait for a bite… ${touch ? 'tap' : pad ? 'A' : 'click / Space'} to twitch · hold to reel in`;
     case 'reeling': return 'Reeling in… let go to stop';
     case 'nibble': return 'A nibble! Wait for it…';
     case 'bite': return touch ? 'TAP NOW!' : pad ? 'PRESS A NOW!' : 'CLICK / SPACE NOW!';
-    case 'fight': return save.stats.caught > 3 ? '' : `Hold to reel · let go when it's too tight${touch ? '' : ' · ← → steer'}`;
+    case 'fight': return save.stats.caught > 3 ? '' : `Hold to reel · let go when it's too tight${touch ? '' : pad ? ' · stick steers' : input.mode === 'mouse' ? ' · move the mouse ← → to steer' : ' · ← → steer'}`;
     default: return '';
   }
 }
@@ -406,7 +409,8 @@ function toTitle() {
   tourneyFinished = false;
   buildDemo();
   const n = speciesCaught(save);
-  $('btn-play').textContent = save.stats.caught ? `Go fishing · ${WATER[save.water].name}` : 'Go fishing';
+  const homeWater = WATER[save.water].boat && !owns(save, 'boat', WATER[save.water].boat) ? WATER.pond : WATER[save.water];
+  $('btn-play').textContent = save.stats.caught ? `Go fishing · ${homeWater.name}` : 'Go fishing';
   $('title-stats').innerHTML = n ? `📖 ${n} / ${FISH.length} fish · ${COIN} ${save.coins.toLocaleString('en-US')}` : '';
   updateSoundButtons();
   showScreen('screen-title');
@@ -429,7 +433,7 @@ function renderMap() {
       <div class="meta"><span>📖 ${got}/${fishOfWater(w.id).length}</span><span>${PERIOD_INFO[period].icon} ${PERIOD_INFO[period].name}</span><span>${WEATHER_INFO[weather].icon} ${WEATHER_INFO[weather].name}</span></div>`;
     const btn = document.createElement('button');
     btn.className = `btn ${open ? 'teal' : ''}`;
-    btn.innerHTML = open ? (trip && trip.water.id === w.id && menuFrom === 'fish' ? 'Back to fishing' : 'Fish here') : `Needs the ${boat.name} (${boat.price} ${COIN})`;
+    btn.innerHTML = open ? (trip && trip.water.id === w.id && menuFrom === 'fish' ? 'Back to fishing' : 'Fish here') : `<span>Needs the ${boat.name} <span class="nowrap">(${boat.price} ${COIN})</span></span>`;
     btn.addEventListener('click', () => {
       sound.click();
       if (!open) { shopTab = 'boat'; return openMenu('shop'); }

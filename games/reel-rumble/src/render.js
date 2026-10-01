@@ -83,7 +83,9 @@ export class Renderer {
     this.portrait = this.H > this.W;
     this.surfaceY = Math.round(this.H * (this.portrait ? 0.34 : 0.4));
     this.shoreX = Math.round(clamp(this.W * 0.15, 64, 200));
-    this.pxX = Math.max((this.W - this.shoreX - 12) / SPAN, 11);
+    // Narrow portrait screens zoom out sideways so the deep water shows
+    // instead of a tall wedge of shallow lake bed.
+    this.pxX = Math.max((this.W - this.shoreX - 12) / SPAN, this.portrait ? 7 : 11);
     this.span = (this.W - this.shoreX) / this.pxX;
     this.pxUp = clamp(this.H * 0.045, 18, 34);
     this.k = clamp(Math.min(this.W / 1300, this.H / 800), 0.62, 1.15);
@@ -1222,7 +1224,10 @@ export class Renderer {
     const k = this.k;
     const W = this.W;
     const bw = Math.min(460, W - 40), bh = 22;
-    const bx = (W - bw) / 2, by = this.H - (ui.touch ? 150 : 74);
+    // On touch the panel sits above the ◀ ▶ buttons, unless the screen is
+    // wide enough for it to fit between them (keeping the fish in view).
+    const between = (W - bw) / 2 - 12 > 112;
+    const bx = (W - bw) / 2, by = this.H - (ui.touch && !between ? 150 : 74);
     // Panel
     ctx.fillStyle = 'rgba(8,24,44,0.66)';
     ctx.fillRect(bx - 12, by - 52, bw + 24, bh + 70);

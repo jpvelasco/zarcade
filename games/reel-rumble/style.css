@@ -188,7 +188,6 @@ code { background: rgba(0, 0, 0, 0.07); padding: 2px 6px; border-radius: 6px; }
   .hud-right { flex-direction: column; align-items: flex-end; }
   .chip { font-size: 12.5px; padding: 4px 10px; }
   .chip.place { font-size: 14px; }
-  .toasts { top: max(124px, calc(env(safe-area-inset-top) + 114px)); }
 }
 
 .hint {
@@ -211,6 +210,7 @@ code { background: rgba(0, 0, 0, 0.07); padding: 2px 6px; border-radius: 6px; }
 @media (prefers-reduced-motion: reduce) { .hint.urgent { animation: none; } }
 .hint.raise { bottom: 176px; }
 .hint.raise.touch { bottom: 252px; }
+@media (min-width: 720px) { .hint.raise.touch { bottom: 176px; } }
 
 .touch-steer {
   position: fixed;
@@ -262,6 +262,10 @@ code { background: rgba(0, 0, 0, 0.07); padding: 2px 6px; border-radius: 6px; }
 }
 .toast.gold { background: #fff3c4; border-color: #f2c94c; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-10px); } 8%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-6px); } }
+@media (max-width: 700px) {
+  /* Below the chips and clear of the button column on the right. */
+  .toasts { top: max(120px, calc(env(safe-area-inset-top) + 110px)); left: 12px; transform: none; width: calc(100% - 82px); }
+}
 
 /* ------------------------------------------------------------ title */
 
@@ -390,3 +394,10 @@ code { background: rgba(0, 0, 0, 0.07); padding: 2px 6px; border-radius: 6px; }
   .logo-fish { width: 70px; height: 42px; }
   .tagline { margin-top: 6px; }
 }
+
+.touch-only { display: none; }
+@media (pointer: coarse) {
+  .touch-only { display: inline; }
+  .keys-only { display: none; }
+}
+.nowrap { white-space: nowrap; }

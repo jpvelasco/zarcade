@@ -1,6 +1,6 @@
 // Mouse, touch, keyboard and gamepad merged into Trip controls.
 //   Mouse:  point at the water to aim; hold the button to charge the cast or
-//           reel; click to hook.
+//           reel; click to hook; move left or right during a fight to steer.
 //   Touch:  touch the water to aim and hold to charge; hold anywhere to
 //           reel; tap to hook; ◀ ▶ buttons steer during a fight.
 //   Keys:   Space holds / taps; ← → (A D) aim the cast and steer the fish.
@@ -18,6 +18,7 @@ export class Input {
     this.padEdges = new Set();
     this.enabled = false;
     this.holdPrev = false;
+    this.steerAnchor = null;
 
     addEventListener('keydown', (e) => {
       const t = e.target;
@@ -128,7 +129,16 @@ export class Input {
     this.holdPrev = hold;
 
     let axis = (k('ArrowRight', 'KeyD') ? 1 : 0) - (k('ArrowLeft', 'KeyA') ? 1 : 0);
-    axis = Math.max(-1, Math.min(1, axis + this.pad.axisX + this.touchSteer));
+    // Mouse steering: how far the pointer has moved sideways since the fight
+    // began.
+    let mouseSteer = 0;
+    if (state === 'fight' && this.mode === 'mouse') {
+      if (this.steerAnchor === null) this.steerAnchor = this.mouse.x;
+      mouseSteer = mouseSteerFor(this.mouse.x - this.steerAnchor);
+    } else if (state !== 'fight') {
+      this.steerAnchor = null;
+    }
+    axis = Math.max(-1, Math.min(1, axis + this.pad.axisX + this.touchSteer + mouseSteer));
 
     let nextAim = null;
     if (state === 'ready' || state === 'charging') {
@@ -143,4 +153,13 @@ export class Input {
     if (trig && !this.pad.buttons.a) reel = Math.min(1, this.pad.trigger * 1.1);
     return { hold, press, aim: nextAim, steer: axis, reel };
   }
+}
+
+// Sideways mouse movement (px since the fight began) to a steer of -1..1,
+// with a small dead zone so a resting hand doesn't steer.
+export const MOUSE_STEER = { dead: 14, full: 70 };
+export function mouseSteerFor(dx) {
+  const a = Math.abs(dx);
+  if (a <= MOUSE_STEER.dead) return 0;
+  return Math.sign(dx) * Math.min(1, (a - MOUSE_STEER.dead) / (MOUSE_STEER.full - MOUSE_STEER.dead));
 }
