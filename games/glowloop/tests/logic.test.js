@@ -135,3 +135,22 @@ test('pendingLoop predicts the loop about to close', () => {
   assert.equal(G.pendingLoop(trail.slice(0, 5), 30, 6), null); // too short
   assert.equal(G.pendingLoop([p(0, 0), p(50, 0), p(100, 0), p(150, 0), p(200, 0), p(250, 0), p(300, 0), p(350, 0)], 30, 6), null);
 });
+
+test('releaseLoop closes a loop lifted just short of its start', () => {
+  // A square drawn almost all the way round, ending 30px from where it began.
+  const nearly = [p(0, 0), p(50, 0), p(100, 0), p(100, 50), p(100, 100), p(50, 100), p(0, 100), p(0, 60), p(0, 30)];
+  const poly = G.releaseLoop(nearly, 48, 6, 250);
+  assert.ok(poly);
+  assert.equal(G.pointInPolygon(p(50, 50), poly), true);
+});
+
+test('releaseLoop ignores open strokes, tiny loops and wide gaps', () => {
+  const line = [p(0, 0), p(50, 0), p(100, 0), p(150, 0), p(200, 0), p(250, 0), p(300, 0), p(350, 0)];
+  assert.equal(G.releaseLoop(line, 48, 6, 250), null);
+  const tiny = [p(0, 0), p(6, 0), p(12, 0), p(12, 6), p(12, 12), p(6, 12), p(0, 12), p(0, 6)];
+  assert.equal(G.releaseLoop(tiny, 48, 6, 250), null); // under the minimum area
+  // A shallow U whose ends are close but which is mostly gap.
+  const u = [p(0, 0), p(5, 20), p(10, 30), p(20, 34), p(30, 35), p(40, 34), p(50, 30), p(55, 20), p(45, 2)];
+  assert.ok(G.pendingLoop(u, 48, 6), 'the ends are within reach');
+  assert.equal(G.releaseLoop(u, 48, 6, 250), null);
+});

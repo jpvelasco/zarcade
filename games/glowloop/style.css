@@ -164,6 +164,25 @@ h2 { margin: 0; font-size: 30px; }
   .tagline { margin-bottom: 12px; }
 }
 
+/* A card taller than the screen scrolls from its top instead of being cut off. */
+.overlay > .card { margin-block: auto; }
+
+/* Phones held sideways: a wide title card with the tips in two columns, so
+   Play shows without scrolling. */
+@media (max-height: 500px) {
+  .overlay { padding: 10px 20px; }
+  #title { padding-top: 52px; } /* clear of the ← Arcade link */
+  .card { width: min(780px, 100%); padding: 12px 20px 14px; }
+  .card.small { width: min(420px, 100%); }
+  .logo { font-size: 46px; line-height: 1.05; }
+  .tagline { margin: 0 0 8px; font-size: 15px; }
+  .howto { grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .howto li { padding: 5px 10px; font-size: 13px; }
+  .howto li:last-child { grid-column: 1 / -1; justify-content: center; }
+  .card .row { margin-top: 0; }
+  .muted { margin-top: 6px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }

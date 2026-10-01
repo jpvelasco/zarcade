@@ -75,6 +75,19 @@
     return best < 0 ? null : points.slice(best);
   }
 
+  // When the finger lifts just short of closing a loop, close it anyway: the
+  // tip must be within `reach` of an earlier point, the gap must be small next
+  // to the loop's length, and the loop must enclose at least `minArea`.
+  // Returns the polygon or null.
+  function releaseLoop(points, reach, minGap, minArea) {
+    const poly = pendingLoop(points, reach, minGap);
+    if (!poly || polygonArea(poly) < minArea) return null;
+    let length = 0;
+    for (let i = 1; i < poly.length; i++) length += dist(poly[i - 1], poly[i]);
+    if (dist(poly[0], poly[poly.length - 1]) > length * 0.25) return null;
+    return poly;
+  }
+
   // Drops points from the start of the trail until its length fits maxLength.
   function trimToLength(points, maxLength) {
     let total = 0;
@@ -147,7 +160,7 @@
 
   const Glow = {
     dist, segmentIntersection, pointInPolygon, polygonArea, centroid,
-    findLoop, pendingLoop, trimToLength, weightOf, scoreLoop, twistFor, nightConfig, starsFor,
+    findLoop, pendingLoop, releaseLoop, trimToLength, weightOf, scoreLoop, twistFor, nightConfig, starsFor,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Glow;

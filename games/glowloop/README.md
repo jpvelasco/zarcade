@@ -8,6 +8,8 @@ to catch fireflies and fill your jar before the night ends.
 ## How to play
 
 - **Draw a loop.** Whenever your trail crosses itself, everything inside is caught.
+  Lifting your finger just short of the start closes the loop too (unless it
+  would trap a thornbug, so letting go is still how you back out).
 - **One color per loop = Harmony.** Harmony scores `10 × n²` (3 fireflies = 90) instead
   of `10 × n`. Back-to-back Harmonies build a streak multiplier (up to ×3).
 - **Thornbugs** (spiky, from night 2) cost 5 seconds if caught in a loop. Your

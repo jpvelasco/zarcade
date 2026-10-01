@@ -23,6 +23,7 @@
   const INTRO = 2.4;         // seconds the "Night N" banner shows before the clock runs
   const TRAIL_LIFE = 1.6;    // seconds a trail point survives
   const MIN_LOOP_AREA = 250; // px², ignores accidental squiggles
+  const SNAP_REACH = 48; // px: a loop released this close to its start still closes
   const HUD_TOP = 84;
   const JAR = { x: 18, y: 14, w: 40, h: 54 };
   const QUEEN_SHELL_REGROW = 6; // seconds a cracked queen stays catchable
@@ -511,6 +512,14 @@
   function endStroke() {
     if (!state.drawing) return;
     state.drawing = false;
+    // Lifting just short of the start still closes the loop (fingers rarely
+    // land exactly), unless it would trap a thornbug: letting go is how you
+    // back out of a red loop.
+    const poly = state.mode === 'playing' ? G.releaseLoop(state.trail, SNAP_REACH, 6, MIN_LOOP_AREA) : null;
+    if (poly && !state.bugs.some((b) => G.pointInPolygon(b, poly))) {
+      handleLoop(poly);
+      state.trail = [];
+    }
     if (state.trail.length > 1) state.ghost = { points: state.trail, life: 0.35 };
     state.trail = [];
   }
