@@ -52,7 +52,7 @@ decisions, and the counter is a buffer you can bake into ahead of a rush.
 | Jam Tart | mixer → jam → oven 3.6 s | 22 |
 | Cookie Box | mixer → oven 3.0 s → decor | 26 |
 | Layer Cake | mixer → oven 4.6 s → icing → decor | 34 |
-| Daily Special | date-seeded 3-step chain | 40 |
+| Daily Special | date-seeded 2–3 step chain | 40 |
 
 ### The oven, gently
 
@@ -66,7 +66,7 @@ line.
 
 - Patience runs from 1 to 0 over the day's `patience` seconds, scaled by the
   customer kind and the Comfy Chairs upgrade. Hearts shown = `ceil(p × 3)`.
-- Patience drains 40 % slower once at least one of a customer's dishes is in
+- Patience drains 30 % slower once at least one of a customer's dishes is in
   progress, so starting an order visibly reassures them.
 - A serve pays `value × payMult × qualityMult × tip × combo`:
   tip is ×1.6 at three hearts, ×1.3 at two, ×1.0 at one.
@@ -86,7 +86,7 @@ line.
      squirrel (tiny patience, one item, double tip).
   4. *Layer Cake Lane* — decorating table, cookie boxes and layer cakes.
      Regular: **Mayor Maple** the moose (four items, pays 1.5×).
-  5. *Festival Finale* — juice press, smoothies, every recipe, festival
+  5. *Starlight Festival* — juice press, smoothies, every recipe, festival
      rushes. Regulars: **Pip & Posy**, twin bunnies with one long order.
 - Stars per day from coins earned, thresholds a per-chapter fraction of the
   day's *par* (every dish perfect, three hearts, no combos). Chapter 1 is very
@@ -173,6 +173,20 @@ src/main.js       screens, input, loop, wiring
   and needs the pro pace plus upgrades to three-star the finale.
 - `perf.test.js` the shared frame-monitor test.
 
+## Two rules that keep the kitchen from jamming
+
+Found while building, and both now covered by tests:
+
+- **Work flows one way.** Stations have a fixed order
+  (`cocoa, juice, mixer, jam, oven, icing, decor`) and every recipe's steps must
+  climb it. Without this a generated special could run `oven → jam` while jam
+  tarts run `jam → oven`, and the two would wait on each other forever. The
+  daily special only ever finishes *after* the oven.
+- **The counter tidies itself.** A plated dish whose customer had to go, that
+  nobody else wants, goes into the window display after 8 seconds — but only
+  once the case is full, so baking ahead is never punished. Without it a case
+  full of unwanted dishes would stop anything else being plated.
+
 ## Decisions taken without asking
 
 - Serving auto-matches instead of asking the player to aim, because aiming is
@@ -184,3 +198,11 @@ src/main.js       screens, input, loop, wiring
   numbers, so a tuning pass changes one table.
 - Burnt food is "crispy", worth half, never binned, so a bad oven moment costs
   a little money instead of a life.
+- The autoplayer's pace is the difficulty dial: 1.8 taps a second stands in for
+  a seven-year-old, 2.8 for a steady player, 4.2 for a practised one. Day load
+  and the per-chapter star fractions were tuned against those three until the
+  first chapters give a beginner every star and the finale only gives three to
+  a practised player with an upgraded kitchen.
+- Customers who arrive with every seat full queue at the door without losing
+  patience, so the pressure late in the campaign is throughput — how much of
+  the town you get through — rather than people storming out.
