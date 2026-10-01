@@ -380,6 +380,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'keyboard-knights',
+      title: 'Keyboard Knights',
+      tagline: 'Type the words. Swing the sword. Poof the monsters!',
+      description: 'A storybook typing adventure from home-row letters to whole sentences: poof silly monsters, out-type five bosses, learn finger placement in lessons, and collect armour, swords and pets.',
+      genre: 'Typing',
+      controls: ['keyboard', 'touch'],
+      accent: '#6f5bd8',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
