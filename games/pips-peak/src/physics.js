@@ -200,7 +200,7 @@ function surfaceUnder(p, terrain, rects) {
 /**
  * Advance Pip one fixed step.
  *
- * `input` is `{ left, right, down, jump, jumpPressed }`; `opts` carries the
+ * `input` is `{ left, right, down, jump, jumpPressed, dropPressed }`; `opts` carries the
  * level abilities, the solid rectangles contributed by moving platforms, and
  * any wind acceleration.
  *
@@ -214,9 +214,10 @@ export function stepPlayer(p, input, terrain, dt, opts = {}) {
   const windAy = opts.windAy || 0;
   const out = { jumped: null, landed: false, bounced: false, bonked: false, startedWallSlide: false };
 
-  // Down + jump on a one-way platform steps off it instead of jumping.
+  // Down + jump on a one-way platform steps off it instead of jumping. The
+  // touch duck button sends `dropPressed` so one thumb can do it alone.
   const onOneWay = p.onGround && (p.groundTile === PLATFORM || (p.carrier && !p.carrier.solid));
-  const wantDrop = !!input.down && !!input.jumpPressed && onOneWay;
+  const wantDrop = onOneWay && (!!input.dropPressed || (!!input.down && !!input.jumpPressed));
   if (wantDrop) {
     p.dropThrough = 0.14;
     p.onGround = false;

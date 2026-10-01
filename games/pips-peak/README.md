@@ -31,7 +31,9 @@ Windy Cliffs.
 | `R` | Restart the level |
 
 Gamepads work too: left stick or d-pad to move, `A`/`B` to jump. On a touch
-device, on-screen left/right/duck/jump buttons appear.
+device, on-screen left/right/duck/jump buttons appear: slide your thumb
+between ◀ and ▶ to turn around without lifting it, and tap ▼ on a wooden
+plank to drop through. Portrait phones get a nudge to turn sideways.
 
 ## Zones
 

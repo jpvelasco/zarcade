@@ -178,7 +178,8 @@ function startLevel(index) {
   setPlayUi(true);
   log.event('level.start', { level: state.index + 1, 'level.id': level.id, zone: level.zone });
   updateHud(true);
-  banner(`${state.index + 1}. ${level.name} — ${level.hint}`);
+  const touchUi = matchMedia('(pointer: coarse)').matches;
+  banner(`${state.index + 1}. ${level.name} — ${(touchUi && level.touchHint) || level.hint}`);
   if (audioArmed) {
     audio.unlock();
     audio.startMusic(level.zone);
@@ -190,6 +191,7 @@ function pause() {
   if (state.mode !== 'play') return;
   state.mode = 'paused';
   showScreen('screen-pause');
+  $('touch').classList.add('hidden');
   revealPointer();
 }
 
@@ -198,6 +200,7 @@ function resume() {
   state.mode = 'play';
   state.accumulator = 0;
   showScreen(null);
+  setPlayUi(true);
 }
 
 function finishLevel() {
@@ -394,7 +397,8 @@ window.addEventListener('resize', () => {
   if (state.peek) renderer.setPeek(true);
 });
 
-for (const button of document.querySelectorAll('#touch [data-hold]')) {
+input.bindMovePad(document.querySelector('#touch .touch-move'));
+for (const button of document.querySelectorAll('#touch .touch-act [data-hold]')) {
   input.bindTouch(button, button.dataset.hold);
 }
 

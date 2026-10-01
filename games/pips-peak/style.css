@@ -203,7 +203,7 @@ body {
   inset: 0;
   z-index: 10;
   display: grid;
-  place-items: center;
+  place-items: safe center;
   padding: clamp(8px, 2vw, 24px);
   overflow-y: auto;
   background:
@@ -228,8 +228,9 @@ body {
 
 .arcade-link {
   position: absolute;
-  left: 16px;
-  top: 14px;
+  left: 4px;
+  top: 2px;
+  padding: 12px;
   color: var(--muted);
   text-decoration: none;
   font-size: 13px;
@@ -444,7 +445,7 @@ h2 { margin: 2px 0 0; font-size: clamp(20px, 3.2vw, 30px); }
   padding: 12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   pointer-events: none;
 }
-.touch-move, .touch-act { display: flex; gap: 10px; pointer-events: auto; }
+.touch-move, .touch-act { display: flex; gap: 10px; pointer-events: auto; touch-action: none; }
 .touch-button {
   font: inherit;
   font-weight: 900;
@@ -459,7 +460,9 @@ h2 { margin: 2px 0 0; font-size: clamp(20px, 3.2vw, 30px); }
   -webkit-backdrop-filter: blur(6px);
   touch-action: none;
 }
-.touch-button:active { background: rgba(255, 209, 102, 0.55); color: #2b1d05; }
+.touch-button:active, .touch-button.held { background: rgba(255, 209, 102, 0.55); color: #2b1d05; }
+/* The move pair works as one rocker: the buttons only draw it. */
+.touch-move .touch-button { pointer-events: none; }
 .touch-button.jump {
   width: 86px;
   height: 86px;
@@ -487,6 +490,10 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
     max-height: 72vh;
     border-radius: 0;
   }
+  /* Menus are taller than the little window, so they cover the whole phone. */
+  #screen-pause, #screen-map, #screen-complete {
+    position: fixed;
+  }
 }
 
 @media (max-width: 560px) {
@@ -505,3 +512,43 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 #screen-title .card {
   background: linear-gradient(180deg, rgba(30, 44, 78, 0.78), rgba(16, 26, 48, 0.86));
 }
+
+/* Touch screens: thumb-sized HUD buttons, and no keyboard how-to. */
+@media (pointer: coarse) {
+  .hud-buttons { gap: 8px; }
+  .icon-button { width: 44px; height: 44px; font-size: 16px; }
+  .howto { display: none; }
+}
+
+/* Short landscape phones: the title card has to fit without scrolling. */
+@media (max-height: 500px) {
+  .logo { font-size: clamp(34px, 11vh, 60px); }
+  .tagline { margin: 4px auto 10px; }
+}
+
+/* Portrait phones: a nudge towards the wider landscape view. */
+.rotate-hint { display: none; }
+@media (orientation: portrait) and (pointer: coarse) {
+  .touch:not(.hidden) ~ .rotate-hint {
+    position: fixed;
+    left: 50%;
+    top: calc(2vh + 75vw + 18px);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(14, 22, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .rotate-hint span { display: inline-block; animation: rotate-nudge 2.4s ease-in-out infinite; }
+}
+@keyframes rotate-nudge { 0%, 55%, 100% { transform: rotate(0); } 70%, 85% { transform: rotate(-90deg); } }

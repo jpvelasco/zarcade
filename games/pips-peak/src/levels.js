@@ -60,6 +60,7 @@ export const LEVELS = [
     zone: 0,
     name: 'First Steps',
     hint: 'Arrows or A/D to run. Space to jump - hold it longer to jump higher.',
+    touchHint: 'Hold ◀ or ▶ to run. Tap JUMP - hold it longer to jump higher.',
     tiles: [
       '                                                            ',
       '                                                            ',
@@ -84,6 +85,7 @@ export const LEVELS = [
     zone: 0,
     name: 'Hop Along',
     hint: 'Bounce on a beetle to pop it. Hold Down and jump to drop through wooden planks.',
+    touchHint: 'Bounce on a beetle to pop it. Tap ▼ to drop through wooden planks.',
     tiles: [
       '                                                                ',
       '                                                                ',

@@ -43,6 +43,15 @@ test('every level has one start, one sunrise, flowers, seeds and three acorns', 
   }
 });
 
+test('hints that name keys have a touch version that names the on-screen buttons', () => {
+  const keyWords = /\b(Arrows?|A\/D|Space|Down|Up|keys?)\b/;
+  for (const level of LEVELS) {
+    if (!keyWords.test(level.hint)) continue;
+    assert.ok(level.touchHint, `${level.id} needs a touchHint`);
+    assert.doesNotMatch(level.touchHint, keyWords, `${level.id} touchHint still names keys`);
+  }
+});
+
 test('the start is on solid footing and the sunrise is not buried', () => {
   for (const level of LEVELS) {
     const rows = level.tiles;

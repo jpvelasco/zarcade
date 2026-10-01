@@ -230,6 +230,20 @@ test('holding down and jumping drops through a plank', () => {
   assert.equal(p.y + p.h, 4 * TILE, 'Pip should end up on the floor below');
 });
 
+test('a drop press steps off a plank on its own but does nothing on solid ground', () => {
+  const terrain = terrainOf(['     ', '     ', '-----', '     ', '#####']);
+  const p = createPlayer(8, 2 * TILE);
+  settle(p, terrain);
+  stepPlayer(p, { down: true, dropPressed: true }, terrain, DT, {});
+  for (let i = 0; i < 40; i += 1) stepPlayer(p, { down: true }, terrain, DT, {});
+  assert.equal(p.y + p.h, 4 * TILE, 'Pip should end up on the floor below');
+  const y = p.y;
+  stepPlayer(p, { down: true, dropPressed: true }, terrain, DT, {});
+  for (let i = 0; i < 20; i += 1) stepPlayer(p, {}, terrain, DT, {});
+  assert.equal(p.y, y, 'solid ground is not a plank');
+  assert.equal(p.onGround, true);
+});
+
 test('ice keeps its speed much longer than grass', () => {
   const stopFrames = (surface) => {
     const terrain = terrainOf(['              ', '              ', surface.repeat(14)]);

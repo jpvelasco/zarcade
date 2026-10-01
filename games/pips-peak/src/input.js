@@ -11,6 +11,7 @@ export class Input {
     this.keys = new Set();
     this.touch = { left: false, right: false, jump: false, down: false };
     this.jumpQueued = false;     // a press waiting to be handed to the sim
+    this.dropQueued = false;     // a tap on the touch duck button
     this.jumpWasDown = false;
     this.padJump = false;
     this.padStart = false;
@@ -46,12 +47,55 @@ export class Input {
       event.preventDefault();
       this.touch[action] = value;
       if (value && action === 'jump') this.jumpQueued = true;
+      if (value && action === 'down') this.dropQueued = true;
     };
     element.addEventListener('pointerdown', set(true));
     element.addEventListener('pointerup', set(false));
     element.addEventListener('pointercancel', set(false));
     element.addEventListener('pointerleave', set(false));
     element.addEventListener('contextmenu', (event) => event.preventDefault());
+  }
+
+  /**
+   * Wire the left/right pair as one rocker: the side of the pad a thumb is on
+   * decides the direction, so sliding from one arrow to the other turns Pip
+   * around without lifting the thumb.
+   */
+  bindMovePad(pad) {
+    const fingers = new Map();
+    const update = () => {
+      const dirs = [...fingers.values()];
+      this.touch.left = dirs.includes('left');
+      this.touch.right = dirs.includes('right');
+      for (const button of pad.querySelectorAll('[data-hold]')) {
+        button.classList.toggle('held', dirs.includes(button.dataset.hold));
+      }
+    };
+    const track = (event) => {
+      const rect = pad.getBoundingClientRect();
+      fingers.set(event.pointerId, event.clientX < rect.left + rect.width / 2 ? 'left' : 'right');
+      update();
+    };
+    const release = (event) => {
+      fingers.delete(event.pointerId);
+      update();
+    };
+    pad.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      pad.setPointerCapture?.(event.pointerId);
+      track(event);
+    });
+    pad.addEventListener('pointermove', (event) => {
+      if (fingers.has(event.pointerId)) track(event);
+    });
+    pad.addEventListener('pointerup', release);
+    pad.addEventListener('pointercancel', release);
+    pad.addEventListener('lostpointercapture', release);
+    pad.addEventListener('contextmenu', (event) => event.preventDefault());
+    window.addEventListener('blur', () => {
+      fingers.clear();
+      update();
+    });
   }
 
   readPad() {
@@ -78,7 +122,7 @@ export class Input {
     return state;
   }
 
-  /** The controls for this frame. `jumpPressed` is true on the press edge only. */
+  /** The controls for this frame. `jumpPressed` and `dropPressed` are true on the press edge only. */
   read() {
     const pad = this.readPad();
     const has = (set) => [...set].some((code) => this.keys.has(code));
@@ -87,12 +131,15 @@ export class Input {
     this.jumpWasDown = jumpDown;
     const jumpPressed = this.jumpQueued;
     this.jumpQueued = false;
+    const dropPressed = this.dropQueued;
+    this.dropQueued = false;
     return {
       left: has(LEFT) || this.touch.left || pad.left,
       right: has(RIGHT) || this.touch.right || pad.right,
       down: has(DOWN) || this.touch.down || pad.down,
       jump: jumpDown,
       jumpPressed,
+      dropPressed,
     };
   }
 
