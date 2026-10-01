@@ -818,7 +818,7 @@ export class Renderer {
     ctx.font = `800 ${Math.round(u * 0.5)}px ui-rounded, system-ui, sans-serif`;
     ctx.fillStyle = '#ffe9a8';
     ctx.textAlign = 'center';
-    ctx.fillText(opts.itemKey || 'K', bx + box / 2, by + box * 0.92);
+    ctx.fillText(opts.itemKey ?? 'K', bx + box / 2, by + box * 0.92);
     const owned = ITEMS.filter((i) => game.save.items[i]).length;
     if (owned > 1) { ctx.fillStyle = 'rgba(255,233,168,0.75)'; ctx.fillText(opts.swapKey || 'Q ⇄', bx + box / 2, by + box + u * 0.45); }
     ctx.textAlign = 'left';

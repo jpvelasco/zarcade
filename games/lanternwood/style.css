@@ -263,3 +263,28 @@ body.touch-on.portrait .itemget { top: calc(62px + 60vw + 64px); }
   .card, .dlg-box, .ig-card { animation: none; }
   .logo-lantern, .logo-lantern span, .dlg-more { animation: none; }
 }
+
+/* Portrait phones: the play view sits at the top; point at the bigger
+   landscape view in the space between it and the thumb controls. */
+.rotate-hint { display: none; }
+body.touch-on.portrait .rotate-hint:has(+ .hud-buttons:not(.hidden)) {
+  position: fixed;
+  left: 50%;
+  top: calc(62px + 60vw + 84px);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f3e7cf;
+  font: 700 13px/1.2 system-ui, sans-serif;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.rotate-hint span { display: inline-block; animation: rotate-nudge 2.4s ease-in-out infinite; }
+@keyframes rotate-nudge { 0%, 55%, 100% { transform: rotate(0); } 70%, 85% { transform: rotate(-90deg); } }
+@media (prefers-reduced-motion: reduce) { .rotate-hint span { animation: none; } }
