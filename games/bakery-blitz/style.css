@@ -370,7 +370,9 @@ h2 { margin: 4px 0 8px; font-size: clamp(1.2rem, 4.6vw, 1.7rem); }
 }
 
 .toast { top: 10px; animation: pop 0.25s ease; }
-.tip { bottom: 10px; font-size: 0.88rem; color: var(--ink); background: rgba(40, 18, 8, 0.72); }
+/* The day's tip sits under the toast, clear of the station row and of the
+   top-centre strip the full-screen pill uses. */
+.tip { top: 56px; font-size: 0.88rem; color: var(--ink); background: rgba(40, 18, 8, 0.78); }
 
 /* ------------------------------------------------------------ list pages */
 
