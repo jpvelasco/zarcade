@@ -325,6 +325,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'robo-route',
+      title: 'Robo Route',
+      tagline: 'Program Bolt the robot with loops and colour tiles.',
+      description: 'Snap command tiles into a program, press Run and watch Bolt follow it across 48 isometric puzzles. Learn sequences, loops, procedures, recursion and conditions, then build and share your own levels.',
+      genre: 'Coding puzzle',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#3fd0c9',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
