@@ -393,7 +393,7 @@ export class Rules {
 
   // ------------------------------------------------------------ kickback, tilt
 
-  // The ball reached the left outlane kickback switch. True if it fires.
+  // The ball reached an outlane kickback switch. True if it fires.
   useKickback() {
     if (!this.kickbackLit || this.tilted) return false;
     this.kickbackLit = false;

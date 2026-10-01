@@ -42,8 +42,8 @@ picks one. The longer you hold the plunger, the harder it fires.
   jackpot at the Black Hole.
 - **Combos.** Major shots within 4 s of each other chain into combos.
 - **Ball save, kickback.** A drained ball in the first 10 s comes back. The
-  left outlane kickback fires the ball back up once; 20 spinner spins relight
-  it. The Black Hole also gives Space Mystery awards.
+  outlane kickback (one light guards both outlanes) fires the ball back up
+  once; 20 spinner spins relight it. The Black Hole also gives Space Mystery awards.
 - **Tilt.** Nudging helps, but too much gives two DANGER warnings and then
   TILT: the flippers die and the ball is lost without its bonus.
 - **Bonus.** At the end of each ball: planets, spins, asteroids and lanes,

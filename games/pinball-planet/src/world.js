@@ -50,7 +50,7 @@ export class World {
     this.state = attract ? 'attract' : 'idle'; // idle | attract | play | bonus | over
     this.plunger = { pull: 0, held: false, release: 0 };
     this.spinner = { angle: 0, vel: 0 };
-    this.flash = { bumpers: BUMPERS.map(() => 0), slings: [0, 0], kickback: 0, hole: 0 };
+    this.flash = { bumpers: BUMPERS.map(() => 0), slings: [0, 0], kickback: 0, kickbackX: 41, hole: 0 };
     this.cool = { bumpers: BUMPERS.map(() => 0), slings: [0, 0], nudge: 0 };
     this.ejects = []; // { t, ball }
     this.between = 0;
@@ -281,14 +281,13 @@ export class World {
         if (up && speed > 250) this.switchHit('spinner', b.x, b.y);
         break;
       }
-      case 'kickback':
-        if (!up && this.state === 'play' && this.rules.useKickback()) {
-          b.x = 40; b.vx = 25; b.vy = -2150;
+      case 'kickback': case 'kickbackRight':
+        // One kickback light guards both outlanes.
+        if (!up && ((this.state === 'play' && this.rules.useKickback()) || this.state === 'attract')) {
+          const right = id === 'kickbackRight';
+          b.x = right ? 564 : 40; b.vx = right ? -25 : 25; b.vy = -2150;
           this.flash.kickback = 1;
-          this.events.push({ type: 'kickback', x: b.x, y: b.y });
-        } else if (!up && this.state === 'attract') {
-          b.x = 40; b.vx = 25; b.vy = -2150;
-          this.flash.kickback = 1;
+          this.flash.kickbackX = right ? 563 : 41;
           this.events.push({ type: 'kickback', x: b.x, y: b.y });
         }
         break;

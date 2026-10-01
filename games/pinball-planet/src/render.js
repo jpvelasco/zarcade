@@ -295,6 +295,7 @@ export class Renderer {
       label('ORBIT', 45, 600, 12, '#ffc3b5', -Math.PI / 2);
       label('ORBIT', 559, 600, 12, '#ffd0f0', -Math.PI / 2);
       label('KICKBACK', 41, 1010, 10, '#c8f8ff', -Math.PI / 2);
+      label('KICKBACK', 563, 1010, 10, '#c8f8ff', -Math.PI / 2);
       label('SHOOT AGAIN', 302, 1086, 11, '#ffe9b0');
       label('LOCK', INSERTS.lock.x, INSERTS.lock.y + 18, 10, '#e0d0ff');
       label('EXTRA', INSERTS.extraBall.x, INSERTS.extraBall.y + 18, 9, '#ffe9b0');
@@ -655,6 +656,7 @@ export class Renderer {
       list.push({ kind: 'round', id: 'shootAgain', ...INSERTS.shootAgain, color: '#ff4f6a', r: 11 });
       list.push({ kind: 'shield', id: 'ballSave', ...INSERTS.ballSave, color: '#4ff3ff' });
       list.push({ kind: 'up', id: 'kickback', ...INSERTS.kickback, color: '#4ff3ff' });
+      list.push({ kind: 'up', id: 'kickback', ...INSERTS.kickbackRight, color: '#4ff3ff' });
       list.push({ kind: 'round', id: 'lock', ...INSERTS.lock, color: '#b28cff', r: 9 });
       list.push({ kind: 'round', id: 'extraBall', ...INSERTS.extraBall, color: '#ff8a3d', r: 8 });
       list.push({ kind: 'star', id: 'frenzy', ...INSERTS.frenzy, color: '#ffb35c' });
@@ -1191,7 +1193,7 @@ export class Renderer {
     if (f.kickback > 0.02) {
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha = f.kickback;
-      drawSprite(ctx, this.glow('#5ef2ff', 50), 41, 1000);
+      drawSprite(ctx, this.glow('#5ef2ff', 50), f.kickbackX, 1000);
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = 'source-over';
     }

@@ -49,23 +49,21 @@ test('attract mode serves and plays forever without a game running', () => {
   assert.equal(w.rules.score, 0);
 });
 
-test('most drains are not outlane drains (the outlane mouths stay narrow)', () => {
-  let drains = 0, outlane = 0;
-  for (const seed of [3, 9]) {
-    const w = new World({ seed, attract: true });
+test('autoplayed games never wedge a ball in the outlane mouths', () => {
+  let searches = 0, kicks = 0;
+  for (const seed of [3, 9, 14, 21]) {
+    const w = new World({ seed });
     const ai = new Autoplayer(seed);
-    let t = 0, lastOutlane = -9;
-    for (let i = 0; i < Math.round(600 / STEP); i++) {
+    w.startGame();
+    for (let t = 0; w.state !== 'over' && t < 300; t += STEP) {
       w.step(STEP, ai.controls(w, STEP));
-      t += STEP;
       for (const e of w.events) {
-        if (e.type === 'rollover' && (e.id === 'leftOutlane' || e.id === 'rightOutlane')) lastOutlane = t;
-        if (e.type === 'kickback') lastOutlane = -9;
-        if (e.type === 'drain') { drains++; if (t - lastOutlane < 3) outlane++; }
+        if (e.type === 'search') searches++;
+        if (e.type === 'kickback') kicks++;
       }
       w.events.length = 0;
     }
   }
-  assert.ok(drains >= 6, `${drains} drains`);
-  assert.ok(outlane / drains < 0.6, `${outlane} of ${drains} drains went down an outlane`);
+  assert.ok(kicks > 0, 'kickbacks fired');
+  assert.ok(searches <= 2, `${searches} ball searches: a ball is getting wedged`);
 });

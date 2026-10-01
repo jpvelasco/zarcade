@@ -154,7 +154,7 @@ test('three drained balls end the game', () => {
   assert.equal(w.state, 'over');
 });
 
-test('the left outlane kickback fires the ball back up once', () => {
+test('the outlane kickback fires the ball back up once', () => {
   const w = play();
   const b = ball(w);
   b.x = 40; b.y = 940; b.vx = 0; b.vy = 600;
@@ -162,6 +162,30 @@ test('the left outlane kickback fires the ball back up once', () => {
   assert.ok(types(ev).includes('kickback'));
   assert.ok(b.vy < 0 && b.y < 940);
   assert.equal(w.rules.kickbackLit, false);
+});
+
+for (const [side, x] of [['left', 40], ['right', 564]]) {
+  test(`a ${side} kickback shot clears the outlane mouth back onto the playfield`, () => {
+    const w = play();
+    const b = ball(w);
+    b.x = x; b.y = 940; b.vx = 0; b.vy = 600;
+    let top = Infinity;
+    const ev = run(w, 1.2, () => { top = Math.min(top, b.y); return {}; });
+    assert.ok(types(ev).includes('kickback'), 'fired');
+    assert.ok(top < 640, `ball got out of the outlane (highest y ${top.toFixed(0)})`);
+    assert.ok(!types(ev).includes('search'), 'no wedged ball');
+  });
+}
+
+test('the right outlane shares the kickback light', () => {
+  const w = play();
+  const b = ball(w);
+  b.x = 564; b.y = 940; b.vx = 0; b.vy = 600;
+  run(w, 0.3);
+  assert.equal(w.rules.kickbackLit, false, 'used by the right side');
+  b.x = 40; b.y = 940; b.vx = 0; b.vy = 600;
+  const ev = run(w, 0.3);
+  assert.ok(!types(ev).includes('kickback'), 'unlit, so the left one does not fire');
 });
 
 test('nudging pushes balls; too much tilts and kills the flippers', () => {

@@ -8,7 +8,7 @@
 //   - the spinner lane (left), the Black Hole (centre) behind a bank of three
 //     asteroid drop targets, and the Comet Ramp (right, an upper layer that
 //     returns to the right inlane),
-//   - slingshots, inlanes and outlanes (left outlane kickback) and the
+//   - slingshots, inlanes and outlanes (kickbacks in both outlanes) and the
 //     flippers at the bottom.
 
 export const TABLE = { w: 640, h: 1100, cx: 302 };
@@ -24,11 +24,13 @@ export const FLIPPERS = [
 export const PLUNGER = { x: 602, restY: 1062, travel: 30, laneX0: 587, laneX1: 617, topY: 360 };
 export const HOLE = { x: 302, y: 470, well: 48, capture: 11 };
 export const SHOOTER_GATE_Y = 338;
-// The inlane post's height sets how wide the outlane mouth is (the gap to the
-// corner of the wall bump above it). At 730 about three drains in four went
-// down an outlane; at 727 it's about half, and the rest come down the middle
-// where flipper skill can save them.
-export const INLANE_POST_Y = 727;
+export const INLANE_POST_Y = 730;
+// The left inlane post sits up and out from the top of the inlane guide,
+// along the underside of the wall bump above it. That narrows the outlane
+// mouth (the gap to the bump's corner) while a ball riding along the bump's
+// underside, like a kickback shot, still fits past without wedging. The
+// right one can't move in: the Comet Ramp drops balls just inside it.
+export const INLANE_POSTS = [{ x: 74, y: 721 }, { x: mx(66), y: INLANE_POST_Y }];
 export const ORBIT_GATE = { y0: 440, ax: 22, ay: 468, bx: 80, by: 510 };
 
 export function orbitGates() {
@@ -122,6 +124,7 @@ export const INSERTS = {
   shootAgain: { x: 302, y: 1060 },
   ballSave: { x: 302, y: 905 },
   kickback: { x: 43, y: 950 },
+  kickbackRight: { x: mx(43), y: 950 },
   lock: { x: 344, y: 546 },
   extraBall: { x: 260, y: 546 },
   frenzy: { x: 302, y: 652 },
@@ -139,6 +142,7 @@ export const SENSORS = [
   { id: 'rightInlane', ax: mx(105), ay: 805, bx: mx(70), by: 805, layer: 0 },
   { id: 'rightOutlane', ax: mx(62), ay: 880, bx: mx(24), by: 880, layer: 0 },
   { id: 'kickback', ax: 24, ay: 985, bx: 62, by: 985, layer: 0 },
+  { id: 'kickbackRight', ax: mx(62), ay: 985, bx: mx(24), by: 985, layer: 0 },
   { id: 'rampEntry', ax: 410, ay: RAMP.entryY, bx: 470, by: RAMP.entryY, layer: -1 },
   { id: 'rampTop', ax: 478, ay: 372, bx: 478, by: 328, layer: 1 },
   { id: 'rampExit', ax: 500, ay: RAMP.exitY, bx: 534, by: RAMP.exitY, layer: 1 },
@@ -204,7 +208,9 @@ export function buildColliders() {
   // ball rolls smoothly off the inlane onto the flipper.
   for (const sgn of [1, -1]) {
     const X = (x) => (sgn > 0 ? x : mx(x));
-    c.push(circle(X(66), INLANE_POST_Y, 'post', { r: 5 }));
+    const post = INLANE_POSTS[sgn > 0 ? 0 : 1];
+    c.push(circle(post.x, post.y, 'post', { r: 5 }));
+    if (post.y !== INLANE_POST_Y) c.push(seg(post.x, post.y, X(66), INLANE_POST_Y, 'guide'));
     c.push(seg(X(66), INLANE_POST_Y, X(66), 871.1, 'guide'));
     c.push(seg(X(66), 871.1, X(206.5), 952.2, 'guide'));
   }

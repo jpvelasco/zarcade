@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Flipper, makeBall, stepPhysics, contact, closestOnSegment, STEP, BALL_R } from '../src/physics.js';
 import {
-  OUTLINE, DRAIN, TABLE, SENSORS, INSERTS, SHOTS, SLINGS, BUMPERS, FLIPPERS, buildColliders, SERVE, PLUNGER,
+  OUTLINE, DRAIN, TABLE, SENSORS, INSERTS, SHOTS, SLINGS, BUMPERS, FLIPPERS, buildColliders, SERVE, PLUNGER, INLANE_POSTS,
 } from '../src/table.js';
 import { mulberry32 } from '../src/rng.js';
 
@@ -120,4 +120,23 @@ test('the plunger lane serves the ball and a full pull clears the one-way gate',
   const weak = makeBall(SERVE.x, SERVE.y, 0, -900);
   for (let i = 0; i < 240 * 2; i++) stepPhysics([weak], cols, [], STEP);
   assert.ok(weak.x > PLUNGER.laneX0 && weak.y > 1000);
+});
+
+test('outlane mouths: the left one is narrowed, both still let a ball riding the bump through', () => {
+  // The wall bump's corner and the underside line running down to the wall.
+  const sides = [
+    { corner: [54, 690], low: [20, 730], post: INLANE_POSTS[0] },
+    { corner: [550, 690], low: [584, 730], post: INLANE_POSTS[1] },
+  ];
+  const gaps = sides.map(({ corner, low, post }) => {
+    const dx = corner[0] - low[0], dy = corner[1] - low[1], l = Math.hypot(dx, dy);
+    const toLine = Math.abs((post.x - low[0]) * dy - (post.y - low[1]) * dx) / l;
+    return {
+      mouth: Math.hypot(post.x - corner[0], post.y - corner[1]) - 3 - 5, // wall and post radii
+      along: toLine - 3 - 5, // clearance for a ball hugging the bump's underside
+    };
+  });
+  for (const g of gaps) assert.ok(g.along > 2 * BALL_R, `a ball riding the bump fits (${g.along.toFixed(1)})`);
+  assert.ok(gaps[0].mouth < gaps[1].mouth - 3, `left mouth ${gaps[0].mouth.toFixed(1)} vs right ${gaps[1].mouth.toFixed(1)}`);
+  assert.ok(gaps[0].mouth > 2 * BALL_R, 'but a ball can still go down it');
 });
