@@ -391,6 +391,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'deep-dive',
+      title: 'Deep Dive',
+      tagline: 'Sub adventure: sonar, sea creatures, the deep unknown.',
+      description: 'Pilot Bubbles the little yellow sub through one connected ocean, scanning 59 real sea creatures for your Sea book. Find the parts that open the kelp, shipwreck, coral city, dark trenches and a volcanic vent.',
+      genre: 'Exploration',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ffd23f',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
