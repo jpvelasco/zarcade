@@ -413,6 +413,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'mole-miner',
+      title: 'Mole Miner',
+      tagline: 'Drill down with Momo the mole to the Ancient Core.',
+      description: 'A cozy dig-and-upgrade adventure: scoop gems, upgrade your drill pod, fill the fossil museum and tunnel through crystal caves, glowing grottos and lava to the Ancient Core. A new Daily Dig every day.',
+      genre: 'Dig & upgrade',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ffc93c',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };

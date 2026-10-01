@@ -9,7 +9,7 @@
   // Games sit on a handful of broad shelves so the filter row stays short as
   // the arcade grows. A game's own genre still shows on its cabinet.
   const SHELVES = [
-    ['Action & Adventure', ['Action', 'Adventure', 'Platformer', 'Runner', 'Roguelite', 'Exploration']],
+    ['Action & Adventure', ['Action', 'Adventure', 'Platformer', 'Runner', 'Roguelite', 'Exploration', 'Dig & upgrade']],
     ['Racing', ['Racing']],
     ['Puzzle & Word', ['Puzzle', 'Word', 'Nonogram', 'Coding puzzle', 'Hidden object', 'Mystery', 'Typing']],
     ['Arcade & Party', ['Arcade', 'Rhythm', 'Party', 'Physics', 'Flyer']],
