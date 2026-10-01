@@ -31,9 +31,23 @@ Current games:
 | Moonshot Mini Golf | [`games/moonshot-golf`](games/moonshot-golf) | Cartoon mini golf on the Moon, Mars and Saturn's rings |
 | Jelly Jam | [`games/jelly-jam`](games/jelly-jam) | Squishy match-3 across 44 reef levels |
 | Pip's Peak | [`games/pips-peak`](games/pips-peak) | Bouncy platformer: help a little sprout climb to the sunrise |
+| Letter Lagoon | [`games/letter-lagoon`](games/letter-lagoon) | Word game: swipe letters into crosswords and rescue sea critters |
+| Riverlight | [`games/riverlight`](games/riverlight) | Calm puzzle: turn stones to guide a glowing stream to every flower |
+| Sprout Valley | [`games/sprout-valley`](games/sprout-valley) | Cozy farm life: grow crops, raise animals, make friends, win festivals |
+| Knight Shift | [`games/knight-shift`](games/knight-shift) | Chess with twists: friendly bots, Fog of War, Power Squares, Chess960, puzzles |
+| Pinball Planet | [`games/pinball-planet`](games/pinball-planet) | Space pinball with real flipper feel, missions and multiball |
+| Jungle Blaster 2600 | [`games/jungle-blaster`](games/jungle-blaster) | Retro run-and-gun: Pitfall vines meet Contra spread guns, solo or co-op |
+| Reel Rumble | [`games/reel-rumble`](games/reel-rumble) | Fishing adventure: 50 fish, five waters, five legends |
+| Groove Garden | [`games/groove-garden`](games/groove-garden) | Rhythm game: twelve synthesized songs grow a dancing garden |
+| Lanternwood | [`games/lanternwood`](games/lanternwood) | Cozy Zelda-like: three dungeons, quests and a fox friend |
+| Globe Grand Prix | [`games/globe-gp`](games/globe-gp) | 3D world-tour racer against six named rivals |
+| Bumper Blobs | [`games/bumper-blobs`](games/bumper-blobs) | Party sumo for 1–4 players on floating dessert arenas |
 
-To add a game, give it a folder with a `cover.svg` and arcade links, then add an
-entry to `arcade/games.js`. The arcade tests check that every folder is listed.
+To add a game, follow [`docs/new-game-brief.md`](docs/new-game-brief.md): a
+folder with a `cover.svg`, arcade links, the shared `telemetry.js` and
+`fullscreen.js`, then an entry in `arcade/games.js` (with a genre that maps to
+one of the arcade's shelves). The arcade tests check that every folder is
+listed.
 
 ## Conventions
 
