@@ -46,8 +46,9 @@ test('new building types are introduced gently', () => {
   // Early maps: one easy rival.
   for (const lv of CAMPAIGN.slice(0, 7)) {
     assert.equal(lv.rivals.length, 1);
-    assert.equal(lv.rivals[0].difficulty, 'easy');
+    assert.ok(['gentle', 'easy'].includes(lv.rivals[0].difficulty));
   }
+  for (const lv of CAMPAIGN.slice(0, 4)) assert.equal(lv.rivals[0].difficulty, 'gentle');
 });
 
 test('every campaign map is won by the reference bot against its rivals', () => {
@@ -66,6 +67,19 @@ test('the reference bot also wins with differently seeded rivals', () => {
     const players = { 1: { personality: 'reference', difficulty: 'hard' }, ...campaignPlayers(lv) };
     const w = simulate(lv.map, players, { maxTime: 900, heroes: hero ? { 1: hero } : {}, aiSeed: 303 });
     assert.equal(w.winner, 1, `map ${lv.index + 1} ${lv.name}`);
+  }
+});
+
+test('early maps are kind: a slower, simpler bot wins them most of the time', () => {
+  // The "normal" reference bot thinks every 2.6 s with sloppier sums, a
+  // stand-in for a new player. It should win each of maps 1–8 in most tries.
+  for (const lv of CAMPAIGN.slice(0, 8)) {
+    let wins = 0;
+    for (let v = 0; v < 8; v++) {
+      const w = simulate(lv.map, { 1: { personality: 'reference', difficulty: 'normal' }, ...campaignPlayers(lv) }, { maxTime: 900, heroes: heroFor(lv.index) ? { 1: heroFor(lv.index) } : {}, aiSeed: v * 77 });
+      if (w.winner === 1) wins++;
+    }
+    assert.ok(wins >= 5, `map ${lv.index + 1} ${lv.name}: ${wins}/8`);
   }
 });
 

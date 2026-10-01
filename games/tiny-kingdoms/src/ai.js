@@ -13,7 +13,9 @@ const STYLES = {
 };
 
 export const AI_STYLES = Object.keys(STYLES);
-const BLEND = { easy: 0, normal: 0.25, hard: 0.6 };
+// Squads smaller than this are not worth the clutter.
+const MIN_SQUAD = 3;
+const BLEND = { gentle: 0, easy: 0, normal: 0.25, hard: 0.6 };
 
 function blendStyle(a, b, t) {
   const out = {};
@@ -52,7 +54,7 @@ export class AI {
     this.decisions++;
     const speed = world.speedFor(me);
     const lv = this.level, st = this.style;
-    const defend = lv.defend || (st.defend && this.difficulty !== 'easy');
+    const defend = lv.defend || (st.defend && this.difficulty !== 'easy' && this.difficulty !== 'gentle');
     const reserve = Math.min(0.6, st.reserve + lv.reserve);
     const incoming = this.incoming(world);
     const spare = new Map();
@@ -70,7 +72,7 @@ export class AI {
         const deficit = inc.hostile * (1 + 0.1 * lv.foresight) - hold;
         if (deficit <= 0) continue;
         const helpers = mine
-          .filter((h) => h.id !== n.id && spare.get(h.id) >= 2 && dist(h, n) / speed < eta + 0.5)
+          .filter((h) => h.id !== n.id && spare.get(h.id) >= MIN_SQUAD && dist(h, n) / speed < eta + 0.5)
           .sort((a, b) => dist(a, n) - dist(b, n));
         let need = deficit / defenceOf(n) + 2;
         const from = [];
@@ -106,7 +108,7 @@ export class AI {
     const front = this.frontline(world, mine);
     if (!front) return;
     for (const n of mine) {
-      if (n.id === front.id || n.troops < n.cap * st.consolidate || spare.get(n.id) < 4) continue;
+      if (n.id === front.id || n.troops < n.cap * st.consolidate || spare.get(n.id) < 10) continue;
       world.send(me, [n.id], front.id, 0.5);
       break;
     }
@@ -141,14 +143,14 @@ export class AI {
       const mineIncoming = inc ? inc.mine : 0;
       // Sources, nearest first.
       const sources = mine
-        .filter((s) => spare.get(s.id) >= 1)
+        .filter((s) => spare.get(s.id) >= MIN_SQUAD)
         .map((s) => ({ node: s, d: dist(s, t), avail: Math.floor(spare.get(s.id)) }))
         .sort((a, b) => a.d - b.d)
         .slice(0, lv.sources);
       if (!sources.length) continue;
       const far = sources[sources.length - 1].d;
       const eta = far / speed;
-      const def = this.difficulty === 'easy' ? 1 : defenceOf(t);
+      const def = this.difficulty === 'easy' || this.difficulty === 'gentle' ? 1 : defenceOf(t);
       let garrison = t.troops;
       if (t.owner) garrison += world.growthOf(t) * eta * lv.foresight;
       if (inc && lv.foresight > 0) {

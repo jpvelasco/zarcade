@@ -254,6 +254,7 @@ button { font-family: inherit; color: inherit; }
 .rival .who b { font-size: 15px; }
 .rival .who span { color: var(--muted); }
 .pill { font-size: 12px; font-weight: 900; padding: 3px 9px; border-radius: 999px; border: 2px solid var(--ink); }
+.pill.gentle { background: #cdeffd; }
 .pill.easy { background: #b8f0c2; }
 .pill.normal { background: #ffe48a; }
 .pill.hard { background: #ffb3a8; }

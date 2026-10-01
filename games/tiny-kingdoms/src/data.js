@@ -61,7 +61,9 @@ export const PERSONALITIES = {
 };
 
 export const DIFFICULTIES = {
-  easy: { name: 'Easy', think: 4, sources: 1, grace: 25, defend: false, foresight: 0, noise: 0.35, reserve: 0.15 },
+  // The first maps' rivals: slow and kind, for brand-new players.
+  gentle: { name: 'Gentle', think: 6, sources: 1, grace: 45, defend: false, foresight: 0.3, noise: 0.4, reserve: 0.3 },
+  easy: { name: 'Easy', think: 4, sources: 1, grace: 25, defend: false, foresight: 0.35, noise: 0.35, reserve: 0.15 },
   normal: { name: 'Normal', think: 2.6, sources: 2, grace: 15, defend: true, foresight: 0.5, noise: 0.2, reserve: 0.1 },
   hard: { name: 'Hard', think: 0.9, sources: 4, grace: 0, defend: true, foresight: 1, noise: 0, reserve: 0.05 },
 };

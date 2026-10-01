@@ -51,7 +51,7 @@ const HAND = {
   3: {
     seed: 303,
     nodes: [
-      { x: 230, y: 520, type: 'castle', owner: 1, troops: 28 },
+      { x: 230, y: 520, type: 'castle', owner: 1, troops: 34 },
       { x: 470, y: 280, type: 'mill', owner: 0, troops: 8 },
       { x: 470, y: 760, type: 'cottage', owner: 0, troops: 4 },
       { x: 760, y: 520, type: 'mill', owner: 0, troops: 14 },
@@ -84,45 +84,45 @@ const HAND = {
 // name, region, generator settings (or hand map), rivals, star goals, intro.
 export const DEFS = [
   // Clover Coast
-  { name: 'First Steps', hand: 1, rivals: [R('greedy', 'easy', { grace: 60 })], goals: ['time', 'keep'], intro: 'basics' },
-  { name: 'Daisy Bridges', hand: 2, rivals: [R('cautious', 'easy', { grace: 45 })], goals: ['time', 'sends'], intro: 'multi' },
-  { name: 'Windmill Hill', hand: 3, rivals: [R('greedy', 'easy', { grace: 40 })], goals: ['time', 'keep'], intro: 'mill' },
-  { name: 'Sunny Shore', hand: 4, rivals: [R('sneaky', 'easy', { grace: 35 })], goals: ['keep', 'sends'], intro: 'hero' },
-  { name: 'Buttercup Bend', gen: { seed: 5105, size: 'small', types: T2, start: [30, 18] }, rivals: [R('cautious', 'easy')], goals: ['time', 'sends'] },
-  { name: 'The Old Tower', gen: { seed: 6206, size: 'medium', types: T3, start: [30, 18] }, rivals: [R('greedy', 'easy')], goals: ['time', 'keep'], intro: 'tower' },
-  { name: 'Foxglove Point', gen: { seed: 7307, size: 'medium', types: T3, start: [28, 20] }, rivals: [R('sneaky', 'easy')], goals: ['keep', 'sends'] },
+  { name: 'First Steps', hand: 1, rivals: [R('greedy', 'gentle', { grace: 90 })], goals: ['time', 'keep'], intro: 'basics' },
+  { name: 'Daisy Bridges', hand: 2, rivals: [R('cautious', 'gentle', { grace: 75 })], goals: ['time', 'sends'], intro: 'multi' },
+  { name: 'Windmill Hill', hand: 3, rivals: [R('greedy', 'gentle', { grace: 70 })], goals: ['time', 'keep'], intro: 'mill' },
+  { name: 'Sunny Shore', hand: 4, rivals: [R('sneaky', 'gentle', { grace: 55 })], goals: ['keep', 'sends'], intro: 'hero' },
+  { name: 'Buttercup Bend', gen: { seed: 5105, size: 'small', types: T2, start: [30, 16], extra: [1, 0] }, rivals: [R('cautious', 'easy', { grace: 40 })], goals: ['time', 'sends'] },
+  { name: 'The Old Tower', gen: { seed: 6206, size: 'medium', types: T3, start: [30, 18] }, rivals: [R('greedy', 'easy', { grace: 35 })], goals: ['time', 'keep'], intro: 'tower' },
+  { name: 'Foxglove Point', gen: { seed: 7307, size: 'medium', types: T3, start: [28, 18], extra: [1, 0] }, rivals: [R('sneaky', 'easy', { grace: 30 })], goals: ['keep', 'sends'] },
   { name: 'Clover Crown', gen: { seed: 8408, size: 'medium', types: T3, start: [28, 20], extra: [1, 0] }, rivals: [R('greedy', 'normal')], goals: ['time', 'keep'] },
   // Windmill Bay
   { name: 'Breezy Bay', gen: { seed: 9509, size: 'medium', types: T3, start: [26, 20] }, rivals: [R('cautious', 'normal')], goals: ['time', 'sends'] },
   { name: 'Ember Forge', gen: { seed: 10611, size: 'medium', types: T4, start: [26, 20] }, rivals: [R('greedy', 'normal')], goals: ['time', 'keep'], intro: 'forge' },
-  { name: 'Mill Race', gen: { seed: 11713, size: 'large', types: T4, start: [26, 20] }, rivals: [R('sneaky', 'normal')], goals: ['keep', 'sends'] },
+  { name: 'Mill Race', gen: { seed: 11714, size: 'large', types: T4, start: [26, 20] }, rivals: [R('sneaky', 'normal')], goals: ['keep', 'sends'] },
   { name: 'Three Crowns', gen: { seed: 12812, size: 'small', kingdoms: 3, types: T4, start: [28, 18, 18] }, rivals: [R('greedy', 'easy'), R('cautious', 'easy')], goals: ['time', 'keep'], intro: 'rivals' },
   { name: 'Gull Rocks', gen: { seed: 13915, size: 'medium', types: T4, start: [24, 20] }, rivals: [R('sneaky', 'normal')], goals: ['time', 'sends'] },
   { name: 'Smithy Sands', gen: { seed: 14114, size: 'medium', kingdoms: 3, types: T4, start: [26, 18, 18] }, rivals: [R('cautious', 'easy'), R('sneaky', 'easy')], goals: ['keep', 'sends'] },
   { name: 'Moonlit Shrine', gen: { seed: 15216, size: 'medium', types: T5, start: [24, 20] }, rivals: [R('greedy', 'normal')], goals: ['time', 'keep'], intro: 'shrine' },
-  { name: 'Harvest Fair', gen: { seed: 16319, size: 'medium', kingdoms: 3, types: T5, start: [26, 20, 20] }, rivals: [R('greedy', 'normal'), R('sneaky', 'easy')], goals: ['time', 'sends'] },
+  { name: 'Harvest Fair', gen: { seed: 16320, size: 'medium', kingdoms: 3, types: T5, start: [26, 20, 20] }, rivals: [R('greedy', 'normal'), R('sneaky', 'easy')], goals: ['time', 'sends'] },
   // Misty Fjords
   { name: 'Fog Harbour', gen: { seed: 17423, size: 'medium', types: T5, start: [22, 20] }, rivals: [R('cautious', 'normal')], goals: ['time', 'keep'] },
   { name: "Wizard's Rest", gen: { seed: 18518, size: 'large', types: T5, start: [22, 20] }, rivals: [R('sneaky', 'normal')], goals: ['keep', 'sends'] },
-  { name: 'Icicle Isles', gen: { seed: 19620, size: 'medium', kingdoms: 3, types: T5, start: [24, 20, 20] }, rivals: [R('cautious', 'normal'), R('greedy', 'normal')], goals: ['time', 'keep'] },
+  { name: 'Icicle Isles', gen: { seed: 19622, size: 'medium', kingdoms: 3, types: T5, start: [24, 20, 20] }, rivals: [R('cautious', 'normal'), R('greedy', 'normal')], goals: ['time', 'keep'] },
   { name: 'Pine Fjord', gen: { seed: 20720, size: 'small', types: T5, start: [24, 20] }, rivals: [R('greedy', 'hard')], goals: ['time', 'sends'], intro: 'hard' },
   { name: 'Seal Sound', gen: { seed: 21839, size: 'large', kingdoms: 3, types: T6, start: [24, 20, 20] }, rivals: [R('sneaky', 'normal'), R('cautious', 'normal')], goals: ['keep', 'sends'] },
   { name: 'Crystal Cove', gen: { seed: 22925, size: 'medium', types: T6, start: [22, 20] }, rivals: [R('cautious', 'hard')], goals: ['time', 'keep'] },
-  { name: 'Northern Lights', gen: { seed: 23130, size: 'medium', kingdoms: 4, types: T6, start: [26, 20, 20, 20] }, rivals: [R('greedy', 'normal'), R('sneaky', 'normal'), R('cautious', 'easy')], goals: ['time', 'sends'], intro: 'four' },
-  { name: 'Frost Throne', gen: { seed: 24235, size: 'large', kingdoms: 3, types: T6, start: [24, 20, 20] }, rivals: [R('sneaky', 'hard'), R('greedy', 'normal')], goals: ['time', 'keep'] },
+  { name: 'Northern Lights', gen: { seed: 23137, size: 'medium', kingdoms: 4, types: T6, start: [26, 20, 20, 20] }, rivals: [R('greedy', 'normal'), R('sneaky', 'normal'), R('cautious', 'easy')], goals: ['time', 'sends'], intro: 'four' },
+  { name: 'Frost Throne', gen: { seed: 24241, size: 'large', kingdoms: 3, types: T6, start: [24, 20, 20] }, rivals: [R('sneaky', 'hard'), R('greedy', 'normal')], goals: ['time', 'keep'] },
   // Ember Isles
   { name: 'Ash Beach', gen: { seed: 25341, size: 'medium', types: T6, start: [22, 20] }, rivals: [R('sneaky', 'hard')], goals: ['keep', 'sends'] },
   { name: 'Lava Lagoon', gen: { seed: 26426, size: 'medium', kingdoms: 3, types: T6, start: [24, 20, 20] }, rivals: [R('greedy', 'hard'), R('cautious', 'normal')], goals: ['time', 'keep'] },
   { name: "Dragon's Nap", gen: { seed: 27527, size: 'large', types: T6, start: [22, 20] }, rivals: [R('cautious', 'hard')], goals: ['time', 'sends'] },
   { name: 'Cinder Steps', gen: { seed: 28644, size: 'medium', kingdoms: 4, types: T6, start: [24, 20, 20, 20] }, rivals: [R('sneaky', 'normal'), R('greedy', 'hard'), R('cautious', 'normal')], goals: ['keep', 'sends'] },
-  { name: 'Smoky Strait', gen: { seed: 29731, size: 'large', kingdoms: 3, types: T6, start: [24, 20, 20] }, rivals: [R('sneaky', 'hard'), R('cautious', 'hard')], goals: ['time', 'keep'] },
+  { name: 'Smoky Strait', gen: { seed: 29732, size: 'large', kingdoms: 3, types: T6, start: [24, 20, 20] }, rivals: [R('sneaky', 'hard'), R('cautious', 'hard')], goals: ['time', 'keep'] },
   { name: 'Fire Fern', gen: { seed: 30830, size: 'medium', types: T6, start: [20, 20] }, rivals: [R('greedy', 'hard')], goals: ['time', 'sends'] },
-  { name: 'Obsidian Bay', gen: { seed: 31933, size: 'large', kingdoms: 4, types: T6, start: [24, 20, 20, 20] }, rivals: [R('cautious', 'hard'), R('sneaky', 'normal'), R('greedy', 'hard')], goals: ['keep', 'sends'] },
-  { name: 'The Grand Crown', gen: { seed: 32045, size: 'large', kingdoms: 4, types: T6, start: [26, 20, 20, 20] }, rivals: [R('greedy', 'hard'), R('sneaky', 'hard'), R('cautious', 'hard')], goals: ['time', 'keep'], intro: 'finale' },
+  { name: 'Obsidian Bay', gen: { seed: 31937, size: 'large', kingdoms: 4, types: T6, start: [24, 20, 20, 20] }, rivals: [R('cautious', 'hard'), R('sneaky', 'normal'), R('greedy', 'hard')], goals: ['keep', 'sends'] },
+  { name: 'The Grand Crown', gen: { seed: 32054, size: 'large', kingdoms: 4, types: T6, start: [26, 20, 20, 20] }, rivals: [R('greedy', 'hard'), R('sneaky', 'hard'), R('cautious', 'hard')], goals: ['time', 'keep'], intro: 'finale' },
 ];
 
 // Reference-bot results (time s, sends) from tools/calibrate; see PAR_FROM.
-export const BOT = [[14,16],[37,28],[35,42],[58,50],[43,40],[129,69],[52,79],[36,58],[61,66],[32,40],[58,75],[62,77],[28,33],[73,95],[37,51],[93,161],[32,30],[91,150],[86,177],[24,30],[64,154],[37,55],[65,138],[67,119],[25,32],[32,70],[35,75],[120,255],[52,114],[30,13],[38,81],[74,131]];
+export const BOT = [[16,11],[47,20],[30,30],[37,41],[47,43],[69,62],[26,41],[27,35],[90,74],[23,20],[36,47],[56,66],[27,22],[66,107],[27,29],[63,73],[34,29],[69,96],[66,98],[24,27],[76,123],[48,65],[107,126],[23,39],[25,21],[35,72],[40,60],[226,418],[35,61],[32,12],[45,94],[76,190]];
 
 // Generous par: 2.5× the bot's time plus a minute, rounded up to 10 s,
 // at least 2:30. The bot sends far more often than a person needs to,
