@@ -190,7 +190,7 @@ export class MenuScene {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     // Put the globe beside the menu card on wide screens, above it on tall.
-    if (w / h > 1.15) this.layout = { x: -11, y: 0, dist: 46 };
+    if (w / h > 1.15) this.layout = { x: -14, y: 0, dist: 46 };
     else this.layout = { x: 0, y: -12, dist: 58 };
   }
 
@@ -255,10 +255,10 @@ export class MenuScene {
     // Camera.
     let pos, look;
     if (this.view === 'garage') {
-      const a = this.time * 0.3;
-      pos = new THREE.Vector3(120 + Math.sin(a) * 2 + 7, 3.4, 9);
-      look = new THREE.Vector3(120 - (this.camera.aspect > 1.15 ? 2.5 : 0), 0.9, this.camera.aspect > 1.15 ? 0 : -1.5);
-      if (this.camera.aspect <= 1.15) pos.set(120 + 6, 6, 12);
+      const wide = this.camera.aspect > 1.15;
+      // Wide: car on the left, card on the right. Tall: car above the card.
+      pos = wide ? new THREE.Vector3(124 + Math.sin(this.time * 0.3) * 0.6, 4.2, 13) : new THREE.Vector3(120, 9, 15);
+      look = wide ? new THREE.Vector3(124.2, 0.9, 0) : new THREE.Vector3(120, -3.5, 0);
       if (this.car) this.car.rotation.y = this.time * 0.5;
     } else {
       const L = this.layout;

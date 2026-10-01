@@ -55,6 +55,12 @@ export function terrainShape(track, loc) {
     };
   }
   if (loc.theme === 'sahara') shape.water = -100; // only the oasis pool, drawn separately
+  // Water always sits well below the lowest stretch of road.
+  if (shape.water !== null && shape.water > -50) {
+    let low = Infinity;
+    for (const s of track.samples) low = Math.min(low, s.y);
+    shape.water = Math.min(shape.water, low - 2);
+  }
   shape.base = base;
   shape.noise = noise;
   return shape;
@@ -531,7 +537,7 @@ function buildTheme(loc, ctx) {
       const blocks = ['#2a2a3a', '#33304a', '#262636', '#3a3446', '#2e3440'];
       const neon = ['#ff3fa4', '#3fe5ff', '#ffe46a', '#7cff6a', '#b06cff', '#ff7a3a'];
       const win = ['#ffe8a8', '#bfe8ff', '#ffd0e8'];
-      for (const p of spots(n(150), 20, 75, 10)) {
+      for (const p of spots(n(150), 25, 80, 10)) {
         const h = 12 + r() * 40, w = 10 + r() * 10, d = 10 + r() * 8;
         building(solid(p.x, p.z), glow(p.x, p.z), p, w, h, d, blocks[Math.floor(r() * blocks.length)], 'flat', { windows: win, r, rim: r() < 0.3 });
         // Neon sign on the road side.

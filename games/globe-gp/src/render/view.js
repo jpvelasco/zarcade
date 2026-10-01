@@ -224,9 +224,15 @@ export class RaceView {
 
   updateCar(r, i, dt, paused) {
     const obj = this.cars[i], v = r.vehicle, ud = obj.userData;
-    obj.visible = !r.eliminated || r.vehicle.speed > 0.5;
     obj.position.set(v.x, v.y, v.z);
+    // Cars brushing the camera would fill the screen: hide them.
+    obj.visible = (!r.eliminated || r.vehicle.speed > 0.5) && (r.isPlayer || this.camera.position.distanceToSquared(obj.position) > 20);
     obj.rotation.y = v.heading;
+    if (!obj.visible) {
+      m4.makeScale(0, 0, 0);
+      for (let k = 0; k < 4; k++) this.wheels.setMatrixAt(i * 4 + k, m4);
+      return;
+    }
     // Body pitch from vertical speed, roll from cornering.
     const speed = Math.max(0, v.speed);
     const targetPitch = v.grounded ? clamp(-v.vy / Math.max(6, speed), -0.25, 0.25) : clamp(-v.vy * 0.02, -0.3, 0.3);

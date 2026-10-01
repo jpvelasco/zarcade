@@ -55,6 +55,7 @@ export class Hud {
       d.className = 'tag';
       d.style.setProperty('--c', r.color);
       d.textContent = `${r.flag} ${r.name}`;
+      d.style.display = 'none';
       $('labels').appendChild(d);
       return { r, d, shown: false };
     });
@@ -227,11 +228,21 @@ export class Hud {
     if (!view) return;
     const pv = race.player.vehicle;
     const w = window.innerWidth, h = window.innerHeight;
-    const pt = {};
+    const fx = Math.sin(pv.heading), fz = Math.cos(pv.heading);
+    // The three nearest rivals ahead of the camera get a name tag.
+    const near = [];
     for (const tag of this.tags) {
       const v = tag.r.vehicle;
-      const d2 = (v.x - pv.x) ** 2 + (v.z - pv.z) ** 2;
-      let show = !tag.r.eliminated && d2 < 70 * 70 && d2 > 9;
+      const dx = v.x - pv.x, dz = v.z - pv.z, d2 = dx * dx + dz * dz;
+      tag.want = !tag.r.eliminated && d2 < 60 * 60 && d2 > 9 && dx * fx + dz * fz > 2;
+      tag.d2 = d2;
+      if (tag.want) near.push(tag);
+    }
+    near.sort((a, b) => a.d2 - b.d2);
+    const pt = {};
+    for (const tag of this.tags) {
+      let show = tag.want && near.indexOf(tag) < 3;
+      const v = tag.r.vehicle;
       if (show && view.project(v.x, v.y + 2.6, v.z, pt)) {
         const x = (pt.x * 0.5 + 0.5) * w, y = (-pt.y * 0.5 + 0.5) * h;
         tag.d.style.transform = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px) translate(-50%, -100%)`;

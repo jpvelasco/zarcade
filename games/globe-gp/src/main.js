@@ -412,6 +412,7 @@ function advanceLoader() {
       race = new Race({
         location: L.loc, kind: L.s.kind, car: L.car, upgrades: upgradesFor(save, L.car.id), livery: liveryFor(save, L.car.id),
         difficulty: save.difficulty, autopilot: params.has('autopilot'), ghost: L.ghost,
+        laps: params.has('laps') && L.s.kind !== 'sprint' ? Math.max(1, Number(params.get('laps')) || 1) : undefined,
       });
       L.gen = buildWorld(race.track, L.loc, { quality: quality === 0 ? 0.6 : 1, reduced });
       L.step = 1;
