@@ -174,6 +174,16 @@
       accent: '#ff7eb6',
       needsServer: true,
     },
+    {
+      slug: 'lanternwood',
+      title: 'Lanternwood',
+      tagline: 'Relight the Great Lantern with a fox friend.',
+      description: 'Explore a glowing forest village, solve three handcrafted dungeons with new tools, and help the lonely Shade King find the light. A gentle Zelda-like with quests, puzzles and boss battles.',
+      genre: 'Adventure',
+      controls: ['keyboard', 'touch', 'gamepad'],
+      accent: '#ffb84a',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
