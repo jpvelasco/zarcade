@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9fe0f5"/>
+      <stop offset="0.6" stop-color="#d8f3f0"/>
+      <stop offset="1" stop-color="#fff3d6"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbe6"/>
+      <stop offset="0.45" stop-color="#ffe9a0"/>
+      <stop offset="1" stop-color="#ffd166" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hillA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9e88f"/><stop offset="1" stop-color="#94d26b"/></linearGradient>
+    <linearGradient id="hillB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ad66b"/><stop offset="1" stop-color="#76bd52"/></linearGradient>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c08d5c"/><stop offset="1" stop-color="#9c6c43"/></linearGradient>
+    <pattern id="rows" width="800" height="34" patternUnits="userSpaceOnUse">
+      <rect width="800" height="34" fill="url(#soil)"/>
+      <rect y="26" width="800" height="5" fill="#8a5d39"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <circle cx="640" cy="110" r="120" fill="url(#sun)"/>
+  <circle cx="640" cy="110" r="42" fill="#fff4c2"/>
+  <g fill="#ffffff" opacity="0.9">
+    <ellipse cx="150" cy="90" rx="60" ry="20"/><ellipse cx="190" cy="78" rx="40" ry="22"/><ellipse cx="115" cy="82" rx="30" ry="16"/>
+    <ellipse cx="440" cy="60" rx="46" ry="15"/><ellipse cx="470" cy="52" rx="30" ry="16"/>
+  </g>
+  <path d="M0 250 Q 140 170 300 225 T 620 205 T 800 215 V 500 H 0 Z" fill="url(#hillA)"/>
+  <g fill="#4fae5b">
+    <circle cx="70" cy="214" r="26"/><circle cx="104" cy="206" r="30"/><circle cx="740" cy="196" r="28"/><circle cx="770" cy="210" r="22"/>
+  </g>
+  <g fill="#8b5e3c"><rect x="98" y="226" width="10" height="22"/><rect x="736" y="214" width="9" height="20"/></g>
+  <path d="M0 300 Q 200 255 420 290 T 800 280 V 500 H 0 Z" fill="url(#hillB)"/>
+  <!-- Farmhouse -->
+  <g transform="translate(520 182)">
+    <rect x="10" y="62" width="150" height="86" rx="6" fill="#fff1d6" stroke="#4a3426" stroke-width="5"/>
+    <path d="M-6 70 L85 6 L176 70 Z" fill="#e76f51" stroke="#4a3426" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M14 58 L85 12 L156 58" fill="none" stroke="#c85a3d" stroke-width="4"/>
+    <rect x="120" y="14" width="18" height="34" fill="#9c6644" stroke="#4a3426" stroke-width="4"/>
+    <rect x="67" y="94" width="36" height="54" rx="4" fill="#9c6644" stroke="#4a3426" stroke-width="4"/>
+    <circle cx="96" cy="124" r="3" fill="#ffd166"/>
+    <rect x="24" y="86" width="30" height="28" rx="3" fill="#fff1b8" stroke="#4a3426" stroke-width="4"/>
+    <rect x="116" y="86" width="30" height="28" rx="3" fill="#fff1b8" stroke="#4a3426" stroke-width="4"/>
+    <path d="M39 86 V114 M24 100 H54 M131 86 V114 M116 100 H146" stroke="#4a3426" stroke-width="3"/>
+    <rect x="18" y="114" width="42" height="10" rx="4" fill="#e07a5f"/><circle cx="28" cy="113" r="5" fill="#ff7eb6"/><circle cx="44" cy="112" r="5" fill="#ffd23f"/>
+  </g>
+  <!-- Field rows -->
+  <path d="M0 360 Q 400 318 800 352 V 500 H 0 Z" fill="url(#rows)"/>
+  <g stroke="#4a3426" stroke-width="3">
+    <!-- turnips and leaves -->
+    <g transform="translate(70 380)"><path d="M0 0 q -10 -26 -18 -30 M0 0 q 6 -30 16 -32" fill="none" stroke="#3f8a35" stroke-width="7" stroke-linecap="round"/><ellipse cx="0" cy="8" rx="18" ry="14" fill="#f4e6f0"/><path d="M-16 6 q16 -12 32 0" fill="#c56bb0" stroke="none"/></g>
+    <g transform="translate(170 372)"><path d="M0 0 q -10 -26 -18 -30 M0 0 q 6 -30 16 -32" fill="none" stroke="#3f8a35" stroke-width="7" stroke-linecap="round"/><ellipse cx="0" cy="8" rx="18" ry="14" fill="#f4e6f0"/><path d="M-16 6 q16 -12 32 0" fill="#c56bb0" stroke="none"/></g>
+    <!-- strawberry bushes -->
+    <g transform="translate(290 366)"><ellipse cx="0" cy="0" rx="34" ry="22" fill="#5fb04a"/><circle cx="-16" cy="2" r="8" fill="#ff5a6e"/><circle cx="12" cy="-6" r="8" fill="#ff5a6e"/><circle cx="20" cy="10" r="7" fill="#ff5a6e"/></g>
+    <!-- pumpkin -->
+    <g transform="translate(420 380)"><path d="M-2 -26 q 4 -14 14 -16" fill="none" stroke="#6b4f2a" stroke-width="6"/><ellipse cx="0" cy="0" rx="40" ry="28" fill="#ff8c2e"/><path d="M-14 -26 q -10 26 0 52 M14 -26 q 10 26 0 52" fill="none" stroke="#e0701a" stroke-width="4"/></g>
+  </g>
+  <!-- Sunflowers -->
+  <g stroke="#4a3426" stroke-width="3">
+    <g transform="translate(560 300)"><path d="M0 0 V 120" stroke="#3f8a35" stroke-width="8"/><path d="M0 70 q 26 -20 34 -4 q -18 16 -34 4" fill="#5fb04a"/><circle r="30" fill="#ffd23f"/><circle r="13" fill="#8a5a2b"/></g>
+    <g transform="translate(640 322)"><path d="M0 0 V 110" stroke="#3f8a35" stroke-width="8"/><path d="M0 60 q -26 -20 -34 -4 q 18 16 34 4" fill="#5fb04a"/><circle r="24" fill="#ffd23f"/><circle r="10" fill="#8a5a2b"/></g>
+  </g>
+  <!-- Watering can sprinkle -->
+  <g transform="translate(250 270)" stroke="#4a3426" stroke-width="4" stroke-linejoin="round">
+    <path d="M0 0 h56 v40 h-56 z" fill="#4dabf7"/>
+    <path d="M56 10 l40 -18 l4 8 l-40 22 z" fill="#4dabf7"/>
+    <path d="M10 0 q 18 -26 36 0" fill="none"/>
+    <g fill="#a5d8ff" stroke="none"><circle cx="110" cy="0" r="5"/><circle cx="122" cy="16" r="4"/><circle cx="108" cy="24" r="5"/><circle cx="128" cy="38" r="4"/><circle cx="114" cy="48" r="5"/></g>
+  </g>
+  <!-- Chicken -->
+  <g transform="translate(720 420)" stroke="#4a3426" stroke-width="4" stroke-linejoin="round">
+    <ellipse cx="0" cy="0" rx="34" ry="26" fill="#ffffff"/>
+    <circle cx="22" cy="-26" r="16" fill="#ffffff"/>
+    <path d="M18 -42 q 4 -10 10 -2 q 6 -8 8 4" fill="#e63946"/>
+    <path d="M36 -26 l12 4 l-12 5 z" fill="#ffb703"/>
+    <circle cx="26" cy="-28" r="3" fill="#4a3426" stroke="none"/>
+    <path d="M-34 -6 q -12 -14 -4 -26 q 8 10 14 12" fill="#ffffff"/>
+    <path d="M-8 26 v14 M8 26 v14" stroke="#ffb703"/>
+  </g>
+  <!-- Sparkles -->
+  <g fill="#fffbe6">
+    <path d="M300 330 l4 10 l10 4 l-10 4 l-4 10 l-4 -10 l-10 -4 l10 -4 z"/>
+    <path d="M70 330 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 z"/>
+    <path d="M470 340 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 z"/>
+  </g>
+  <!-- Butterflies -->
+  <g transform="translate(380 200)"><path d="M0 0 q -18 -20 -22 2 q 10 10 22 -2 q 18 -20 22 2 q -10 10 -22 -2" fill="#ff9ad5" stroke="#4a3426" stroke-width="3"/></g>
+  <g transform="translate(470 250) scale(0.7)"><path d="M0 0 q -18 -20 -22 2 q 10 10 22 -2 q 18 -20 22 2 q -10 10 -22 -2" fill="#c9b8ff" stroke="#4a3426" stroke-width="3"/></g>
+</svg>

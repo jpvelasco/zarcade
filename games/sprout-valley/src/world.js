@@ -183,18 +183,10 @@ export class World {
   // ------------------------------------------------------------ day cycle
 
   startDay(first = false) {
-    const fest = this.festival;
-    this.weather = weatherFor(this.seed, this.day, !!fest);
-    this.tomorrow = weatherFor(this.seed, this.day + 1, !!festivalOn(this.day + 1));
     this.minute = DAY_START;
-    this.rand = mulberry32(hash(this.seed, this.day, 'live'));
-    this.fest = newFestivalState(fest);
-    this.period = null;
-    this.critters = [];
-    this.warnedLate = false;
+    this.setupDay();
     const p = this.player;
     p.x = PLAYER_START[0] + 0.5; p.y = PLAYER_START[1] + 0.5; p.dir = 'down';
-    p.busy = 0; p.fishing = null; p.path = null; p.then = null; p.tool = null;
     // Rain and snow water every outdoor crop; sprinklers water their ring.
     const wetDay = isWet(this.weather);
     for (let i = 0; i < W * H; i++) {
@@ -210,9 +202,34 @@ export class World {
       }
     }
     if (this.date.day === 1 || first) this.requests = Eco.makeRequests(this.seed, this.day, this.season, this.animals);
+    if (!first) this.events.push({ type: 'morning', day: this.day });
+  }
+
+  // Weather, villagers, critters and festival for the current day and time.
+  // Used every morning and when a saved game resumes mid-day.
+  setupDay(fest = null) {
+    const id = this.festival;
+    this.weather = weatherFor(this.seed, this.day, !!id);
+    this.tomorrow = weatherFor(this.seed, this.day + 1, !!festivalOn(this.day + 1));
+    this.rand = mulberry32(hash(this.seed, this.day, Math.floor(this.minute), 'live'));
+    this.fest = newFestivalState(id);
+    if (this.fest && fest) {
+      for (const k of ['progress', 'done', 'eggs', 'fish', 'started', 'ended', 'result']) if (fest[k] !== undefined) this.fest[k] = fest[k];
+      if (Array.isArray(fest.lit)) this.fest.lit = fest.lit.filter((i) => Number.isInteger(i) && i >= 0 && i < 8);
+      if (this.fest.started && !this.fest.ended && id === 'egghunt') this.spawnEggs(this.fest.eggs);
+    }
+    this.period = null;
+    this.critters = [];
+    this.warnedLate = this.minute >= 24 * 60;
+    const p = this.player;
+    p.busy = 0; p.fishing = null; p.path = null; p.then = null; p.tool = null;
     this.placeVillagers();
     this.updatePeriod();
-    if (!first) this.events.push({ type: 'morning', day: this.day });
+  }
+
+  spawnEggs(found = 0) {
+    const spots = eggSpots(this.seed, this.day, (x, y) => !this.solidAt(x, y) && !this.map.water[idx(x, y)] && this.map.ground[idx(x, y)] !== G.SAND, FESTIVALS.egghunt.total);
+    spots.forEach(([x, y], i) => { if (i >= found) this.pickups.push({ x, y, item: 'egghunt', n: 1, festival: true, color: i % 5 }); });
   }
 
   // End the day: ship, grow, feed, roll the calendar and start tomorrow.
@@ -560,6 +577,7 @@ export class World {
     if (wantsMove) { p.path = null; p.then = null; }
     if (p.fishing) this.updateFishing(dt, c, wantsMove);
     else if (c.target && p.busy === 0) this.useAt(c.target[0], c.target[1], { tools: true });
+    else if (c.interactAt && p.busy === 0) this.useAt(c.interactAt[0], c.interactAt[1], { tools: false });
     else if ((c.use || c.interact) && p.busy === 0) {
       const [fx, fy] = this.facing;
       this.useAt(fx, fy, { tools: !!c.use, adjacentOnly: true });
@@ -618,7 +636,7 @@ export class World {
     const p = this.player;
     if (!p.path.length) {
       p.path = null;
-      if (p.then) { const [tx, ty] = p.then; p.then = null; this.faceTile(tx, ty); this.useAt(tx, ty, { tools: true, adjacentOnly: true }); }
+      if (p.then) { const [tx, ty] = p.then; p.then = null; this.faceTile(tx, ty); this.useAt(tx, ty, { tools: p.thenTools !== false, adjacentOnly: true }); }
       return [0, 0];
     }
     const [nx, ny] = p.path[0];
@@ -631,8 +649,9 @@ export class World {
   passable = (x, y) => !this.solidAt(x, y);
 
   // Plan a walk to stand next to (tx, ty) and then use it.
-  walkTo(tx, ty) {
+  walkTo(tx, ty, tools = true) {
     const p = this.player;
+    p.thenTools = tools;
     const target = this.solidAt(tx, ty) || this.map.water[idx(tx, ty)];
     const goal = target
       ? (x, y) => !this.solidAt(x, y) && Math.abs(x - tx) + Math.abs(y - ty) === 1
@@ -665,7 +684,7 @@ export class World {
     const near = Math.abs(tx - x) <= 1 && Math.abs(ty - y) <= 1;
     const pickup = this.pickups.some((pk) => pk.x === tx && pk.y === ty) && !this.solidAt(tx, ty);
     if (pickup && !adjacentOnly) { this.walkOnto(tx, ty); return; }
-    if (!near) { if (!adjacentOnly) this.walkTo(tx, ty); return; }
+    if (!near) { if (!adjacentOnly) this.walkTo(tx, ty, tools); return; }
     if (tx !== x || ty !== y) this.faceTile(tx, ty);
     const k = idx(tx, ty);
     const p = this.player;
@@ -724,6 +743,9 @@ export class World {
       return this.toast(this.date.day === MARKET_DAY ? 'The market runs from 8 am to 5 pm.' : 'The market stall opens on Saturdays.');
     }
     if (kind === 'lantern') return this.lightLantern(it.i);
+    if (kind === 'fountain') return this.toast(['You toss a wish into the fountain. Plink!', 'The fountain sparkles. Somewhere, a frog says hello.', 'Fresh water burbles up. Lovely.'][this.day % 3]);
+    if (kind === 'planter') return this.toast('A flower bed. Clem waters it every morning.');
+    if (kind === 'lamp') return undefined;
     if (kind === 'greenhouse') return this.toast(this.upgrades.greenhouse ? 'Your greenhouse!' : 'An old broken greenhouse. Mabel can arrange repairs (4,000g).');
     return undefined;
   }
@@ -761,7 +783,7 @@ export class World {
       if (water) return this.refill();
       if (this.water <= 0) { this.toast('Your can is empty! Refill it at the well or the pond.', 'warn'); return; }
       const tiles = this.canTiles(tx, ty).filter(([x, y]) => this.soil[idx(x, y)]);
-      if (!tiles.length) { this.events.push({ type: 'splash', tiles: [[tx, ty]], dry: true }); this.water--; return; }
+      if (!tiles.length) { this.events.push({ type: 'splash', tiles: [[tx, ty]], dry: true }); return; }
       for (const [x, y] of tiles) {
         const i = idx(x, y);
         if (!this.wet[i] && this.crop[i]) this.stats.watered++;
@@ -1031,10 +1053,7 @@ export class World {
       f.started = true;
       this.events.push({ type: 'festivalStart', id: f.id });
       this.toast(`The ${FESTIVALS[f.id].name} has started in town!`, 'good');
-      if (f.id === 'egghunt') {
-        const spots = eggSpots(this.seed, this.day, (x, y) => !this.solidAt(x, y) && !this.map.water[idx(x, y)] && this.map.ground[idx(x, y)] !== G.SAND, FESTIVALS.egghunt.total);
-        spots.forEach(([x, y], i) => this.pickups.push({ x, y, item: 'egghunt', n: 1, festival: true, color: i % 5 }));
-      }
+      if (f.id === 'egghunt') this.spawnEggs(0);
     }
     if (!running && f.started && !f.ended) {
       f.ended = true;

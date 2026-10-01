@@ -3,7 +3,7 @@
 import { World, BELT_SIZE } from './world.js';
 import { W, H } from './map.js';
 import { ITEMS, CROPS, VILLAGER_IDS, ANIMALS, DECOR, TOOLS, FESTIVAL_IDS, GOALS } from './data.js';
-import { SPEEDS } from './time.js';
+import { SPEEDS, DAY_START, DAY_END } from './time.js';
 
 export const SAVE_KEY = 'sprout-valley.v1';
 export const VERSION = 1;
@@ -28,6 +28,10 @@ export function serialize(w) {
     requests: w.requests.map((r) => ({ ...r })),
     festivalsWon: { ...w.festivalsWon }, collection: JSON.parse(JSON.stringify(w.collection)),
     stats: { ...w.stats }, goalsDone: { ...w.goalsDone }, tutorialSeen: w.tutorialSeen, hinted: { ...(w.hinted || {}) },
+    // Mid-day state, so quitting during the day resumes where you were.
+    minute: Math.floor(w.minute), water: w.water, bin: { ...w.bin },
+    player: { x: +w.player.x.toFixed(2), y: +w.player.y.toFixed(2), dir: w.player.dir },
+    fest: w.fest ? { done: w.fest.done, eggs: w.fest.eggs, fish: w.fest.fish, lit: w.fest.lit.slice(), started: !!w.fest.started, ended: !!w.fest.ended, result: w.fest.result } : null,
   };
 }
 
@@ -86,8 +90,15 @@ export function deserialize(data) {
   for (const g of GOALS) if (data.goalsDone?.[g.id]) w.goalsDone[g.id] = true;
   w.tutorialSeen = !!data.tutorialSeen;
   w.hinted = data.hinted && typeof data.hinted === 'object' ? { ...data.hinted } : {};
-  // Resume at the start of the saved day: weather, villagers and critters.
-  w.startDay(true);
+  // Resume the saved day at the saved time.
+  w.minute = int(data.minute, DAY_START, DAY_END - 1, DAY_START);
+  w.water = int(data.water, 0, w.canInfo.capacity, w.canInfo.capacity);
+  w.bin = {};
+  for (const [id, n] of Object.entries(data.bin || {})) if (ITEMS[id] && n > 0) w.bin[id] = int(n, 1, 99999, 1);
+  w.setupDay(data.fest && typeof data.fest === 'object' ? data.fest : null);
+  const pl = data.player;
+  if (pl && Number.isFinite(pl.x) && Number.isFinite(pl.y) && !w.blocked(pl.x, pl.y)) { w.player.x = pl.x; w.player.y = pl.y; }
+  if (['up', 'down', 'left', 'right'].includes(pl?.dir)) w.player.dir = pl.dir;
   if (requests && requests.length) w.requests = requests;
   w.events.length = 0;
   return w;

@@ -45,6 +45,9 @@ export const SHOP_COUNTER = [[43, 13], [44, 13], [45, 13]];
 export const SHOP_PORCH = [44, 12];
 export const BOARD = [[49, 13], [50, 13]];
 export const STALL = [[46, 17], [47, 17], [48, 17]];
+export const FOUNTAIN = { x: 46, y: 19, w: 2, h: 2 };
+export const PLANTERS = [[40, 13], [53, 13], [40, 24], [53, 24], [42, 13], [51, 24]];
+export const TOWN_LAMPS = [[41, 16], [52, 16], [41, 23], [52, 22]];
 export const TOWN_POND = { cx: 47.5, cy: 31, rx: 4.2, ry: 3.4 };
 export const FARM_POND = { cx: 24.5, cy: 29.5, rx: 3.8, ry: 3.2 };
 export const LANTERNS = [[52, 31], [51, 34], [47, 36], [43, 34], [42, 31], [43, 28], [47, 26], [51, 28]];
@@ -137,6 +140,10 @@ export function buildMap(seed = 1) {
   solidAt(BOARD, 'board');
   solidAt(STALL, 'stall');
   solidAt(LANTERNS, 'lantern');
+  rect(FOUNTAIN.x, FOUNTAIN.y, FOUNTAIN.x + FOUNTAIN.w - 1, FOUNTAIN.y + FOUNTAIN.h - 1, G.BUILDING);
+  for (let y = FOUNTAIN.y; y < FOUNTAIN.y + FOUNTAIN.h; y++) for (let x = FOUNTAIN.x; x < FOUNTAIN.x + FOUNTAIN.w; x++) interact.set(idx(x, y), { kind: 'fountain' });
+  solidAt(PLANTERS, 'planter');
+  solidAt(TOWN_LAMPS, 'lamp');
 
   // Scattered trees and bushes on open grass (never on roads or zones).
   const keepClear = (x, y) => inRect(FIELD_B, x, y) || inRect({ x0: 2, y0: 2, x1: 15, y1: 9 }, x, y) || inRect(PEN, x, y)

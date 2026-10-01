@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#8bd266">
+  <meta name="description" content="Sprout Valley: a cozy little farming life. Grow crops through four seasons, raise chickens, cows and a goat, befriend the villagers and win every festival.">
+  <title>Sprout Valley — a cozy farming life</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="sprout-valley"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Sprout Valley farm"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Sprout Valley uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/sprout-valley/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <div id="hud-clock" class="clock">
+        <div id="hud-date" class="date"></div>
+        <div class="time-row"><span id="hud-time"></span><span id="hud-weather" class="weather"></span></div>
+      </div>
+      <div id="hud-money" class="money"></div>
+      <div id="hud-goal" class="goal-hint hidden"></div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-bag" class="icon-btn" aria-label="Bag" title="Bag (I)">🎒</button>
+      <button id="btn-journal" class="icon-btn" aria-label="Journal" title="Journal (J)">📔</button>
+      <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+    <div class="belt-wrap">
+      <div id="toasts" aria-live="polite"></div>
+      <div id="belt-label" class="belt-label"></div>
+      <div id="belt" class="belt"></div>
+    </div>
+  </div>
+
+  <div id="touch" class="hidden">
+    <div id="stick" aria-label="Move"><div id="knob"></div></div>
+    <div class="touch-buttons">
+      <button id="t-bag" class="tbtn small" aria-label="Bag">🎒</button>
+      <button id="t-talk" class="tbtn talk" aria-label="Talk or interact">💬</button>
+      <button id="t-use" class="tbtn use" aria-label="Use tool">Use</button>
+    </div>
+  </div>
+
+  <!-- Menus -->
+  <section id="panel" class="overlay dim hidden">
+    <div class="card panel-card">
+      <header class="panel-head">
+        <h2 id="panel-title"></h2>
+        <span id="panel-money" class="pill"></span>
+        <button id="panel-close" class="icon-btn small" aria-label="Close">✕</button>
+      </header>
+      <div id="panel-tabs" class="tabs"></div>
+      <div id="panel-body" class="panel-body"></div>
+      <div id="panel-foot" class="panel-foot"></div>
+    </div>
+  </section>
+
+  <section id="dialogue" class="dialogue hidden" aria-live="polite">
+    <img id="dialogue-face" class="face big" alt="">
+    <div class="grow">
+      <div class="dialogue-head"><h3 id="dialogue-name"></h3><span id="dialogue-hearts"></span></div>
+      <p id="dialogue-line"></p>
+      <div class="dialogue-acts"><div id="dialogue-acts" class="grow"></div><button id="dialogue-bye" class="btn">Bye!</button></div>
+    </div>
+  </section>
+
+  <!-- Screens -->
+  <section id="screen-loading" class="overlay dim">
+    <div class="card small center">
+      <h2>Planting seeds…</h2>
+      <div class="bar"><div id="loading-bar"></div></div>
+    </div>
+  </section>
+
+  <section id="screen-title" class="overlay soft hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Sprout Valley">
+        <span class="logo-sprout" aria-hidden="true"><i></i><i></i><b></b></span>
+        <h1><span class="l1">Sprout</span><span class="l2">Valley</span></h1>
+      </div>
+      <p class="tagline">Grow a garden, meet your neighbors, and make a little farm your home.</p>
+      <div class="col">
+        <button id="btn-continue" class="btn primary big hidden">Continue<small id="continue-sub"></small></button>
+        <button id="btn-new" class="btn big">New farm</button>
+        <div class="row">
+          <button id="btn-howto" class="btn">How to play</button>
+          <button class="btn" data-sound>Sound</button>
+          <button class="btn" data-music>Music</button>
+          <button class="btn" data-speed>Days</button>
+        </div>
+      </div>
+      <p class="controls"><b>Move</b> WASD / arrows · stick &nbsp; <b>Use tool</b> Space · click · A &nbsp; <b>Talk</b> E · right-click · X &nbsp; <b>Belt</b> 1–9 · Q / Tab &nbsp; <b>Bag</b> I &nbsp; <b>Journal</b> J</p>
+    </div>
+  </section>
+
+  <section id="screen-intro" class="overlay dim hidden">
+    <div class="card wide intro-card">
+      <h2>Welcome to Sprout Valley!</h2>
+      <p class="muted">Grandpa's old farm is yours now. The soil is good, the neighbors are kind, and every season brings something new.</p>
+      <div class="howto">
+        <div><b>🌱 Grow</b><span>Till your field with the <b>hoe</b>, plant seeds, and <b>water</b> them every day. Rain waters them for you. Ripe crops sparkle: walk up and press <b>Space</b> or <b>E</b> to pick them.</span></div>
+        <div><b>📦 Sell</b><span>Put crops in the <b>shipping bin</b> by your house; you get paid overnight. On <b>Saturdays</b> the market stall in town pays more.</span></div>
+        <div><b>🐔 Animals</b><span>Fill the <b>hay trough</b> in the pen. Fed animals leave eggs and milk each morning. Pet them to make them happy. Cut grass with the <b>scythe</b> for hay.</span></div>
+        <div><b>💛 Friends</b><span>Six villagers live in town. Chat every day and bring gifts they love to grow your friendship hearts.</span></div>
+        <div><b>🎉 Festivals</b><span>Each season has a festival in town: the Egg Hunt, Lantern Night, the Harvest Fair and the Snow Festival.</span></div>
+        <div><b>🛏️ Days</b><span>Head home and sleep at the farmhouse door. The game saves every night. No rush: there's no way to lose!</span></div>
+      </div>
+      <p class="controls"><b>Keyboard</b> WASD move · Space use · E talk · 1–9 belt · I bag · J journal · Esc pause &nbsp; <b>Mouse</b> click a tile to use your tool there, right-click to talk &nbsp; <b>Touch</b> stick + Use / 💬 buttons, or tap a tile &nbsp; <b>Gamepad</b> stick, A use, X talk, LB/RB belt</p>
+      <button id="btn-intro-go" class="btn primary big">Let's farm!</button>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-sub" class="muted center"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-pause-journal" class="btn">📔 Journal</button>
+        <div class="row">
+          <button class="btn" data-sound>Sound</button>
+          <button class="btn" data-music>Music</button>
+        </div>
+        <button class="btn" data-speed>Days</button>
+        <button id="btn-quit" class="btn">Save &amp; quit to title</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-night" class="overlay night hidden">
+    <div class="card night-card">
+      <div class="moon" aria-hidden="true"></div>
+      <h2 id="night-title">Sweet dreams!</h2>
+      <div id="night-body"></div>
+      <button id="btn-morning" class="btn primary big">Good morning! ☀️</button>
+    </div>
+  </section>
+
+  <section id="screen-confirm" class="overlay dim hidden">
+    <div class="card small center">
+      <h2>Start a new farm?</h2>
+      <p class="muted">Your current farm will be replaced. This can't be undone.</p>
+      <div class="col">
+        <button id="btn-confirm-cancel" class="btn primary">Keep my farm</button>
+        <button id="btn-confirm-new" class="btn">Yes, start fresh</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
