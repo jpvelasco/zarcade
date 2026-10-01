@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#6fc3ff">
+  <meta name="description" content="Snowball Summit: roll a snowball down the mountain, grow it huge, scoop up penguins and race the friendly Snow Cloud.">
+  <title>Snowball Summit — roll it, grow it</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="snowball-summit"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Snowball Summit slope"></canvas>
+  <div id="safe-probe" aria-hidden="true"></div>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Snowball Summit uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/snowball-summit/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud-buttons" class="hud-buttons hidden">
+    <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)"><span class="ico-sound" aria-hidden="true"></span></button>
+    <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)"><span class="ico-pause" aria-hidden="true"></span></button>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Snowball Summit">
+        <span class="logo-ball" aria-hidden="true"><span class="logo-hat"></span></span>
+        <h1><span class="l1">Snowball</span><span class="l2">Summit</span></h1>
+      </div>
+      <p class="tagline">Roll down the mountain, grow your snowball, and scoop up everything!</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-map" class="btn">Slopes</button>
+          <button id="btn-daily" class="btn">Daily Slope <span id="daily-badge" class="badge hidden"></span></button>
+          <button id="btn-endless" class="btn">Endless</button>
+        </div>
+        <div class="row">
+          <button id="btn-museum" class="btn">Museum</button>
+          <button id="btn-wardrobe" class="btn">Wardrobe</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>Sound: on</button>
+          <button class="btn small" data-music>Music: on</button>
+        </div>
+      </div>
+      <p id="title-best" class="muted"></p>
+      <p class="controls keys-only"><b>Speed up</b> → / D &nbsp; <b>Brake</b> ← / A &nbsp; <b>Jump</b> Space / ↑ &nbsp; <b>Restart</b> R &nbsp; <b>Pause</b> Esc</p>
+      <p class="controls touch-only"><b>Hold right</b> to speed up · <b>hold left</b> to brake · <b>tap</b> to jump</p>
+    </div>
+  </section>
+
+  <section id="screen-map" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head-row">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Pick a slope</h2>
+        <span id="map-stars" class="pill"></span>
+      </div>
+      <div id="peak-grid" class="peak-grid"></div>
+      <p id="map-info" class="muted center">Finish a slope to open the next one.</p>
+    </div>
+  </section>
+
+  <section id="screen-wardrobe" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head-row">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Wardrobe</h2>
+        <canvas id="wardrobe-preview" class="ball-preview big" width="160" height="160" aria-hidden="true"></canvas>
+      </div>
+      <h3 class="sub">Ball skins</h3>
+      <div id="skin-grid" class="pick-grid"></div>
+      <h3 class="sub">Hats</h3>
+      <div id="hat-grid" class="pick-grid"></div>
+    </div>
+  </section>
+
+  <section id="screen-museum" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="head-row">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Snow Museum</h2>
+        <span id="museum-count" class="pill"></span>
+      </div>
+      <div id="museum-grid" class="museum-grid"></div>
+      <p id="museum-info" class="muted center">Roll over things to add them to the museum.</p>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-sub" class="muted"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Roll again (R)</button>
+        <button id="btn-pause-map" class="btn">Slopes</button>
+        <div class="row">
+          <button class="btn small" data-sound>Sound: on</button>
+          <button class="btn small" data-music>Music: on</button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay dim hidden">
+    <div class="card">
+      <h2 id="res-title">Slope clear!</h2>
+      <p id="res-sub" class="muted"></p>
+      <div id="res-stars" class="stars" aria-label=""></div>
+      <div id="res-lines" class="res-lines"></div>
+      <div id="res-extra" class="res-extra"></div>
+      <div class="col">
+        <button id="btn-next" class="btn primary">Next slope →</button>
+        <div class="row">
+          <button id="btn-again" class="btn">Roll again</button>
+          <button id="btn-res-map" class="btn">Slopes</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-caught" class="overlay dim hidden">
+    <div class="card">
+      <h2>The Snow Cloud caught you!</h2>
+      <p class="muted">It just wanted a hug. Hold speed-up to stay ahead!</p>
+      <div id="caught-lines" class="res-lines"></div>
+      <div id="caught-extra" class="res-extra"></div>
+      <div class="col">
+        <button id="btn-caught-again" class="btn primary">Roll again</button>
+        <button id="btn-caught-map" class="btn">Slopes</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-victory" class="overlay dim hidden">
+    <div class="card">
+      <h2 class="rainbow">You reached the summit!</h2>
+      <p class="muted">All three peaks rolled. The whole village is cheering for you!</p>
+      <div id="victory-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-victory-endless" class="btn primary">Try Endless Mountain</button>
+        <button id="btn-victory-map" class="btn">Slopes</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
