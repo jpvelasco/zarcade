@@ -111,12 +111,15 @@ export function dailyCritter(key) {
     if (art.some((row) => !/[az]/.test(row))) continue;
     const def = { id: `daily-${key}`, name, art, pal, anim };
     const p = buildPuzzle(def);
+    p.tint = '#d6f0dc';
     if (solve(p).solved) return { def, puzzle: p, attempt };
   }
   // Fallback that is always solvable: a simple framed critter.
   const art = ['..aaaaaa..', '.aaaaaaaa.', 'aa:aaaa:aa', 'aaaaaaaaaa', 'aaazaazaaa', 'aaaaaaaaaa', '.aaaaaaaa.', '..aa..aa..', '.aa....aa.', 'aa......aa'];
   const def = { id: `daily-${key}`, name, art, pal, anim };
-  return { def, puzzle: buildPuzzle(def), attempt: -1 };
+  const puzzle = buildPuzzle(def);
+  puzzle.tint = '#d6f0dc';
+  return { def, puzzle, attempt: -1 };
 }
 
 // Streak bookkeeping. daily = { last, streak, best, done: {key: seconds} }.

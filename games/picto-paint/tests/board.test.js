@@ -59,6 +59,12 @@ test('Helper mode turns a wrong fill into a cross and wipes a wrong cross', () =
   b.endStroke();
   assert.equal(b.cells[b.idx(0, 0)], UNKNOWN);
   assert.equal(b.corrections, 2);
+  // crossing a correct fill keeps the fill
+  b.beginStroke(b.idx(1, 0), 'fill');
+  b.endStroke();
+  b.beginStroke(b.idx(1, 0), 'cross');
+  b.endStroke();
+  assert.equal(b.cells[b.idx(1, 0)], 0);
 });
 
 test('Helper mode wipes a wrong colour instead of crossing it', () => {

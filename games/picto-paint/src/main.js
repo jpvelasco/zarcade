@@ -398,11 +398,16 @@ function updateInsets() {
   const bar = $('toolbar');
   if (mode !== 'reveal' && mode !== 'results') {
     const top = $('hud').classList.contains('hidden') ? 10 : hud.bottom + 6;
-    const bottom = bar.classList.contains('hidden') ? 12 : window.innerHeight - bar.getBoundingClientRect().top + 8;
-    renderer.layout({ top, bottom });
+    const box = bar.getBoundingClientRect();
+    const side = !bar.classList.contains('hidden') && box.height > box.width;
+    const bottom = bar.classList.contains('hidden') || side ? 12 : window.innerHeight - box.top + 8;
+    const right = side ? window.innerWidth - box.left + 4 : 0;
+    renderer.layout({ top, bottom, right });
   }
   const card = mode === 'results' ? $('screen-results').querySelector('.card') : mode === 'viewer' ? $('screen-viewer').querySelector('.card') : null;
-  renderer.cardTop = card ? card.getBoundingClientRect().top : 0;
+  const rect = card ? card.getBoundingClientRect() : null;
+  renderer.cardTop = rect ? rect.top : 0;
+  renderer.cardRect = rect ? { top: rect.top, left: rect.left } : null;
   renderer.dirty = true;
 }
 

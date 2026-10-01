@@ -327,7 +327,7 @@ export class Renderer {
       const above = ey > 0 ? puzzle.art[(ey - 1) * puzzle.w + ex] : null;
       if (above && above !== '#2b2440') lid = above;
     }
-    p = { canvas: c, w: puzzle.w, h: puzzle.h, eyes, lid, filled, main };
+    p = { canvas: c, w: puzzle.w, h: puzzle.h, eyes, lid, filled, main, tint: puzzle.tint || '#ffe9c9' };
     this.pics.set(puzzle.id, p);
     return p;
   }
@@ -374,7 +374,8 @@ export class Renderer {
     const rc = Math.max(1, ...this.rowClues.map((c) => c.length));
     const cc = Math.max(1, ...this.colClues.map((c) => c.length));
     const m = this.W < 520 ? 8 : 18;
-    const availW = this.W - m * 2;
+    const right = insets.right || 0;
+    const availW = this.W - right - m * 2;
     const availH = this.H - insets.top - insets.bottom - m * 2;
     const CLUE = this.W < 520 ? 0.7 : 0.82; // clue cell size relative to a square
     const unitsW = b.w + rc * CLUE + 0.3;
@@ -382,7 +383,7 @@ export class Renderer {
     const s = Math.max(8, Math.min(76, Math.floor(Math.min(availW / unitsW, availH / unitsH))));
     const totalW = unitsW * s;
     const totalH = unitsH * s;
-    const ox = Math.round((this.W - totalW) / 2);
+    const ox = Math.round((this.W - right - totalW) / 2);
     const oy = Math.round(insets.top + m + (availH - totalH) / 2);
     this.lay = { s, rc, cc, ox, oy, clue: CLUE, gx: ox + (rc * CLUE + 0.15) * s, gy: oy + (cc * CLUE + 0.15) * s, totalW, totalH };
     this.clampView();
@@ -453,7 +454,7 @@ export class Renderer {
     const y0 = L.gy * v.z, y1 = (L.gy + this.board.h * L.s) * v.z;
     const pad = 10;
     // keep the grid filling the space beside the (pinned) clue bands
-    const minTx = this.W - pad - x1, maxTx = 2 + L.rc * Cu - x0;
+    const minTx = this.W - (this.insets.right || 0) - pad - x1, maxTx = 2 + L.rc * Cu - x0;
     const minTy = bottom - pad - y1, maxTy = top + L.cc * Cu - y0;
     v.tx = minTx > maxTx ? (minTx + maxTx) / 2 : Math.max(minTx, Math.min(maxTx, v.tx));
     v.ty = minTy > maxTy ? (minTy + maxTy) / 2 : Math.max(minTy, Math.min(maxTy, v.ty));
@@ -621,10 +622,18 @@ export class Renderer {
 
   // Showcase spot for a living picture (above the results card).
   showcase(pic, cardTop) {
+    const card = this.cardRect;
+    // Card beside the picture (landscape phones): use the space to its left.
+    if (card && card.left > this.W * 0.4) {
+      const availW = card.left - 16;
+      const availH = this.H - 20;
+      const s = Math.max(4, Math.min(availH * 0.7 / pic.h, availW * 0.7 / pic.w, 30));
+      return { cx: availW / 2 + 8, cy: this.H / 2, s };
+    }
     const top = this.insets.top + 6;
     const bottom = Math.max(top + 120, cardTop - 10);
     const availH = bottom - top;
-    const s = Math.max(4, Math.min(availH * 0.82 / pic.h, this.W * 0.78 / pic.w, 40));
+    const s = Math.max(4, Math.min(availH * 0.66 / pic.h, availH * 0.66 / pic.w, this.W * 0.62 / pic.w, 30));
     return { cx: this.W / 2, cy: top + availH / 2, s };
   }
 
@@ -691,8 +700,8 @@ export class Renderer {
 
   drawSpot(ctx, sc, pic) {
     const r = Math.max(pic.w, pic.h) * sc.s * 0.72;
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = this.pal.dark ? '#3a4670' : '#ffffff';
+    ctx.globalAlpha *= 0.85;
+    ctx.fillStyle = pic.tint;
     ctx.beginPath();
     ctx.arc(sc.cx, sc.cy, r, 0, TAU);
     ctx.fill();
@@ -831,6 +840,22 @@ export class Renderer {
       if (pinX) ctx.fillRect(rowX + clueW - 1, colY + clueH, 2, bottom - colY - clueH);
       if (pinY) ctx.fillRect(rowX + clueW, colY + clueH - 1, this.W, 2);
     }
+    // A little preview of the picture so far, in the empty corner.
+    if (!pinX && !pinY && fade > 0) {
+      const ps = Math.floor(Math.min(clueW / b.w, clueH / b.h) * 0.8);
+      if (ps >= 2) {
+        const px0 = gx - clueW / 2 - (b.w * ps) / 2 - S * 0.04;
+        const py0 = gy - clueH / 2 - (b.h * ps) / 2 - S * 0.04;
+        ctx.globalAlpha = alpha * fade * 0.9;
+        for (let i = 0; i < b.cells.length; i++) {
+          const v = b.cells[i];
+          if (v < 0) continue;
+          ctx.fillStyle = b.p.colour ? b.p.paints[v] : ink;
+          ctx.fillRect(px0 + (i % b.w) * ps, py0 + ((i / b.w) | 0) * ps, ps, ps);
+        }
+        ctx.globalAlpha = alpha * fade;
+      }
+    }
     if (fade > 0) {
       ctx.save();
       ctx.beginPath();
@@ -942,7 +967,10 @@ export class Renderer {
     const c = canvas2d(px * 2, px * 2);
     const g = c.getContext('2d');
     g.imageSmoothingEnabled = false;
-    const s = Math.floor((px * 2 * 0.86) / Math.max(pic.w, pic.h));
+    g.fillStyle = pic.tint;
+    rrect(g, 0, 0, c.width, c.height, c.width * 0.16);
+    g.fill();
+    const s = Math.floor((px * 2 * 0.8) / Math.max(pic.w, pic.h));
     g.drawImage(pic.canvas, (c.width - pic.w * s) / 2, (c.height - pic.h * s) / 2, pic.w * s, pic.h * s);
     return c;
   }

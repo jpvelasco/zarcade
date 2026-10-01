@@ -101,7 +101,9 @@ export class Board {
       if (s.wrong.has(i)) {
         // Helper mode: a fill that should be empty becomes a cross; a wrong
         // colour or a wrong cross is wiped.
-        after = this.cells[i] = after === CROSS || this.p.solution[i] >= 0 ? UNKNOWN : CROSS;
+        if (after === CROSS) after = before >= 0 && before === this.p.solution[i] ? before : UNKNOWN;
+        else after = this.p.solution[i] >= 0 ? UNKNOWN : CROSS;
+        this.cells[i] = after;
         corrected.push(i);
       }
       if (after !== before) changes.push([i, before, after]);

@@ -479,6 +479,30 @@ code { background: rgba(0, 0, 0, 0.06); padding: 1px 5px; border-radius: 6px; }
   .logo-art { width: 64px; height: 64px; }
 }
 
+/* Phones on their side: tools move to the right edge so the board gets the
+   full height. main.js reads the toolbar's box to fit the board. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .toolbar {
+    left: auto;
+    right: max(8px, env(safe-area-inset-right));
+    top: 62px;
+    bottom: auto;
+    transform: none;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+  }
+  .toolbar:not(.colour) { grid-template-columns: auto; }
+  .paints { display: contents; }
+  .tool-btn, .paint { height: 44px; min-width: 52px; }
+  .tool-btn b { display: none; }
+  .hint-bubble { bottom: 8px; width: min(520px, calc(100vw - 110px)); transform: translateX(calc(-50% - 40px)); }
+  .overlay.low { align-items: center; justify-content: flex-end; padding: 10px max(12px, env(safe-area-inset-right)) 10px 12px; }
+  .results-card { max-width: min(360px, 46vw); padding: 10px 14px; }
+  .results-card .stars { font-size: 1.8rem; }
+}
+
 @media (max-height: 600px) {
   .title-card { padding: 10px 20px; }
   .tagline, .controls { display: none !important; }

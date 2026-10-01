@@ -10,6 +10,7 @@ for (const [ai, album] of ALBUMS.entries()) {
   album.built = album.puzzles.map((def, pi) => {
     const p = buildPuzzle({ ...def, colour: album.colour });
     p.album = ai;
+    p.tint = album.tint;
     p.number = pi + 1;
     p.order = PUZZLES.length;
     PUZZLES.push(p);

@@ -15,7 +15,7 @@ blinks, the rocket launches, the fish swims. Then it goes into your album.
   12×12 → 15×15 across five black-and-white albums (doodles, animals, food,
   vehicles, space), then three colour albums where clues are coloured
   (critters, café, cosmos). Each album unlocks after a few solves in total
-  (thresholds 0, 4, 9, 15, 21, 27, 34, 41), so nobody gets stuck. Every
+  (thresholds 0, 4, 9, 15, 21, 27, 34, 41 finished pictures), so nobody gets stuck. Every
   puzzle inside an unlocked album is open.
 - **One art grid per picture.** Each puzzle is a grid of palette letters
   (`.` is empty). Black-and-white puzzles use the silhouette (any letter is a
@@ -57,9 +57,18 @@ blinks, the rocket launches, the fish swims. Then it goes into your album.
 - **Cosmetics.** Six paper palettes and six pencil styles (graphite, crayon,
   ink stamp, watercolour, pixel block, neon marker) unlock by total stars.
   Fill tiles are baked per style and colour into offscreen canvases.
-- **Gallery.** Every finished picture shows as a living thumbnail; tap to see
-  it animated large. Unsolved ones are blank cards with a "?" and size, so the
-  gallery never spoils a puzzle.
+- **Gallery.** Every finished picture shows as a thumbnail on its album
+  shelf (plus a Daily Critters shelf); tap one to watch it come to life, with
+  arrows to flip through. Unsolved ones are blank cards with a "?" and size,
+  so the gallery never spoils a puzzle. The title and menu backdrops float
+  your finished pictures (topped up with random critters) doing their
+  animations.
+- **Progress preview.** The empty corner of the board shows a tiny live
+  preview of the fills so far.
+- **Pinned clues.** When zoomed in, row and column clues stay pinned to the
+  screen edges so the numbers are always readable.
+- **No lose state.** There is no fail screen; `level.fail` is not used.
+  Leaving a puzzle logs `level.leave` and keeps the board for later.
 - **Saves** under `picto-paint.v1`: per-puzzle stars, best time, in-progress
   boards (so leaving and returning resumes), settings, cosmetics, daily
   streak and critters.
