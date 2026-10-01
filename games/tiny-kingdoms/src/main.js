@@ -1,18 +1,17 @@
 // Browser shell: screens, input (mouse, touch, keyboard, gamepad), HUD,
 // saves and the guarded fixed-step loop.
-import { World, STEP, sendCount } from './sim.js';
+import { World, STEP } from './sim.js';
 import { AI } from './ai.js';
 import { Commander } from './command.js';
 import { hitNode, nearestInDirection } from './view.js';
 import { Renderer, THEMES, drawThumbnail, paintIslands } from './render.js';
-import { makeView } from './view.js';
 import { Sound } from './audio.js';
-import { drawEmblem, drawHero, INK, makeCanvas } from './sprites.js';
+import { drawEmblem, drawHero, INK } from './sprites.js';
 import {
-  COLORS, NEUTRAL_COLOR, RIVAL_ORDER, EMBLEMS, EMBLEM_NAMES, COLOR_UNLOCKS, EMBLEM_UNLOCKS,
+  COLORS, RIVAL_ORDER, EMBLEMS, EMBLEM_NAMES, COLOR_UNLOCKS, EMBLEM_UNLOCKS,
   PERSONALITIES, DIFFICULTIES, HEROES, HERO_ORDER, HERO_COOLDOWN,
 } from './data.js';
-import { CAMPAIGN, REGIONS, INTROS, campaignPlayers, goalText } from './campaign.js';
+import { CAMPAIGN, REGIONS, INTROS, goalText } from './campaign.js';
 import { generateMap, dailySetup, skirmishSetup, dateKey, labelNodes, SIZES } from './mapgen.js';
 import { makeRng, hashString } from './rng.js';
 import {
@@ -57,7 +56,7 @@ let briefing = null; // what the briefing screen will start
 let resultsBack = 'title';
 const ui = {
   hover: null, cursor: null, pointer: null, showLetters: !!save.letters, shift: false,
-  sendAll: !!save.sendAll, padCursor: null, padActive: false, tipTimer: 0, tipStage: 0,
+  sendAll: !!save.sendAll, fast: !!save.fast, padCursor: null, padActive: false, tipTimer: 0, tipStage: 0,
 };
 
 const heroesUnlocked = () => (debugUnlock ? HERO_ORDER.slice() : unlockedHeroes(save));
@@ -79,7 +78,9 @@ function insets() {
   const top = parseFloat(css.getPropertyValue('--hud-h')) || 58;
   const bottom = parseFloat(css.getPropertyValue('--foot-h')) || 70;
   const playing = mode === 'play' || mode === 'paused' || mode === 'results';
-  return playing ? { top: top + 4, bottom: bottom + 4, side: 6 } : { top: 0, bottom: 0, side: 0 };
+  // Tutorial maps on narrow screens keep room for the tip above the board.
+  const tipRoom = playing && match?.tutorial && innerWidth < 560 ? 86 : 0;
+  return playing ? { top: top + 4 + tipRoom, bottom: bottom + 4, side: 6 } : { top: 0, bottom: 0, side: 0 };
 }
 
 function resize() {
@@ -171,6 +172,7 @@ function startMatch(spec, { attract = false } = {}) {
     palettes: palettesFor(kingdoms, attract),
     emblems: emblemsFor(spec.rivals),
     outSeen: new Set(),
+    tutorial: spec.kind === 'campaign' && spec.index <= 3,
   };
   acc = 0;
   endTimer = -1;
@@ -269,6 +271,7 @@ function buildHud() {
   hb.classList.toggle('hidden', !match.hero);
   if (match.hero) heroCanvas($('hero-icon'), match.hero, 60);
   $('btn-amount').classList.toggle('all-on', ui.sendAll);
+  refreshSpeed();
   hudTimer = 0;
   updateHud(true);
 }
@@ -304,6 +307,20 @@ function toggleAmount() {
   persist();
   $('btn-amount').classList.toggle('all-on', ui.sendAll);
   sound.click();
+}
+
+function toggleSpeed() {
+  ui.fast = !ui.fast;
+  save.fast = ui.fast;
+  persist();
+  refreshSpeed();
+  sound.click();
+}
+
+function refreshSpeed() {
+  const b = $('btn-speed');
+  b.textContent = ui.fast ? '2×' : '1×';
+  b.classList.toggle('fast', ui.fast);
 }
 
 function toggleHero() {
@@ -399,7 +416,8 @@ function finish(won) {
       renderer.burst(p.x, p.y - 10, '#ffe066', 6, 160);
     }
   }
-  setTimeout(() => showResults(won, result, rec), won ? 1300 : 900);
+  const done = match;
+  setTimeout(() => { if (match === done && mode === 'play') showResults(won, result, rec); }, won ? 1300 : 900);
 }
 
 function showResults(won, result, rec) {
@@ -809,7 +827,7 @@ function openKingdom() {
 }
 
 function pause() {
-  if (mode !== 'play') return;
+  if (mode !== 'play' || endTimer >= 0) return; // the battle is already over
   mode = 'paused';
   sound.setMusicLevel(0.4);
   const w = match.world;
@@ -872,6 +890,7 @@ $('btn-sound').addEventListener('click', toggleMute);
 $('btn-music').addEventListener('click', () => { save.music = !save.music; sound.setMusic(save.music); persist(); refreshPauseButtons(); });
 $('btn-letters').addEventListener('click', () => { ui.showLetters = !ui.showLetters; save.letters = ui.showLetters; persist(); refreshPauseButtons(); });
 $('btn-amount').addEventListener('click', toggleAmount);
+$('btn-speed').addEventListener('click', toggleSpeed);
 $('btn-hero').addEventListener('click', toggleHero);
 for (const b of document.querySelectorAll('[data-back]')) b.addEventListener('click', () => { sound.click(); back(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
@@ -973,6 +992,7 @@ addEventListener('keydown', (e) => {
     else if (code === 'KeyM') toggleMute();
     else if (code === 'KeyH') toggleHero();
     else if (code === 'Space') toggleAmount();
+    else if (code === 'KeyF') toggleSpeed();
     else if (code === 'Backspace' || code === 'Delete') c.clear();
     else if (/^Digit[0-9]$/.test(code) || /^Numpad[0-9]$/.test(code)) {
       const n = Number(code.slice(-1));
@@ -1146,9 +1166,9 @@ function frame(now) {
   const running = match && (mode === 'play' || (match.attract && mode !== 'paused'));
   if (running) {
     const w = match.world;
-    acc += dt * (match.attract ? 1 : simSpeed);
+    acc += dt * (match.attract ? 1 : simSpeed * (ui.fast ? 2 : 1));
     let steps = 0;
-    while (acc >= STEP && steps < 40) {
+    while (acc >= STEP && steps < 80) {
       for (const ai of match.ais) ai.update(w, STEP);
       w.step(STEP);
       acc -= STEP;

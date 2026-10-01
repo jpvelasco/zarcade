@@ -109,12 +109,12 @@ reference bot wins it against six differently seeded rival runs.
 - Mouse/touch: drag from your building to a target; drag through several of
   your buildings to collect them; tap to select then tap a target; tap empty
   ground to clear. ½/All toggle and hero button in the HUD.
-- Keyboard: every building has a letter tag (letters H, M, P skipped).
+- Keyboard: every building has a letter tag (letters F, H, M, P skipped).
   Pressing your building's letter toggles it as a source; pressing any other
   letter sends to it (pressing a selected building's letter again when it is
   the only selection deselects; Enter on a selected own building with Shift
   reinforces). `0` selects all your buildings, Backspace clears, Space toggles
-  ½/All, H hero, Esc/P pause, M mute. Arrow keys move a cursor between
+  ½/All, H hero, F game speed 1×/2×, Esc/P pause, M mute. Arrow keys move a cursor between
   buildings and Enter acts like a tap.
 - Gamepad: stick moves a cursor that snaps to buildings; A acts like a mouse
   button (tap or hold-and-drag), B clears, X toggles ½/All, Y hero, LB selects

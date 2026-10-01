@@ -23,9 +23,10 @@ npm run serve        # from the repo root
 | Hero | hero button | hero button | H | Y |
 | Reinforce your own building | drag to it | drag to it | Shift + its letter | A on it |
 | Pause | ❚❚ | ❚❚ | Esc / P | Start |
+| Game speed 1× / 2× | 1× button | 1× button | F | |
 | Mute | pause menu | pause menu | M | |
 
-Building letters skip H, M and P. They appear as soon as you use the
+Building letters skip F, H, M and P. They appear as soon as you use the
 keyboard (toggle them in the pause menu).
 
 ## Rules

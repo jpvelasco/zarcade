@@ -66,9 +66,9 @@ test('skirmish setup follows its settings', () => {
   assert.equal(s.map.kingdoms, 4);
 });
 
-test('every building gets a unique letter, skipping H, M and P', () => {
+test('every building gets a unique letter, skipping the F, H, M and P hotkeys', () => {
   const m = generateMap({ seed: 3, size: 'large', kingdoms: 4 });
   const labels = labelNodes(m.nodes);
   assert.equal(new Set(labels).size, m.nodes.length);
-  for (const l of labels) assert.ok(l && !'HMP'.includes(l));
+  for (const l of labels) assert.ok(l && !'FHMP'.includes(l));
 });

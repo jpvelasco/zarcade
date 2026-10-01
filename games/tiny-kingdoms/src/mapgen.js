@@ -14,7 +14,7 @@ const TYPE_WEIGHTS = { cottage: 4, mill: 2.2, tower: 1.4, forge: 1, shrine: 0.8,
 const GARRISON = {
   cottage: [6, 12], mill: [12, 20], tower: [12, 18], forge: [10, 16], shrine: [14, 22], castle: [22, 32],
 };
-const MAX_NODES = 23;
+const MAX_NODES = 22; // one letter each
 const MIN_GAP = 150;
 const CX = WORLD_W / 2, CY = WORLD_H / 2, RX = WORLD_W / 2 - 110, RY = WORLD_H / 2 - 95;
 
@@ -174,8 +174,9 @@ export function skirmishSetup({ seed, size = 'medium', rivals = 1, difficulty = 
   return { seed, size, rivals: list, difficulty, map };
 }
 
-// Building letters for keyboard play: left to right, skipping H, M, P.
-export const LETTERS = 'ABCDEFGIJKLNOQRSTUVWXYZ';
+// Building letters for keyboard play: left to right, skipping the hotkeys
+// F (speed), H (hero), M (mute) and P (pause).
+export const LETTERS = 'ABCDEGIJKLNOQRSTUVWXYZ';
 export function labelNodes(nodes) {
   const order = nodes.map((n, i) => i).sort((a, b) => (nodes[a].x - nodes[b].x) || (nodes[a].y - nodes[b].y));
   const labels = new Array(nodes.length);

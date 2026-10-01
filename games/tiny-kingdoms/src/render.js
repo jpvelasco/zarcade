@@ -367,7 +367,7 @@ export class Renderer {
   }
 
   spriteW(type) {
-    return BUILDINGS[type].r * 2.45 * this.view.s;
+    return BUILDINGS[type].r * 2.8 * this.view.s;
   }
 
   buildingSprite(type, owner) {
