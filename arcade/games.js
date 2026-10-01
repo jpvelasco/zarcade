@@ -184,6 +184,16 @@
       accent: '#ffb84a',
       needsServer: true,
     },
+    {
+      slug: 'globe-gp',
+      title: 'Globe Grand Prix',
+      tagline: 'Race six rivals around the world.',
+      description: 'A 3D world-tour racer: drift-boost through Tokyo neon, Alpine snow, Sahara dunes and six more stops against named rivals, then win cups to unlock new cars.',
+      genre: 'Racing',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ff5a5f',
+      needsServer: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
