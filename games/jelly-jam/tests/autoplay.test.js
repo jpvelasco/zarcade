@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { autoPlay, pickMove, resolveAll } from '../src/ai.js';
 import { getLevel, LEVEL_COUNT } from '../src/levels.js';
+import { findMoves } from '../src/board.js';
+import { Rng } from '../src/rng.js';
 
 // The autoplayer stands in for a patient beginner: if it can finish a level
 // without the free continue, the level is generous enough.
@@ -48,4 +50,34 @@ test('the last level is reachable and finishes', () => {
   const result = autoPlay(game, { useContinue: true });
   assert.ok(['won', 'lost'].includes(result.phase));
   assert.ok(result.score > 0);
+});
+
+// A casual player: half the time the best move, otherwise any legal swap.
+// Uses the free continue like a real player would.
+function casualWins(id, deals) {
+  let wins = 0;
+  for (let seed = 1; seed <= deals; seed++) {
+    const game = new Game(getLevel(id), { seed });
+    const rng = new Rng(seed * 7919 + id);
+    for (let turns = 0; turns < 300; turns++) {
+      if (game.phase === 'outOfMoves' && !game.useContinue()) game.giveUp();
+      if (game.phase === 'won' || game.phase === 'lost') break;
+      if (game.pendingShuffle) game.doShuffle();
+      if (game.phase !== 'input') { resolveAll(game); continue; }
+      const moves = findMoves(game.board);
+      if (!moves.length) { game.doShuffle(); continue; }
+      const move = rng.next() < 0.5 ? pickMove(game) : moves[rng.int(moves.length)];
+      if (!game.swap(move.a, move.b).ok) break;
+      resolveAll(game);
+    }
+    if (game.phase === 'won') wins++;
+  }
+  return wins;
+}
+
+test('Kelp Cascade is no harder for a casual player than the levels around it', () => {
+  // Its sand used to sit in the very corners, which casual play rarely
+  // clears: this player won 16 of these 40 deals. Now it wins 27.
+  const wins = casualWins(21, 40);
+  assert.ok(wins >= 22, `Kelp Cascade won ${wins} of 40 casual deals`);
 });

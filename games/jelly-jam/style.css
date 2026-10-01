@@ -501,6 +501,23 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
   .level-name b { font-size: 14px; }
 }
 
+/* Narrow portrait phones: the level bar gets its own row so the score and
+   stars are not pushed off the right edge. */
+@media (max-aspect-ratio: 1/1) and (max-width: 520px) {
+  #hud {
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "top top" "moves score" "goals goals";
+  }
+  .level-name span { display: block; }
+}
+
+/* Finger-sized buttons on touch screens. */
+@media (hover: none) and (pointer: coarse) {
+  .icon-btn { width: 44px; height: 44px; font-size: 19px; }
+  .btn.small { min-height: 44px; }
+  .tabs button { min-height: 44px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #sea, .card, .stars.big i.on, .combo, .moves-box.low span, .jelly-row canvas { animation: none !important; }
   .btn { transition: none; }
