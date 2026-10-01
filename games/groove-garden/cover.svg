@@ -94,6 +94,8 @@
   <line x1="437" y1="110" x2="437" y2="250" stroke="#CC79A7" stroke-width="17" stroke-linecap="round"/>
   <line x1="437" y1="110" x2="437" y2="250" stroke="#ffffff" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="6 10"/>
 
+  <circle cx="437" cy="110" r="8" fill="#f6c4e1"/>
+
   <!-- hit line and receptors -->
   <rect x="250" y="398" width="300" height="5" fill="#a0ffaa" opacity="0.6"/>
   <g stroke-width="4" fill="#0a0614" fill-opacity="0.45">
@@ -108,7 +110,7 @@
     <circle cx="287" cy="320" r="23" fill="#E69F00"/>
     <circle cx="287" cy="120" r="23" fill="#E69F00"/>
     <path d="M362 196 L390 244 L334 244 Z" fill="#56B4E9"/>
-    <path d="M437 84 L463 111 L437 138 L411 111 Z" fill="#CC79A7"/>
+    <path d="M437 223 L463 250 L437 277 L411 250 Z" fill="#CC79A7"/>
     <path d="M512 258 L519 278 L541 278 L523 291 L530 312 L512 299 L494 312 L501 291 L483 278 L505 278 Z" fill="#F0E442"/>
     <path d="M512 30 L519 50 L541 50 L523 63 L530 84 L512 71 L494 84 L501 63 L483 50 L505 50 Z" fill="#F0E442"/>
   </g>
