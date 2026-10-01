@@ -163,6 +163,8 @@ export class World {
     const hasDir = len > 0.3;
     b.moving = len > 0.15;
     if (b.moving) b.facing = Math.atan2(my, mx);
+    // Letting go of the stick a split second before the button still dashes.
+    b.dirAge = hasDir ? 0 : (b.dirAge ?? 9) + dt;
 
     // Ground pound: rise, hang, slam.
     if (b.pound) {
@@ -187,6 +189,7 @@ export class World {
     } else if (b.charging) {
       b.charging = false;
       if (hasDir) this.dash(b, mx, my);
+      else if (b.dirAge < 0.15) this.dash(b, Math.cos(b.facing), Math.sin(b.facing));
       else this.startPound(b);
       b.charge = 0;
     }

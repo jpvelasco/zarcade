@@ -74,6 +74,17 @@ test('letting go of a charge with no direction ground-pounds and shoves neighbou
   assert.equal(a.stats.pounds, 1);
 });
 
+test('letting go of the stick just before the button still dashes that way', () => {
+  const w = playWorld();
+  const [a, b] = w.blobs;
+  place(a, 0, 0); place(b, 0, 250);
+  run(w, 0.4, [{ mx: 0, my: -1, dash: true }]);
+  run(w, 0.05, [{ dash: true }]);
+  w.step(STEP, [{ dash: false }]);
+  assert.ok(a.dashT > 0 && a.vy < -300, `vy ${a.vy}`);
+  assert.equal(a.pound, 0);
+});
+
 test('a bubble shield takes one hit and pops', () => {
   const w = playWorld();
   const [a, b] = w.blobs;

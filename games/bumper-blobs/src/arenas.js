@@ -55,7 +55,7 @@ export const ARENAS = [
   },
   {
     id: 'cookie', name: 'Crumble Cookie', blurb: 'Tiles crack under you. Keep moving!',
-    kind: 'tiles', cols: 7, rows: 7, size: 86, gap: 6, cut: 2, crack: 1.4, regrow: 7, extent: 330,
+    kind: 'tiles', cols: 7, rows: 7, size: 86, gap: 6, cut: 2, crack: 1.2, press: 0.7, regrow: 7, extent: 330,
     theme: { sky: ['#ffe9d6', '#e8a77a'], top: '#e9b77a', top2: '#c98a4c', side: '#7a4a24', rim: '#f8d6a6', deco: 'chips', glow: '#ffd2a0' },
   },
   {
@@ -102,7 +102,7 @@ function buildTiles(a) {
       // Cut the corners for a rounder cookie.
       const dc = Math.min(c, a.cols - 1 - c), dr = Math.min(r, a.rows - 1 - r);
       if (dc + dr < a.cut) continue;
-      tiles.push({ x: ox + c * pitch, y: oy + r * pitch, half: a.size / 2, crack: 0, gone: false, regrow: 0 });
+      tiles.push({ x: ox + c * pitch, y: oy + r * pitch, half: a.size / 2, crack: 0, press: 0, gone: false, regrow: 0 });
     }
   }
   return tiles;
@@ -165,8 +165,18 @@ export function updateArena(st, dt, blobs, playing) {
           if (tile.crack >= a.crack) { tile.gone = true; tile.crack = 0; tile.regrow = a.regrow; }
         }
       }
+      // A tile cracks after being stood on for a moment.
+      for (const tile of st.tiles) tile.press = Math.max(0, (tile.press || 0) - dt * 0.5);
       if (playing && st.t > 2) {
-        for (const b of blobs) if (b.grounded) crackAt(st, b.x, b.y, b.radius * 0.6, false);
+        for (const b of blobs) {
+          if (!b.grounded) continue;
+          for (const tile of st.tiles) {
+            if (tile.gone || tile.crack > 0) continue;
+            if (Math.abs(b.x - tile.x) > tile.half || Math.abs(b.y - tile.y) > tile.half) continue;
+            tile.press = (tile.press || 0) + dt * 1.5 * (b.mass || 1);
+            if (tile.press >= a.press) tile.crack = 0.0001;
+          }
+        }
       }
       break;
     }

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#ff8fc8">
+  <meta name="description" content="Bumper Blobs: couch party sumo for 1 to 4 players. Bump squishy jelly blobs off floating dessert arenas.">
+  <title>Bumper Blobs — couch party sumo</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="bumper-blobs"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Bumper Blobs arena"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Bumper Blobs uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/bumper-blobs/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud" class="hud hidden">
+    <div id="chips-left" class="chips left"></div>
+    <div id="chips-right" class="chips right"></div>
+    <div id="hud-info" class="hud-info"><span id="hud-goal"></span><b id="hud-timer"></b></div>
+    <div class="hud-buttons">
+      <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+  </div>
+
+  <div id="touch" class="touch hidden" aria-hidden="true">
+    <div id="stick-zone" class="stick-zone">
+      <div id="stick-base" class="stick-base"><div id="stick-knob" class="stick-knob"></div></div>
+      <span class="stick-hint">Drag to move</span>
+    </div>
+    <button id="btn-tpound" class="tbtn pound">POUND</button>
+    <button id="btn-tdash" class="tbtn dash">DASH<small>hold</small></button>
+  </div>
+
+  <section id="screen-title" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Bumper Blobs">
+        <h1><span class="l1">Bumper</span><span class="l2">Blobs</span></h1>
+        <canvas id="logo-blob" class="logo-blob" width="160" height="160" aria-hidden="true"></canvas>
+      </div>
+      <p class="tagline">Squishy sumo for 1–4 players. Bump your friends off the dessert!</p>
+      <div class="col">
+        <button id="btn-party" class="btn primary big">Party · 1–4 players</button>
+        <button id="btn-quick" class="btn big alt">Quick match vs bots</button>
+        <div class="row">
+          <button id="btn-collection" class="btn">Hats &amp; trophies</button>
+          <button id="btn-howto" class="btn">How to play</button>
+        </div>
+        <div class="row">
+          <button class="btn" data-sound>Sound: on</button>
+          <button class="btn" data-music>Music: on</button>
+        </div>
+      </div>
+      <p id="title-stars" class="muted"></p>
+    </div>
+  </section>
+
+  <section id="screen-setup" class="overlay dim hidden">
+    <div class="card wide setup-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Match settings</h2>
+        <span class="spacer"></span>
+      </div>
+      <div class="setup-grid">
+        <div class="opt full">
+          <span class="opt-label">Mode</span>
+          <div id="opt-mode" class="mode-cards"></div>
+        </div>
+        <div class="opt"><span class="opt-label" id="goal-label">Goal</span><div id="opt-target" class="chipset"></div></div>
+        <div class="opt"><span class="opt-label">Bots</span><div id="opt-bots" class="chipset"></div></div>
+        <div class="opt"><span class="opt-label">Bot skill</span><div id="opt-skill" class="chipset"></div></div>
+        <div class="opt"><span class="opt-label">Extras</span><div id="opt-extras" class="chipset"></div></div>
+        <div class="opt full"><span class="opt-label">Arena</span><div id="opt-arena" class="chipset arenas"></div></div>
+      </div>
+      <p id="arena-blurb" class="muted center"></p>
+      <div class="row"><button id="btn-to-join" class="btn primary big">Next: join in →</button></div>
+    </div>
+  </section>
+
+  <section id="screen-join" class="overlay dim hidden">
+    <div class="card wide join-card">
+      <div class="head">
+        <button class="btn small" data-back tabindex="-1">← Settings</button>
+        <h2>Press a button to join!</h2>
+        <span class="spacer"></span>
+      </div>
+      <div id="slots" class="slots"></div>
+      <p id="join-keys" class="muted center join-keys"></p>
+      <p id="join-status" class="join-status"></p>
+      <div class="row"><button id="btn-start" class="btn primary big" tabindex="-1">Start!</button></div>
+    </div>
+  </section>
+
+  <section id="screen-howto" class="overlay dim hidden">
+    <div class="card wide howto-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>How to play</h2>
+        <span class="spacer"></span>
+      </div>
+      <div class="howto">
+        <div><b>Move</b><span>Stick, WASD, arrows, IJKL or numpad. On a phone, drag on the left side.</span></div>
+        <div><b>Dash-bump</b><span>Hold your button to charge, let go to launch. A big charge sends blobs flying!</span></div>
+        <div><b>Ground-pound</b><span>Let go of a charge without a direction, or press pound. Slam down and shove everyone nearby.</span></div>
+        <div><b>Dig in</b><span>Just got bonked? Push the other way to slide less.</span></div>
+        <div><b>Power-ups</b><span><i class="pw giant"></i>Giant <i class="pw sticky"></i>Sticky (slows who you hit) <i class="pw magnet"></i>Magnet <i class="pw shield"></i>Bubble shield</span></div>
+        <div><b>Bombs</b><span>A red circle means something is about to land. Run!</span></div>
+      </div>
+      <table class="keys">
+        <thead><tr><th>Player</th><th>Move</th><th>Dash</th><th>Pound</th></tr></thead>
+        <tbody>
+          <tr><td>Keys 1</td><td>W A S D</td><td>Space</td><td>E</td></tr>
+          <tr><td>Keys 2</td><td>Arrows</td><td>Enter</td><td>Right Shift</td></tr>
+          <tr><td>Keys 3</td><td>I J K L</td><td>U</td><td>O</td></tr>
+          <tr><td>Keys 4</td><td>Numpad 8 4 5 6</td><td>Numpad 0</td><td>Numpad .</td></tr>
+          <tr><td>Gamepad</td><td>Stick / d-pad</td><td>A</td><td>B</td></tr>
+        </tbody>
+      </table>
+      <p class="muted center">Pause: Esc, P or Start · Mute: M</p>
+    </div>
+  </section>
+
+  <section id="screen-collection" class="overlay dim hidden">
+    <div class="card wide collection-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Hats &amp; trophies</h2>
+        <span id="coll-stars" class="pill"></span>
+      </div>
+      <div id="hat-grid" class="hat-grid"></div>
+      <h3>Trophies <small>(+5 ★ each)</small></h3>
+      <div id="trophy-grid" class="trophy-grid"></div>
+      <div id="stat-line" class="stat-line"></div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart match</button>
+        <button id="btn-quit" class="btn">Quit to title</button>
+        <div class="row">
+          <button class="btn" data-sound>Sound: on</button>
+          <button class="btn" data-music>Music: on</button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-round" class="overlay round-overlay hidden">
+    <div class="card round-card">
+      <h2 id="round-title">Round over!</h2>
+      <div id="round-board" class="board"></div>
+      <p id="round-next" class="muted"></p>
+      <button id="btn-next-round" class="btn primary">Next round →</button>
+    </div>
+  </section>
+
+  <section id="screen-podium" class="overlay podium-overlay hidden">
+    <div class="card podium-card">
+      <h2 id="podium-title" class="rainbow">Blob Champion!</h2>
+      <div id="podium-board" class="board"></div>
+      <p id="podium-reward" class="reward"></p>
+      <div class="row">
+        <button id="btn-rematch" class="btn primary">Rematch</button>
+        <button id="btn-newmatch" class="btn">New match</button>
+        <button class="btn" data-title>Title</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
