@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { World, INTRO } from '../src/world.js';
+import { World, INTRO, BOLT_GRACE } from '../src/world.js';
 import { buildJourney } from '../src/journey.js';
 import { planet } from '../src/galaxy.js';
 import { aiInput } from '../src/ai.js';
@@ -49,6 +49,30 @@ for (const id of PLANETS) {
     assert.equal(w.status, 'finished', `destroyed at ${Math.round((w.player.s / w.journey.length) * 100)}%`);
   });
 }
+
+// A timid first-timer who never dodges and only nudges the stick halfway.
+// The planets next to Home Port must still be reachable without upgrades.
+for (const id of ['H.0', 'H.1', 'H.2']) {
+  test(`${id}: a timid pilot who barely steers still arrives`, () => {
+    const timid = (w) => {
+      const want = w.time >= 0 ? aiInput(w, { dodgeBolts: false }) : {};
+      return { ...want, x: (want.x || 0) * 0.5, y: (want.y || 0) * 0.5, fire: true };
+    };
+    const w = fly(new World(planet(id)), timid);
+    assert.equal(w.status, 'finished', `destroyed at ${Math.round((w.player.s / w.journey.length) * 100)}%`);
+  });
+}
+
+test('a bolt hit gives a moment of grace from the next bolt', () => {
+  const w = quietWorld();
+  const p = w.player;
+  const hull = p.hull + p.shield;
+  assert.ok(w.damage(7, { bolt: true }));
+  assert.equal(w.damage(7, { bolt: true }), false, 'second bolt right away is ignored');
+  for (let i = 0; i < Math.ceil(BOLT_GRACE * 60) + 1; i++) w.step(DT, {});
+  assert.ok(w.damage(7, { bolt: true }), 'grace wears off');
+  assert.ok(p.hull + p.shield <= hull - 14 + 1e-9);
+});
 
 test('journeys are deterministic and keep landmarks clear', () => {
   const a = buildJourney(planet('H.2.1'));
@@ -132,6 +156,7 @@ test('shields soak damage before the hull; rolling deflects bolts', () => {
   assert.equal(p.hull, p.maxHull);
   assert.equal(p.shield, p.maxShield - 10);
   p.shield = 0;
+  p.boltGrace = 0;
   w.damage(10, { bolt: true });
   assert.equal(p.hull, p.maxHull - 10);
   p.roll = 0.3;

@@ -459,7 +459,13 @@ export class JourneyView {
       this.camera.position.y += (Math.random() - 0.5) * s;
     }
     cam.fov += (fov - cam.fov) * Math.min(1, dt * 4);
-    this.camera.fov = cam.fov;
+    // A phone held upright would see a very narrow slice of space, hiding
+    // enemies to the sides. Keep the side-to-side view at least as wide as
+    // a 0.7 aspect screen gets.
+    const widen = Math.max(1, 0.7 / this.camera.aspect);
+    this.camera.fov = widen > 1 ? 2 * Math.atan(Math.tan(cam.fov * Math.PI / 360) * widen) * 180 / Math.PI : cam.fov;
+    // Stretch the cockpit to match, so its frame stays at the screen edges.
+    this.cockpit.scale.y = widen;
     this.camera.updateProjectionMatrix();
   }
 

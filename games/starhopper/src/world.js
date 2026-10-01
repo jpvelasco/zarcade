@@ -6,6 +6,7 @@ import { aiInput } from './ai.js';
 import { clamp, rng } from './math.js';
 
 export const INTRO = 2.5;
+export const BOLT_GRACE = 0.45; // seconds a bolt hit protects from further bolts
 const SPAWN_AHEAD = 440;
 const BEHIND = 60;          // things this far behind the jet are gone
 const BOSS_GAP = 150;
@@ -39,7 +40,7 @@ export class World {
       s: 0, sPrev: 0, u: 0, w: 0, vu: 0, vw: 0, speed: stats.cruise,
       hull: stats.hull, maxHull: stats.hull, shield: stats.shield, maxShield: stats.shield, sinceHit: 9,
       boost: 1, boosting: false, cannon: stats.cannonStart, missiles: stats.missiles,
-      fireCooldown: 0, missileCooldown: 0, roll: 0, rollDir: 0, rollCooldown: 0, rollHeld: false, invuln: 0,
+      fireCooldown: 0, missileCooldown: 0, roll: 0, rollDir: 0, rollCooldown: 0, rollHeld: false, invuln: 0, boltGrace: 0,
       score: 0, dust: 0, kills: 0, spawned: 0, combo: 0, comboTimer: 0,
       hyper: 0, hyperEnd: 0, hyperDustS: 0, burgerDone: false, lock: null, autopilot,
     };
@@ -128,6 +129,7 @@ export class World {
     p.sinceHit += dt;
     if (p.sinceHit > st.shieldDelay) p.shield = Math.min(p.maxShield, p.shield + st.shieldRegen * dt);
     p.invuln = Math.max(0, p.invuln - dt);
+    p.boltGrace = Math.max(0, p.boltGrace - dt);
     p.comboTimer -= dt;
     if (p.comboTimer <= 0) p.combo = 0;
 
@@ -219,6 +221,10 @@ export class World {
     const p = this.player;
     if (this.status === 'hyper' || this.status === 'arriving') return false;
     if (bolt && p.roll > 0) { this.emit('deflect', { s: p.s, u: p.u, w: p.w }); return false; }
+    // A moment's grace after a bolt hit, so a stream of turret fire can't
+    // shred a pilot who hasn't learned to dodge yet before they react.
+    if (bolt && p.boltGrace > 0) return false;
+    if (bolt) p.boltGrace = BOLT_GRACE;
     if (!bolt && p.invuln > 0) return false;
     if (!bolt) p.invuln = 0.6;
     p.sinceHit = 0;

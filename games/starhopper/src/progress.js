@@ -22,7 +22,12 @@ export const MENU = [
   { id: 'combo', icon: '🌟', name: 'Galactic Combo', blurb: 'All of the above!', price: 70 },
 ];
 
-export const menuPrice = (item, depth) => Math.round(item.price * (1 + 0.15 * Math.max(0, depth - 1)));
+// Every visit comes with one free Comet Cola, so even a new pilot who has
+// barely any stardust leaves the drive-thru with a treat.
+export const FREE_ITEM = 'cola';
+
+export const menuPrice = (item, depth, { freebie = false } = {}) =>
+  freebie && item.id === FREE_ITEM ? 0 : Math.round(item.price * (1 + 0.15 * Math.max(0, depth - 1)));
 
 export function defaultSave() {
   return {

@@ -35,6 +35,11 @@ html, body {
   background: radial-gradient(ellipse at center, rgba(5, 8, 25, 0.2), rgba(5, 8, 25, 0.65));
   animation: fade 0.3s ease;
 }
+/* A card taller than the screen scrolls from its top instead of being cut
+   off, and the single column never grows wider than the screen (the galaxy
+   map scrolls inside its card instead). */
+.overlay { grid-template-columns: minmax(0, 1fr); }
+.overlay > .card { margin-block: auto; }
 .overlay.left { justify-items: start; padding-left: max(20px, 6vw); }
 .overlay.right { justify-items: end; padding-right: max(20px, 5vw); }
 @media (max-width: 760px) { .overlay.left, .overlay.right { justify-items: center; padding: 20px; } }
@@ -69,6 +74,11 @@ html, body {
 .logo span { display: block; font-size: 0.6em; letter-spacing: 0.2em; text-transform: uppercase; }
 .tagline { margin: 12px 0 18px; color: var(--muted); font-size: 17px; }
 .controls { margin: 18px 0 0; font-size: 13px; color: var(--muted); line-height: 1.7; }
+.controls.touch-only { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .controls.touch-only { display: block; }
+  .controls.keys-only { display: none; }
+}
 h2 { margin: 0 0 6px; font-size: 30px; }
 h3 { margin: 16px 0 8px; font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
 .muted { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
@@ -145,6 +155,25 @@ code { background: rgba(0, 0, 0, 0.35); padding: 2px 6px; border-radius: 6px; fo
 .menu-item .name { font-weight: 900; }
 .menu-item .blurb { font-size: 12px; color: var(--muted); }
 .menu-item .price { font-weight: 800; color: #ffd76a; margin-top: 4px; }
+.menu-item.free { border-color: #6dff9e; box-shadow: 0 0 18px rgba(109, 255, 158, 0.35); }
+.menu-item.free .price { color: #6dff9e; }
+
+/* Phones: one compact row per treat (icon, name and blurb, price) so the
+   whole menu and the way back to space fit without scrolling. */
+@media (max-width: 560px), (max-height: 500px) {
+  .shop { padding: 16px 16px 14px; }
+  .shop-title { font-size: 28px; margin-bottom: 2px; }
+  .shop .muted { margin-top: 4px; font-size: 13px; }
+  .menu-list { grid-template-columns: 1fr; gap: 6px; margin-top: 8px; }
+  .menu-item { grid-template-columns: 40px 1fr auto; grid-template-areas: 'icon name price' 'icon blurb price'; justify-items: start; align-items: center; column-gap: 10px; padding: 7px 12px; min-height: 52px; text-align: left; }
+  .menu-item .icon { grid-area: icon; font-size: 28px; }
+  .menu-item .name { grid-area: name; }
+  .menu-item .blurb { grid-area: blurb; }
+  .menu-item .price { grid-area: price; margin: 0; }
+}
+@media (max-height: 500px) and (min-width: 561px) {
+  .menu-list { grid-template-columns: 1fr 1fr; }
+}
 
 /* ---------- results ---------- */
 .stars { margin: 6px 0 0; font-size: 50px; letter-spacing: 8px; }
@@ -237,6 +266,16 @@ code { background: rgba(0, 0, 0, 0.35); padding: 2px 6px; border-radius: 6px; fo
   .stat { font-size: 15px; }
   .planet-name { display: none; }
   .weapons { min-width: 0; font-size: 13px; }
+}
+/* Phones held sideways: a smaller radar so it covers less of space. */
+@media (max-height: 500px) {
+  .radar { width: 96px; height: 96px; }
+  .overlay { padding: 10px 20px; }
+  .card { padding: 14px 22px; }
+  #screen-hangar .card { width: min(760px, 100%); }
+  #screen-hangar .upgrade-list { grid-template-columns: 1fr 1fr; }
+  #screen-hangar h3 { margin: 10px 0 6px; }
+  .galaxy { max-height: 48vh; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }

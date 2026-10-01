@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultSave, loadSave, writeSave, statsFor, buyUpgrade, starsFor, recordArrival, menuPrice, MENU, SAVE_KEY } from '../src/progress.js';
+import { defaultSave, loadSave, writeSave, statsFor, buyUpgrade, starsFor, recordArrival, menuPrice, MENU, FREE_ITEM, SAVE_KEY } from '../src/progress.js';
 import { planet, children } from '../src/galaxy.js';
 
 const memoryStorage = () => {
@@ -52,4 +52,14 @@ test('the burger menu gets pricier deeper in the galaxy', () => {
   const burger = MENU[0];
   assert.equal(menuPrice(burger, 1), burger.price);
   assert.ok(menuPrice(burger, 6) > burger.price);
+});
+
+test('each Space Burger visit has one free item and everything else keeps its price', () => {
+  const free = MENU.find((item) => item.id === FREE_ITEM);
+  assert.ok(free, 'the free item is on the menu');
+  assert.equal(menuPrice(free, 4, { freebie: true }), 0);
+  assert.ok(menuPrice(free, 4) > 0, 'only free while the freebie is unclaimed');
+  for (const item of MENU.filter((entry) => entry.id !== FREE_ITEM)) {
+    assert.equal(menuPrice(item, 4, { freebie: true }), menuPrice(item, 4));
+  }
 });

@@ -6,7 +6,7 @@ import { Input } from './input.js';
 import { Audio } from './audio.js';
 import { BIOMES } from './biomes.js';
 import { HOME, planet, children, visiblePlanets, isReachable, depthOf, parentOf } from './galaxy.js';
-import { loadSave, writeSave, statsFor, UPGRADES, PAINTS, upgradeCost, buyUpgrade, recordArrival, MENU, menuPrice } from './progress.js';
+import { loadSave, writeSave, statsFor, UPGRADES, PAINTS, upgradeCost, buyUpgrade, recordArrival, MENU, menuPrice, FREE_ITEM } from './progress.js';
 import { frameMonitor } from './perf.js';
 
 const STEP = 1 / 60;
@@ -237,8 +237,11 @@ function resume() {
 
 // ------------------------------------------------------------ Space Burger
 
+let shopFreebie = false; // the visit's free Comet Cola is still unclaimed
+
 function openShop() {
   mode = 'shop';
+  shopFreebie = true;
   renderShop();
   showScreen('screen-shop');
 }
@@ -250,13 +253,15 @@ function renderShop() {
   const list = $('menu-list');
   list.innerHTML = '';
   for (const item of MENU) {
-    const price = menuPrice(item, world.planet.depth);
+    const free = shopFreebie && item.id === FREE_ITEM;
+    const price = menuPrice(item, world.planet.depth, { freebie: shopFreebie });
     const b = document.createElement('button');
-    b.className = 'menu-item';
+    b.className = free ? 'menu-item free' : 'menu-item';
     b.disabled = save.stardust + p.dust < price;
-    b.innerHTML = `<span class="icon">${item.icon}</span><span class="name">${item.name}</span><span class="blurb">${item.blurb}</span><span class="price">✨ ${price}</span>`;
+    b.innerHTML = `<span class="icon">${item.icon}</span><span class="name">${item.name}</span><span class="blurb">${item.blurb}</span><span class="price">${free ? 'FREE today!' : `✨ ${price}`}</span>`;
     b.addEventListener('click', () => {
       if (save.stardust + p.dust < price) return;
+      if (free) shopFreebie = false;
       const fromRun = Math.min(p.dust, price);
       p.dust -= fromRun;
       save.stardust -= price - fromRun;

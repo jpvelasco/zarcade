@@ -40,7 +40,7 @@ the lock, so lining up is enough.
   shields, 🔧 repair, 🚀 missiles, 🌀 hyperspace booster, ✨ stardust.
 - **Space Burger:** fly through the drive-thru ring about halfway there for
   Nebula Burgers (repair), Rocket Fries (missiles), Plasma Shakes (cannon
-  power), Comet Cola (shields) or the Galactic Combo.
+  power), Comet Cola (shields) or the Galactic Combo. The first Comet Cola each visit is free.
 - **Stars:** 1 for arriving, 2 for also destroying half the enemies, 3 for
   also arriving with 60% hull.
 - **Hangar:** spend stardust on cannons, hull, deflector shields, engines and
