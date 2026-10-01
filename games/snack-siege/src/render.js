@@ -476,25 +476,30 @@ export class Renderer {
     this.drawQueue(ctx, game);
     this.drawBodies(ctx, game);
 
+    const frontBand = () => {
+      ctx.strokeStyle = this.skin.band;
+      ctx.lineWidth = bandW;
+      ctx.beginPath();
+      ctx.moveTo(this.sx(frontTip[0]), this.sy(frontTip[1]));
+      ctx.lineTo(this.sx(pouch.x - 0.3), this.sy(pouch.y + wob));
+      ctx.stroke();
+    };
     if (aiming) {
       const r = BEANS[game.bean].r;
+      // The pouch sits behind the bean; at rest the bean shows in front of
+      // both bands, and once pulled the front band wraps over it.
+      ctx.fillStyle = '#5a2a1a';
+      ctx.beginPath();
+      ctx.ellipse(this.sx(pouch.x - r * 0.7), this.sy(pouch.y - r * 0.1), s * 0.18, s * 0.36, 0, 0, Math.PI * 2);
+      ctx.fill();
+      if (!ui.pull) frontBand();
       const spr = this.beanSprite(game.bean, r, ui.pull ? 'go' : 'happy');
-      ctx.setTransform(1, 0, 0, 1, this.sx(pouch.x), this.sy(pouch.y));
+      ctx.setTransform(1, 0, 0, 1, this.sx(pouch.x), this.sy(pouch.y + (ui.pull ? 0 : 0.12)));
       if (ui.pull) ctx.rotate(Math.atan2(ui.pull.y, -ui.pull.x) * 0.5);
       ctx.drawImage(spr, -spr.width / 2, -spr.height / 2);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      // Pouch.
-      ctx.fillStyle = '#5a2a1a';
-      ctx.beginPath();
-      ctx.ellipse(this.sx(pouch.x - r * 0.75), this.sy(pouch.y), s * 0.16, s * 0.34, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.strokeStyle = this.skin.band;
-    ctx.lineWidth = bandW;
-    ctx.beginPath();
-    ctx.moveTo(this.sx(frontTip[0]), this.sy(frontTip[1]));
-    ctx.lineTo(this.sx(pouch.x - 0.3), this.sy(pouch.y + wob));
-    ctx.stroke();
+      if (ui.pull) frontBand();
+    } else frontBand();
     ctx.drawImage(sl.front, px - sl.ox, py - sl.oy);
 
     if (aiming && ui.pull) this.drawAim(ctx, game, ui.pull);
