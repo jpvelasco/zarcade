@@ -262,6 +262,14 @@ test('decorations go on farm grass and come back with the hoe', () => {
   useOn(w, 'gnome', 20, 21);
   if (g !== 1) {
     assert.equal(w.obj[idx(20, 21)]?.id, 'gnome');
+    // Another tool leaves it in place and says how to pick it up, in words
+    // that work for every kind of controller.
+    w.events.length = 0;
+    useOn(w, 'can', 20, 21);
+    assert.equal(w.obj[idx(20, 21)]?.id, 'gnome');
+    const tip = w.events.find((e) => e.type === 'toast');
+    assert.match(tip.text, /hoe/);
+    assert.doesNotMatch(tip.text, /Press|Space|click/i);
     useOn(w, 'hoe', 20, 21);
     assert.equal(w.obj[idx(20, 21)], null);
     assert.equal(w.inv.gnome, 1);
@@ -284,6 +292,10 @@ test('fishing: wait for the bite, then pull', () => {
   standAt(w, shore[0], shore[1], 'right');
   useOn(w, 'rod', shore[0] + 1, shore[1]);
   assert.ok(w.player.fishing);
+  // The first cast explains how to reel in, without naming a key.
+  const tip = w.events.find((e) => e.type === 'toast' && /reel it in/.test(e.text));
+  assert.ok(tip);
+  assert.doesNotMatch(tip.text, /Space|press|click|tap/i);
   let t = 0;
   while (w.player.fishing.state === 'cast' && t < 10) { w.step(0.05, {}); t += 0.05; }
   assert.equal(w.player.fishing.state, 'bite');

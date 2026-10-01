@@ -708,7 +708,7 @@ export class World {
     const o = this.obj[k];
     if (o?.type === 'decor' || o?.type === 'sprinkler') {
       if (!tools || this.selected === 'hoe') this.pickUp(tx, ty);
-      else this.toast(`Press E or use the hoe to pick up the ${o.type === 'decor' ? DECOR[o.id].name : 'sprinkler'}.`);
+      else this.toast(`Use the hoe on the ${o.type === 'decor' ? DECOR[o.id].name : 'sprinkler'} to pick it up.`);
       p.busy = 0.15;
       return;
     }
@@ -807,6 +807,7 @@ export class World {
       p.busy = 0;
       p.fishing = { state: 'cast', t: 0, bite: 1.6 + this.rand() * 3, tx, ty, where: water };
       this.events.push({ type: 'cast', x: tx, y: ty });
+      if (!this.stats.fishCaught) this.toastOnce('reel', 'Wait for the ! over your head, then use the rod again to reel it in.');
       return;
     }
     if (tool === 'net') {
