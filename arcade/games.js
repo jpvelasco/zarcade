@@ -303,6 +303,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'tumble-tower',
+      title: 'Tumble Tower',
+      tagline: 'Stack wobbly animals up to the goal line!',
+      description: 'A physics stacking game: drop hippos, giraffes, pandas and turtles from a crane, build past the goal line and keep the tower steady for 3 seconds. Climb 32 island levels, go Endless, or take turns in Pass & Play.',
+      genre: 'Physics',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ff7a59',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
