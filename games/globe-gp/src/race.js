@@ -133,6 +133,7 @@ export class Race {
       if (r.finished && r.ai) control = { ...control, throttle: Math.min(control.throttle, 0.55), boost: false };
       if (r.isPlayer && input.reset && !r.finished) this.respawn(r);
 
+      r.braking = control.brake > 0.1;
       const v = r.vehicle;
       const surfKey = r.onShortcut ? r.onShortcut.surface : t.surfaceAt(r.index, r.lateral);
       v.surface = surfKey;

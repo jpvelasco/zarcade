@@ -86,7 +86,7 @@ export const LOCATIONS = [
     palette: {
       skyTop: '#4a6ac0', skyHorizon: '#ffb070', fog: '#f0b884', fogNear: 120, fogFar: 640,
       sun: '#ffcc88', sunElevation: 0.16, sunAzimuth: -1.0, ambient: 0.55, light: 1.2,
-      ground: '#e8b46a', groundDark: '#c98e48', road: '#b08454', line: '#fff0d0',
+      ground: '#e8b46a', groundDark: '#c98e48', road: '#8a5e3a', line: '#fff0d0',
       curbA: '#c84a2a', curbB: '#f8e8c8', wall: '#c8a070', wallTrim: '#8a6a40', water: '#3a9ab0',
     },
     circuit: { seed: 51, radius: 200, wobble: 0.3, points: 10, width: 15, hills: 4, base: 0, shortcuts: 1 },
