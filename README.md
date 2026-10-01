@@ -50,9 +50,39 @@ entry to `arcade/games.js`. The arcade tests check that every folder is listed.
 - **Hide the pointer while playing.** Games hide the mouse pointer after a
   moment without movement during play, and show it again on any movement.
 
+## Telemetry and support
+
+Every game and the arcade load `telemetry.js` first (`<script src="telemetry.js"
+data-service="<slug>">`). It writes structured logs that follow the
+OpenTelemetry Logs data model (severity, body, attributes, trace and span IDs,
+`service.name`, `session.id`) and uses the exception semantic conventions for
+errors.
+
+- **Crash screen.** An uncaught error, or one inside a loop wrapped with
+  `Telemetry.guard(fn)`, shows "Oops! The game hit a bug." with *Try again*,
+  *Back to arcade* and *Copy report*, instead of a frozen picture.
+- **Local logs.** The last 200 records per game are kept in `localStorage`
+  under `<slug>.v1.log`. Nothing leaves the device by default.
+- **Help & diagnostics.** The arcade footer opens a panel that summarizes
+  problems per game, copies one support report for all games, clears logs,
+  and switches sending on or off.
+- **OTLP export.** With sending on (or `?otlp=<url>`, or `?otlp=same`), games
+  POST OTLP/HTTP JSON to `<url>/v1/logs`. `npm run serve` accepts these at
+  `http://localhost:8000/v1/logs`, appends them to `logs/telemetry.ndjson`
+  (git-ignored) and prints warnings and errors. Any OpenTelemetry Collector
+  with an OTLP/HTTP receiver (port 4318, CORS allowed for the arcade's origin)
+  works too.
+- **Game events.** Use `window.Telemetry?.log.event(name, attributes)`.
+  Neon Nighthawk also reports slow frames (`frame.long`, `perf.degraded`) and
+  freezes (`frame.stall`, measured by a watchdog outside the frame loop).
+
+`arcade/telemetry.js` is the canonical copy. After editing it, run
+`npm run sync-telemetry`; the arcade tests check every copy matches.
+
 ## Commands
 
 ```sh
-npm test         # run every game's tests
-npm run serve    # serve the repo at http://localhost:8000 (no caching, so edits show on reload)
+npm test               # run every game's tests, plus the arcade and telemetry tests
+npm run serve          # serve the repo at http://localhost:8000 (no caching) and collect OTLP logs
+npm run sync-telemetry # copy arcade/telemetry.js into every game
 ```

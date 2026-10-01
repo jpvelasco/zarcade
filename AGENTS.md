@@ -57,6 +57,12 @@ games never depend on arcade files.
   link, and its pause menu has a `Back to arcade` button. Both go to
   `../../index.html`. Escape (and gamepad Start, where the game supports
   gamepads) pauses active play.
+- Every game loads its copy of `telemetry.js` before any other script, with
+  `data-service` set to its slug. Report game events with
+  `window.Telemetry?.log.event(...)` and wrap the frame loop with
+  `Telemetry.guard(...)` so crashes show the crash screen. Never edit a game's
+  copy directly: change `arcade/telemetry.js`, then run `npm run sync-telemetry`.
+  Logs must not contain personal data.
 - Every game ships a `cover.svg` (16:10, 800×500 viewBox) that the arcade
   shows as its card art, and has an entry in `arcade/games.js`.
 - Keep third-party files and their licenses intact.
