@@ -234,6 +234,7 @@ export const OVERWORLD = {
         { type: 'npc', id: 'wick', x: 12, y: 4 },
         { type: 'npc', id: 'mira', x: 3, y: 3 },
         { type: 'npc', id: 'bun', x: 16, y: 3 },
+        { type: 'npc', id: 'shadefriend', x: 8, y: 7, when: 'ended' },
         { type: 'statue', x: 5, y: 9 },
         { type: 'sign', x: 7, y: 8, text: 'The Great Lantern. It has kept Lanternwood glowing for a hundred years.' },
       ],

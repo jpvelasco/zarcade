@@ -53,7 +53,8 @@ export function paintTile(ctx, ch, tx, ty, get, theme) {
   const h = hash2(tx, ty);
   switch (ch) {
     case '.': case ',': case 'P': case 'Y': case 't': case 'c': case 'o': case 'k': case 'W':
-      ground(ctx, x, y, P, tx, ty, dungeon);
+      if (ch !== '.' && ch !== ',' && !dungeon && sandy(get)) sand(ctx, x, y, P, h);
+      else ground(ctx, x, y, P, tx, ty, dungeon);
       if (ch === 'P') plate(ctx, x, y);
       if (ch === 'Y') lampPost(ctx, x, y);
       if (ch === 't') torchStand(ctx, x, y, dungeon);
@@ -79,10 +80,7 @@ export function paintTile(ctx, ch, tx, ty, get, theme) {
       ctx.fillRect(x + ((ty % 2) ? 11 : 4), y + 8, 1, 8);
       break;
     case ':':
-      ctx.fillStyle = P.sand || '#efdca4';
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = 'rgba(160,120,60,0.25)';
-      for (let i = 0; i < 4; i++) ctx.fillRect(x + ((h * 97 * (i + 1)) % 15), y + ((h * 53 * (i + 2)) % 15), 1, 1);
+      sand(ctx, x, y, P, h);
       break;
     case '~': case 'w':
       water(ctx, x, y, get);
@@ -532,8 +530,19 @@ function stairsUp(ctx, x, y, P) {
   ctx.fillRect(x + 1, y + 1, TILE - 2, 3);
 }
 
+function sandy(get) {
+  return [get(-1, 0), get(1, 0), get(0, -1), get(0, 1)].filter((c) => c === ':').length >= 2;
+}
+
+function sand(ctx, x, y, P, h) {
+  ctx.fillStyle = P.sand || '#efdca4';
+  ctx.fillRect(x, y, TILE, TILE);
+  ctx.fillStyle = 'rgba(160,120,60,0.25)';
+  for (let i = 0; i < 4; i++) ctx.fillRect(x + ((h * 97 * (i + 1)) % 15), y + ((h * 53 * (i + 2)) % 15), 1, 1);
+}
+
 function caveMouth(ctx, x, y, get, P, tx, ty) {
-  ground(ctx, x, y, P, tx, ty, false);
+  if (sandy(get)) sand(ctx, x, y, P, hash2(tx, ty)); else ground(ctx, x, y, P, tx, ty, false);
   ctx.fillStyle = '#1a1220';
   roundRect(ctx, x + 1, y + 2, TILE - 2, TILE - 2, [7, 7, 1, 1]); ctx.fill();
   ctx.fillStyle = '#3a2a3e';
