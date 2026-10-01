@@ -67,3 +67,24 @@ test('each world introduces its mechanic', () => {
     assert.equal(b.stock.X + b.stock.W, 0);
   }
 });
+
+test('levels turned for tall phones are the same puzzle', async () => {
+  const { rotateLevel } = await import('../src/board.js');
+  for (const lv of LEVELS) {
+    const once = rotateLevel(lv);
+    const four = rotateLevel(rotateLevel(rotateLevel(once)));
+    assert.deepEqual(four.map, lv.map.map((r) => r.trim().split(/\s+/).join(' ')), `#${lv.id}`);
+    const a = parseLevel(lv), b = parseLevel(once);
+    assert.deepEqual(b.errors, []);
+    assert.equal(b.w, a.h);
+    assert.equal(b.trains.length, a.trains.length);
+  }
+  // A few full checks: the turned level solves within the same par.
+  for (const id of [3, 12, 22, 32, 36, 47]) {
+    const lv = LEVELS[id - 1];
+    const b = parseLevel(rotateLevel(lv));
+    const s = solve(b, { startBound: lv.par, maxCost: lv.par, nodeLimit: 400000 });
+    assert.ok(s.solved, `#${id}`);
+    assert.equal(simulate(b, s.layout).outcome, 'win');
+  }
+});

@@ -117,3 +117,38 @@ export function boardToRows(board) {
 }
 
 export { N, E, S, W, opposite };
+
+// Turn a level a quarter turn clockwise (tall phones get wide levels upright).
+// The puzzle is the same; only the picture turns.
+const TURN_ARROW = { '^': '>', '>': 'v', v: '<', '<': '^' };
+const TURN_FIXED = { '─': '│', '│': '─', '┼': '┼', '└': '┌', '┌': '┐', '┐': '┘', '┘': '└' };
+const TURN_LINE = { '-': '|', '|': '-', '=': '!', '!': '=' };
+
+function turnToken(tok) {
+  if (tok.length === 1) return TURN_FIXED[tok] || tok;
+  if (TURN_FIXED[tok[0]]) return TURN_FIXED[tok[0]] + tok.slice(1);
+  if (tok[1] in TURN_ARROW) return tok[0] + TURN_ARROW[tok[1]];
+  if (tok[1] in TURN_LINE) return tok[0] + TURN_LINE[tok[1]];
+  return tok;
+}
+
+export function rotateLevel(level) {
+  const rows = level.map.map((row) => row.trim().split(/\s+/));
+  const h = rows.length, w = rows[0].length;
+  const map = [];
+  for (let ny = 0; ny < w; ny++) {
+    const out = [];
+    for (let nx = 0; nx < h; nx++) out.push(turnToken(rows[h - 1 - nx][ny]));
+    map.push(out.join(' '));
+  }
+  const moveKeys = (obj) => {
+    if (!obj) return obj;
+    const next = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const [x, y] = key.split(',').map(Number);
+      next[`${h - 1 - y},${x}`] = value;
+    }
+    return next;
+  };
+  return { ...level, map, queue: moveKeys(level.queue), depart: moveKeys(level.depart), rotated: (level.rotated || 0) + 1 };
+}

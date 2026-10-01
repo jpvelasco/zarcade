@@ -61,7 +61,7 @@ function stateKey(trains, sw) {
   return k;
 }
 
-export function simulate(board, layout, { maxTicks = 600 } = {}) {
+export function simulate(board, layout, { maxTicks = 600, requireServed = true } = {}) {
   const trains = board.trains.map((t) => ({
     id: t.id, color: t.color, depart: t.depart, depot: t.depot, dir: t.dir, status: 'wait', seg: null,
   }));
@@ -111,12 +111,13 @@ export function simulate(board, layout, { maxTicks = 600 } = {}) {
         tr.status = 'done';
         result.delivered++;
         served.add(tr.seg.cell);
-        events.push({ t, type: 'deliver', train: tr.id, cell: tr.seg.cell, color: tr.color });
+        // It reaches the platform at the end of tick t.
+        events.push({ t: t + 1, type: 'deliver', train: tr.id, cell: tr.seg.cell, color: tr.color });
       }
     }
     if (trains.every((tr) => tr.status === 'done')) {
-      const waiting = stations.filter((i) => !served.has(i));
-      result.endTime = t + 0.5;
+      const waiting = requireServed ? stations.filter((i) => !served.has(i)) : [];
+      result.endTime = t + 1;
       if (waiting.length) {
         result.outcome = 'unserved';
         for (const i of waiting) result.failures.push({ type: 'unserved', cell: i, color: board.cells[i].color });

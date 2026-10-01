@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#bfe9ff"/>
+      <stop offset="100%" stop-color="#eaf9dc"/>
+    </linearGradient>
+    <radialGradient id="puff" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#f4f7fb"/>
+      <stop offset="100%" stop-color="#cfd8e4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <g fill="#ffffff" opacity="0.35">
+    <circle cx="90" cy="70" r="38"/><circle cx="700" cy="60" r="30"/><circle cx="620" cy="110" r="16"/><circle cx="160" cy="140" r="14"/>
+  </g>
+  <!-- the tabletop -->
+  <rect x="70" y="150" width="660" height="330" rx="34" fill="#93602f"/>
+  <rect x="70" y="138" width="660" height="320" rx="34" fill="#d09a5f"/>
+  <rect x="96" y="160" width="608" height="276" rx="20" fill="#93d36c"/>
+  <g fill="#89ca63">
+    <rect x="172" y="160" width="76" height="69"/><rect x="324" y="160" width="76" height="69"/><rect x="476" y="160" width="76" height="69"/><rect x="628" y="160" width="76" height="69"/>
+    <rect x="96" y="229" width="76" height="69"/><rect x="248" y="229" width="76" height="69"/><rect x="400" y="229" width="76" height="69"/><rect x="552" y="229" width="76" height="69"/>
+    <rect x="172" y="298" width="76" height="69"/><rect x="324" y="298" width="76" height="69"/><rect x="476" y="298" width="76" height="69"/><rect x="628" y="298" width="76" height="69"/>
+    <rect x="96" y="367" width="76" height="69"/><rect x="248" y="367" width="76" height="69"/><rect x="400" y="367" width="76" height="69"/><rect x="552" y="367" width="76" height="69"/>
+  </g>
+  <!-- wooden track: a big loop with a crossing branch -->
+  <g fill="none" stroke-linecap="butt">
+    <path d="M150 264 H520 A70 70 0 0 1 590 334 V400" stroke="#9a6634" stroke-width="40"/>
+    <path d="M150 264 H520 A70 70 0 0 1 590 334 V400" stroke="#ecc58c" stroke-width="33"/>
+    <path d="M150 256 H520 A78 78 0 0 1 598 334 V400 M150 272 H520 A62 62 0 0 1 582 334 V400" stroke="#a87a44" stroke-width="3"/>
+    <path d="M362 160 V436" stroke="#9a6634" stroke-width="40"/>
+    <path d="M362 160 V436" stroke="#ecc58c" stroke-width="33"/>
+    <path d="M354 160 V436 M370 160 V436" stroke="#a87a44" stroke-width="3"/>
+    <rect x="345" y="247" width="34" height="34" fill="#ecc58c"/>
+    <path d="M345 256 H379 M345 272 H379" stroke="#a87a44" stroke-width="3"/>
+  </g>
+  <!-- trees, flowers, pond, house -->
+  <g>
+    <ellipse cx="214" cy="215" rx="34" ry="12" fill="#2a4a18" opacity="0.2"/>
+    <circle cx="196" cy="190" r="20" fill="#3d9440"/><circle cx="226" cy="192" r="20" fill="#3d9440"/><circle cx="210" cy="176" r="24" fill="#4fae4a"/><circle cx="202" cy="168" r="12" fill="#68c35a"/>
+    <circle cx="219" cy="186" r="4" fill="#ff5f6d"/><circle cx="198" cy="194" r="4" fill="#ff5f6d"/>
+    <ellipse cx="660" cy="225" rx="30" ry="11" fill="#2a4a18" opacity="0.2"/>
+    <circle cx="646" cy="203" r="17" fill="#3d9440"/><circle cx="672" cy="205" r="17" fill="#3d9440"/><circle cx="659" cy="190" r="21" fill="#4fae4a"/>
+    <rect x="450" y="312" width="96" height="60" rx="26" fill="#5fc0ea"/>
+    <path d="M468 334 a10 10 0 0 1 18 0 M500 352 a10 10 0 0 1 18 0" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.6"/>
+    <circle cx="530" cy="358" r="7" fill="#5fb85a"/>
+    <g transform="translate(150 320)">
+      <rect x="6" y="30" width="72" height="44" rx="5" fill="#fff4dc"/>
+      <path d="M0 34 L42 2 L84 34 Z" fill="#4f8fe0"/>
+      <rect x="34" y="50" width="16" height="24" rx="2" fill="#8a5a34"/>
+      <rect x="14" y="44" width="14" height="12" fill="#9fd6f5"/><rect x="56" y="44" width="14" height="12" fill="#9fd6f5"/>
+    </g>
+    <g fill="#ff7aa2"><circle cx="440" cy="196" r="5"/><circle cx="456" cy="208" r="5"/><circle cx="430" cy="214" r="5"/></g>
+    <g fill="#ffd24a"><circle cx="470" cy="190" r="5"/><circle cx="448" cy="222" r="5"/><circle cx="640" cy="400" r="5"/><circle cx="660" cy="388" r="5"/></g>
+  </g>
+  <!-- station -->
+  <g transform="translate(560 392)">
+    <rect x="-6" y="-8" width="76" height="20" rx="5" fill="#efe1c8"/>
+    <rect x="0" y="-16" width="64" height="12" rx="5" fill="#3f86e0"/>
+    <circle cx="32" cy="-12" r="10" fill="#ffffff"/><circle cx="32" cy="-12" r="8" fill="#3f86e0"/>
+    <path d="M32 -18 C38 -12 37 -6 32 -6 C27 -6 26 -12 32 -18 Z" fill="#ffffff"/>
+  </g>
+  <!-- the blue train coming down the crossing line -->
+  <g transform="translate(362 360) rotate(90)">
+    <rect x="-46" y="-26" width="34" height="52" rx="8" fill="#24579e"/>
+    <rect x="-42" y="-21" width="26" height="42" rx="7" fill="#fff4dc"/>
+    <rect x="-14" y="-19" width="54" height="38" rx="18" fill="#3f86e0"/>
+    <circle cx="10" cy="0" r="9" fill="#2a2724"/>
+    <circle cx="38" cy="0" r="19" fill="#eceaf0"/>
+    <circle cx="42" cy="-8" r="5" fill="#fff"/><circle cx="42" cy="8" r="5" fill="#fff"/>
+    <circle cx="44" cy="-8" r="3" fill="#222"/><circle cx="44" cy="8" r="3" fill="#222"/>
+    <path d="M30 -6 A9 9 0 0 1 30 6" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- the red train on the loop, with a carriage of passengers -->
+  <g transform="translate(270 264)">
+    <rect x="-128" y="-24" width="60" height="46" rx="9" fill="#a8302c"/>
+    <rect x="-123" y="-19" width="50" height="36" rx="7" fill="#e8504a"/>
+    <circle cx="-110" cy="-1" r="10" fill="#ffd6a5"/><path d="M-120 -2 a10 10 0 0 1 20 0z" fill="#ffd43b"/>
+    <circle cx="-86" cy="-1" r="10" fill="#ffc8dd"/><path d="M-96 -2 a10 10 0 0 1 20 0z" fill="#69db7c"/>
+    <rect x="-62" y="-28" width="38" height="56" rx="9" fill="#a8302c"/>
+    <rect x="-58" y="-23" width="30" height="46" rx="7" fill="#fff4dc"/>
+    <circle cx="-43" cy="0" r="11" fill="#ffffff"/><circle cx="-43" cy="0" r="9" fill="#e8504a"/>
+    <path d="M-43 6 C-55 -2 -50 -10 -43 -5 C-36 -10 -31 -2 -43 6 Z" fill="#fff"/>
+    <rect x="-26" y="-21" width="62" height="42" rx="20" fill="#e8504a"/>
+    <rect x="-20" y="-17" width="46" height="8" rx="4" fill="#ffffff" opacity="0.35"/>
+    <circle cx="-8" cy="0" r="7" fill="#f4c542"/>
+    <circle cx="10" cy="0" r="10" fill="#2a2724"/><circle cx="10" cy="0" r="6" fill="#4d4642"/>
+    <circle cx="36" cy="0" r="21" fill="#eceaf0"/>
+    <circle cx="41" cy="-9" r="5.5" fill="#fff"/><circle cx="41" cy="9" r="5.5" fill="#fff"/>
+    <circle cx="43" cy="-9" r="3.2" fill="#222"/><circle cx="43" cy="9" r="3.2" fill="#222"/>
+    <path d="M28 -7 A10 10 0 0 1 28 7" stroke="#222" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <circle cx="30" cy="-16" r="3" fill="#ff7a96" opacity="0.6"/><circle cx="30" cy="16" r="3" fill="#ff7a96" opacity="0.6"/>
+  </g>
+  <!-- steam -->
+  <circle cx="276" cy="232" r="22" fill="url(#puff)"/>
+  <circle cx="252" cy="206" r="28" fill="url(#puff)"/>
+  <circle cx="222" cy="178" r="34" fill="url(#puff)" opacity="0.9"/>
+  <circle cx="370" cy="420" r="14" fill="url(#puff)" opacity="0.9"/>
+</svg>
