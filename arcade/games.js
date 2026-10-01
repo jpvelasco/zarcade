@@ -336,6 +336,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'spooky-spotter',
+      title: 'Spooky Spotter',
+      tagline: "Find the shy ghosts' lost things in seven rooms.",
+      description: 'A friendly haunted-mansion hidden object game: hunt a teddy, a teacup and a stripy sock through cluttered procedural rooms, spot the difference, chase silhouettes, and wake Hollowhush Manor back up room by room.',
+      genre: 'Hidden object',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#b98be0',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
