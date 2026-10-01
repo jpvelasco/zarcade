@@ -100,7 +100,10 @@ export function normalize(raw) {
   }
   s.built = clampInt(raw.built, 0, 9999);
   for (const [k, v] of Object.entries(obj(raw.drafts))) {
-    if (v && typeof v.main === 'string' && typeof v.p1 === 'string' && v.main.length < 400 && v.p1.length < 400) s.drafts[k] = { main: v.main, p1: v.p1 };
+    if (v && typeof v.main === 'string' && typeof v.p1 === 'string' && v.main.length < 400 && v.p1.length < 400) {
+      s.drafts[k] = { main: v.main, p1: v.p1 };
+      if (typeof v.day === 'string') s.drafts[k].day = v.day;
+    }
   }
   if (typeof raw.last === 'string') s.last = raw.last;
   return s;

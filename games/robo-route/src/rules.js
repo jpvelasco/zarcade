@@ -373,14 +373,14 @@ export function runProgram(level, prog, { keepEvents = false, maxSteps = MAX_STE
 }
 
 // The state after replaying `count` steps (for edits made while paused).
-// Returns the run positioned there, plus the uids of the executed tiles.
+// Returns the run positioned there, plus 'uid:kind' keys of the steps taken.
 export function replay(level, prog, count) {
   const run = createRun(level, prog);
   const trace = [];
   let last = null;
   while (!run.done && run.steps < count) {
     last = run.step();
-    if (last) trace.push(last.uid ?? 0);
+    if (last) trace.push(`${last.uid ?? 0}:${last.kind}`);
   }
   return { run, trace, last };
 }
