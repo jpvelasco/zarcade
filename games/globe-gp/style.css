@@ -280,7 +280,19 @@ body.touch .standings { display: none; }
   .boost { width: 150px; }
   .tbtn { width: 72px; height: 72px; }
   .tbtn.small { width: 54px; height: 54px; }
+  /* Room for boost, drift and brake in a row; the gas button (auto gas off)
+     goes above them. */
+  .touch-left, .touch-right { gap: 10px; }
+  .touch-right { flex-wrap: wrap-reverse; justify-content: flex-end; align-items: flex-start; max-width: 200px; }
   .hud-tl .lap { font-size: 20px; }
   .podium { height: 140px; } .podium .step { width: 92px; }
   .table .tr { grid-template-columns: 26px 1fr 78px 48px; font-size: 13px; }
+}
+
+/* Short landscape phones: keep the HUD pieces apart and the results buttons in view. */
+@media (max-height: 500px) {
+  body.touch #minimap { top: 84px; left: 14px; right: auto; width: 96px; height: 96px; }
+  body.touch .pause-btn { bottom: auto; top: 84px; }
+  .results-card { padding-top: 12px; padding-bottom: 0; }
+  #res-buttons { position: sticky; bottom: 0; padding: 10px 0 12px; margin-top: 8px; background: linear-gradient(0deg, rgba(16, 22, 58, 0.97) 75%, rgba(16, 22, 58, 0)); }
 }

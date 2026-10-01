@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { Race, DT, COUNTDOWN, ELIM_FIRST, ELIM_EVERY, simulate, medalTimes } from '../src/race.js';
 import { LOCATION_BY_ID } from '../src/locations.js';
 import { CAR_BY_ID } from '../src/cars.js';
+import { autoGas } from '../src/input.js';
 
 const hatch = CAR_BY_ID.hatch;
 
@@ -48,6 +49,14 @@ test('holding the gas from the last second of the countdown gives a perfect star
   const early = new Race({ location: LOCATION_BY_ID.paris, kind: 'circuit', car: hatch });
   for (let i = 0; i < (COUNTDOWN + 0.05) / DT; i++) early.step(DT, { throttle: 1 });
   assert.equal(early.player.perfect, false, 'flooring it the whole countdown does not');
+});
+
+test('automatic touch gas waits for the end of the countdown and earns the perfect start', () => {
+  const race = new Race({ location: LOCATION_BY_ID.paris, kind: 'circuit', car: hatch });
+  for (let i = 0; i < (COUNTDOWN + 0.05) / DT; i++) race.step(DT, { throttle: autoGas(race.time) });
+  assert.ok(race.player.perfect);
+  assert.equal(autoGas(-2), 0);
+  assert.equal(autoGas(5), 1, 'and it stays on while racing');
 });
 
 test('laps count only after every gate, and three laps finish the race', () => {

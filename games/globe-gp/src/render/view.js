@@ -58,6 +58,12 @@ export class RaceView {
     // Cars and wheels.
     this.cars = race.racers.map((r) => {
       const obj = makeCarObject(r.carId, r.color, r.accent);
+      if (!r.isPlayer) {
+        // Rivals can fade out when they come between the camera and you.
+        obj.userData.bodyMesh.material.transparent = true;
+        obj.userData.lightMat.transparent = true;
+        obj.userData.fade = 1;
+      }
       scene.add(obj);
       return obj;
     });
@@ -228,6 +234,7 @@ export class RaceView {
     // Cars brushing the camera would fill the screen: hide them.
     obj.visible = (!r.eliminated || r.vehicle.speed > 0.5) && (r.isPlayer || this.camera.position.distanceToSquared(obj.position) > 20);
     obj.rotation.y = v.heading;
+    if (obj.visible && !r.isPlayer) this.fadeIfBlocking(obj, v, dt);
     if (!obj.visible) {
       m4.makeScale(0, 0, 0);
       for (let k = 0; k < 4; k++) this.wheels.setMatrixAt(i * 4 + k, m4);
@@ -250,7 +257,9 @@ export class RaceView {
     obj.updateMatrixWorld();
     ud.tilt.updateMatrixWorld();
     const steerAngle = -v.steer * 0.45 + (v.drifting ? -v.driftAngle * 0.8 : 0);
+    const hideWheels = ud.fade !== undefined && ud.fade < 0.6;
     ud.wheels.forEach((w, k) => {
+      if (hideWheels) { m4.makeScale(0, 0, 0); this.wheels.setMatrixAt(i * 4 + k, m4); return; }
       e.set(this.spin[i], w.front ? steerAngle : 0, 0, 'YXZ');
       q.setFromEuler(e);
       v3.set(w.x, w.r, w.z);
@@ -316,6 +325,22 @@ export class RaceView {
       mesh.setMatrixAt(i, m4);
     }
     mesh.instanceMatrix.needsUpdate = true;
+  }
+
+  // A rival nearer the camera than your car, and in the way of it or right
+  // beside the camera, fades so it never hides your car or the road.
+  fadeIfBlocking(obj, v, dt) {
+    const ud = obj.userData, cp = this.camera.position, pv = this.race.player.vehicle;
+    const dx = pv.x - cp.x, dz = pv.z - cp.z, len2 = dx * dx + dz * dz || 1;
+    const ox = v.x - cp.x, oz = v.z - cp.z;
+    const along = (ox * dx + oz * dz) / len2;
+    const side = Math.abs(ox * dz - oz * dx) / Math.sqrt(len2);
+    const blocking = this.cam.mode === 'chase' && along > -0.3 && along < 0.8 && (side < 2.6 || ox * ox + oz * oz < 36);
+    ud.fade += ((blocking ? 0.22 : 1) - ud.fade) * Math.min(1, dt * 10);
+    const o = ud.fade > 0.98 ? 1 : ud.fade;
+    ud.bodyMesh.material.opacity = o;
+    ud.lightMat.opacity = o;
+    ud.bodyMesh.material.depthWrite = o > 0.9;
   }
 
   // Chase camera; a sweeping fly-in during the countdown; orbit afterwards.

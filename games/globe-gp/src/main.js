@@ -37,6 +37,9 @@ function persist() {
 const input = new Input();
 input.steerMode = save.touchSteer;
 input.autoAccel = save.autoAccel;
+// Touch shows a gas button only when automatic gas is off.
+const showGas = () => document.querySelector('#touch [data-key=gas]')?.classList.toggle('hidden', !!save.autoAccel);
+showGas();
 document.body.classList.toggle('tilt', save.touchSteer === 'tilt');
 const audio = new Audio({ muted: save.muted, music: save.music });
 const hud = new Hud();
@@ -347,7 +350,7 @@ function renderOptions() {
 }
 $('opt-sound').addEventListener('click', () => { toggleSound(); renderOptions(); });
 $('opt-music').addEventListener('click', () => { toggleMusic(); renderOptions(); });
-$('opt-auto').addEventListener('click', () => { save.autoAccel = !save.autoAccel; input.autoAccel = save.autoAccel; persist(); renderOptions(); });
+$('opt-auto').addEventListener('click', () => { save.autoAccel = !save.autoAccel; input.autoAccel = save.autoAccel; showGas(); persist(); renderOptions(); });
 
 function toggleSound() {
   save.muted = !save.muted;
@@ -708,7 +711,7 @@ function frame(now) {
   if (mode === 'loading' && loader) advanceLoader();
 
   if ((mode === 'race' || mode === 'results') && race && view) {
-    const controls = mode === 'race' ? input.read() : { throttle: 0, brake: 0, steer: 0 };
+    const controls = mode === 'race' ? input.read(race.time) : { throttle: 0, brake: 0, steer: 0 };
     if (mode === 'race') {
       accumulator += dt;
       let steps = 0;

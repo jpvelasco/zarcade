@@ -1,6 +1,14 @@
 // Keyboard, gamepad and touch merged into one driving input:
 // { throttle, brake, steer (+1 right), drift, boost, reset }.
 
+// Automatic gas during the countdown: off until just before GO, so touch
+// players with auto-accelerate still get the perfect-start boost (the race
+// gives it for gas pressed in the last second of the countdown).
+export const AUTO_GAS_FROM = -0.6;
+export function autoGas(raceTime) {
+  return raceTime >= AUTO_GAS_FROM ? 1 : 0;
+}
+
 export class Input {
   constructor() {
     this.keys = new Set();
@@ -78,7 +86,8 @@ export class Input {
     }
   }
 
-  read() {
+  // `raceTime` is negative during the countdown.
+  read(raceTime = 0) {
     const k = (...codes) => codes.some((c) => this.keys.has(c));
     let throttle = k('ArrowUp', 'KeyW') ? 1 : 0;
     let brake = k('ArrowDown', 'KeyS') ? 1 : 0;
@@ -89,7 +98,8 @@ export class Input {
 
     if (this.touchMode) {
       if (this.touch.has('brake')) brake = 1;
-      else if (this.autoAccel || this.touch.has('gas')) throttle = 1;
+      else if (this.touch.has('gas')) throttle = 1;
+      else if (this.autoAccel) throttle = Math.max(throttle, autoGas(raceTime));
       if (this.steerMode === 'tilt') steer += this.tilt;
       else steer += (this.touch.has('right') ? 1 : 0) - (this.touch.has('left') ? 1 : 0);
       drift = drift || this.touch.has('drift');
