@@ -314,6 +314,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'paper-plane-post',
+      title: 'Paper Plane Post',
+      tagline: 'Hold to dive, let go to soar. Deliver the post.',
+      description: 'A one-button paper plane carries the post across a pastel valley of chimneys, cliffs, pines, a lake and a snowy pass. Ride warm updrafts, slip letters through lit windows and land feather-soft on the mailbox green.',
+      genre: 'Flyer',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ffc06a',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
