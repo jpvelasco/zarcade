@@ -67,6 +67,7 @@ export class Renderer {
     this.shake = 0;
     this.celebration = null;
     this.fireworkClock = 0;
+    this.rockets = [];
     this.glowQueue = [];
     this.sizedGlows = new LruCache(320);
     this.miniAt = 0;
@@ -1157,10 +1158,28 @@ export class Renderer {
     const items = this.particles.items;
     if (!items.length) return;
     const { px, ox, oy } = view;
+    let streaks = null;
     for (const p of items) {
       if (p.screen !== screen || p.kind !== 'glow') continue;
       const fade = 1 - p.age / p.life;
       this.glowAt(p.color, p.x, p.y, p.size * (0.6 + fade * 0.6), fade);
+      if (p.streak && fade > 0.15) {
+        streaks ||= new Map();
+        let path = streaks.get(p.color);
+        if (!path) streaks.set(p.color, (path = new Path2D()));
+        path.moveTo(p.x - p.vx * 0.09, p.y - p.vy * 0.09);
+        path.lineTo(p.x, p.y);
+      }
+    }
+    if (streaks) {
+      context.globalCompositeOperation = 'lighter';
+      context.lineWidth = 2;
+      context.lineCap = 'round';
+      for (const [color, path] of streaks) {
+        context.strokeStyle = rgba(color, 0.7);
+        context.stroke(path);
+      }
+      context.globalCompositeOperation = 'source-over';
     }
     this.flushGlows(context, screen);
     const base = context.getTransform();
@@ -1196,19 +1215,43 @@ export class Renderer {
     context.globalCompositeOperation = 'source-over';
   }
 
+  // Festival fireworks over a lit district: rockets climb, then burst.
   drawFireworks(context, dt) {
-    this.fireworkClock -= dt;
-    if (this.fireworkClock > 0) return;
     const calm = this.reducedMotion;
-    this.fireworkClock = calm ? 1.4 : 0.38 + Math.random() * 0.35;
-    const x = this.width * (0.12 + Math.random() * 0.76);
-    const y = this.height * (0.1 + Math.random() * 0.4);
-    const color = FESTIVAL[Math.floor(Math.random() * FESTIVAL.length)];
-    const count = calm ? 14 : 34;
-    for (const v of burst(count, calm ? 120 : 240)) {
-      this.particles.spawn({ x, y, vx: v.vx, vy: v.vy, life: 1.1 + Math.random() * 0.5, size: 10 + Math.random() * 6, color, drag: 1.6, gravity: 70, screen: true });
+    this.fireworkClock -= dt;
+    if (this.fireworkClock <= 0 && this.rockets.length < 6) {
+      this.fireworkClock = calm ? 1.5 : 0.32 + Math.random() * 0.4;
+      const x = this.width * (0.1 + Math.random() * 0.8);
+      this.rockets.push({
+        x,
+        from: this.height + 10,
+        to: this.height * (0.1 + Math.random() * 0.38),
+        age: 0,
+        life: calm ? 0.01 : 0.7 + Math.random() * 0.35,
+        color: FESTIVAL[Math.floor(Math.random() * FESTIVAL.length)],
+      });
     }
-    this.particles.spawn({ x, y, life: 0.35, size: 120, color: '#fff3c4', drag: 0, screen: true });
+    for (const rocket of this.rockets) {
+      rocket.age += dt;
+      const u = Math.min(1, rocket.age / rocket.life);
+      const y = lerp(rocket.from, rocket.to, 1 - (1 - u) * (1 - u));
+      if (u < 1) {
+        this.glowAt('#fff3c4', rocket.x, y, 26, 1);
+        if (Math.random() < 0.8) this.particles.spawn({ x: rocket.x + (Math.random() - 0.5) * 3, y: y + 6, vy: 40, life: 0.45, size: 16, color: rocket.color, drag: 2, screen: true });
+        continue;
+      }
+      rocket.done = true;
+      const count = calm ? 16 : 40;
+      for (const v of burst(count, calm ? 110 : 230)) {
+        this.particles.spawn({ x: rocket.x, y, vx: v.vx, vy: v.vy, life: 1.2 + Math.random() * 0.6, size: 34 + Math.random() * 18, color: rocket.color, drag: 1.5, gravity: 55, screen: true, streak: true });
+      }
+      for (const v of burst(calm ? 6 : 14, calm ? 50 : 110)) {
+        this.particles.spawn({ x: rocket.x, y, vx: v.vx, vy: v.vy, life: 0.8, size: 22, color: '#fff3c4', drag: 2, gravity: 30, screen: true });
+      }
+      this.particles.spawn({ x: rocket.x, y, life: 0.45, size: 280, color: rocket.color, drag: 0, screen: true });
+    }
+    if (this.rockets.some((rocket) => rocket.done)) this.rockets = this.rockets.filter((rocket) => !rocket.done);
+    this.flushGlows(context, true);
   }
 
   drawRain(context, world) {
