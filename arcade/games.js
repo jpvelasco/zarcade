@@ -237,6 +237,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'snack-siege',
+      title: 'Snack Siege',
+      tagline: 'Fling jelly beans. Topple candy forts.',
+      description: 'Pull back the pretzel slingshot and fling jelly-bean heroes with special powers at wobbly candy forts. Pop every grumpy gummy bear across 36 levels in three sweet worlds, plus a new daily fort.',
+      genre: 'Physics',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#ff5d8f',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
