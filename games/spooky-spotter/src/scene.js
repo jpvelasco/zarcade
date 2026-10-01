@@ -488,10 +488,6 @@ export function hitTest(scene, wx, wy, tolerance = 26) {
   return best;
 }
 
-export function targetById(scene, id) {
-  return scene.targets.find((t) => t.id === id) || null;
-}
-
 export function remaining(scene) {
   return scene.targets.filter((t) => !t.found && !t.secret).length;
 }

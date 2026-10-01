@@ -133,13 +133,15 @@ export class ItemList {
     this.onPick?.(id);
   }
 
+  // Step the selection without taking focus: the arrow keys steer the spotting
+  // ring, and stealing focus here would stop them working.
   step(dir) {
     const ids = [...this.rows.keys()].filter((id) => !this.rows.get(id).classList.contains('found'));
     if (!ids.length) return null;
     const at = ids.indexOf(this.selected);
     const next = ids[(at + dir + ids.length) % ids.length] ?? ids[0];
     this.pick(next);
-    this.rows.get(next)?.querySelector('button')?.focus({ preventScroll: false });
+    this.rows.get(next)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     return next;
   }
 
@@ -212,6 +214,7 @@ export function renderMap(game, { onPlay, onDaily, onParty, dailyPlan }) {
 
   const daily = game.state.daily;
   const dRoom = ROOM[dailyPlan.room];
+  const peek = !game.isModeOpen(dailyPlan.room, dailyPlan.mode);
   wrap.append(el('button', {
     class: `daily ${daily.done ? 'done' : ''}`,
     type: 'button',
@@ -220,7 +223,11 @@ export function renderMap(game, { onPlay, onDaily, onParty, dailyPlan }) {
     el('span', { class: 'daily-icon', text: daily.done ? '🌟' : '📅' }),
     el('span', { class: 'daily-text' }, [
       el('b', { text: daily.done ? "Today's room: done!" : "Today's room" }),
-      el('small', { text: `${dRoom.name} · ${MODE[dailyPlan.mode].name}${daily.streak ? ` · ${daily.streak}-day streak` : ''}` }),
+      el('small', {
+        text: `${dRoom.name} · ${MODE[dailyPlan.mode].name}`
+          + (peek ? ' · a peek ahead' : '')
+          + (daily.streak ? ` · ${daily.streak}-day streak` : ''),
+      }),
     ]),
     daily.done ? starRow(daily.stars) : el('span', { class: 'go', text: 'Play' }),
   ]));
@@ -305,7 +312,7 @@ export function renderHelp() {
       el('li', { html: '<b>Click or tap</b> a thing you spot. Nothing is ever fully hidden.' }),
       el('li', { html: '<b>Drag</b> to look around, <b>wheel</b> or <b>pinch</b> to lean in.' }),
       el('li', { html: 'Tapping at random puffs up a little fog for a moment. It never costs you anything.' }),
-      el('li', { html: 'The <b>lantern</b> (H) recharges on its own and lights up an area. Two unused lanterns earn the third star.' }),
+      el('li', { html: 'The <b>lantern</b> (H) recharges on its own and lights up an area. Finish inside the par time using at most one lantern for the third star.' }),
     ]),
     el('h3', { text: 'Keyboard' }),
     el('ul', {}, [
@@ -332,6 +339,7 @@ function resultHeadline(out, round, game) {
   const room = ROOM[round.room];
   const slot = game.state.rooms[round.room];
   const allThree = MODE_IDS.every((m) => slot[m].cleared);
+  if (out.visit) return `A quick look round ${room.name}`;
   if (!out.firstClear) return round.mode === 'diff' ? 'Every difference found!' : 'Found them all!';
   if (allThree) return `${room.name} is wide awake!`;
   if (round.mode === 'find') return `${room.name} wakes up!`;
@@ -339,7 +347,6 @@ function resultHeadline(out, round, game) {
 }
 
 export function renderResult(out, round, game) {
-  const room = ROOM[round.room];
   const wrap = el('div', { class: 'result' });
   wrap.append(el('div', { class: 'result-stars' }, starRow(out.stars, 3, 'big')));
   wrap.append(el('h2', { text: resultHeadline(out, round, game) }));
@@ -357,6 +364,9 @@ export function renderResult(out, round, game) {
     el('span', {}, [el('b', { text: `${out.found}` }), el('small', { text: round.mode === 'diff' ? 'differences' : 'things found' })]),
   ]);
   wrap.append(facts);
+  if (out.visit) {
+    wrap.append(el('p', { class: 'muted small', text: 'Today\u2019s room came from the calendar, so this one is ahead of you. It counts for your streak; the room itself is still waiting for you.' }));
+  }
   if (out.newBest) wrap.append(el('p', { class: 'best-flag', text: '🏅 New best time!' }));
   const slot = game.state.rooms[round.room][round.mode];
   if (!out.newBest && slot.best) wrap.append(el('p', { class: 'muted small', text: `Your best here: ${slot.best.toFixed(1)}s` }));

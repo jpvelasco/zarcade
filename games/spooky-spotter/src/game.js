@@ -2,8 +2,8 @@
 // things back, the curio cabinet, the daily room and every personal best.
 // DOM-free so tests can play a whole save through.
 
-import { ROOM_IDS, MODE_IDS, parTime, ROOM } from './rooms.js';
-import { GHOSTS, ghostsOf } from './ghosts.js';
+import { ROOM_IDS, MODE_IDS, parTime } from './rooms.js';
+import { GHOSTS } from './ghosts.js';
 import { CURIOS, curioFor, mouseCurios } from './curios.js';
 import { hashString, mix, dayKey, dayGap } from './rng.js';
 
@@ -177,6 +177,21 @@ export class Game {
     const s = this.state;
     const slot = s.rooms[room][mode];
     const stars = starsFor({ room, mode, seconds, hints, misses });
+    // Today's room is the same for everyone, so it can land on a room the
+    // player has not reached. That round still counts for the streak and the
+    // mouse, but it must not open doors out of order.
+    if (daily && !this.isModeOpen(room, mode)) {
+      s.totals.rounds++;
+      s.totals.found += found;
+      s.totals.hints += hints;
+      s.totals.seconds += seconds;
+      const gained = mouse ? this.spotMouse(room) : [];
+      this.completeDaily(stars);
+      return {
+        stars, firstClear: false, newBest: false, grew: false, curios: gained,
+        unlockedRoom: null, party: false, par: parTime(room, mode), visit: true,
+      };
+    }
     const firstClear = !slot.cleared;
     const newBest = slot.best === 0 || seconds < slot.best;
     const grew = stars > slot.stars;
@@ -288,6 +303,3 @@ export class Game {
     return bits;
   }
 }
-
-// Which ghosts live in a room, for the item list headers.
-export { ghostsOf, ROOM };

@@ -243,10 +243,6 @@ export const ROOMS = [
 export const ROOM = Object.fromEntries(ROOMS.map((r) => [r.id, r]));
 export const ROOM_IDS = ROOMS.map((r) => r.id);
 
-export function roomIndex(id) {
-  return ROOM_IDS.indexOf(id);
-}
-
 export const MODES = [
   { id: 'find', name: 'Find the things', short: 'Find', icon: '🔍' },
   { id: 'diff', name: 'Spot the difference', short: 'Difference', icon: '🪞' },
@@ -290,5 +286,5 @@ export function sceneBox(viewW, viewH) {
 
 // Wide rooms need more things in them, or they read as empty stages.
 export function clutterScale(boxW) {
-  return Math.min(1.9, Math.max(0.85, boxW / 1350));
+  return Math.min(1.9, Math.max(0.95, boxW / 1200));
 }

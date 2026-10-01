@@ -183,6 +183,42 @@ test('skipping a day you opened but never finished clears the streak', () => {
   assert.equal(game.state.daily.streak, 0);
 });
 
+test("today's room in a locked part of the manor counts for the streak only", () => {
+  const game = fresh();
+  game.ensureDaily('2026-10-01');
+  assert.equal(game.isModeOpen('observatory', 'hunt'), false);
+  const out = game.finishRound({
+    room: 'observatory', mode: 'hunt', seconds: 30, hints: 0, misses: 0, found: 6, daily: true, mouse: true,
+  });
+  assert.equal(out.visit, true, 'a visit, not a clear');
+  assert.equal(out.stars, 3);
+  assert.equal(out.firstClear, false);
+  assert.equal(out.unlockedRoom, null);
+  assert.deepEqual(out.curios, ['mousewhistle'], 'the mouse still counts');
+  // The manor itself is untouched: the unlock order is not broken.
+  assert.equal(game.state.rooms.observatory.hunt.cleared, false);
+  assert.equal(game.state.rooms.observatory.hunt.stars, 0);
+  assert.equal(game.state.rooms.observatory.hunt.best, 0);
+  assert.equal(game.isUnlocked('kitchen'), false);
+  assert.equal(game.restoredCount(), 0);
+  // But the daily and the totals do count.
+  assert.equal(game.state.daily.done, true);
+  assert.equal(game.state.daily.streak, 1);
+  assert.equal(game.state.daily.stars, 3);
+  assert.equal(game.state.totals.rounds, 1);
+  assert.equal(game.state.mice, 1);
+
+  // Once the room is open the same round clears it as normal.
+  const open = fresh();
+  for (const id of ['library', 'kitchen', 'attic', 'greenhouse', 'ballroom', 'cellar', 'observatory']) {
+    open.state.rooms[id].find.cleared = true;
+  }
+  open.ensureDaily('2026-10-01');
+  const real = open.finishRound({ room: 'observatory', mode: 'hunt', seconds: 30, hints: 0, misses: 0, found: 6, daily: true });
+  assert.equal(real.visit, undefined);
+  assert.equal(open.state.rooms.observatory.hunt.cleared, true);
+});
+
 test('a daily round reports through finishRound', () => {
   const game = fresh();
   game.ensureDaily('2026-10-01');

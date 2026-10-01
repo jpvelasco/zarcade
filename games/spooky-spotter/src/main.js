@@ -46,7 +46,7 @@ function persist() {
 const canvas = $('game');
 const renderer = new Renderer(canvas, { reducedMotion: reduced });
 const sound = new Sound({ muted: game.state.settings.muted, music: game.state.settings.music });
-const list = new ItemList($('list'), { onPick: () => {} });
+const list = new ItemList($('list'));
 
 let mode = 'title';          // title | map | play | paused | result | sheet
 let round = null;            // the round in progress
@@ -79,20 +79,36 @@ function show(id) {
   document.body.classList.toggle('titling', !playing);
   sound.setLevel(playing ? 1 : 0.6);
   if (id) $(id).querySelector('.btn.primary, .close-btn')?.focus({ preventScroll: true });
+  // Showing or hiding the list tray changes the size of the canvas without a
+  // window resize event, so measure again rather than drawing at a stale size.
+  measure();
 }
 
-function relayout() {
+// Match the drawing buffer to the canvas and keep the camera sane. Cheap: safe
+// to call whenever the layout might have moved.
+function measure() {
   const box = renderer.resize();
-  if (round) {
-    // The room is shaped to the viewport, so a big resize rebuilds it.
-    if (box.w !== round.box.w) rebuildRound();
-    else renderer.recomputeCover();
-  } else if (attract) {
+  renderer.recomputeCover();
+  return box;
+}
+
+// A real change of shape rebuilds the room; a nudge of a few pixels (a window
+// edge dragged, a mobile toolbar sliding away) only moves the camera.
+function relayout() {
+  const box = measure();
+  if (round && !round.done) {
+    const change = Math.abs(box.w - round.box.w) / Math.max(1, round.box.w);
+    if (change > 0.08) rebuildRound();
+  } else if (!round && attract) {
     startAttract(attract.room);
-  } else {
-    renderer.recomputeCover();
   }
   queueMicrotask(() => monitor.mark(performance.now()));
+}
+
+let relayoutTimer = 0;
+function relayoutSoon() {
+  clearTimeout(relayoutTimer);
+  relayoutTimer = setTimeout(relayout, 160);
 }
 
 function toTitle() {
@@ -113,6 +129,7 @@ function toTitle() {
 function toMap() {
   mode = 'map';
   round = null;
+  game.ensureDaily(dayKey());
   const body = $('map-body');
   body.textContent = '';
   body.append(renderMap(game, {
@@ -140,6 +157,7 @@ function openSheet(title, node, back = mode) {
 
 function closeSheet() {
   if (sheetBack === 'map') toMap();
+  else if (sheetBack === 'paused' && round) { mode = 'paused'; show('screen-pause'); }
   else if (sheetBack === 'play' && round) resume();
   else toTitle();
 }
@@ -150,7 +168,8 @@ function startAttract(roomId = null) {
   const open = game.unlockedRooms();
   const pick = roomId || open[(Date.now() / 9000 | 0) % open.length] || 'library';
   renderer.setSplit(false);
-  const box = renderer.resize();
+  renderer.onLanded = null;
+  const box = measure();
   const scene = buildScene({ room: pick, mode: 'find', seed: 1234 + (Date.now() / 60000 | 0), box });
   attract = scene;
   attractBot = new Bot({ seed: 7, pace: 1.9 });
@@ -176,7 +195,7 @@ function startRound(roomId, modeId, daily, plan = null) {
   buildRound();
   attract = null;
   fog = 0;
-  lanternCharge = 1;
+  setLanternCharge(1);
   reticle = null;
   keyboardMode = false;
   list.build(round);
@@ -206,29 +225,44 @@ function buildRound() {
   renderer.setProgress(round.found, round.total);
 }
 
-// A resize changes the shape of the room, so rebuild it and keep the score.
+// A real change of shape re-lays the room. Whatever was already found stays
+// found, matched by what it was rather than by position: the new layout may not
+// hold the same things in the same order.
 function rebuildRound() {
+  const foundIds = new Set(round.scene ? round.scene.targets.filter((t) => t.found).map((t) => t.id) : []);
+  const foundChanges = round.diff ? round.diff.changes.filter((c) => c.found).length : 0;
   renderer.setSplit(round.mode === 'diff');
-  const box = renderer.resize();
-  round.box = box;
-  const wasFound = round.found;
-  const wasTotal = round.total;
+  round.box = measure();
   buildRound();
-  round.found = Math.min(wasFound, round.total);
-  // Re-mark whatever was already found so the list and the room agree.
+
   if (round.scene) {
-    for (let i = 0; i < round.found && i < round.scene.targets.length; i++) round.scene.targets[i].found = true;
+    for (const t of round.scene.targets) if (foundIds.has(t.id)) t.found = true;
+    if (round.scene.mouse?.found) round.mouse = true;
+    round.found = round.scene.targets.filter((t) => t.found && !t.secret).length;
   } else if (round.diff) {
-    for (let i = 0; i < round.found && i < round.diff.changes.length; i++) round.diff.changes[i].found = true;
+    // Differences have no identity across layouts, so keep the count: mark that
+    // many, from the start of the new list.
+    const keep = Math.min(foundChanges, round.diff.changes.length);
+    for (let i = 0; i < keep; i++) round.diff.changes[i].found = true;
+    round.found = keep;
   }
+
   list.build(round);
   if (round.scene) {
-    for (const t of round.scene.targets) if (t.found) list.markFound(t.id);
+    for (const t of round.scene.targets) if (t.found && !t.secret) list.markFound(t.id);
   } else if (round.diff) {
-    for (const ch of round.diff.changes) if (ch.found) list.markDiff(ch.index, round.total);
+    for (const ch of round.diff.changes) {
+      if (!ch.found) continue;
+      list.markDiff(ch.index, round.total);
+      renderer.addDiffMark(ch);
+    }
   }
   renderer.setProgress(round.found, round.total);
-  if (wasTotal !== round.total) updateHud();
+  updateHud();
+  // A narrower room asks for fewer differences, so the rebuild can leave
+  // nothing to find. Don't strand the player in a finished round.
+  const left = round.scene ? remaining(round.scene) : diffRemaining(round.diff);
+  if (!round.done && left === 0) finish();
 }
 
 function updateHud() {
@@ -319,16 +353,24 @@ function missed(world) {
   if (round.misses === 6) toast($('toasts'), 'Take your time. Everything is in there somewhere.');
 }
 
+function setLanternCharge(value) {
+  lanternCharge = Math.min(1, Math.max(0, value));
+  const btn = $('btn-lantern');
+  btn.style.setProperty('--charge', `${Math.round(lanternCharge * 100)}%`);
+  btn.classList.toggle('ready', lanternCharge >= 1);
+}
+
 function useLantern() {
   if (!round || mode !== 'play' || round.done) return;
   if (lanternCharge < 1) {
     toast($('toasts'), 'The lantern is still warming up.');
     return;
   }
-  lanternCharge = 0;
-  round.hints++;
+  // Work out where to shine it before spending it.
   const area = round.diff ? diffHintArea(round.diff) : hintArea(round.scene, list.selected);
   if (!area) return;
+  setLanternCharge(0);
+  round.hints++;
   renderer.setLantern(area);
   // Look at the hint, so it is useful when zoomed in.
   renderer.camera.cx += (area.x - renderer.camera.cx) * 0.75;
@@ -379,10 +421,15 @@ function settle() {
   for (let i = 0; i < out.stars; i++) setTimeout(() => sound.star(i), 260 + i * 220);
   if (out.party) setTimeout(() => sound.fanfare(), 900);
   else if (out.curios.length) setTimeout(() => sound.curio(), 700);
-  setTimeout(() => showResult(out), 1100);
+  // Hold on to this round: the player can leave during the pause before the
+  // card, and a card for a round nobody is playing any more must not appear.
+  const mine = round;
+  setTimeout(() => { if (round === mine) showResult(out, mine); }, 1100);
 }
 
-function showResult(out) {
+function showResult(out, forRound = round) {
+  if (!forRound) return;
+  round = forRound;
   mode = 'result';
   const body = $('result-body');
   body.textContent = '';
@@ -407,7 +454,9 @@ function showResult(out) {
 }
 
 function quitRound() {
-  if (round && !round.done) {
+  // Finished but still waiting for the mouse? Record it before leaving.
+  if (round?.done && !round.settled) settle();
+  else if (round && !round.done) {
     log.event('round.quit', { room: round.room, 'play.mode': round.mode, found: round.found, total: round.total });
   }
   round = null;
@@ -415,7 +464,9 @@ function quitRound() {
 }
 
 function playDaily() {
-  const plan = game.dailyPlan(dayKey());
+  const key = dayKey();
+  game.ensureDaily(key);
+  const plan = game.dailyPlan(key);
   startRound(plan.room, plan.mode, true, plan);
 }
 
@@ -424,19 +475,14 @@ function playDaily() {
 function solveNow() {
   if (!round) return;
   if (round.diff) {
-    for (const c of autoplayDiff(round.diff).found) {
-      const ch = round.diff.changes[c];
-      ch.found = false;
-      foundChange(ch);
-    }
+    const order = autoplayDiff(round.diff).found;
+    for (const c of order) round.diff.changes[c].found = false;
+    for (const c of order) foundChange(round.diff.changes[c]);
   } else {
-    const report = autoplay(round.scene);
-    for (const id of report.found) {
-      const t = round.scene.targets.find((x) => x.id === id);
-      if (!t) continue;
-      t.found = false;
-      foundTarget(t);
-    }
+    const order = autoplay(round.scene).found;
+    const targets = order.map((id) => round.scene.targets.find((x) => x.id === id)).filter(Boolean);
+    for (const t of targets) t.found = false;
+    for (const t of targets) foundTarget(t);
   }
 }
 
@@ -482,7 +528,7 @@ canvas.addEventListener('pointerup', endDrag);
 canvas.addEventListener('pointercancel', () => { drag = null; });
 
 canvas.addEventListener('wheel', (e) => {
-  if (mode !== 'play') return;
+  if (mode !== 'play' || !e.deltaY) return;
   e.preventDefault();
   const rect = canvas.getBoundingClientRect();
   renderer.zoomBy(e.deltaY < 0 ? 1.14 : 1 / 1.14, e.clientX - rect.left, e.clientY - rect.top);
@@ -493,7 +539,7 @@ canvas.addEventListener('touchstart', (e) => {
   if (e.touches.length === 2) {
     drag = null;
     const [a, b] = e.touches;
-    pinch = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), zoom: renderer.camera.zoom };
+    pinch = { d: Math.max(1, Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)), zoom: renderer.camera.zoom };
   }
 }, { passive: true });
 
@@ -501,7 +547,7 @@ canvas.addEventListener('touchmove', (e) => {
   if (pinch && e.touches.length === 2) {
     e.preventDefault();
     const [a, b] = e.touches;
-    const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const d = Math.max(1, Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY));
     const rect = canvas.getBoundingClientRect();
     renderer.setZoom(pinch.zoom * (d / pinch.d), (a.clientX + b.clientX) / 2 - rect.left, (a.clientY + b.clientY) / 2 - rect.top);
   }
@@ -540,7 +586,10 @@ addEventListener('keydown', (e) => {
   const k = e.key;
   const lower = k.toLowerCase();
   if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D'].includes(k)) {
-    if (mode === 'play' && document.activeElement === document.body) {
+    // Steering wins while playing. If the player had tabbed into the list, let
+    // go of that focus so the ring keeps moving.
+    if (mode === 'play' && (document.activeElement === document.body || $('tray').contains(document.activeElement))) {
+      if (document.activeElement !== document.body) document.activeElement.blur();
       held.add(lower);
       e.preventDefault();
       return;
@@ -556,15 +605,24 @@ addEventListener('keydown', (e) => {
     return;
   }
   if (mode !== 'play') {
-    if (mode === 'title' && (k === 'Enter' || k === ' ')) { e.preventDefault(); toMap(); }
+    // Only when nothing else has focus, so Tab and Enter still work the buttons.
+    if (mode === 'title' && (k === 'Enter' || k === ' ') && document.activeElement === document.body) {
+      e.preventDefault();
+      toMap();
+    }
     return;
   }
   if (lower === 'h') { e.preventDefault(); useLantern(); return; }
   if (k === '+' || k === '=') { renderer.zoomBy(1.2); return; }
   if (k === '-' || k === '_') { renderer.zoomBy(1 / 1.2); return; }
   if (k === '0') { renderer.setZoom(1); return; }
-  if (k === '[') { e.preventDefault(); list.step(-1); return; }
-  if (k === ']') { e.preventDefault(); list.step(1); return; }
+  if (k === '[' || k === ']') {
+    e.preventDefault();
+    list.step(k === '[' ? -1 : 1);
+    return;
+  }
+  // Enter on a focused button belongs to that button; with nothing focused it
+  // picks up whatever the spotting ring is over.
   if ((k === 'Enter' || k === ' ') && document.activeElement === document.body) {
     e.preventDefault();
     if (!reticle) { moveReticle(0, 0, 0); return; }
@@ -629,7 +687,7 @@ $('btn-pause').onclick = pause;
 $('btn-mute').onclick = toggleSound;
 $('btn-resume').onclick = resume;
 $('btn-pause-map').onclick = quitRound;
-$('btn-pause-help').onclick = () => openSheet('How to play', renderHelp(), 'play');
+$('btn-pause-help').onclick = () => openSheet('How to play', renderHelp(), 'paused');
 $('btn-lantern').onclick = useLantern;
 $('btn-zoom-in').onclick = () => renderer.zoomBy(1.25);
 $('btn-zoom-out').onclick = () => renderer.zoomBy(1 / 1.25);
@@ -638,8 +696,17 @@ $('result-map').onclick = toMap;
 for (const b of document.querySelectorAll('[data-sound]')) b.onclick = toggleSound;
 for (const b of document.querySelectorAll('[data-music]')) b.onclick = toggleMusic;
 
-addEventListener('resize', relayout);
-addEventListener('orientationchange', () => setTimeout(relayout, 120));
+addEventListener('resize', relayoutSoon);
+addEventListener('orientationchange', () => setTimeout(relayout, 160));
+// The tray and the overlays resize the canvas through CSS, with no resize
+// event: watch the element itself.
+if (typeof ResizeObserver === 'function') {
+  let first = true;
+  new ResizeObserver(() => {
+    if (first) { first = false; return; }
+    relayoutSoon();
+  }).observe(canvas);
+}
 document.addEventListener('visibilitychange', () => {
   monitor.reset(performance.now());
   if (document.visibilityState === 'hidden' && mode === 'play') pause();
@@ -671,11 +738,7 @@ function frame(now) {
   if (mode === 'play' && round && !round.done) {
     round.time += dt;
     if (fog > 0) fog = Math.max(0, fog - dt);
-    if (lanternCharge < 1) {
-      lanternCharge = Math.min(1, lanternCharge + dt / LANTERN_SECONDS);
-      $('btn-lantern').style.setProperty('--charge', `${Math.round(lanternCharge * 100)}%`);
-      $('btn-lantern').classList.toggle('ready', lanternCharge >= 1);
-    }
+    if (lanternCharge < 1) setLanternCharge(lanternCharge + dt / LANTERN_SECONDS);
     if ((round.time | 0) !== (lastShownTime | 0)) {
       lastShownTime = round.time;
       updateHud();
@@ -732,7 +795,7 @@ if (params.has('crash')) {
   };
 }
 
-renderer.resize();
+measure();
 if (params.has('room')) {
   const roomId = ROOM[params.get('room')] ? params.get('room') : 'library';
   const modeId = MODE_IDS.includes(params.get('mode')) ? params.get('mode') : 'find';

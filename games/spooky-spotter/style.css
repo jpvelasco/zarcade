@@ -408,7 +408,7 @@ h3 { margin: 14px 0 4px; font-size: 17px; font-weight: 900; }
   .pill .pt small { font-size: 10px; }
   #pill-room { max-width: 140px; }
   #pill-room .pt b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .icon-btn { width: 40px; height: 40px; font-size: 17px; }
+  .icon-btn { width: 44px; height: 44px; font-size: 17px; }
   .lantern { width: 58px; height: 58px; border-radius: 18px; }
   .lantern::before { inset: 4px; border-radius: 15px; }
   .lantern .lamp { font-size: 20px; }

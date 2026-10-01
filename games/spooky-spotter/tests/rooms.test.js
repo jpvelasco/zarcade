@@ -188,8 +188,8 @@ test('the scene box follows the viewport but stays in bounds', () => {
   assert.equal(sceneBox(1366, 410).w, 2600, 'a difference panel is wide and shallow');
   assert.equal(sceneBox(390, 304).w, 1283);
   assert.ok(clutterScale(900) < clutterScale(2600), 'a wider room gets more clutter');
-  assert.equal(clutterScale(1350), 1);
-  assert.ok(clutterScale(400) >= 0.85 && clutterScale(9000) <= 1.9);
+  assert.equal(clutterScale(1200), 1);
+  assert.ok(clutterScale(400) >= 0.95 && clutterScale(9000) <= 1.9);
   assert.ok(sceneBox(1366, 760).w > sceneBox(1060, 790).w);
   assert.equal(sceneBox(0, 0).w, 1400, 'a zero viewport still gives a room');
 });

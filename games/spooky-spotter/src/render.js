@@ -8,7 +8,7 @@
 // No shadowBlur and no filters in the frame loop: every glow is a baked
 // gradient.
 
-import { drawProp, alpha, mixHex, shade } from './art.js';
+import { drawProp, alpha } from './art.js';
 import { drawItem, drawGhost, drawArch, drawSilhouette } from './sprites.js';
 import { PROPS, coverRects } from './props.js';
 import { propBox } from './scene.js';
@@ -54,6 +54,7 @@ export class Renderer {
     this.time = 0;
     this.dust = [];
     this.glowCache = new Map();
+    this.warmth = null;
     this.shake = 0;
   }
 
@@ -92,6 +93,7 @@ export class Renderer {
   }
 
   recomputeCover() {
+    this.warmth = null;
     const box = this.box();
     const p = this.panels()[0];
     this.cover = Math.max(p.w / box.w, p.h / box.h);
@@ -184,6 +186,7 @@ export class Renderer {
     this.platesDiff = null;
     this.light = light;
     this.progress = 0;
+    this.warmth = null;
     this.patches.clear();
     this.flyers.length = 0;
     this.particles.length = 0;
@@ -203,8 +206,10 @@ export class Renderer {
     this.plate = null;
     this.light = light;
     this.progress = 0;
+    this.warmth = null;
     this.patches.clear();
     this.flyers.length = 0;
+    this.particles.length = 0;
     this.marks.length = 0;
     this.puffs.length = 0;
     this.lantern = null;
@@ -269,11 +274,6 @@ export class Renderer {
   }
 
   get baking() { return !!this.bake; }
-
-  bakeProgress() {
-    if (!this.bake) return 1;
-    return this.bake.steps.length ? this.bake.at / this.bake.steps.length : 1;
-  }
 
   // One hidden thing, with everything that covers it painted back on top.
   bakePatch(target) {
@@ -347,7 +347,9 @@ export class Renderer {
   // ------------------------------------------------------------- effects
 
   setProgress(found, total) {
-    this.progress = total ? found / total : 0;
+    const next = total ? found / total : 0;
+    if (Math.abs(next - this.progress) > 0.001) this.warmth = null;
+    this.progress = next;
   }
 
   // A found thing flies to its ghost.
@@ -411,24 +413,41 @@ export class Renderer {
 
   update(dt) {
     this.time += dt;
+    // Everything below is compacted in place: the frame loop allocates nothing.
+    let keep = 0;
     for (const p of this.particles) {
       p.age += dt;
       p.vy += 260 * dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
+      if (p.age < p.life) this.particles[keep++] = p;
     }
-    this.particles = this.particles.filter((p) => p.age < p.life);
-    for (const f of this.flyers) f.t += dt;
-    const landed = this.flyers.filter((f) => f.t >= f.dur);
-    this.flyers = this.flyers.filter((f) => f.t < f.dur);
-    for (const f of landed) {
-      this.celebrate(f.ghostId);
-      if (this.onLanded) this.onLanded(f);
+    this.particles.length = keep;
+
+    keep = 0;
+    for (const f of this.flyers) {
+      f.t += dt;
+      if (f.t < f.dur) this.flyers[keep++] = f;
+      else {
+        this.celebrate(f.ghostId);
+        if (this.onLanded) this.onLanded(f);
+      }
     }
-    for (const m of this.marks) m.t += dt;
-    this.marks = this.marks.filter((m) => m.keep || m.t < m.dur);
-    for (const p of this.puffs) p.t += dt;
-    this.puffs = this.puffs.filter((p) => p.t < p.dur);
+    this.flyers.length = keep;
+
+    keep = 0;
+    for (const m of this.marks) {
+      m.t += dt;
+      if (m.keep || m.t < m.dur) this.marks[keep++] = m;
+    }
+    this.marks.length = keep;
+
+    keep = 0;
+    for (const p of this.puffs) {
+      p.t += dt;
+      if (p.t < p.dur) this.puffs[keep++] = p;
+    }
+    this.puffs.length = keep;
     if (this.lantern) {
       this.lantern.t += dt;
       if (this.lantern.t > this.lantern.dur) this.lantern = null;
@@ -507,7 +526,9 @@ export class Renderer {
       for (const t of scene.targets) {
         if (t.found) continue;
         const patch = this.patches.get(t);
-        if (!patch) { drawItem(c, t.id, t.w, t.h); continue; }
+        // Still baking: skip it rather than draw it in the corner with nothing
+        // covering it. The bake is a few milliseconds.
+        if (!patch) continue;
         c.save();
         c.translate(t.x - patch.m, t.y - patch.m);
         c.drawImage(patch.canvas, 0, 0, patch.canvas.width / patch.scale, patch.canvas.height / patch.scale);
@@ -550,15 +571,19 @@ export class Renderer {
   }
 
   // The room brightens as the list shrinks: a warm wash instead of a re-bake.
+  // The gradient only changes when the progress does, so it is built once.
   drawWarmth(c) {
     const box = this.box();
     const amount = this.progress * 0.5 + this.light * 0.18;
     if (amount <= 0.01) return;
-    const pal = (this.scene || this.diff).palette;
-    const g = c.createRadialGradient(box.w * 0.5, box.h * 0.36, Math.min(box.w, box.h) * 0.1, box.w * 0.5, box.h * 0.4, Math.max(box.w, box.h) * 0.7);
-    g.addColorStop(0, alpha(pal.glow, 0.17 * amount));
-    g.addColorStop(1, alpha(pal.glow, 0));
-    c.fillStyle = g;
+    if (!this.warmth) {
+      const pal = (this.scene || this.diff).palette;
+      const g = c.createRadialGradient(box.w * 0.5, box.h * 0.36, Math.min(box.w, box.h) * 0.1, box.w * 0.5, box.h * 0.4, Math.max(box.w, box.h) * 0.7);
+      g.addColorStop(0, alpha(pal.glow, 0.17 * amount));
+      g.addColorStop(1, alpha(pal.glow, 0));
+      this.warmth = g;
+    }
+    c.fillStyle = this.warmth;
     c.fillRect(0, 0, box.w, box.h);
   }
 
@@ -614,7 +639,6 @@ export class Renderer {
       c.save();
       c.translate(x, y);
       c.rotate(f.spin * e);
-      c.globalAlpha = 1 - e * 0.25;
       const g = this.glow('#fff2c0', 128);
       c.globalAlpha = (1 - e) * 0.5;
       c.drawImage(g, -f.w * 0.9, -f.h * 0.9, f.w * 1.8, f.h * 1.8);
@@ -733,5 +757,3 @@ export class Renderer {
     return c;
   }
 }
-
-export { mixHex, shade };

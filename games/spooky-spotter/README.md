@@ -28,8 +28,10 @@ Three ways to play each room:
 The **Find** round of a room opens the room after it, and clearing it opens
 that room's other two modes. A room is fully awake once all three are done.
 
-- **Stars.** One for finishing, always. A second for beating par time and a
-  half, a third for beating par with at most one lantern used.
+- **Stars.** One for finishing, always. A second for finishing within about
+  half again the par time, a third for beating par with at most one lantern
+  used. Wrong taps only count against the second and third star, and only in
+  large numbers.
 - **The lantern** recharges on its own and lights up the area around the next
   thing on the list. It never points at the exact spot.
 - **Tapping at random** puffs up a little fog for half a second. It never
