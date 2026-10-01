@@ -52,18 +52,33 @@ test('every game has an entry page, a cover, and a way back to the arcade', () =
   }
 });
 
-test('genres starts with All and lists each genre once', () => {
-  const list = A.genres([{ genre: 'Action' }, { genre: 'Chill' }, { genre: 'Action' }]);
-  assert.deepEqual(list, ['All', 'Action', 'Chill']);
+test('every game sits on a shelf', () => {
+  for (const g of GAMES) assert.ok(A.shelfOf(g.genre), `${g.slug} genre "${g.genre}" has no shelf`);
 });
 
-test('filterGames keeps order and returns a copy for All', () => {
-  const games = [{ slug: 'a', genre: 'X' }, { slug: 'b', genre: 'Y' }, { slug: 'c', genre: 'X' }];
-  assert.deepEqual(A.filterGames(games, 'X').map((g) => g.slug), ['a', 'c']);
+test('filter chips: All, New while something is unplayed, then shelves in order', () => {
+  const games = [
+    { slug: 'a', genre: 'Racing' },
+    { slug: 'b', genre: 'Action', isNew: true },
+    { slug: 'c', genre: 'Puzzle' },
+  ];
+  assert.deepEqual(A.genres(games), ['All', 'New', 'Action & Adventure', 'Racing', 'Puzzle & Word']);
+  assert.deepEqual(A.genres(games, { b: 1 }), ['All', 'Action & Adventure', 'Racing', 'Puzzle & Word']);
+});
+
+test('filterGames keeps order, copies for All, and finds new and shelved games', () => {
+  const games = [
+    { slug: 'a', genre: 'Action' },
+    { slug: 'b', genre: 'Word', isNew: true },
+    { slug: 'c', genre: 'Platformer', isNew: true },
+  ];
+  assert.deepEqual(A.filterGames(games, 'Action & Adventure').map((g) => g.slug), ['a', 'c']);
   const all = A.filterGames(games, 'All');
   assert.deepEqual(all, games);
   assert.notEqual(all, games);
-  assert.deepEqual(A.filterGames(games, 'Z'), []);
+  assert.deepEqual(A.filterGames(games, 'New').map((g) => g.slug), ['b', 'c']);
+  assert.deepEqual(A.filterGames(games, 'New', { c: 2 }).map((g) => g.slug), ['b']);
+  assert.deepEqual(A.filterGames(games, 'Cozy'), []);
 });
 
 test('gridMove wraps sideways and clamps vertically', () => {

@@ -6,15 +6,40 @@
   const STORAGE_KEY = 'arcade.v1';
   const ALL = 'All';
 
-  // Genre filters in the order games first use them, with "All" first.
-  function genres(games) {
-    const seen = [ALL];
-    for (const g of games) if (!seen.includes(g.genre)) seen.push(g.genre);
-    return seen;
+  // Games sit on a handful of broad shelves so the filter row stays short as
+  // the arcade grows. A game's own genre still shows on its cabinet.
+  const SHELVES = [
+    ['Action & Adventure', ['Action', 'Adventure', 'Platformer']],
+    ['Racing', ['Racing']],
+    ['Puzzle & Word', ['Puzzle', 'Word']],
+    ['Arcade & Party', ['Arcade', 'Rhythm', 'Party']],
+    ['Cozy', ['Chill', 'Life sim']],
+    ['Strategy & Sports', ['Strategy', 'Sports']],
+  ];
+  const NEW = 'New';
+
+  function shelfOf(genre) {
+    const found = SHELVES.find(([, genres]) => genres.includes(genre));
+    return found ? found[0] : null;
   }
 
-  function filterGames(games, genre) {
-    return !genre || genre === ALL ? games.slice() : games.filter((g) => g.genre === genre);
+  // Filter chips: All, then New (when some new game hasn't been played),
+  // then each shelf that has games, in shelf order.
+  function genres(games, plays = {}) {
+    const list = [ALL];
+    if (games.some((g) => isNew(g, plays))) list.push(NEW);
+    for (const [shelf] of SHELVES) if (games.some((g) => shelfOf(g.genre) === shelf)) list.push(shelf);
+    return list;
+  }
+
+  function isNew(game, plays = {}) {
+    return !!game.isNew && !plays[game.slug];
+  }
+
+  function filterGames(games, filter, plays = {}) {
+    if (!filter || filter === ALL) return games.slice();
+    if (filter === NEW) return games.filter((g) => isNew(g, plays));
+    return games.filter((g) => shelfOf(g.genre) === filter);
   }
 
   function gamePath(slug) {
@@ -100,7 +125,7 @@
   }
 
   const Arcade = {
-    STORAGE_KEY, ALL, genres, filterGames, gamePath, gridMove,
+    STORAGE_KEY, ALL, NEW, SHELVES, shelfOf, isNew, genres, filterGames, gamePath, gridMove,
     freshState, loadState, saveState, recordPlay, blockedOffline, problemSummary,
   };
 

@@ -103,6 +103,7 @@
       controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
       accent: '#39d6e6',
       needsServer: true,
+      isNew: true,
     },
     {
       slug: 'riverlight',
@@ -113,6 +114,7 @@
       controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
       accent: '#4fb2ec',
       needsServer: true,
+      isNew: true,
     },
     {
       slug: 'sprout-valley',
@@ -123,6 +125,7 @@
       controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
       accent: '#8bd266',
       needsServer: true,
+      isNew: true,
     },
     {
       slug: 'knight-shift',
@@ -133,6 +136,7 @@
       controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
       accent: '#ffcf5a',
       needsServer: true,
+      isNew: true,
     },
     {
       slug: 'pinball-planet',
@@ -143,6 +147,7 @@
       controls: ['keyboard', 'touch', 'gamepad'],
       accent: '#ffb347',
       needsServer: true,
+      isNew: true,
     },
     {
       slug: 'jungle-blaster',
@@ -153,6 +158,7 @@
       controls: ['keyboard', 'touch', 'gamepad'],
       accent: '#ff8a1a',
       needsServer: true,
+      isNew: true,
     },
     {
       slug: 'reel-rumble',
@@ -163,6 +169,7 @@
       controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
       accent: '#15a39c',
       needsServer: true,
+      isNew: true,
     },
     {
       slug: 'groove-garden',
@@ -173,6 +180,7 @@
       controls: ['keyboard', 'touch', 'mouse', 'gamepad'],
       accent: '#ff7eb6',
       needsServer: true,
+      isNew: true,
     },
     {
       slug: 'lanternwood',
@@ -183,6 +191,7 @@
       controls: ['keyboard', 'touch', 'gamepad'],
       accent: '#ffb84a',
       needsServer: true,
+      isNew: true,
     },
     {
       slug: 'globe-gp',
@@ -193,6 +202,18 @@
       controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
       accent: '#ff5a5f',
       needsServer: true,
+      isNew: true,
+    },
+    {
+      slug: 'bumper-blobs',
+      title: 'Bumper Blobs',
+      tagline: 'Squishy sumo for 1–4 players. Bump them off!',
+      description: 'Charge, dash and ground-pound jelly blobs off ten floating dessert arenas. Play with friends on keyboards and gamepads, or alone against Easy, Normal or Hard bots.',
+      genre: 'Party',
+      controls: ['keyboard', 'touch', 'gamepad'],
+      accent: '#ff5fa8',
+      needsServer: true,
+      isNew: true,
     },
   ];
 

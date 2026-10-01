@@ -502,6 +502,8 @@ main {
   text-transform: uppercase;
 }
 
+.ribbon.new { background: var(--pink); color: #fff; box-shadow: 0 0 12px rgba(255, 79, 163, .7); }
+
 .cab-panel {
   display: flex;
   align-items: center;

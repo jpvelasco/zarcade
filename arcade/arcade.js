@@ -75,7 +75,7 @@
   function buildFilters() {
     const nav = $('filters');
     nav.replaceChildren();
-    for (const name of A.genres(GAMES)) {
+    for (const name of A.genres(GAMES, state.plays)) {
       const btn = el('button', 'filter', name);
       btn.type = 'button';
       btn.setAttribute('aria-pressed', String(name === genre));
@@ -91,7 +91,7 @@
   }
 
   function buildRow() {
-    shown = A.filterGames(GAMES, genre);
+    shown = A.filterGames(GAMES, genre, state.plays);
     const row = $('row');
     row.replaceChildren();
     shown.forEach((game, i) => {
@@ -113,6 +113,7 @@
       img.height = 500;
       screen.append(img, el('span', 'scan'));
       if (state.last === game.slug) screen.append(el('span', 'ribbon', 'Last played'));
+      else if (A.isNew(game, state.plays)) screen.append(el('span', 'ribbon new', 'New'));
 
       const panel = el('div', 'cab-panel');
       panel.append(el('span', 'stick'), el('span', 'knob a'), el('span', 'knob b'), el('span', 'cab-genre', game.genre));
