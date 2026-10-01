@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#ff7a2f">
+  <meta name="description" content="Hoop Heroes: flick the ball, swish the net, and win the animal basketball tournament from the park to a space station.">
+  <title>Hoop Heroes — flick, swish, win the tournament</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="hoop-heroes"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Hoop Heroes court"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Hoop Heroes uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/hoop-heroes/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- In-play HUD -->
+  <div id="hud" class="hud hidden">
+    <div class="hud-score">
+      <span class="hud-label">You</span>
+      <span id="hud-score" class="hud-big">0</span>
+      <span id="hud-sub" class="hud-small"></span>
+    </div>
+    <div class="hud-right">
+      <div class="hud-clock"><span id="hud-clock-label" class="hud-label">Time</span><span id="hud-clock" class="hud-big">60</span></div>
+      <div class="hud-buttons">
+        <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+        <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+      </div>
+    </div>
+    <div id="rival-card" class="rival-card hidden">
+      <canvas id="rival-face" width="96" height="96" aria-hidden="true"></canvas>
+      <div class="rival-info">
+        <span id="rival-name" class="rival-name"></span>
+        <span id="rival-score" class="rival-score">0</span>
+        <span id="rival-dots" class="rival-dots" aria-hidden="true"></span>
+      </div>
+    </div>
+    <div id="fire-badge" class="fire-badge hidden">🔥 ON FIRE ×2</div>
+    <div id="hud-goal" class="hud-goal hidden"></div>
+  </div>
+
+  <!-- Title -->
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo">
+        <canvas id="title-ace" width="132" height="132" aria-hidden="true"></canvas>
+        <h1><span class="l1">Hoop</span><span class="l2">Heroes</span></h1>
+      </div>
+      <p class="tagline">Flick the ball. Swish the net. Beat the animal all-stars!</p>
+      <div class="col">
+        <button id="btn-tour" class="btn primary big">🏆 Tournament</button>
+        <div class="row two">
+          <button id="btn-quick" class="btn">⏱️ Quick Play</button>
+          <button id="btn-trick" class="btn">🤸 Trick Shots</button>
+        </div>
+        <div class="row two">
+          <button id="btn-daily" class="btn daily-btn"><span>📅 Daily Shootout</span><small id="daily-note"></small></button>
+          <button id="btn-locker" class="btn">🎽 Locker <span id="ticket-pill" class="pill small-pill"></span></button>
+        </div>
+      </div>
+      <div class="missions" aria-label="Challenges">
+        <div class="missions-head">Challenges <span class="muted">· each pays 🎟️ 40</span></div>
+        <ul id="mission-list"></ul>
+      </div>
+      <p id="title-best" class="muted best-line"></p>
+      <div class="row settings">
+        <button class="btn small" data-sound>Sound: on</button>
+        <button class="btn small" data-music>Music: on</button>
+        <button id="btn-easy" class="btn small">Easy aim: off</button>
+        <button id="btn-help" class="btn small">How to play</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tournament ladder -->
+  <section id="screen-ladder" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="screen-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Tournament</h2>
+        <span id="ladder-trophies" class="pill"></span>
+      </div>
+      <div id="ladder" class="ladder"></div>
+    </div>
+  </section>
+
+  <!-- Quick play -->
+  <section id="screen-quick" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="screen-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Quick Play</h2>
+        <span class="pill">60 seconds</span>
+      </div>
+      <div id="quick-modes" class="mode-grid"></div>
+      <h3 class="sub-head">Court</h3>
+      <div id="quick-courts" class="chips"></div>
+    </div>
+  </section>
+
+  <!-- Trick shots -->
+  <section id="screen-trick" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="screen-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Trick Shots</h2>
+        <span id="trick-stars" class="pill"></span>
+      </div>
+      <div id="trick-grid" class="trick-grid"></div>
+    </div>
+  </section>
+
+  <!-- Locker -->
+  <section id="screen-locker" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="screen-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Locker</h2>
+        <span id="locker-tickets" class="pill"></span>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab" data-tab="balls" role="tab">Balls</button>
+        <button class="tab" data-tab="jerseys" role="tab">Jerseys</button>
+        <button class="tab" data-tab="courts" role="tab">Courts</button>
+      </div>
+      <div id="locker-grid" class="locker-grid"></div>
+    </div>
+  </section>
+
+  <!-- Versus intro -->
+  <section id="screen-vs" class="overlay dim hidden">
+    <div class="card vs-card">
+      <p id="vs-court" class="muted"></p>
+      <div class="vs-row">
+        <div class="vs-side"><canvas id="vs-ace" width="150" height="150" aria-hidden="true"></canvas><b>Ace</b></div>
+        <span class="vs-word">VS</span>
+        <div class="vs-side"><canvas id="vs-rival" width="150" height="150" aria-hidden="true"></canvas><b id="vs-name"></b><small id="vs-diff" class="muted"></small></div>
+      </div>
+      <p id="vs-hello" class="bubble"></p>
+      <p id="vs-rules" class="muted"></p>
+      <div class="col">
+        <button id="btn-vs-go" class="btn primary big">Let’s play!</button>
+        <button class="btn" data-back>Back</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart</button>
+        <button id="btn-quit" class="btn">Main menu</button>
+        <div class="row two">
+          <button class="btn" data-sound>Sound: on</button>
+          <button class="btn" data-music>Music: on</button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section id="screen-results" class="overlay dim hidden">
+    <div class="card results-card">
+      <h2 id="res-title">Time!</h2>
+      <p id="res-sub" class="muted"></p>
+      <div id="res-versus" class="res-versus hidden">
+        <div><canvas id="res-ace" width="84" height="84" aria-hidden="true"></canvas><b id="res-me">0</b></div>
+        <span>–</span>
+        <div><canvas id="res-rival" width="84" height="84" aria-hidden="true"></canvas><b id="res-them">0</b></div>
+      </div>
+      <p id="res-score" class="big-score"></p>
+      <div id="res-stars" class="stars" aria-hidden="true"></div>
+      <p id="res-best" class="best-banner hidden">New best!</p>
+      <div id="res-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-again" class="btn primary big">Again!</button>
+        <button id="btn-next" class="btn hidden">Next rival →</button>
+        <button id="btn-res-menu" class="btn">Main menu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- How to play -->
+  <section id="screen-help" class="overlay dim hidden">
+    <div class="card">
+      <h2>How to play</h2>
+      <div class="help">
+        <p><b>Flick up</b> toward the hoop to shoot. The direction aims; a quicker flick throws harder.</p>
+        <p><b>Keyboard / gamepad:</b> press <kbd>Space</kbd> or <kbd>A</kbd> when the marker is in the <span class="green">green</span>. <kbd>←</kbd> <kbd>→</kbd> or the stick nudge your aim.</p>
+        <p><b>Swish</b> (no rim) scores +1. <b>Three swishes in a row</b> sets the ball <b>on fire</b>: double points until you miss!</p>
+        <p><b>Money racks:</b> rainbow balls are worth double.</p>
+        <p>Miss a lot? Turn on <b>Easy aim</b>. Hoop Heroes also learns how hard you like to flick.</p>
+        <p class="muted">Pause: Esc / P / Start · Mute: M</p>
+      </div>
+      <div class="col"><button class="btn primary" data-back>Got it!</button></div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
