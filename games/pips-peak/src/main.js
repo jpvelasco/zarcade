@@ -9,6 +9,7 @@ import {
 } from './progress.js';
 import { Renderer } from './render.js';
 import { PETALS, World } from './world.js';
+import { frameMonitor } from './perf.js';
 
 const STEP = 1 / 60;
 const MAX_STEPS = 5;
@@ -17,6 +18,10 @@ const POINTER_IDLE = 2;
 const $ = (id) => document.getElementById(id);
 const query = new URLSearchParams(location.search);
 const screens = [...document.querySelectorAll('.overlay')];
+
+// Telemetry is optional: the game still runs if telemetry.js is missing.
+const telemetry = window.Telemetry || null;
+const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
 
 const canvas = $('game');
 const renderer = new Renderer(canvas);
@@ -39,6 +44,7 @@ const state = {
   pointerHidden: false,
   debugLevel: null,
   peek: query.has('peek'),
+  wilts: 0,
 };
 
 // Browsers only allow audio after a real gesture, so hold off until one lands.
@@ -167,8 +173,10 @@ function startLevel(index) {
   state.mode = 'play';
   state.accumulator = 0;
   state.endTimer = 0;
+  state.wilts = 0;
   showScreen(null);
   setPlayUi(true);
+  log.event('level.start', { level: state.index + 1, 'level.id': level.id, zone: level.zone });
   updateHud(true);
   banner(`${state.index + 1}. ${level.name} — ${level.hint}`);
   if (audioArmed) {
@@ -197,6 +205,10 @@ function finishLevel() {
   const result = world.result();
   const { entry, record } = recordRun(save, result);
   writeSave(storage, save);
+  log.event('level.complete', {
+    level: state.index + 1, 'level.id': result.levelId, stars: result.stars, 'time.s': Math.round(result.time * 10) / 10,
+    seeds: result.seeds, 'seeds.total': result.seedTotal, acorns: result.acorns, wilts: state.wilts, 'best.new': !!record,
+  });
   state.mode = 'complete';
   const level = LEVELS[state.index];
   $('result-zone').textContent = ZONES[level.zone].name.toUpperCase();
@@ -276,7 +288,19 @@ function updatePointer(dt) {
 
 // ------------------------------------------------------------------ loop
 
+// Frame telemetry: slow frames, struggling 10 s windows, and a watchdog
+// outside the loop that notices when frames stop while the page is visible.
+const monitor = frameMonitor({
+  log,
+  snapshot: () => ({ mode: state.mode, level: state.index + 1, status: state.world ? state.world.status : 'none' }),
+  visible: () => document.visibilityState === 'visible',
+  crashed: () => !!telemetry?.crashed,
+});
+setInterval(() => monitor.check(performance.now()), 1000);
+document.addEventListener('visibilitychange', () => monitor.reset(performance.now()));
+
 function frame(now) {
+  monitor.frame(now);
   const dt = Math.min(0.05, (now - state.last) / 1000);
   state.last = now;
   updatePointer(dt);
@@ -310,7 +334,10 @@ function frame(now) {
         for (const event of world.events) {
           if (event.type === 'acorn') toast('Golden acorn!');
           else if (event.type === 'gate') toast('The gates roll open');
-          else if (event.type === 'wilt') toast('Pip wilts — back to the last flower');
+          else if (event.type === 'wilt') {
+            state.wilts += 1;
+            toast('Pip wilts — back to the last flower');
+          }
         }
         world.events.length = 0;
       }
@@ -331,8 +358,12 @@ function frame(now) {
   }
 
   if (world) renderer.frame(world, dt, { follow: state.mode === 'play' || state.mode === 'paused' });
-  requestAnimationFrame(frame);
+  requestAnimationFrame(loop);
 }
+
+// A crash inside a frame shows the crash screen instead of a frozen picture;
+// after a crash the guard returns early, so the loop stops rescheduling.
+const loop = telemetry ? telemetry.guard(frame, 'pips-peak.frame') : frame;
 
 // ------------------------------------------------------------------ wiring
 
@@ -367,6 +398,11 @@ for (const button of document.querySelectorAll('#touch [data-hold]')) {
   input.bindTouch(button, button.dataset.hold);
 }
 
+{
+  const sum = totals(save);
+  log.event('game.ready', { stars: sum.stars, done: sum.done });
+}
+
 // A level can be opened straight from the address bar: ?level=7
 const wanted = Number.parseInt(query.get('level') || '', 10);
 if (Number.isFinite(wanted) && wanted >= 1 && wanted <= LEVELS.length) {
@@ -377,7 +413,7 @@ if (Number.isFinite(wanted) && wanted >= 1 && wanted <= LEVELS.length) {
   showTitle();
 }
 
-requestAnimationFrame(frame);
+requestAnimationFrame(loop);
 window.PipsPeak = {
   get world() { return state.world; },
   renderer,
