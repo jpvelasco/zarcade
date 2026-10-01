@@ -75,7 +75,7 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
   left: 14px;
   top: 12px;
   z-index: 30;
-  padding: 7px 12px;
+  padding: 12px 14px;
   border-radius: 8px;
   color: var(--ink);
   background: rgba(10, 6, 18, 0.7);
@@ -386,6 +386,12 @@ h2 {
   border-radius: 8px;
 }
 
+/* Landscape phones: the pause button moves up into the corner, off the boss
+   health bar and the ground the player runs on. */
+@media (orientation: landscape) {
+  .touch-pause { position: fixed; left: auto; right: max(8px, env(safe-area-inset-right)); top: max(8px, env(safe-area-inset-top)); bottom: auto; transform: none; width: 48px; height: 44px; }
+}
+
 /* Portrait phones: the screen sits at the top, controls get the space below. */
 @media (orientation: portrait) {
   body { place-items: start center; }
@@ -409,6 +415,13 @@ h2 {
   .overlay { padding-top: 12px; align-items: start; }
   .howto { display: none; }
   .tagline { margin-bottom: 8px; }
+  /* Fit the whole title card on a landscape phone without scrolling. */
+  .card { padding: 14px 18px 12px; }
+  .logo { margin: 0 0 4px; }
+  .logo-top { font-size: clamp(18px, 7vh, 44px); }
+  .logo-main { font-size: clamp(34px, 14vh, 92px); }
+  .logo-badge { margin-top: 2px; }
+  .title-card .tagline { margin: 4px 0 8px; font-size: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

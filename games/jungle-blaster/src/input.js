@@ -181,7 +181,10 @@ export class Input {
       t.left = dx < -dead && Math.abs(dx) > Math.abs(dy) * 0.45;
       t.right = dx > dead && Math.abs(dx) > Math.abs(dy) * 0.45;
       t.up = dy < -dead && Math.abs(dy) > Math.abs(dx) * 0.45;
-      t.down = dy > dead && Math.abs(dy) > Math.abs(dx) * 0.45;
+      // Down needs a firmer push than the other directions: a thumb that sags
+      // a little while running must not turn the next jump into a drop
+      // through the ledge.
+      t.down = dy > dead && Math.abs(dy) > Math.abs(dx);
       const len = Math.min(34, Math.hypot(dx, dy));
       const ang = Math.atan2(dy, dx);
       knob.style.transform = `translate(${Math.cos(ang) * len}px, ${Math.sin(ang) * len}px)`;
