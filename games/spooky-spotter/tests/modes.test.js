@@ -5,7 +5,9 @@ import { buildDiff, diffHitTest, diffRemaining, diffHintArea, distanceToBox, CHA
 import { ROOM_IDS, sceneBox, targetCount } from '../src/rooms.js';
 import { autoplayDiff } from '../src/solver.js';
 
-const BOXES = [sceneBox(1366, 760), sceneBox(390, 500)];
+// Spot the Difference stacks two pictures, so a panel is half the height of
+// the canvas: these are the boxes a 1366x820 desktop and a 390x614 phone give.
+const BOXES = [sceneBox(1366, 410), sceneBox(1066, 407), sceneBox(390, 304), sceneBox(1366, 760)];
 const SEEDS = [1, 2, 5, 9, 13, 21, 34, 88, 777];
 
 function wanted(room, box) {

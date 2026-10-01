@@ -35,6 +35,7 @@ export class Renderer {
     this.view = { w: 1, h: 1 };
     this.scene = null;
     this.diff = null;
+    this.split = false;
     this.plate = null;
     this.platesDiff = null;
     this.patches = new Map();
@@ -58,6 +59,11 @@ export class Renderer {
 
   // ------------------------------------------------------------- viewport
 
+  // Spot the Difference shows two pictures at once, so the room has to be
+  // built for one panel rather than the whole canvas: each picture must be
+  // visible in full, with no panning needed to compare them.
+  setSplit(on) { this.split = !!on; }
+
   resize() {
     const rect = this.canvas.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -67,7 +73,8 @@ export class Renderer {
     this.view = { w, h };
     this.canvas.width = Math.round(w * dpr);
     this.canvas.height = Math.round(h * dpr);
-    return sceneBox(w, h);
+    const panel = this.panels()[0];
+    return sceneBox(panel.w, panel.h);
   }
 
   box() {
@@ -75,15 +82,13 @@ export class Renderer {
   }
 
   // In diff mode each picture gets half the screen.
+  // The two pictures sit one above the other. Stacking rather than placing them
+  // side by side keeps each panel wider than it is tall, which is the shape a
+  // room is built for, and means neither picture ever needs panning.
   panels() {
-    if (!this.diff) return [{ x: 0, y: 0, w: this.view.w, h: this.view.h }];
-    const stacked = this.view.h > this.view.w * 1.05;
-    if (stacked) {
-      const h = (this.view.h - 6) / 2;
-      return [{ x: 0, y: 0, w: this.view.w, h }, { x: 0, y: h + 6, w: this.view.w, h }];
-    }
-    const w = (this.view.w - 6) / 2;
-    return [{ x: 0, y: 0, w, h: this.view.h }, { x: w + 6, y: 0, w, h: this.view.h }];
+    if (!this.split && !this.diff) return [{ x: 0, y: 0, w: this.view.w, h: this.view.h }];
+    const h = (this.view.h - 6) / 2;
+    return [{ x: 0, y: 0, w: this.view.w, h }, { x: 0, y: h + 6, w: this.view.w, h }];
   }
 
   recomputeCover() {
@@ -175,6 +180,7 @@ export class Renderer {
   setScene(scene, { light = 0 } = {}) {
     this.scene = scene;
     this.diff = null;
+    this.split = false;
     this.platesDiff = null;
     this.light = light;
     this.progress = 0;
@@ -193,6 +199,7 @@ export class Renderer {
   setDiff(diff, { light = 0 } = {}) {
     this.diff = diff;
     this.scene = null;
+    this.split = true;
     this.plate = null;
     this.light = light;
     this.progress = 0;
@@ -535,11 +542,10 @@ export class Renderer {
     }
     // the dividing line between the two pictures
     const c = this.ctx;
-    const [a, b] = this.panels();
+    const [a] = this.panels();
     c.save();
     c.fillStyle = '#1b1526';
-    if (b.x > a.x) c.fillRect(a.w, 0, 6, this.view.h);
-    else c.fillRect(0, a.h, this.view.w, 6);
+    c.fillRect(0, a.h, this.view.w, 6);
     c.restore();
   }
 
@@ -709,7 +715,7 @@ export class Renderer {
   }
 
   // The little drawing used on the item list and the album.
-  static iconCanvas(id, size, { silhouette = false, dpr = 1 } = {}) {
+  static iconCanvas(id, size, { silhouette = false, dpr = 1, fill = '#2b2336' } = {}) {
     const px = Math.round(size * dpr);
     const c = makeCanvas(px, px);
     const ctx = c.getContext('2d');
@@ -722,7 +728,7 @@ export class Renderer {
     const w = item.w * k;
     const h = item.h * k;
     ctx.translate((size - w) / 2, (size - h) / 2);
-    if (silhouette) drawSilhouette(ctx, id, w, h, '#2b2336');
+    if (silhouette) drawSilhouette(ctx, id, w, h, fill);
     else drawItem(ctx, id, w, h);
     return c;
   }

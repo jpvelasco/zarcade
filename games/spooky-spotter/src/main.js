@@ -1,19 +1,17 @@
 // Browser entry: screens, input, the frame loop, sound, saves and telemetry.
-import { ROOM, ROOM_IDS, MODE, MODE_IDS, targetCount, parTime, sceneBox } from './rooms.js';
+import { ROOM, ROOM_IDS, MODE, MODE_IDS, parTime } from './rooms.js';
 import { buildScene, hitTest, remaining, hintArea } from './scene.js';
 import { buildDiff, diffHitTest, diffRemaining, diffHintArea } from './modes.js';
-import { Game, newState } from './game.js';
+import { Game } from './game.js';
 import { loadSave, writeSave, clearSave } from './save.js';
-import { GHOST, ghostsOf } from './ghosts.js';
-import { CURIO } from './curios.js';
+import { ghostsOf } from './ghosts.js';
 import { Renderer } from './render.js';
 import { Sound } from './audio.js';
 import { Bot, autoplay, autoplayDiff } from './solver.js';
 import { dayKey } from './rng.js';
 import { frameMonitor } from './perf.js';
 import {
-  el, ItemList, renderMap, renderAlbum, renderCabinet, renderHelp, renderResult, renderParty,
-  itemIcon, starRow, toast,
+  ItemList, renderMap, renderAlbum, renderCabinet, renderHelp, renderResult, renderParty, toast,
 } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
@@ -147,6 +145,7 @@ function closeSheet() {
 function startAttract(roomId = null) {
   const open = game.unlockedRooms();
   const pick = roomId || open[(Date.now() / 9000 | 0) % open.length] || 'library';
+  renderer.setSplit(false);
   const box = renderer.resize();
   const scene = buildScene({ room: pick, mode: 'find', seed: 1234 + (Date.now() / 60000 | 0), box });
   attract = scene;
@@ -162,12 +161,13 @@ function startRound(roomId, modeId, daily, plan = null) {
   // canvas, and the room is built to fit whatever shape is left.
   mode = 'play';
   show(null);
+  renderer.setSplit(modeId === 'diff');
   const box = renderer.resize();
   const seed = plan ? plan.seed : game.seedFor(roomId, modeId);
   round = {
     room: roomId, mode: modeId, daily, seed, box,
     scene: null, diff: null, time: 0, hints: 0, misses: 0, found: 0,
-    total: 0, mouse: false, done: false,
+    total: 0, mouse: false, done: false, settled: false, grace: 0,
   };
   buildRound();
   attract = null;
@@ -195,20 +195,17 @@ function buildRound() {
     round.scene = buildScene({ room: round.room, mode: round.mode, seed: round.seed, box: round.box });
     round.total = round.scene.wanted.length;
     renderer.setScene(round.scene, { light });
-    renderer.onLanded = (flyer) => {
-      const owner = round.scene?.targets.find((t) => t.id === flyer.id)?.owner;
-      if (owner) {
-        game.returnItem(owner);
-        sound.delivered();
-      }
-    };
+    // The thank-you noise waits for the thing to reach its ghost; the album
+    // itself is updated the moment you find it, so a quick finish still saves.
+    renderer.onLanded = () => sound.delivered();
   }
   renderer.setProgress(round.found, round.total);
 }
 
 // A resize changes the shape of the room, so rebuild it and keep the score.
 function rebuildRound() {
-  const box = sceneBox(renderer.view.w, renderer.view.h);
+  renderer.setSplit(round.mode === 'diff');
+  const box = renderer.resize();
   round.box = box;
   const wasFound = round.found;
   const wasTotal = round.total;
@@ -250,10 +247,18 @@ function formatTime(s) {
 // --------------------------------------------------------------- the picking
 
 function pickAt(screenX, screenY) {
-  if (!round || mode !== 'play' || round.done) return;
+  if (!round || mode !== 'play') return;
+  if (round.done && !(round.grace > 0)) return;
   if (fog > 0) return;
   const world = renderer.worldAt(screenX, screenY);
   const tol = renderer.tapTolerance();
+  // The list is done but the mouse is still out there: only he answers, and a
+  // wrong tap in this moment costs nothing at all.
+  if (round.done) {
+    const m = round.scene?.mouse;
+    if (m && !m.found && distanceToMouse(m, world) <= tol) foundTarget(m);
+    return;
+  }
   if (round.diff) {
     const change = diffHitTest(round.diff, world.x, world.y, tol + 14);
     if (change) return foundChange(change);
@@ -262,6 +267,10 @@ function pickAt(screenX, screenY) {
   const target = hitTest(round.scene, world.x, world.y, tol);
   if (target) return foundTarget(target);
   return missed(world);
+}
+
+function distanceToMouse(m, world) {
+  return Math.hypot(m.hit.x - world.x, m.hit.y - world.y) - m.hit.r;
 }
 
 function foundTarget(target) {
@@ -273,9 +282,11 @@ function foundTarget(target) {
     sound.curio();
     toast($('toasts'), 'You spotted the manor mouse!', 'good');
     log.event('mouse.found', { room: round.room });
+    if (round.done && round.grace > 0) { round.grace = 0; settle(); }
     return;
   }
   round.found++;
+  if (target.owner) game.returnItem(target.owner);
   list.markFound(target.id);
   renderer.addFlyer(target, target.owner);
   renderer.setProgress(round.found, round.total);
@@ -326,7 +337,26 @@ function useLantern() {
 function finish() {
   if (!round || round.done) return;
   round.done = true;
-  const seconds = Math.round(round.time * 10) / 10;
+  renderer.nudge(0.5);
+  for (const spot of renderer.ghostSpots) { spot.mood = 1; spot.swirl = 1; }
+  // Everything on the list is back, but if the mouse is still hiding you get a
+  // couple of seconds to catch him before the card comes up.
+  const mouse = round.scene?.mouse;
+  if (mouse && !mouse.found) {
+    round.grace = 2.8;
+    toast($('toasts'), 'Quick — the manor mouse is still in here!');
+    return;
+  }
+  settle();
+}
+
+function settle() {
+  if (!round || round.settled) return;
+  round.settled = true;
+  round.grace = 0;
+  // A tenth of a second is the fastest a round can be recorded as: the debug
+  // solver finishes instantly and a zero best time would read as no time at all.
+  const seconds = Math.max(0.1, Math.round(round.time * 10) / 10);
   const out = game.finishRound({
     room: round.room, mode: round.mode, seconds,
     hints: round.hints, misses: round.misses, found: round.found,
@@ -345,8 +375,6 @@ function finish() {
   for (let i = 0; i < out.stars; i++) setTimeout(() => sound.star(i), 260 + i * 220);
   if (out.party) setTimeout(() => sound.fanfare(), 900);
   else if (out.curios.length) setTimeout(() => sound.curio(), 700);
-  renderer.nudge(0.5);
-  for (const spot of renderer.ghostSpots) { spot.mood = 1; spot.swirl = 1; }
   setTimeout(() => showResult(out), 1100);
 }
 
@@ -356,7 +384,11 @@ function showResult(out) {
   body.textContent = '';
   body.append(renderResult(out, round, game));
   const next = game.nextThing();
-  $('result-next').textContent = out.party ? 'See the party' : `Next: ${ROOM[next.room].name}`;
+  $('result-next').textContent = out.party
+    ? 'See the party'
+    : next.room === round.room
+      ? `Next: ${MODE[next.mode].name}`
+      : `Next: ${ROOM[next.room].name}`;
   $('result-next').onclick = () => {
     if (out.party && !game.state.seen.party) {
       game.state.seen.party = true;
@@ -627,6 +659,11 @@ function frame(now) {
     if (dx || dy) moveReticle(dx, dy, dt);
   }
 
+  if (mode === 'play' && round && round.done && round.grace > 0) {
+    round.grace -= dt;
+    if (round.grace <= 0) settle();
+  }
+
   if (mode === 'play' && round && !round.done) {
     round.time += dt;
     if (fog > 0) fog = Math.max(0, fog - dt);
@@ -701,6 +738,43 @@ if (params.has('room')) {
   startRound(roomId, modeId, false, plan);
 } else {
   toTitle();
+}
+
+// A small hook for the browser checks, only when a debug parameter is present:
+// it lets a test script ask where things are instead of guessing.
+if (['room', 'autopilot', 'solve', 'probe', 'unlock'].some((k) => params.has(k))) {
+  window.spookyDebug = {
+    get round() { return round; },
+    get screen() { return mode; },
+    game,
+    renderer,
+    // Screen coordinates of a thing still to find, relative to the canvas.
+    spot(index = 0) {
+      const t = round?.scene?.targets.filter((x) => !x.found)[index];
+      if (!t) return null;
+      const p = renderer.screenAt(t.hit.x, t.hit.y, 0);
+      const rect = canvas.getBoundingClientRect();
+      return { id: t.id, x: rect.left + p.x, y: rect.top + p.y, secret: !!t.secret };
+    },
+    change(index = 0, panel = 0) {
+      const c = round?.diff?.changes.filter((x) => !x.found)[index];
+      if (!c) return null;
+      const p = renderer.screenAt(c.cx, c.cy, panel);
+      const rect = canvas.getBoundingClientRect();
+      return { index: c.index, type: c.type, x: rect.left + p.x, y: rect.top + p.y };
+    },
+    emptySpot() {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.left + rect.width * 0.5, y: rect.top + rect.height * 0.97 };
+    },
+    state: () => ({
+      screen: mode, found: round?.found, total: round?.total, misses: round?.misses,
+      hints: round?.hints, time: round?.time, lantern: lanternCharge, fog,
+      zoom: renderer.camera.zoom, cam: { ...renderer.camera }, box: round?.box,
+      baking: renderer.baking, particles: renderer.particles.length,
+    }),
+    fill(charge = 1) { lanternCharge = charge; },
+  };
 }
 
 log.event('game.ready', {

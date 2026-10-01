@@ -12,7 +12,7 @@ import { GHOST } from '../src/ghosts.js';
 
 // Desktop wide, laptop, and a 390x844 phone with the item tray taking the
 // bottom third: the three shapes the game actually has to work in.
-const BOXES = [sceneBox(1366, 760), sceneBox(1060, 790), sceneBox(390, 560)];
+const BOXES = [sceneBox(1366, 760), sceneBox(1060, 790), sceneBox(390, 560), sceneBox(3440, 1180)];
 const SEEDS = [1, 2, 3, 7, 11, 23, 57, 101, 404, 9001];
 
 test('buildMask marks what is covered and nothing else', () => {

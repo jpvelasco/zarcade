@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { ROOMS, ROOM, ROOM_IDS, MODES, MODE_IDS, sceneBox, parTime, targetCount, WORLD_H } from '../src/rooms.js';
+import { ROOMS, ROOM, ROOM_IDS, MODES, MODE_IDS, sceneBox, parTime, targetCount, clutterScale, WORLD_H } from '../src/rooms.js';
 import { PROPS, PROP_LIST, FAMILIES, coverRects, slotPoints } from '../src/props.js';
 import { ITEMS, ITEM, FINDABLE, itemsForKind, lowerLabel } from '../src/items.js';
 import { GHOSTS, GHOST, ghostsOf, assignOwners } from '../src/ghosts.js';
@@ -184,7 +184,12 @@ test('modes, par times and counts are in a kind range', () => {
 test('the scene box follows the viewport but stays in bounds', () => {
   assert.equal(sceneBox(1366, 760).h, WORLD_H);
   assert.equal(sceneBox(390, 560).w, 900, 'a phone gets the narrowest room');
-  assert.equal(sceneBox(4000, 800).w, 2000, 'an ultrawide stops at 2000');
+  assert.equal(sceneBox(4000, 800).w, 2600, 'an ultrawide stops at 2600');
+  assert.equal(sceneBox(1366, 410).w, 2600, 'a difference panel is wide and shallow');
+  assert.equal(sceneBox(390, 304).w, 1283);
+  assert.ok(clutterScale(900) < clutterScale(2600), 'a wider room gets more clutter');
+  assert.equal(clutterScale(1350), 1);
+  assert.ok(clutterScale(400) >= 0.85 && clutterScale(9000) <= 1.9);
   assert.ok(sceneBox(1366, 760).w > sceneBox(1060, 790).w);
   assert.equal(sceneBox(0, 0).w, 1400, 'a zero viewport still gives a room');
 });

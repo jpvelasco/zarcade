@@ -37,8 +37,8 @@ export const ROOMS = [
     front: [
       { x: [0.26, 0.74], pools: ['rug', 'rugRound'] },
       { x: [0.012, 0.055], pools: ['curtain'] },
-      { x: [0.945, 0.988], pools: ['curtain', 'screenFold'] },
-      { x: [0.18, 0.80], pools: ['crateFront', 'cushionPile'], optional: true },
+      { x: [0.945, 0.988], pools: ['curtain'] },
+      { x: [0.18, 0.80], pools: ['crateFront', 'cushionPile', 'screenFold'], optional: true },
     ],
   },
   {
@@ -101,8 +101,8 @@ export const ROOMS = [
     clutter: { count: [9, 12], pools: ['crate', 'suitcase', 'hatbox', 'toyBlocks', 'rolledRugs', 'bookStack', 'stool', 'barrel', 'sack'] },
     front: [
       { x: [0.24, 0.76], pools: ['rug', 'rugRound'] },
-      { x: [0.015, 0.06], pools: ['curtain', 'screenFold'] },
-      { x: [0.16, 0.86], pools: ['crateFront', 'cushionPile'] },
+      { x: [0.015, 0.06], pools: ['curtain'] },
+      { x: [0.16, 0.86], pools: ['crateFront', 'cushionPile', 'screenFold'] },
     ],
   },
   {
@@ -234,7 +234,8 @@ export const ROOMS = [
     front: [
       { x: [0.24, 0.76], pools: ['rugRound', 'rug'] },
       { x: [0.012, 0.055], pools: ['curtain'] },
-      { x: [0.945, 0.988], pools: ['curtain', 'screenFold'], optional: true },
+      { x: [0.945, 0.988], pools: ['curtain'], optional: true },
+      { x: [0.2, 0.78], pools: ['screenFold', 'crateFront'], optional: true },
     ],
   },
 ];
@@ -276,10 +277,18 @@ export function parTime(roomId, mode) {
   return base;
 }
 
-// The room box grows with the viewport so a phone is not asked to show a
-// cinema-wide room: height is always WORLD_H, width follows the aspect.
+// The room box follows the shape of the view it has to fill, so nothing is
+// ever cropped on a wide screen and a phone is not asked to show a
+// cinema-wide room. Height is always WORLD_H; width follows the aspect, with
+// a floor so a portrait phone still gets a room wide enough for furniture
+// (it pans sideways instead) and a ceiling for very wide panels.
 export function sceneBox(viewW, viewH) {
   const aspect = viewW > 0 && viewH > 0 ? viewW / viewH : 1.4;
-  const w = Math.round(Math.max(900, Math.min(2000, WORLD_H * aspect)));
+  const w = Math.round(Math.max(900, Math.min(2600, WORLD_H * aspect)));
   return { w, h: WORLD_H };
+}
+
+// Wide rooms need more things in them, or they read as empty stages.
+export function clutterScale(boxW) {
+  return Math.min(1.9, Math.max(0.85, boxW / 1350));
 }

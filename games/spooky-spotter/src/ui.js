@@ -23,12 +23,14 @@ export function el(tag, props = {}, kids = []) {
 
 const iconCache = new Map();
 
-export function itemIcon(id, size = 46, silhouette = false) {
+// On the dark list tray a silhouette has to be pale to read at all; in the
+// room itself it is a shadow.
+export function itemIcon(id, size = 46, silhouette = false, fill = '#e6dcff') {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
-  const key = `${id}|${size}|${silhouette}|${dpr}`;
+  const key = `${id}|${size}|${silhouette}|${fill}|${dpr}`;
   let c = iconCache.get(key);
   if (!c) {
-    c = Renderer.iconCanvas(id, size, { silhouette, dpr });
+    c = Renderer.iconCanvas(id, size, { silhouette, dpr, fill });
     iconCache.set(key, c);
   }
   const copy = el('canvas', { class: 'icon', width: c.width, height: c.height, 'aria-hidden': 'true' });
@@ -260,7 +262,7 @@ export function renderAlbum(game) {
   for (const g of GHOSTS) {
     const known = game.ghostKnown(g.id);
     const row = el('div', { class: `album-row ${known ? '' : 'unknown'}` });
-    row.append(ghostPortrait(g, 68, known));
+    row.append(ghostPortrait(g, 58, known));
     row.append(el('div', { class: 'album-text' }, [
       el('b', { text: known ? `${g.name}, ${g.title}` : '· · ·' }),
       el('small', { text: known ? g.bio : `Somebody lives in ${ROOM[g.room].name.toLowerCase()}. Bring them something of theirs.` }),

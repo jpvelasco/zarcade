@@ -15,7 +15,7 @@
 import { Rng, hashString, mix } from './rng.js';
 import { PROPS, coverRects, slotPoints } from './props.js';
 import { ITEM, FINDABLE } from './items.js';
-import { ROOM, WORLD_H, targetCount } from './rooms.js';
+import { ROOM, WORLD_H, targetCount, clutterScale } from './rooms.js';
 import { assignOwners, ghostsOf } from './ghosts.js';
 
 export const CELL = 4;                 // mask resolution in world units
@@ -268,7 +268,8 @@ export function buildScene({ room = 'library', mode = 'find', seed = 1, box, ite
   }
 
   // --- floor clutter, spread out so it reads as a room and not a heap
-  const count = rng.between(def.clutter.count[0], def.clutter.count[1]);
+  const density = clutterScale(W);
+  const count = Math.round(rng.between(def.clutter.count[0], def.clutter.count[1]) * density);
   const placedCx = [];
   for (let i = 0; i < count; i++) {
     const pdef = pickDef(rng, def.clutter.pools);
@@ -302,7 +303,7 @@ export function buildScene({ room = 'library', mode = 'find', seed = 1, box, ite
   }
 
   // --- cobwebs and dust in the very front, pure decoration
-  const webs = rng.between(3, 6);
+  const webs = Math.round(rng.between(3, 6) * Math.min(1.6, density));
   for (let i = 0; i < webs; i++) {
     const pdef = PROPS[i < 3 ? 'cobweb' : 'dustMote'];
     const size = sizeFor(rng, pdef, 1);
@@ -331,7 +332,7 @@ export function buildScene({ room = 'library', mode = 'find', seed = 1, box, ite
       slots.push({ x: s.x, y: s.y, kind: s.kind, host: p });
     }
   }
-  const floorSlots = rng.between(9, 13);
+  const floorSlots = Math.round(rng.between(9, 13) * density);
   for (let i = 0; i < floorSlots; i++) {
     slots.push({
       x: rng.range(0.05, 0.95) * W,
