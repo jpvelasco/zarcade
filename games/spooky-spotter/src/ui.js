@@ -195,17 +195,20 @@ export function mansionSvg(game) {
 </svg>`;
 }
 
-export function renderMap(game, { onPlay, onDaily, dailyPlan }) {
+export function renderMap(game, { onPlay, onDaily, onParty, dailyPlan }) {
   const wrap = el('div', { class: 'map-wrap' });
   wrap.append(el('div', { class: 'mansion-wrap', html: mansionSvg(game) }));
 
   const awake = game.restoredCount();
-  wrap.append(el('p', {
-    class: 'map-note',
-    text: awake === ROOM_IDS.length
-      ? 'Every room is awake. The ghosts are throwing a party downstairs.'
-      : `${awake} of ${ROOM_IDS.length} rooms are awake. Clear a room to switch its lights on.`,
-  }));
+  if (awake === ROOM_IDS.length) {
+    wrap.append(el('button', { class: 'map-note party-link', type: 'button', onclick: () => onParty?.() },
+      'Every room is awake. The ghosts are throwing a party downstairs — have a look →'));
+  } else {
+    wrap.append(el('p', {
+      class: 'map-note',
+      text: `${awake} of ${ROOM_IDS.length} rooms are awake. Clear a room to switch its lights on.`,
+    }));
+  }
 
   const daily = game.state.daily;
   const dRoom = ROOM[dailyPlan.room];
@@ -325,11 +328,21 @@ export function renderHelp() {
   ]);
 }
 
+function resultHeadline(out, round, game) {
+  const room = ROOM[round.room];
+  const slot = game.state.rooms[round.room];
+  const allThree = MODE_IDS.every((m) => slot[m].cleared);
+  if (!out.firstClear) return round.mode === 'diff' ? 'Every difference found!' : 'Found them all!';
+  if (allThree) return `${room.name} is wide awake!`;
+  if (round.mode === 'find') return `${room.name} wakes up!`;
+  return `${MODE[round.mode].name} — done!`;
+}
+
 export function renderResult(out, round, game) {
   const room = ROOM[round.room];
   const wrap = el('div', { class: 'result' });
   wrap.append(el('div', { class: 'result-stars' }, starRow(out.stars, 3, 'big')));
-  wrap.append(el('h2', { text: out.firstClear ? `${room.name} is awake!` : 'Found them all!' }));
+  wrap.append(el('h2', { text: resultHeadline(out, round, game) }));
   const crew = ghostsOf(round.room);
   const hero = crew[0];
   if (hero) {
@@ -341,7 +354,7 @@ export function renderResult(out, round, game) {
   const facts = el('div', { class: 'facts' }, [
     el('span', {}, [el('b', { text: `${out.seconds.toFixed(1)}s` }), el('small', { text: `par ${out.par}s` })]),
     el('span', {}, [el('b', { text: `${out.hints}` }), el('small', { text: out.hints === 1 ? 'lantern used' : 'lanterns used' })]),
-    el('span', {}, [el('b', { text: `${out.found}` }), el('small', { text: 'things found' })]),
+    el('span', {}, [el('b', { text: `${out.found}` }), el('small', { text: round.mode === 'diff' ? 'differences' : 'things found' })]),
   ]);
   wrap.append(facts);
   if (out.newBest) wrap.append(el('p', { class: 'best-flag', text: '🏅 New best time!' }));

@@ -118,6 +118,10 @@ function toMap() {
   body.append(renderMap(game, {
     onPlay: (room, m) => startRound(room, m, false),
     onDaily: playDaily,
+    onParty: () => {
+      openSheet('The ghosts throw a party', renderParty(game), 'map');
+      sound.fanfare();
+    },
     dailyPlan: game.dailyPlan(dayKey()),
   }));
   show('screen-map');

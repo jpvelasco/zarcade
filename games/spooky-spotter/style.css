@@ -292,6 +292,12 @@ h3 { margin: 14px 0 4px; font-size: 17px; font-weight: 900; }
 .mansion .win { fill: #241c40; stroke: #5a4a74; stroke-width: 1.5; }
 .mansion .win.lit { fill: #ffd977; stroke: #ffeab0; }
 .map-note { margin: 0 0 8px; font-weight: 800; color: var(--ink-soft); font-size: 14px; }
+.party-link {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  border: 0; border-radius: 12px; padding: 7px 10px;
+  background: #f3ecfb; color: #7a4ab0;
+}
+.party-link:hover { background: #ece0f8; }
 
 .daily {
   display: flex; align-items: center; gap: 12px; width: 100%;
