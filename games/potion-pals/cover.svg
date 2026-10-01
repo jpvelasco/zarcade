@@ -56,11 +56,16 @@
   <g>
     <!-- left room -->
     <rect x="86" y="146" width="194" height="150" rx="14" fill="#5e4436" stroke="#1e1218" stroke-width="4"/>
-    <rect x="96" y="170" width="174" height="108" rx="8" fill="#cfe8c0"/>
+    <rect x="96" y="170" width="174" height="108" rx="8" fill="#7fb07a"/>
+    <g fill="#ffffff" opacity="0.14"><rect x="104" y="170" width="7" height="108"/><rect x="128" y="170" width="7" height="108"/><rect x="152" y="170" width="7" height="108"/><rect x="176" y="170" width="7" height="108"/><rect x="200" y="170" width="7" height="108"/><rect x="224" y="170" width="7" height="108"/><rect x="248" y="170" width="7" height="108"/></g>
+    <circle cx="112" cy="198" r="13" fill="#1d1238" stroke="#8a5a3a" stroke-width="4"/><circle cx="108" cy="194" r="4" fill="#fff3c8"/>
+    <ellipse cx="183" cy="272" rx="46" ry="7" fill="#c0527a" opacity="0.65"/><ellipse cx="183" cy="272" rx="28" ry="4" fill="#fff5e1" opacity="0.5"/>
     <ellipse cx="183" cy="190" rx="110" ry="60" fill="url(#lamp)"/>
     <path d="M80 170 L183 136 L286 170 Z" fill="#8a4a3a" stroke="#1e1218" stroke-width="3"/>
     <rect x="96" y="278" width="174" height="16" fill="#8a5a3a"/>
-    <!-- cushions and fern -->
+    <!-- hanging lantern, cushions and fern -->
+    <path d="M232 170 V190" stroke="#2a1824" stroke-width="2.5"/>
+    <ellipse cx="232" cy="198" rx="9" ry="12" fill="#ffd87a" stroke="#2a1824" stroke-width="2.5"/>
     <ellipse cx="140" cy="268" rx="26" ry="16" fill="#d86a8a" stroke="#2a1824" stroke-width="2.5"/>
     <ellipse cx="196" cy="272" rx="20" ry="12" fill="#e8a860" stroke="#2a1824" stroke-width="2.5"/>
     <g stroke="#4a9a52" stroke-width="6" stroke-linecap="round">
@@ -73,12 +78,16 @@
 
     <!-- right room -->
     <rect x="520" y="146" width="194" height="150" rx="14" fill="#6f4e3c" stroke="#1e1218" stroke-width="4"/>
-    <rect x="530" y="170" width="174" height="108" rx="8" fill="#cfe0f4"/>
+    <rect x="530" y="170" width="174" height="108" rx="8" fill="#7fa0cf"/>
+    <g fill="#ffffff" opacity="0.14"><rect x="538" y="170" width="7" height="108"/><rect x="562" y="170" width="7" height="108"/><rect x="586" y="170" width="7" height="108"/><rect x="610" y="170" width="7" height="108"/><rect x="634" y="170" width="7" height="108"/><rect x="658" y="170" width="7" height="108"/><rect x="682" y="170" width="7" height="108"/></g>
+    <circle cx="688" cy="198" r="13" fill="#1d1238" stroke="#8a5a3a" stroke-width="4"/><circle cx="684" cy="194" r="4" fill="#fff3c8"/>
+    <ellipse cx="617" cy="272" rx="46" ry="7" fill="#5a78c0" opacity="0.65"/><ellipse cx="617" cy="272" rx="28" ry="4" fill="#fff5e1" opacity="0.5"/>
     <ellipse cx="617" cy="190" rx="110" ry="60" fill="url(#lamp)"/>
     <path d="M514 170 L617 136 L720 170 Z" fill="#8a4a3a" stroke="#1e1218" stroke-width="3"/>
     <rect x="530" y="278" width="174" height="16" fill="#8a5a3a"/>
-    <!-- hammock -->
-    <path d="M538 214 Q617 268 696 214 Q617 248 538 214 Z" fill="#e8d8f0" stroke="#2a1824" stroke-width="3"/>
+    <!-- hanging lantern -->
+    <path d="M560 170 V190" stroke="#2a1824" stroke-width="2.5"/>
+    <ellipse cx="560" cy="198" rx="9" ry="12" fill="#ffd87a" stroke="#2a1824" stroke-width="2.5"/>
     <!-- dragon pal -->
     <path d="M566 272 q-30 6 -24 -22" stroke="#2a1824" stroke-width="7" fill="none" stroke-linecap="round"/>
     <path d="M566 272 q-30 6 -24 -22" stroke="#ff6a3a" stroke-width="4" fill="none" stroke-linecap="round"/>
@@ -95,11 +104,18 @@
     <ellipse cx="661" cy="243" rx="2.6" ry="2" fill="#ff8aa8"/>
   </g>
 
-  <!-- hearth -->
-  <path d="M0 404 Q400 380 800 404 V500 H0 Z" fill="#4a3a46"/>
-  <g fill="#fff" opacity="0.07">
-    <rect x="30" y="420" width="70" height="9" rx="4"/><rect x="140" y="426" width="70" height="9" rx="4"/>
-    <rect x="590" y="424" width="70" height="9" rx="4"/><rect x="700" y="418" width="70" height="9" rx="4"/>
+  <!-- hearth: the workshop floorboards -->
+  <rect x="0" y="412" width="800" height="88" fill="#6b482f"/>
+  <rect x="0" y="403" width="800" height="11" fill="#8a5a3a"/>
+  <rect x="0" y="403" width="800" height="3" fill="#ffdcaa" opacity="0.2"/>
+  <g stroke="#1e100e" stroke-opacity="0.45" stroke-width="2">
+    <path d="M60 414 V500"/><path d="M128 414 V500"/><path d="M196 414 V500"/><path d="M264 414 V500"/>
+    <path d="M332 414 V500"/><path d="M468 414 V500"/><path d="M536 414 V500"/><path d="M604 414 V500"/>
+    <path d="M672 414 V500"/><path d="M740 414 V500"/>
+  </g>
+  <g fill="#4e3c48">
+    <ellipse cx="310" cy="478" rx="20" ry="10"/><ellipse cx="364" cy="482" rx="20" ry="10"/>
+    <ellipse cx="436" cy="482" rx="20" ry="10"/><ellipse cx="490" cy="478" rx="20" ry="10"/>
   </g>
 
   <!-- cauldron glow -->

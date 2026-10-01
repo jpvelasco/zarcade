@@ -328,9 +328,7 @@ export class Alchemy {
       if (taken.has(target) && taken.size < pool.length) continue;
       const free = owned.filter((p) => !usedPals.has(p));
       const pal = (free.length ? free : owned)[this.rng.int(free.length || owned.length)];
-      const tags = ITEM[target].tags;
-      const two = tags.length >= 2 ? [tags[0], tags[1]] : [tags[0]];
-      this.state.requests.push({ pal, target, tags: two, told: false });
+      this.state.requests.push({ pal, target, tags: askTags(target, this.state.requests), told: false });
       taken.add(target);
       usedPals.add(pal);
     }
@@ -413,6 +411,20 @@ export function palRoom(order, rooms) {
 }
 
 // ------------------------------------------------------------------- copy
+
+// Two words that describe the target, avoiding a pair another pal is already
+// asking for, so no two requests read the same.
+export function askTags(target, others = []) {
+  const tags = ITEM[target].tags;
+  const taken = new Set(others.map((r) => r.tags.join('+')));
+  for (let i = 0; i < tags.length; i++) {
+    for (let j = i + 1; j < tags.length; j++) {
+      const pair = [tags[i], tags[j]];
+      if (!taken.has(pair.join('+'))) return pair;
+    }
+  }
+  return tags.length >= 2 ? [tags[0], tags[1]] : [tags[0]];
+}
 
 export function requestText(req) {
   const pal = PAL[req.pal];

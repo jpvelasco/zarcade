@@ -318,6 +318,9 @@ h3 { margin: 0 0 4px; font-size: 18px; font-weight: 900; }
   justify-content: center; min-height: 52px; font: 900 22px var(--font); color: #b8a4c8;
   background: #f4ecf8; box-shadow: inset 0 0 0 2px #ddd0e8;
 }
+.recipe.mix { justify-content: center; margin: 2px 0 8px; }
+.recipe.mix .chip { min-width: 50px; padding: 3px 5px; }
+.recipe.mix .chip small { font-size: 9.5px; }
 .pal-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
 .pal-row .grow { flex: 1; min-width: 0; }
 .pal-row p { margin: 1px 0 0; font-size: 13px; color: var(--ink-soft); }

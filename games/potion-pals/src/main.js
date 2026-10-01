@@ -440,7 +440,7 @@ function checkPage(id) {
   const ids = ITEMS.filter((it) => it.kind !== 'base' && branchOf(it.id) === page).map((it) => it.id);
   if (!ids.every((x) => alchemy.knows(x))) return;
   const name = BRANCHES.find((b) => b.id === page)?.name || page;
-  toast(`📖 The ${name} is complete!`, { kind: 'gold', ms: 4200 });
+  toast(`📖 ${name} — every single one found!`, { kind: 'gold', ms: 4200 });
   log.event('level.complete', { level: page, name, score: alchemy.discovered, stars: 3 });
 }
 
@@ -457,6 +457,15 @@ function showResult(res) {
   for (const t of res.item.tags.slice(0, 2)) tags.appendChild(el('span', 'tag', t));
   $('result-name').textContent = res.item.name;
   $('result-blurb').textContent = res.item.blurb;
+  const mix = $('result-mix');
+  mix.textContent = '';
+  res.inputs.forEach((id, i) => {
+    if (i) mix.appendChild(el('span', 'plus', '+'));
+    const chip = el('span', 'chip');
+    chip.appendChild(itemArt(id, 30, true));
+    chip.appendChild(el('small', null, ITEM[id].name));
+    mix.appendChild(chip);
+  });
 
   const intro = $('pal-intro');
   intro.classList.toggle('hidden', !res.pal);

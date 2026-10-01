@@ -232,9 +232,14 @@ const SHAPES = {
   },
   orb(ctx, s, c1, c2, lw) {
     ctx.beginPath(); ctx.arc(s * 0.5, s * 0.52, s * 0.32, 0, 7); body(ctx, c1, lw);
-    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.52, s * 0.32, Math.PI * 0.15, Math.PI * 0.85);
-    ctx.strokeStyle = c2; ctx.lineWidth = lw * 1.6; ctx.stroke();
-    shine(ctx, s * 0.38, s * 0.38, s * 0.1, s * 0.06, 0.8);
+    ctx.save();
+    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.52, s * 0.31, 0, 7); ctx.clip();
+    ctx.fillStyle = 'rgba(70,60,90,0.16)';
+    ctx.beginPath(); ctx.ellipse(s * 0.62, s * 0.72, s * 0.3, s * 0.2, -0.4, 0, 7); ctx.fill();
+    ctx.fillStyle = c2;
+    ctx.beginPath(); ctx.arc(s * 0.38, s * 0.4, s * 0.12, 0, 7); ctx.fill();
+    ctx.restore();
+    shine(ctx, s * 0.38, s * 0.38, s * 0.1, s * 0.06, 0.85);
   },
   flame(ctx, s, c1, c2, lw) {
     ctx.beginPath();
