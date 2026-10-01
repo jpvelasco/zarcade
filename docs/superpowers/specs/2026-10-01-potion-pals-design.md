@@ -34,7 +34,7 @@ and no failure state; the only resource is curiosity.
 
 - **8 starting ingredients**: moonberry, frog sneeze, starlight, honey, snow,
   ember, mushroom, dewdrop.
-- **110 discoveries**: 76 ingredients and 34 potions. 32 of the potions summon
+- **112 discoveries**: 78 ingredients and 34 potions. 32 of the potions summon
   a pal; two are keepsakes (Rainbow Bottle, Wish in a Jar).
 - **32 pals** with their own names, species, palettes and one-line bios.
 - Recipes take **two or three** inputs as a multiset, so `ember + ember` and
@@ -56,7 +56,8 @@ Invariants the tests check: every input defined, no duplicate recipe keys, no
 duplicate names or ids, every discovery reachable from the starting eight,
 every non-potion item used as an input somewhere (no dead ends), every pal
 summonable, every art shape and body known, at least 100 discoveries and at
-least 30 pals.
+least 30 pals. The frontier test also checks the graph is only 11 layers deep,
+so nothing is buried behind a long chain.
 
 ## Rules (`src/alchemy.js`, DOM-free)
 
@@ -76,8 +77,9 @@ least 30 pals.
     something warm"). Otherwise it suggests a pair of known things that have
     never been tried together.
 - Discoveries grant **hint scrolls**: one for every third discovery, two for a
-  pal, two for the daily, one per completed request. Scrolls are only ever
-  spent in the book, and the book never costs more than two per item.
+  potion, two for the daily, one per completed request. They are spent two
+  ways: in the book, to reveal one input of a recipe at a time (never more than
+  three per item), and in Requests, to have a pal name exactly what it wants.
 - **Requests**: three at a time. A request pairs a pal you own with a target
   item, phrased from two of the target's tags. Targets prefer undiscovered
   items at the frontier (all inputs known) so a request is always doable right
@@ -105,18 +107,24 @@ least 30 pals.
 
 ## Look and feel
 
-- Side-on cross-section of a treehouse built into one big tree: six rooms on
-  platforms up the trunk, lanterns, shelves, a window with the night sky, roots
-  below. The cauldron sits centre-bottom on a stone hearth with the shelf tray
-  under it.
+- Side-on cross-section of a treehouse built into one big tree: a grid of six
+  rooms hung off the trunk (3 x 2 on a laptop, 2 x 3 on a phone) that fills from
+  the bottom row up, under a scalloped leaf canopy. Each room has its own
+  wallpaper, rug, round window on the night, hanging lantern and decor. Cells
+  with no room yet show a bare branch and a sprig of leaves, so a new workshop
+  looks small rather than derelict. The bottom strip is the workshop floor:
+  planks, a crate of ingredients, a stool, a stack of spell books, a broom, and
+  the cauldron on its fire with the moon hanging beside it. The shelf tray sits
+  under the canvas, with the current hint on one line above the tiles.
 - Everything is Canvas 2D. Sprite caches (`src/art.js`) bake every ingredient
   glyph, every pal (open-eye and shut-eye frames) and the whole static room
   art into offscreen canvases once, spread over the first frames so no frame
   stalls. Per-frame drawing is `drawImage` plus cheap paths.
 - The cauldron liquid is a blend of the colours in the pot: it lerps towards
   the mix, bubbles rise at a rate set by how full the pot is, and a brew sends
-  a ring of sparkles up the trunk. Wrong mixes puff a big soft cloud in the
-  mixed colour.
+  a ring of sparkles up the trunk. The liquid is clipped to an inset hollow so
+  the pot's iron walls stay dark and the fire below still shows. Wrong mixes
+  puff a big soft cloud in the mixed colour.
 - Palette: deep plum night, warm lantern gold, moss green, candy pink. Rounded
   system font stack, big friendly type.
 - Reduced motion: no screen drift, far fewer particles, no idle bobbing of
@@ -176,9 +184,10 @@ third; nothing scrolls the page.
   determinism per date key, save normalize round-trips and forward tolerance.
 - `pals.test.js` — room assignment, seeded determinism, actors stay inside
   their room, every state reached, poke reactions.
-- `bot.test.js` — an autoplayer that only knows the public API discovers all
-  110 items, which proves reachability through real play. Doubles as the title
-  attract mode.
+- `bot.test.js` — a blind solver that only ever mixes ingredients it already
+  owns finds all 112 discoveries and all 32 pals, which proves reachability
+  through real play rather than by trusting the table. The demo alchemist that
+  drives the title attract mode and `?autopilot` is tested alongside it.
 - `perf.test.js` — the shared frame-monitor test.
 
 ## Decisions taken alone
@@ -194,4 +203,11 @@ third; nothing scrolls the page.
 - **Potions are terminal.** A potion is a reward, not an input, which keeps the
   "no dead ends" rule meaningful for ingredients.
 - **Requests target the frontier**, so a request is never blocked behind
-  something you have no path to yet.
+  something you have no path to yet, and the two words a pal uses are chosen to
+  differ from the other two requests on screen.
+- **Today's mystery is chosen once and stored.** It is drawn from the date hash
+  and the player's frontier the first time the day is opened, then kept for the
+  rest of the day, so the riddle cannot change while you are chasing it.
+- **The hearth sits below the rooms rather than inside the Workshop.** It keeps
+  the cauldron, the pot slots and the fire in one clear band that reads the same
+  on a laptop and a phone.
