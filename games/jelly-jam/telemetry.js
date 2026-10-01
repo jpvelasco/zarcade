@@ -413,8 +413,8 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = Telemetry;
   } else {
-    const booted = browserBoot(root);
-    Object.assign(Telemetry, booted);
+    // defineProperties (not Object.assign) keeps `crashed` a live getter.
+    Object.defineProperties(Telemetry, Object.getOwnPropertyDescriptors(browserBoot(root)));
     root.Telemetry = Telemetry;
   }
 })(typeof window !== 'undefined' ? window : globalThis);

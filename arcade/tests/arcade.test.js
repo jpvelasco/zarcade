@@ -110,3 +110,18 @@ test('module games are blocked only when opened from disk', () => {
   assert.equal(A.blockedOffline({ needsServer: true }, 'http:'), false);
   assert.equal(A.blockedOffline({ needsServer: false }, 'file:'), false);
 });
+
+test('problemSummary counts errors and slow frames and finds the latest problem', () => {
+  const records = [
+    { time: 1, severity: 'INFO', body: 'session.start' },
+    { time: 2, severity: 'WARN', body: 'frame.long' },
+    { time: 3, severity: 'ERROR', body: 'frame.stall' },
+    { time: 4, severity: 'WARN', body: 'resource failed to load' },
+    { time: 5, severity: 'FATAL', body: 'kaput' },
+    { time: 6, severity: 'INFO', body: 'job.start' },
+  ];
+  assert.deepEqual(A.problemSummary(records), {
+    records: 6, errors: 2, slow: 1, lastProblem: { time: 5, body: 'kaput', severity: 'FATAL' }, lastPlayed: 6,
+  });
+  assert.deepEqual(A.problemSummary([]), { records: 0, errors: 0, slow: 0, lastProblem: null, lastPlayed: null });
+});

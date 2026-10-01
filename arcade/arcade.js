@@ -248,7 +248,7 @@
   };
 
   addEventListener('keydown', (e) => {
-    if (e.altKey || e.metaKey || e.ctrlKey) return;
+    if (e.altKey || e.metaKey || e.ctrlKey || $('help').open) return;
     const inFilters = e.target.closest && e.target.closest('.filters');
     const dir = KEY_DIRS[e.code];
     if (dir && !(inFilters && (dir === 'left' || dir === 'right'))) {
@@ -282,7 +282,7 @@
   let padRepeat = 0;
   function pollPads(now) {
     const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
-    if (pads.length) {
+    if (pads.length && !$('help').open) {
       const p = pads[0];
       const b = (i) => !!(p.buttons[i] && p.buttons[i].pressed);
       const ax = p.axes[0] || 0, ay = p.axes[1] || 0;
@@ -318,6 +318,126 @@
   }
   for (const type of ['pointerdown', 'keydown', 'wheel']) addEventListener(type, stopAttract, { once: true, passive: true });
   $('row').addEventListener('mouseenter', stopAttract, { once: true });
+
+  // ------------------------------------------------------- help & support
+
+  // Every game keeps its own telemetry log under `<slug>.v1.log` on this
+  // origin, so the arcade can gather them into one support report.
+  const T = window.Telemetry;
+
+  function gameLogs() {
+    const sources = [{ slug: 'arcade', title: 'Starlight Arcade' }, ...GAMES];
+    return sources.map((game) => {
+      let records = [];
+      try {
+        records = T ? T.loadRecords(localStorage, game.slug) : [];
+      } catch (_) {
+        records = [];
+      }
+      return { game, records, summary: A.problemSummary(records) };
+    });
+  }
+
+  function timeAgo(ms) {
+    const minutes = Math.round((Date.now() - ms) / 60000);
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.round(minutes / 60);
+    return hours < 48 ? `${hours} h ago` : `${Math.round(hours / 24)} days ago`;
+  }
+
+  function renderHelp() {
+    const list = $('help-games');
+    list.replaceChildren();
+    for (const { game, summary } of gameLogs()) {
+      if (!summary.records) continue;
+      const item = el('li', `help-game${summary.errors ? ' has-errors' : ''}`);
+      const name = el('b', null, game.title);
+      const status = summary.errors
+        ? `${summary.errors} problem${summary.errors === 1 ? '' : 's'} · last: ${summary.lastProblem.body} (${timeAgo(summary.lastProblem.time)})`
+        : summary.slow ? `${summary.slow} slow moment${summary.slow === 1 ? '' : 's'} · no errors` : 'All good';
+      item.append(name, el('span', null, status));
+      list.append(item);
+    }
+    if (!list.children.length) list.append(el('li', 'help-game', 'No logs yet. Play a game and they will show up here.'));
+    const endpoint = safeEndpoint();
+    $('send-logs').checked = !!endpoint;
+    $('otlp-endpoint').value = endpoint ? endpoint.replace(/\/v1\/logs$/, '') : (offline ? '' : location.origin);
+    $('otlp-endpoint').disabled = !endpoint;
+  }
+
+  function safeEndpoint() {
+    try {
+      return localStorage.getItem(T ? T.ENDPOINT_KEY : 'telemetry.v1.endpoint') || '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function setEndpoint(value) {
+    try {
+      if (value) localStorage.setItem(T.ENDPOINT_KEY, value);
+      else localStorage.removeItem(T.ENDPOINT_KEY);
+    } catch (_) {
+      // Storage blocked: sending stays off.
+    }
+    if (T) T.log.setEndpoint(value);
+  }
+
+  function helpStatus(text) {
+    $('help-status').textContent = text;
+  }
+
+  $('btn-help').addEventListener('click', () => {
+    stopAttract();
+    renderHelp();
+    helpStatus('');
+    $('help').showModal();
+  });
+
+  $('btn-copy-report').addEventListener('click', async () => {
+    const parts = gameLogs()
+      .filter(({ records }) => records.length)
+      .map(({ game, records }) => T.formatReport(game.slug, { 'service.name': game.slug }, records, 40));
+    const report = [`Starlight Arcade diagnostics, ${new Date().toISOString()}`, `user_agent: ${navigator.userAgent}`, '', ...parts].join('\n\n');
+    try {
+      await navigator.clipboard.writeText(report);
+      helpStatus('Report copied. Paste it into a message to whoever looks after the arcade.');
+    } catch (_) {
+      helpStatus('Could not reach the clipboard. The report is in the browser console.');
+      console.log(report);
+    }
+  });
+
+  $('btn-clear-logs').addEventListener('click', () => {
+    for (const { game } of gameLogs()) {
+      try {
+        localStorage.removeItem(T.logKey(game.slug));
+      } catch (_) {
+        // Nothing to clear.
+      }
+    }
+    if (T) T.log.clear();
+    renderHelp();
+    helpStatus('Logs cleared.');
+  });
+
+  $('send-logs').addEventListener('change', (e) => {
+    const value = e.target.checked ? ($('otlp-endpoint').value.trim() || location.origin) : '';
+    setEndpoint(value);
+    $('otlp-endpoint').disabled = !value;
+    helpStatus(value ? `Games will send logs to ${T.normalizeEndpoint(value)}.` : 'Sending is off. Logs stay on this device.');
+    if (value) T.log.event('telemetry.enabled', { endpoint: T.normalizeEndpoint(value) });
+  });
+
+  $('otlp-endpoint').addEventListener('change', (e) => {
+    if (!$('send-logs').checked) return;
+    const value = e.target.value.trim();
+    setEndpoint(value);
+    helpStatus(value ? `Games will send logs to ${T.normalizeEndpoint(value)}.` : 'Sending is off.');
+  });
+
+  if (!T) $('btn-help').hidden = true;
 
   // ----------------------------------------------------------------- boot
 

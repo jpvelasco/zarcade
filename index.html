@@ -67,7 +67,32 @@
       Opened from disk, so only games marked <b>works offline</b> can start.
       Run <code>npm run serve</code> and visit <code>http://localhost:8000</code> to play them all.
     </p>
+    <p class="help-row"><button class="help-link" id="btn-help" type="button">🛟 Help &amp; diagnostics</button></p>
   </footer>
+
+  <dialog class="help" id="help" aria-labelledby="help-title">
+    <form method="dialog" class="help-card">
+      <header class="help-head">
+        <h2 id="help-title">Help &amp; diagnostics</h2>
+        <button class="help-close" value="close" aria-label="Close">✕</button>
+      </header>
+      <p class="help-intro">If a game misbehaves, its log below shows what happened. Copy the report and send it to whoever looks after the arcade. Logs stay on this device unless you switch on sending.</p>
+      <ul class="help-games" id="help-games"></ul>
+      <div class="help-actions">
+        <button type="button" class="help-btn primary" id="btn-copy-report">Copy report</button>
+        <button type="button" class="help-btn" id="btn-clear-logs">Clear logs</button>
+      </div>
+      <fieldset class="help-send">
+        <legend>Send logs (OpenTelemetry)</legend>
+        <label class="help-toggle"><input type="checkbox" id="send-logs"> Send logs to a collector</label>
+        <label class="help-endpoint">Collector URL
+          <input id="otlp-endpoint" type="url" placeholder="http://localhost:8000" spellcheck="false">
+        </label>
+        <p class="help-note">The dev server (<code>npm run serve</code>) collects logs at <code>/v1/logs</code> into <code>logs/telemetry.ndjson</code>. Any OTLP/HTTP collector works too, such as <code>http://localhost:4318</code>.</p>
+      </fieldset>
+      <p class="help-status" id="help-status" role="status"></p>
+    </form>
+  </dialog>
 
   <div class="toast hidden" id="toast" role="status"></div>
   <div class="launch" id="launch" aria-hidden="true"><span></span></div>

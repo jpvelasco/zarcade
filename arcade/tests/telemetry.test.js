@@ -132,3 +132,32 @@ test('every game ships an identical copy, loaded before its own scripts', () => 
     assert.ok(first === -1 || tag < first, `${game.slug} loads telemetry.js first`);
   }
 });
+
+test('install reports crashes once and exposes a live crashed flag', () => {
+  const listeners = {};
+  const appended = [];
+  const doc = {
+    body: { append: (node) => appended.push(node) },
+    getElementById: () => (appended.length ? appended[0] : null),
+    createElement: () => ({ style: {}, setAttribute() {}, append() {}, addEventListener() {}, focus() {} }),
+    addEventListener() {},
+  };
+  const win = {
+    document: doc,
+    addEventListener: (type, fn) => { listeners[type] = fn; },
+    setInterval() {},
+  };
+  doc.defaultView = win;
+  const log = logger();
+  const handlers = T.install(win, log);
+  const view = Object.defineProperties({}, Object.getOwnPropertyDescriptors(handlers));
+  assert.equal(view.crashed, false);
+  const frame = handlers.guard(() => { throw new Error('in frame'); }, 'frame');
+  frame();
+  frame();
+  assert.equal(view.crashed, true, 'the copied getter stays live');
+  assert.equal(appended.length, 1, 'one crash screen');
+  assert.equal(log.recentErrors().length, 1, 'later frames are skipped, not re-reported');
+  listeners.unhandledrejection({ reason: new Error('audio blocked') });
+  assert.equal(log.recentErrors().at(-1).severity, 'ERROR');
+});

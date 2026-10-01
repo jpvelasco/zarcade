@@ -85,9 +85,23 @@
     return protocol === 'file:' && !!game.needsServer;
   }
 
+  // What the help panel shows for one game's telemetry records.
+  function problemSummary(records) {
+    const problems = records.filter((r) => r.severity === 'ERROR' || r.severity === 'FATAL');
+    const slow = records.filter((r) => r.severity === 'WARN' && /^(perf|frame)\./.test(r.body));
+    const last = problems[problems.length - 1] || null;
+    return {
+      records: records.length,
+      errors: problems.length,
+      slow: slow.length,
+      lastProblem: last ? { time: last.time, body: last.body, severity: last.severity } : null,
+      lastPlayed: records.length ? records[records.length - 1].time : null,
+    };
+  }
+
   const Arcade = {
     STORAGE_KEY, ALL, genres, filterGames, gamePath, gridMove,
-    freshState, loadState, saveState, recordPlay, blockedOffline,
+    freshState, loadState, saveState, recordPlay, blockedOffline, problemSummary,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Arcade;
