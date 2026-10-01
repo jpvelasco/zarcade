@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#fbf3e4"/>
+  <rect x="5" y="5" width="54" height="54" rx="8" fill="#fffaf0" stroke="#d9c8a8" stroke-width="2"/>
+  <path d="M12 12 l4 4 M16 12 l-4 4" stroke="#c9b48f" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="19" y="9" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <path d="M32 12 l4 4 M36 12 l-4 4" stroke="#c9b48f" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="39" y="9" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <path d="M52 12 l4 4 M56 12 l-4 4" stroke="#c9b48f" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="9" y="19" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="19" y="19" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="29" y="19" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="39" y="19" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="49" y="19" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="9" y="29" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="19" y="29" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="29" y="29" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="39" y="29" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="49" y="29" width="9.4" height="9.4" rx="2" fill="#f39a3d"/>
+  <path d="M12 42 l4 4 M16 42 l-4 4" stroke="#c9b48f" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="19" y="39" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="29" y="39" width="9.4" height="9.4" rx="2" fill="#ef6f6c"/>
+  <rect x="39" y="39" width="9.4" height="9.4" rx="2" fill="#f39a3d"/>
+  <path d="M52 42 l4 4 M56 42 l-4 4" stroke="#c9b48f" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M12 52 l4 4 M16 52 l-4 4" stroke="#c9b48f" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M22 52 l4 4 M26 52 l-4 4" stroke="#c9b48f" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="29" y="49" width="9.4" height="9.4" rx="2" fill="#f39a3d"/>
+  <path d="M42 52 l4 4 M46 52 l-4 4" stroke="#c9b48f" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M52 52 l4 4 M56 52 l-4 4" stroke="#c9b48f" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

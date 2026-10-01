@@ -61,6 +61,15 @@ test('Helper mode turns a wrong fill into a cross and wipes a wrong cross', () =
   assert.equal(b.corrections, 2);
 });
 
+test('Helper mode wipes a wrong colour instead of crossing it', () => {
+  const b = new Board(C, { mode: 'helper' });
+  b.beginStroke(0, 'fill', 1); // square 0 is colour 0
+  const r = b.endStroke();
+  assert.deepEqual(r.corrected, [0]);
+  assert.equal(b.cells[0], UNKNOWN);
+  assert.deepEqual(b.mistakes(), []);
+});
+
 test('Expert mode never checks', () => {
   const b = new Board(P, { mode: 'expert' });
   b.beginStroke(b.idx(2, 0), 'fill');
