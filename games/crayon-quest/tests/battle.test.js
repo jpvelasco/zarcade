@@ -210,3 +210,25 @@ test('gentle mode gives monsters less HP', () => {
   createBattle(run, ['king_scribble'], 'boss');
   assert.equal(run.battle.enemies[0].maxHp, Math.round(MONSTER.king_scribble.hp[0] * 0.75));
 });
+
+test('thorns never turn a knockout into a win', () => {
+  const run = setup(['bat'], { stickers: ['cactus'] });
+  const b = run.battle;
+  const e = b.enemies[0];
+  e.hp = 2;
+  e.intent = { t: 'atk', dmg: 30, idx: 0 };
+  run.hp = 5;
+  endTurn(run);
+  assert.equal(b.over, 'lost');
+  assert.equal(run.hp, 0);
+});
+
+test('thorns hurt monsters that hit the hero', () => {
+  const run = setup(['paperball'], { stickers: ['cactus'] });
+  const b = run.battle;
+  const e = b.enemies[0];
+  e.intent = { t: 'atk', dmg: 2, hits: 2, idx: 0 };
+  const hp = e.hp;
+  endTurn(run);
+  assert.equal(e.hp, hp - 6);
+});

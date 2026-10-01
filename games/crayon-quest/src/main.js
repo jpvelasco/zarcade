@@ -56,10 +56,10 @@ const icon = (name, color) => iconSVG(name, color);
 const KIND_COLOR = { attack: '#e53958', skill: '#3d8bfd', magic: '#8e5cf0' };
 const KIND_NAME = { attack: 'Attack', skill: 'Skill', magic: 'Magic' };
 
-function persist() {
+function persist(force = false) {
   // Mid enemy turn the battle is half resolved; the last save (before End
   // turn) is the one to come back to.
-  if (busy) return;
+  if (busy && !force) return;
   if (run && run.phase !== 'over') profile.current = run;
   if (!saveProfile(storage, profile) && !persist.warned) {
     persist.warned = true;
@@ -165,29 +165,46 @@ function show(name) {
   sound.setScene(run ? run.floor : 0, name === 'battle' ? (run?.fightKind === 'boss' ? 'boss' : 'battle') : 'calm');
 }
 
-function openModal(html, cls = '') {
-  const sheet = $('#modal-sheet');
+// When a sheet appears or disappears, ignore clicks for a moment so a
+// double-click can't land on whatever was underneath.
+let modalChangedAt = 0;
+
+// Re-rendering the same sheet (after buying something, say) keeps its scroll
+// position and keyboard focus.
+function fillSheet(layer, sheet, html, cls) {
+  const wasOpen = !layer.classList.contains('hidden');
+  const same = wasOpen && sheet.dataset.cls === cls;
+  const scroll = sheet.scrollTop;
+  const a = document.activeElement;
+  const focusKey = same && a && sheet.contains(a) && a.dataset.act ? `[data-act="${a.dataset.act}"]${a.dataset.i !== undefined ? `[data-i="${a.dataset.i}"]` : ''}${a.dataset.uid ? `[data-uid="${a.dataset.uid}"]` : ''}` : null;
   sheet.className = `sheet ${cls}`;
+  sheet.dataset.cls = cls;
   sheet.innerHTML = html;
-  $('#modal').classList.remove('hidden');
-  sheet.scrollTop = 0;
-  focusFirst(sheet);
+  layer.classList.remove('hidden');
+  if (!wasOpen) modalChangedAt = performance.now();
+  sheet.scrollTop = same ? scroll : 0;
+  const again = focusKey && sheet.querySelector(focusKey);
+  if (again && !again.disabled) again.focus({ preventScroll: true });
+  else focusFirst(sheet);
+}
+function emptySheet(layer, sheet) {
+  if (!layer.classList.contains('hidden')) modalChangedAt = performance.now();
+  layer.classList.add('hidden');
+  sheet.innerHTML = '';
+  sheet.dataset.cls = '';
+}
+function openModal(html, cls = '') {
+  fillSheet($('#modal'), $('#modal-sheet'), html, cls);
 }
 function closeModal() {
-  $('#modal').classList.add('hidden');
-  $('#modal-sheet').innerHTML = '';
+  emptySheet($('#modal'), $('#modal-sheet'));
 }
 function openModal2(html, cls = '') {
-  const sheet = $('#modal2-sheet');
-  sheet.className = `sheet ${cls}`;
-  sheet.innerHTML = html;
-  $('#modal2').classList.remove('hidden');
-  sheet.scrollTop = 0;
-  focusFirst(sheet);
+  fillSheet($('#modal2'), $('#modal2-sheet'), html, cls);
 }
 function closeModal2() {
-  $('#modal2').classList.add('hidden');
-  $('#modal2-sheet').innerHTML = '';
+  if (modal2Kind === 'pause') paused = false;
+  emptySheet($('#modal2'), $('#modal2-sheet'));
   modal2Kind = null;
 }
 let modal2Kind = null;
@@ -534,6 +551,7 @@ function renderBattle() {
       el.querySelector('.intent-slot').innerHTML = '';
       el.querySelector('.statuses').innerHTML = '';
       el.tabIndex = -1;
+      el.classList.add('dying');
     }
     setBar(el, e.hp, e.maxHp, e.block);
     el.classList.toggle('targetable', targeting && !e.dead);
@@ -1032,7 +1050,7 @@ function showDeck() {
 
 let paused = false;
 function pause() {
-  if (!run || paused || (screen !== 'map' && screen !== 'battle')) return;
+  if (!run || paused || run.phase === 'over' || (screen !== 'map' && screen !== 'battle')) return;
   paused = true;
   modal2Kind = 'pause';
   openModal2(`<h2>Paused</h2><div class="col">
@@ -1062,8 +1080,9 @@ function showResults() {
     run.recorded = true;
     log.event('run.complete', { result: run.result, score: run.score, floor: run.floor + 1, hero: run.hero, daily: run.daily, minutes: Math.round(minutes), battles: run.stats.battles });
     announceUnlocks(run.celebrate.unlocks, { quiet: true });
-    persist();
+    persist(true);
   }
+  paused = false;
   const c = run.celebrate;
   const won = run.result === 'won';
   const newEntries = c.album.cards.length + c.album.monsters.length + c.album.stickers.length;
@@ -1150,7 +1169,7 @@ const actions = {
     sound.unlock();
     show(run.phase === 'battle' ? 'battle' : 'map');
     if (run.phase === 'battle') buildBattle();
-    if (run.phase === 'battle' && !run.battle.over && run.battle.phase === 'enemy') {
+    if (!busy && run.phase === 'battle' && !run.battle.over && run.battle.phase === 'enemy') {
       // A save from the middle of a monster turn: let the monsters rest and
       // hand the turn back.
       endEnemyTurn(run);
@@ -1270,7 +1289,7 @@ const actions = {
   piles() { showDeck(); },
   deck() { showDeck(); },
   close2() {
-    if ((modal2Kind === 'deck' || modal2Kind === 'help') && paused) {
+    if (['deck', 'help', 'confirm'].includes(modal2Kind) && paused) {
       paused = false;
       modal2Kind = null;
       pause();
@@ -1282,12 +1301,24 @@ const actions = {
   pause() { pause(); },
   resume() { resume(); },
   giveup() {
+    if (!run || run.phase === 'over') return;
+    modal2Kind = 'confirm';
+    openModal2(`<h2>End this run?</h2><p class="lead">It will go in your run history with the score so far.</p>
+      <div class="row"><button class="btn" data-act="giveup-yes">Yes, end it</button><button class="btn primary" data-act="giveup-no" data-focus>Keep playing</button></div>`, 'narrow');
+  },
+  'giveup-no'() {
+    modal2Kind = null;
+    paused = false;
+    pause();
+  },
+  'giveup-yes'() {
     paused = false;
     closeModal2();
-    if (!run) return;
+    if (!run || run.phase === 'over') return;
     if (run.battle) run.battle = null;
     endRun(run, 'quit');
     sync();
+    persist(true);
   },
   sticker(el) {
     const s = STICKER[el.dataset.id];
@@ -1422,6 +1453,8 @@ document.addEventListener('click', (e) => {
     return;
   }
   if (el.disabled) return;
+  const quick = el.dataset.act === 'card' || el.dataset.act === 'enemy';
+  if (!quick && (e.detail > 1 || performance.now() - modalChangedAt < 300)) return;
   const act = actions[el.dataset.act];
   if (act) {
     if (!['card', 'enemy', 'node'].includes(el.dataset.act)) sound.play('click');

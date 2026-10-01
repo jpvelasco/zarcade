@@ -104,9 +104,12 @@ function hitHero(run, amount, attacker) {
   run.hp -= dealt;
   b.damageTaken += dealt;
   emit(b, { type: 'hit', who: 'hero', amount: amount - blocked, blocked, from: attacker ? attacker.uid : 0 });
+  if (run.hp <= 0) {
+    finish(run, 'lost');
+    return;
+  }
   const thorns = stickerSum(run, 'thorns');
   if (attacker && thorns && !attacker.dead) hitEnemy(run, attacker, thorns, 'thorns');
-  if (run.hp <= 0) finish(run, 'lost');
 }
 
 function finish(run, result) {
