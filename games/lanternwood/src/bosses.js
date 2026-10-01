@@ -8,9 +8,10 @@ import { towards } from './combat.js';
 /** Items each boss needs; the solver checks these. */
 export const BOSS_NEEDS = { toad: ['sword'], bellcrab: ['sword', 'grapple'], shade: ['sword', 'lantern'] };
 
+// `dmg` is what touching a boss costs (half a heart); its attacks hit harder.
 export const BOSS_TYPES = {
-  toad: { name: 'Grumbletoad', hp: 16, dmg: 2, hw: 14, hh: 11 },
-  bellcrab: { name: 'Old Bellcrab', hp: 16, dmg: 2, hw: 15, hh: 11, armored: true, vineStun: 2.8 },
+  toad: { name: 'Grumbletoad', hp: 20, dmg: 1, hw: 14, hh: 11, daze: 1.2 },
+  bellcrab: { name: 'Old Bellcrab', hp: 20, dmg: 1, hw: 15, hh: 11, armored: true, vineStun: 2.4 },
   shade: { name: 'The Shade King', hp: 18, dmg: 1, hw: 10, hh: 12, fly: true },
 };
 
@@ -70,7 +71,7 @@ const BOSS_UPDATE = {
         b.z = Math.sin(k * Math.PI) * 40;
         if (b.t <= 0) {
           b.z = 0; b.tele = null;
-          b.state = 'dazed'; b.t = 1.5;
+          b.state = 'dazed'; b.t = BOSS_TYPES.toad.daze;
           g.spawnHostile({ kind: 'ring', x: b.x, y: b.y + 4, r: 8, maxR: 36, grow: 90, band: 8, dmg: 1 });
           g.shake(6);
           g.emit({ type: 'thud', x: b.x, y: b.y, big: true });
@@ -155,7 +156,10 @@ const BOSS_UPDATE = {
           b.cycle++;
           const step = b.cycle % 3;
           if (step === 1) { b.state = 'orbs'; b.t = 0.85; b.tele = { kind: 'glow' }; }
-          else if (step === 2 && lit > 0) {
+          // Once all three torches burn he is too dazzled to snuff one out.
+          // While hidden he snuffs a torch every other round of attacks, so
+          // lighting all three is a race you can win.
+          else if (step === 2 && lit > 0 && !b.revealed && b.cycle % 6 === 2) {
             b.state = 'snuff'; b.t = 0.7;
             b.snuffTarget = g.pickLitTorch();
             b.tele = { kind: 'point', tile: b.snuffTarget };
@@ -169,7 +173,7 @@ const BOSS_UPDATE = {
         if (b.t <= 0) {
           for (let i = 0; i < 3; i++) {
             const ang = (i / 3) * Math.PI * 2 + b.anim;
-            g.spawnHostile({ kind: 'orb', x: b.x + Math.cos(ang) * 10, y: b.y + Math.sin(ang) * 10, vx: Math.cos(ang) * 40, vy: Math.sin(ang) * 40, r: 5, dmg: 1, life: 3.2, homing: 1.6, speed: 50, breakable: true });
+            g.spawnHostile({ kind: 'orb', x: b.x + Math.cos(ang) * 10, y: b.y + Math.sin(ang) * 10, vx: Math.cos(ang) * 40, vy: Math.sin(ang) * 40, r: 5, dmg: 1, life: 3.2, homing: 1, speed: 50, breakable: true });
           }
           g.emit({ type: 'orbs', x: b.x, y: b.y });
           b.tele = null; b.state = 'rest'; b.t = b.revealed ? 2.4 : 1.6;

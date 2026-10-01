@@ -47,6 +47,11 @@ race to the flag, fishing at Lake Shimmer, the owl's riddle, and lighting the
 five old lamp posts. Pell's Pantry sells Fairy Tea (an automatic revive), a
 bigger berry pouch and heart snacks; Sage Moss heals for free.
 
+Tumble chimes in the first time you walk into a puzzle or boss room with a
+short tip, and points a brand-new player at Grandma Wick. Bosses only hurt
+half a heart if you bump them (a sitting Grumbletoad not at all), and the
+Shade King cannot snuff a torch while three are burning.
+
 Running out of hearts is gentle: Wren wakes at the last lantern statue with
 everything she found. There are three save slots under `lanternwood.v1`;
 the game saves at statues, on every big moment and when you pause.

@@ -47,6 +47,21 @@ export function nightAmount(time) {
   return Math.max(0, Math.min(1, (0.25 - d) / 0.9));
 }
 
+// What Tumble says the first time you walk into an unsolved puzzle room.
+export const ROOM_TIPS = {
+  plates: 'Tumble: That stone plate wants something heavy. Push a block!',
+  torches: 'Tumble: So dark! Light every torch with your lantern.',
+  switch: 'Tumble: See that switch? Bonk it to open the way.',
+  clear: 'Tumble: The doors are shut tight. Beat every baddie!',
+};
+
+// What Tumble says a moment after you walk into a boss room.
+export const BOSS_TIPS = {
+  toad: 'Tumble: Watch his shadow! Bonk him while he wobbles after landing.',
+  bellcrab: 'Tumble: That shell clanks! Snag him with your vine seeds first.',
+  shade: 'Tumble: He hides in the dark. Light three torches to see him!',
+};
+
 export class Game {
   constructor(save, { seed = 1, areas = allAreas() } = {}) {
     this.save = save;
@@ -77,6 +92,7 @@ export class Game {
     this.race = null;
     this.transition = null;
     this.toast = null;
+    this.tips = [];       // Tumble's nudges: shown one after another while playing
     this.hitstop = 0;
     this.shakeT = 0;
     this.shakeMag = 0;
@@ -87,6 +103,11 @@ export class Game {
     const r = save.respawn;
     if (r && areas[r.area]) this.enterArea(r.area, r.x, r.y);
     else this.enterArea('overworld', areas.overworld.start.x, areas.overworld.start.y);
+    // A brand-new adventure: Tumble says where to go and how to ask him.
+    if (save.playTime === 0 && stageOf(save.quests, 'main') <= 0 && !this.isDungeon) {
+      this.tips.push({ text: 'Tumble: Grandma Wick is waiting in Lantern Plaza, up north!', delay: 2.4, t: 4 });
+      this.tips.push({ text: 'Tumble: Stuck? Ask me for a hint with 💬 (or E).', delay: 0.6, t: 3.5 });
+    }
   }
 
   // ------------------------------------------------------------ helpers
@@ -197,10 +218,17 @@ export class Game {
       }
     }
     const disc = (this.save.discovered[this.area.id] ||= []);
-    if (!disc.includes(key)) { disc.push(key); this.dirty = true; }
+    const firstVisit = !disc.includes(key);
+    if (firstVisit) { disc.push(key); this.dirty = true; }
     this.emit({ type: 'room', key, fresh, music: this.music() });
     if (fresh || this.area.kind === 'overworld' || this.room.cond === 'boss' || this.room.mini) {
       this.say(this.isDungeon && fresh ? this.area.name : this.room.name, 2);
+    }
+    const boss = this.room.cond === 'boss' && this.enemies.find((e) => e.boss && e.alive);
+    this.tips = this.tips.filter((tip) => !tip.boss);
+    if (boss && BOSS_TIPS[boss.kind]) this.tips.push({ text: BOSS_TIPS[boss.kind], delay: 2.6, t: 4, boss: true });
+    else if (firstVisit && this.isDungeon && ROOM_TIPS[this.room.cond] && !this.flag(F.solved(this.area.id, key))) {
+      this.tips.push({ text: ROOM_TIPS[this.room.cond], delay: 1.2, t: 3.6, boss: true });
     }
   }
 
@@ -230,6 +258,10 @@ export class Game {
     this.clock += dt;
     this.save.playTime += dt;
     if (this.toast && (this.toast.t -= dt) <= 0) this.toast = null;
+    if (this.tips.length && this.mode === 'play' && !this.transition && !this.toast && (this.tips[0].delay -= dt) <= 0) {
+      const tip = this.tips.shift();
+      this.say(tip.text, tip.t);
+    }
     if (this.shakeT > 0) { this.shakeT -= dt; if (this.shakeT <= 0) this.shakeMag = 0; }
     if (this.transition) return this.stepTransition(dt);
     if (this.mode === 'talk' || this.mode === 'dead' || this.mode === 'ending') return;
@@ -1262,6 +1294,11 @@ export class Game {
     if (p.iframes > 0 || p.action === 'dash' || p.action === 'pull') return;
     for (const e of this.enemies) {
       if (!e.alive || e.stun > 0 || e.state === 'intro' || e.z > 8) continue;
+      // A dazed boss is the moment to strike, so bumping it is free. The
+      // toad only hurts by landing on you (its ring and seeds do the rest),
+      // so walking up to a sitting toad for a swing is safe.
+      if (e.boss && e.state === 'dazed') continue;
+      if (e.kind === 'toad' && e.state !== 'air') continue;
       if (e.kind === 'shade' && !e.revealed && e.state !== 'rest') continue;
       if (boxHit(p, e, -2)) return this.hurt(e.dmg, e.x, e.y);
     }

@@ -293,3 +293,32 @@ test('the same seed replays the same enemy moves', () => {
   run(a, 3); run(b, 3);
   assert.deepEqual(a.enemies.map((e) => [e.x, e.y]), b.enemies.map((e) => [e.x, e.y]));
 });
+
+test('walking into a sitting or dazed Grumbletoad is safe, being landed on is not', () => {
+  const g = game('burrow', ...at(1, 0, 10, 9));
+  const boss = g.enemies.find((e) => e.kind === 'toad');
+  for (const state of ['rest', 'crouch', 'dazed']) {
+    boss.state = state; boss.z = 0;
+    g.player.x = boss.x; g.player.y = boss.y; g.player.iframes = 0;
+    const hp = g.player.hp;
+    g.checkContact();
+    assert.equal(g.player.hp, hp, `${state} toad hurt on contact`);
+  }
+  boss.state = 'air'; boss.z = 2;
+  g.player.x = boss.x; g.player.y = boss.y; g.player.iframes = 0;
+  const hp = g.player.hp;
+  g.checkContact();
+  assert.ok(g.player.hp < hp, 'a landing toad hurts');
+});
+
+test('Tumble points a new player at Grandma Wick, and gives a tip in each boss room', () => {
+  const g = game();
+  const seen = new Set();
+  for (let t = 0; t < 12; t += STEP) { g.step(STEP, {}); if (g.toast) seen.add(g.toast.text); }
+  assert.ok([...seen].some((s) => /Grandma Wick/.test(s)), [...seen].join(' / '));
+  assert.ok([...seen].some((s) => /hint/.test(s)));
+  const b = game('burrow', ...at(1, 0, 10, 9));
+  let tip = '';
+  for (let t = 0; t < 6 && !tip; t += STEP) { b.step(STEP, {}); if (b.toast && /Tumble/.test(b.toast.text)) tip = b.toast.text; }
+  assert.match(tip, /wobbles/);
+});

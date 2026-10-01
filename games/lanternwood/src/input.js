@@ -53,9 +53,10 @@ export class Input {
       const len = Math.hypot(dx, dy);
       if (len > R) { dx = (dx / len) * R; dy = (dy / len) * R; }
       knob.style.transform = `translate(${dx}px, ${dy}px)`;
-      const k = Math.min(1, len / R);
-      this.stick.x = len > 6 ? (dx / (len || 1)) * k : 0;
-      this.stick.y = len > 6 ? (dy / (len || 1)) * k : 0;
+      // dx, dy are already clamped to the rim, so dividing by R gives a
+      // push that grows to full speed and stays there past the rim.
+      this.stick.x = len > 6 ? dx / R : 0;
+      this.stick.y = len > 6 ? dy / R : 0;
     };
     zone.addEventListener('pointerdown', (e) => {
       e.preventDefault();
