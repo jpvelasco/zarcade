@@ -276,3 +276,8 @@ body.coarse .hud-left .goal-hint { max-width: 60vw; }
   .shipped { max-width: 100%; }
 }
 .shipped { max-width: 380px; margin: 0 auto; }
+
+/* Words for the controls you actually have. */
+.touch-only { display: none; }
+body.coarse .touch-only { display: inline; }
+body.coarse .keys-only { display: none; }
