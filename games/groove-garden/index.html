@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#2a1f5c">
+  <meta name="description" content="Groove Garden: a joyful rhythm game. Tap to the beat of twelve original songs and watch your garden bloom, dance and light up.">
+  <title>Groove Garden — music makes it grow</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="groove-garden"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Groove Garden lanes and garden"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Groove Garden uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/groove-garden/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud-buttons" class="hud-buttons hidden">
+    <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+  </div>
+
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Groove Garden">
+        <span class="logo-notes" aria-hidden="true"><i class="s0"></i><i class="s1"></i><i class="s2"></i><i class="s3"></i></span>
+        <h1><span class="l1">Groove</span><span class="l2">Garden</span></h1>
+      </div>
+      <p class="tagline">Tap to the beat and watch your garden bloom, dance and glow!</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-garden" class="btn">My garden</button>
+          <button id="btn-calibrate" class="btn">Timing</button>
+          <button id="btn-options" class="btn">Options</button>
+        </div>
+        <button class="btn small" data-sound>🔊 Sound on</button>
+      </div>
+      <p id="title-info" class="muted"></p>
+      <p class="controls"><b>Lanes</b> D F J K · ← ↓ ↑ → · tap · d-pad / X A Y B &nbsp; <b>Pause</b> Esc / P</p>
+    </div>
+  </section>
+
+  <section id="screen-songs" class="overlay hidden">
+    <div class="card wide songs-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Pick a song</h2>
+        <span id="songs-count" class="pill"></span>
+      </div>
+      <div class="pickers">
+        <div class="seg" role="radiogroup" aria-label="Difficulty" id="seg-difficulty">
+          <button data-diff="easy" role="radio">🌱 Easy</button>
+          <button data-diff="normal" role="radio">🌷 Normal</button>
+          <button data-diff="hard" role="radio">🌻 Hard</button>
+        </div>
+        <div class="seg" role="radiogroup" aria-label="Practice tempo" id="seg-practice">
+          <button data-tempo="1" role="radio">Full speed</button>
+          <button data-tempo="0.75" role="radio"><span class="long">Practice </span>75%</button>
+          <button data-tempo="0.5" role="radio"><span class="long">Practice </span>50%</button>
+        </div>
+      </div>
+      <div id="song-grid" class="song-grid"></div>
+    </div>
+  </section>
+
+  <section id="screen-options" class="overlay hidden">
+    <div class="card options-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Options</h2>
+        <span></span>
+      </div>
+      <div class="opt-list">
+        <div class="opt"><span><b>Lanes</b><small>Three big lanes are great for little hands</small></span>
+          <div class="seg" id="seg-lanes"><button data-lanes="3">3</button><button data-lanes="4">4</button></div></div>
+        <div class="opt"><span><b>No-fail</b><small>Keep playing to the end, whatever happens</small></span>
+          <div class="seg" id="seg-nofail"><button data-nofail="on">On</button><button data-nofail="off">Off</button></div></div>
+        <div class="opt"><span><b>Note speed</b><small>How fast the shapes fall</small></span>
+          <div class="seg" id="seg-speed"><button data-speed="1">1</button><button data-speed="2">2</button><button data-speed="3">3</button><button data-speed="4">4</button><button data-speed="5">5</button></div></div>
+        <div class="opt"><span><b>Motion</b><small>Calm keeps the lanes and beat lines, drops the sparkle</small></span>
+          <div class="seg" id="seg-motion"><button data-motion="auto">Auto</button><button data-motion="reduced">Calm</button><button data-motion="full">Full</button></div></div>
+        <div class="opt"><span><b>Sound</b><small>Music and effects</small></span>
+          <button class="btn small" data-sound>🔊 Sound on</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-calibrate" class="overlay hidden">
+    <div class="card cal-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Timing</h2>
+        <span></span>
+      </div>
+      <div class="cal-step">
+        <h3>1 · Tap along</h3>
+        <p class="muted">Press <b>Start</b>, then tap any lane key, <b>Space</b> or the big button on every click you hear.</p>
+        <div class="cal-row">
+          <button id="cal-tap" class="tap-pad" aria-label="Tap here on each click">Tap!</button>
+          <div class="cal-side">
+            <button id="cal-start" class="btn primary">Start</button>
+            <p id="cal-result" class="cal-result">Tap timing: <b id="cal-input">0 ms</b></p>
+          </div>
+        </div>
+      </div>
+      <div class="cal-step">
+        <h3>2 · Line up the picture</h3>
+        <p class="muted">The dot should touch the line right on the click. Nudge it if it looks early or late.</p>
+        <div class="cal-row">
+          <canvas id="cal-canvas" width="240" height="150" aria-hidden="true"></canvas>
+          <div class="cal-side">
+            <div class="row">
+              <button id="cal-earlier" class="btn small">◀ Sooner</button>
+              <button id="cal-later" class="btn small">Later ▶</button>
+            </div>
+            <p class="cal-result">Picture: <b id="cal-visual">0 ms</b></p>
+            <button id="cal-reset" class="btn small">Reset both</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-garden" class="overlay hidden">
+    <div class="card wide garden-card">
+      <div class="head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>My garden</h2>
+        <span id="garden-count" class="pill"></span>
+      </div>
+      <h3>Note skins</h3>
+      <div id="skin-grid" class="item-grid"></div>
+      <h3>Decorations <small class="muted">tap to show or hide</small></h3>
+      <div id="decor-grid" class="item-grid"></div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart song</button>
+        <button id="btn-pause-songs" class="btn">Song list</button>
+        <button class="btn" data-sound>🔊 Sound on</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay hidden">
+    <div class="card results-card">
+      <p id="res-song" class="muted"></p>
+      <div id="res-grade" class="grade">S</div>
+      <h2 id="res-title">Super bloom!</h2>
+      <p id="res-score" class="big-score"></p>
+      <div id="res-lines" class="res-lines"></div>
+      <div id="res-unlocks" class="unlocks"></div>
+      <div class="col">
+        <button id="btn-again" class="btn primary">Play again</button>
+        <div class="row">
+          <button id="btn-next" class="btn">Next song →</button>
+          <button id="btn-res-songs" class="btn">Song list</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

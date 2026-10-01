@@ -62,13 +62,12 @@ export function plantGarden(seed, count = 20) {
  * fills the garden.
  */
 export class Garden {
-  constructor(seed, totalJudgements, count = 20) {
+  constructor(seed, totalJudgements, count = 28) {
     this.plants = plantGarden(seed, count);
     this.total = Math.max(1, totalJudgements);
     this.growth = 0;
     this.combo = 0;
     this.glow = 1;
-    this.sparks = 0; // bursts the renderer should show for newly opened plants
     this.opened = new Set();
   }
 

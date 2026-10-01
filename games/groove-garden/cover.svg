@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="Four lanes of colourful shapes falling onto a glowing vine above a blooming, dancing flower garden at sunset">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a2f86"/>
+      <stop offset="0.45" stop-color="#c46cc4"/>
+      <stop offset="0.78" stop-color="#ffb38a"/>
+      <stop offset="1" stop-color="#ffe2a0"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbe6"/>
+      <stop offset="0.35" stop-color="#ffe7a8" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#ffc46e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lane" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#140c28" stop-opacity="0"/>
+      <stop offset="0.2" stop-color="#140c28" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#140c28" stop-opacity="0.7"/>
+    </linearGradient>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d7a3a"/>
+      <stop offset="0.35" stop-color="#5a3d2a"/>
+      <stop offset="1" stop-color="#3c271a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbd0"/>
+      <stop offset="0.3" stop-color="#fff3a0" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#fff3a0" stop-opacity="0"/>
+    </radialGradient>
+    <g id="daisy">
+      <g fill="#ffffff">
+        <ellipse cx="0" cy="-15" rx="6" ry="13"/><ellipse cx="0" cy="15" rx="6" ry="13"/>
+        <ellipse cx="-15" cy="0" rx="13" ry="6"/><ellipse cx="15" cy="0" rx="13" ry="6"/>
+        <ellipse cx="-11" cy="-11" rx="6" ry="12" transform="rotate(-45 -11 -11)"/><ellipse cx="11" cy="11" rx="6" ry="12" transform="rotate(-45 11 11)"/>
+        <ellipse cx="11" cy="-11" rx="6" ry="12" transform="rotate(45 11 -11)"/><ellipse cx="-11" cy="11" rx="6" ry="12" transform="rotate(45 -11 11)"/>
+      </g>
+      <circle r="8" fill="#ffd23f"/>
+    </g>
+    <g id="tulip">
+      <path d="M-16 -12 Q-18 18 0 18 Q18 18 16 -12 L8 -2 L0 -16 L-8 -2 Z"/>
+    </g>
+    <g id="sunflower">
+      <g fill="#ffc93c">
+        <ellipse cx="0" cy="-17" rx="5" ry="11"/><ellipse cx="0" cy="17" rx="5" ry="11"/><ellipse cx="-17" cy="0" rx="11" ry="5"/><ellipse cx="17" cy="0" rx="11" ry="5"/>
+        <ellipse cx="-12" cy="-12" rx="5" ry="11" transform="rotate(-45 -12 -12)"/><ellipse cx="12" cy="12" rx="5" ry="11" transform="rotate(-45 12 12)"/>
+        <ellipse cx="12" cy="-12" rx="5" ry="11" transform="rotate(45 12 -12)"/><ellipse cx="-12" cy="12" rx="5" ry="11" transform="rotate(45 -12 12)"/>
+      </g>
+      <circle r="10" fill="#6b3d1f"/>
+    </g>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <g fill="#ffffff" opacity="0.7">
+    <circle cx="60" cy="40" r="1.6"/><circle cx="140" cy="90" r="1.2"/><circle cx="230" cy="30" r="1.8"/><circle cx="560" cy="50" r="1.4"/>
+    <circle cx="660" cy="22" r="1.8"/><circle cx="740" cy="80" r="1.2"/><circle cx="300" cy="110" r="1"/><circle cx="480" cy="20" r="1.2"/>
+  </g>
+  <circle cx="640" cy="150" r="170" fill="url(#sun)"/>
+  <circle cx="640" cy="150" r="46" fill="#fff6d6"/>
+
+  <!-- rainbow -->
+  <g fill="none" stroke-width="12" opacity="0.55">
+    <path d="M90 330 A230 230 0 0 1 550 330" stroke="#ff5e5e"/>
+    <path d="M102 330 A218 218 0 0 1 538 330" stroke="#ff9f43"/>
+    <path d="M114 330 A206 206 0 0 1 526 330" stroke="#ffd23f"/>
+    <path d="M126 330 A194 194 0 0 1 514 330" stroke="#5ee6a8"/>
+    <path d="M138 330 A182 182 0 0 1 502 330" stroke="#4fd1ff"/>
+    <path d="M150 330 A170 170 0 0 1 490 330" stroke="#b18cff"/>
+  </g>
+
+  <!-- hills -->
+  <path d="M0 300 Q120 250 240 290 T480 280 T800 270 V500 H0 Z" fill="#6a5fb0"/>
+  <path d="M0 340 Q140 300 280 335 T560 320 T800 330 V500 H0 Z" fill="#4f9a78"/>
+  <path d="M0 380 Q160 350 320 375 T640 365 T800 372 V500 H0 Z" fill="#3f8a4e"/>
+  <path d="M0 420 Q100 410 200 418 T400 414 T600 418 T800 412 V500 H0 Z" fill="url(#soil)"/>
+
+  <!-- fairy lights -->
+  <path d="M0 40 Q100 80 200 50 T400 50 T600 50 T800 45" fill="none" stroke="#2a1f3a" stroke-width="2"/>
+  <g>
+    <circle cx="40" cy="58" r="12" fill="url(#glow)"/><circle cx="120" cy="66" r="12" fill="url(#glow)"/><circle cx="200" cy="52" r="12" fill="url(#glow)"/>
+    <circle cx="290" cy="40" r="12" fill="url(#glow)"/><circle cx="380" cy="50" r="12" fill="url(#glow)"/><circle cx="470" cy="62" r="12" fill="url(#glow)"/>
+    <circle cx="560" cy="52" r="12" fill="url(#glow)"/><circle cx="650" cy="40" r="12" fill="url(#glow)"/><circle cx="740" cy="48" r="12" fill="url(#glow)"/>
+  </g>
+
+  <!-- lanes -->
+  <rect x="250" y="0" width="300" height="500" rx="22" fill="url(#lane)"/>
+  <rect x="250" y="0" width="75" height="500" fill="#E69F00" opacity="0.08"/>
+  <rect x="325" y="0" width="75" height="500" fill="#56B4E9" opacity="0.08"/>
+  <rect x="400" y="0" width="75" height="500" fill="#CC79A7" opacity="0.08"/>
+  <rect x="475" y="0" width="75" height="500" fill="#F0E442" opacity="0.08"/>
+  <g fill="#ffffff" opacity="0.12"><rect x="324" y="0" width="2" height="500"/><rect x="399" y="0" width="2" height="500"/><rect x="474" y="0" width="2" height="500"/></g>
+  <g fill="#ffffff"><rect x="254" y="200" width="292" height="2" opacity="0.2"/><rect x="254" y="300" width="292" height="1" opacity="0.1"/></g>
+
+  <!-- hold vine -->
+  <line x1="437" y1="110" x2="437" y2="250" stroke="#2a1430" stroke-opacity="0.5" stroke-width="26" stroke-linecap="round"/>
+  <line x1="437" y1="110" x2="437" y2="250" stroke="#CC79A7" stroke-width="17" stroke-linecap="round"/>
+  <line x1="437" y1="110" x2="437" y2="250" stroke="#ffffff" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="6 10"/>
+
+  <!-- hit line and receptors -->
+  <rect x="250" y="398" width="300" height="5" fill="#a0ffaa" opacity="0.6"/>
+  <g stroke-width="4" fill="#0a0614" fill-opacity="0.45">
+    <circle cx="287" cy="400" r="24" stroke="#E69F00"/>
+    <path d="M362 371 L390 418 L334 418 Z" stroke="#56B4E9" stroke-linejoin="round"/>
+    <path d="M437 373 L463 400 L437 427 L411 400 Z" stroke="#CC79A7" stroke-linejoin="round"/>
+    <path d="M512 371 L519 391 L541 391 L523 404 L530 425 L512 412 L494 425 L501 404 L483 391 L505 391 Z" stroke="#F0E442" stroke-linejoin="round"/>
+  </g>
+
+  <!-- falling notes -->
+  <g stroke="#ffffff" stroke-width="4" stroke-linejoin="round">
+    <circle cx="287" cy="320" r="23" fill="#E69F00"/>
+    <circle cx="287" cy="120" r="23" fill="#E69F00"/>
+    <path d="M362 196 L390 244 L334 244 Z" fill="#56B4E9"/>
+    <path d="M437 84 L463 111 L437 138 L411 111 Z" fill="#CC79A7"/>
+    <path d="M512 258 L519 278 L541 278 L523 291 L530 312 L512 299 L494 312 L501 291 L483 278 L505 278 Z" fill="#F0E442"/>
+    <path d="M512 30 L519 50 L541 50 L523 63 L530 84 L512 71 L494 84 L501 63 L483 50 L505 50 Z" fill="#F0E442"/>
+  </g>
+  <g fill="#ffffff" opacity="0.9">
+    <circle cx="287" cy="320" r="5"/><circle cx="287" cy="120" r="5"/>
+  </g>
+
+  <!-- hit burst on the circle lane -->
+  <circle cx="287" cy="400" r="34" fill="none" stroke="#ffd27a" stroke-width="5" opacity="0.8"/>
+  <g fill="#E69F00">
+    <ellipse cx="262" cy="360" rx="7" ry="4" transform="rotate(-30 262 360)"/>
+    <ellipse cx="310" cy="352" rx="7" ry="4" transform="rotate(25 310 352)"/>
+    <ellipse cx="287" cy="340" rx="7" ry="4" fill="#ffffff"/>
+  </g>
+  <text x="287" y="368" text-anchor="middle" font-family="ui-rounded, system-ui, sans-serif" font-weight="900" font-size="22" fill="#ffd23f" stroke="#2a0a3a" stroke-width="6" paint-order="stroke">Perfect!</text>
+
+  <!-- garden: left -->
+  <g stroke="#3f9b4a" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M60 470 Q55 400 70 330"/><path d="M130 480 Q140 420 120 360"/><path d="M190 475 Q186 430 200 395"/>
+    <path d="M620 475 Q630 400 610 330"/><path d="M690 480 Q680 420 700 350"/><path d="M750 470 Q760 430 745 395"/>
+  </g>
+  <g fill="#4fb04a">
+    <ellipse cx="72" cy="410" rx="14" ry="6" transform="rotate(-25 72 410)"/><ellipse cx="128" cy="430" rx="14" ry="6" transform="rotate(25 128 430)"/>
+    <ellipse cx="610" cy="410" rx="14" ry="6" transform="rotate(25 610 410)"/><ellipse cx="695" cy="425" rx="14" ry="6" transform="rotate(-25 695 425)"/>
+  </g>
+  <use href="#sunflower" x="70" y="325" transform="scale(1)"/>
+  <use href="#tulip" x="120" y="355" fill="#ff7eb6"/>
+  <use href="#daisy" x="200" y="392" transform="scale(1)"/>
+  <use href="#tulip" x="610" y="328" fill="#b18cff"/>
+  <use href="#sunflower" x="700" y="345"/>
+  <use href="#daisy" x="745" y="392"/>
+
+  <!-- gnome -->
+  <g transform="translate(20 400)">
+    <ellipse cx="22" cy="72" rx="16" ry="14" fill="#3b7dd8"/>
+    <path d="M10 46 Q22 82 34 46 Z" fill="#fff3e0"/>
+    <circle cx="22" cy="44" r="9" fill="#ffcfa8"/>
+    <path d="M8 42 L23 6 L36 42 Z" fill="#e8384f"/>
+  </g>
+
+  <!-- music notes floating -->
+  <g fill="#fff3b0" opacity="0.9">
+    <path d="M168 230 v-34 l22 -6 v30" stroke="#fff3b0" stroke-width="4" fill="none"/>
+    <ellipse cx="163" cy="232" rx="8" ry="6"/><ellipse cx="185" cy="222" rx="8" ry="6"/>
+    <path d="M628 252 v-30" stroke="#fff3b0" stroke-width="4"/><ellipse cx="622" cy="254" rx="8" ry="6"/>
+    <path d="M628 222 q12 4 12 16" stroke="#fff3b0" stroke-width="4" fill="none"/>
+  </g>
+  <g>
+    <circle cx="110" cy="250" r="14" fill="url(#glow)"/><circle cx="700" cy="270" r="14" fill="url(#glow)"/><circle cx="220" cy="320" r="10" fill="url(#glow)"/><circle cx="590" cy="380" r="10" fill="url(#glow)"/>
+  </g>
+</svg>
