@@ -65,7 +65,11 @@ export function fmt(n) {
   let v = n;
   while (v >= 1000 && u < UNITS.length - 1) { v /= 1000; u++; }
   const digits = v < 10 ? 2 : v < 100 ? 1 : 0;
-  return `${v.toFixed(digits).replace(/\.?0+$/, '')}${UNITS[u]}`;
+  let text = v.toFixed(digits);
+  if (+text >= 1000 && u < UNITS.length - 1) { text = (+text / 1000).toFixed(2); u++; }
+  // Drop trailing zeros after the decimal point only, so 200K stays 200K.
+  if (text.includes('.')) text = text.replace(/\.?0+$/, '');
+  return `${text}${UNITS[u]}`;
 }
 
 export function fmtRate(r) {

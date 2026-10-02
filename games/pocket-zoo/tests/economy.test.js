@@ -60,6 +60,13 @@ test('number formatting stays short and friendly', () => {
   assert.equal(fmt(12345), '12.3K');
   assert.equal(fmt(2_500_000), '2.5M');
   assert.equal(fmt(1_000_000_000), '1B');
+  // whole numbers keep their zeros
+  assert.equal(fmt(100_000), '100K');
+  assert.equal(fmt(120_000), '120K');
+  assert.equal(fmt(200_000), '200K');
+  assert.equal(fmt(200_000_000), '200M');
+  assert.equal(fmt(20_000), '20K');
+  assert.equal(fmt(999_999), '1M');
   assert.equal(niceRound(1234), 1200);
   assert.equal(niceRound(7.4), 7);
   assert.equal(fmtDuration(3 * 3600 + 12 * 60), '3 h 12 min');
