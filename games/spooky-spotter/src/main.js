@@ -3,7 +3,7 @@ import { ROOM, ROOM_IDS, MODE, MODE_IDS, parTime } from './rooms.js';
 import { buildScene, hitTest, remaining, hintArea } from './scene.js';
 import { buildDiff, diffHitTest, diffRemaining, diffHintArea } from './modes.js';
 import { Game } from './game.js';
-import { loadSave, writeSave, clearSave } from './save.js';
+import { loadSave, writeSave, clearSave, STORAGE_KEY } from './save.js';
 import { ghostsOf } from './ghosts.js';
 import { Renderer } from './render.js';
 import { Sound } from './audio.js';
@@ -707,6 +707,20 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && mode === 'play') pause();
 });
 setInterval(() => monitor.check(performance.now()), 1000);
+
+// Another tab saved: take its progress, so this tab never writes a stale copy
+// over it (whichever tab saved last used to win). A round in progress carries
+// on and records into the fresh copy when it ends.
+addEventListener('storage', (e) => {
+  if (e.key !== STORAGE_KEY && e.key !== null) return;
+  game.state = loadSave(storage, game.state.seed).state;
+  game.ensureDaily(dayKey());
+  sound.setMuted(game.state.settings.muted);
+  sound.setMusic(game.state.settings.music);
+  updateSoundButtons();
+  if (mode === 'title') toTitle();
+  else if (mode === 'map') toMap();
+});
 
 // ----------------------------------------------------------------- the loop
 
