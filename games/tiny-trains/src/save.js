@@ -31,7 +31,13 @@ export function loadSave(storage) {
     const data = JSON.parse(raw);
     if (!data || typeof data !== 'object') return save;
     Object.assign(save, data);
-    save.levels = data.levels && typeof data.levels === 'object' ? data.levels : {};
+    save.levels = {};
+    if (data.levels && typeof data.levels === 'object') {
+      // Keep only sane records: a broken entry must not crash or lock the map.
+      for (const [id, rec] of Object.entries(data.levels)) {
+        if (/^\d+$/.test(id) && rec && typeof rec === 'object' && Number.isFinite(rec.stars)) save.levels[id] = rec;
+      }
+    }
     save.daily = { ...freshSave().daily, ...(data.daily || {}) };
     save.daily.days = save.daily.days && typeof save.daily.days === 'object' ? save.daily.days : {};
     if (!Array.isArray(save.skins)) save.skins = ['puffer'];

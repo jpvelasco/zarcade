@@ -31,6 +31,16 @@ test('blocked or broken storage falls back to a fresh save', () => {
   assert.deepEqual(loadSave(junk), freshSave());
 });
 
+test('broken level records are dropped instead of crashing the title', () => {
+  const store = memory();
+  store.setItem(SAVE_KEY, JSON.stringify({ v: 1, levels: { 1: null, 2: { stars: 2, best: 7 }, abc: { stars: 3, best: 3 }, 3: 'x' } }));
+  const save = loadSave(store);
+  assert.deepEqual(Object.keys(save.levels), ['2']);
+  assert.equal(totalStars(save), 2);
+  assert.equal(isLevelOpen(save, 5), true);
+  assert.doesNotThrow(() => claimSkins(save, LEVELS));
+});
+
 test('recording a level keeps the best and announces improvements', () => {
   const save = freshSave();
   const lv = { id: 4, par: 8 };
