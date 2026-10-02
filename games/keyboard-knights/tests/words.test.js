@@ -7,7 +7,7 @@ import { STAGES, LESSONS, poolFor, makeDaily, drillStrings } from '../src/stages
 test('the blocklist catches encoded rude words, whole or inside phrases', () => {
   assert.ok(BLOCKED_WORDS.size > 100);
   // Spot checks are written encoded too, so this file stays clean.
-  for (const enc of ['qnza', 'fuvg', 'xvyy', 'ungr', 'fghcvq']) {
+  for (const enc of ['qnza', 'fuvg', 'xvyy', 'ungr', 'fghcvq', 'phz', 'jnax', 'fchax', 'obyybpxf']) {
     const word = rot13(enc);
     assert.equal(isBlocked(word), true, enc);
     assert.equal(isBlocked(`Oh, ${word[0].toUpperCase()}${word.slice(1)}!`), true, enc);
@@ -16,7 +16,7 @@ test('the blocklist catches encoded rude words, whole or inside phrases', () => 
 });
 
 test('the blocklist leaves innocent words alone', () => {
-  for (const w of ['glass', 'grape', 'hello', 'class', 'Is extra?', 'shell', 'scrape', 'cocoa']) {
+  for (const w of ['glass', 'grape', 'hello', 'class', 'Is extra?', 'shell', 'scrape', 'cocoa', 'cucumber', 'shaggy', 'document']) {
     assert.equal(isBlocked(w), false, w);
   }
 });

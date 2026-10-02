@@ -18,6 +18,7 @@ const EXACT_ROT13 = `
   mbzovr pbecfr tenir pbssva jrncba evsyr ohyyrg neerfg cevfba wnvy pevzr
   guvrs fgrny fung wvmm xxx fbq fbqf cevpx gheqf ovgpurf qnzarq fuvggl
   fghcvqvgl punpx tbqqnza qnza pencf fpnerq fpnel qbbz
+  phz jnax jnaxre jnaxvat fchax obyybpxf ohttre fxnax qbhpur funt gbffre
 `;
 
 const PARTS_ROT13 = `
