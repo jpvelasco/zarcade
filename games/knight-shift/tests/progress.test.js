@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SAVE_KEY, defaultSave, loadSave, writeSave, recordResult, recordPuzzle, puzzleUnlocked, nextPuzzle, puzzleStarsTotal, botsBeaten } from '../src/progress.js';
+import { SAVE_KEY, defaultSave, loadSave, writeSave, recordResult, unrecordResult, recordPuzzle, puzzleUnlocked, nextPuzzle, puzzleStarsTotal, botsBeaten } from '../src/progress.js';
 import { PUZZLES } from '../src/puzzles.js';
 
 function memory(initial = {}) {
@@ -53,6 +53,16 @@ test('a damaged game in progress is dropped, a good one kept', () => {
     assert.equal(s.current, null, JSON.stringify(bad));
     assert.equal(s.puzzles['back-rank'], 2, 'the rest of the save survives');
   }
+});
+
+test('an undone result comes back off the record', () => {
+  const s = defaultSave();
+  assert.equal(recordResult(s, 'pip', 'l'), false);
+  assert.equal(unrecordResult(s, 'pip', 'l'), true);
+  assert.deepEqual(s.stats.pip, { w: 0, l: 0, d: 0 });
+  assert.equal(unrecordResult(s, 'pip', 'l'), false, 'never below zero');
+  assert.equal(unrecordResult(s, 'nobody', 'w'), false);
+  assert.equal(recordResult(s, 'pip', 'w'), true, 'the real first win still counts as first');
 });
 
 test('results and puzzle progress', () => {

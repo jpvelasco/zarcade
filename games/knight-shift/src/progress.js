@@ -80,6 +80,15 @@ export function recordResult(save, botId, outcome) {
   return outcome === 'w' && r.w === 1; // first win against this bot
 }
 
+// Take a recorded result back off the record (the player undid the end of
+// that game). Never goes below zero.
+export function unrecordResult(save, botId, outcome) {
+  const r = save.stats[botId];
+  if (!r || !['w', 'l', 'd'].includes(outcome) || r[outcome] <= 0) return false;
+  r[outcome]--;
+  return true;
+}
+
 export function recordPuzzle(save, id, stars) {
   const prev = save.puzzles[id] || 0;
   if (stars > prev) save.puzzles[id] = stars;

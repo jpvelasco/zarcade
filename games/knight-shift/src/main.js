@@ -13,7 +13,7 @@ import { PuzzleRun } from './puzzle-run.js';
 import { explainMove } from './explain.js';
 import { POWERS } from './powers.js';
 import { THEMES } from './pieces.js';
-import { loadSave, writeSave, recordResult, recordPuzzle, puzzleUnlocked, nextPuzzle, puzzleStarsTotal, botsBeaten, THEMES as THEME_IDS } from './progress.js';
+import { loadSave, writeSave, recordResult, unrecordResult, recordPuzzle, puzzleUnlocked, nextPuzzle, puzzleStarsTotal, botsBeaten, THEMES as THEME_IDS } from './progress.js';
 import { frameMonitor } from './perf.js';
 
 const $ = (id) => document.getElementById(id);
@@ -606,7 +606,8 @@ function finishGame(st) {
     outcome = st.winner === -1 ? 'd' : st.winner === match.human ? 'w' : 'l';
     const first = recordResult(save, BOTS[match.opponent].id, outcome);
     match.firstWin = first;
-  } else save.friendGames++;
+    match.recorded = { bot: BOTS[match.opponent].id, outcome };
+  } else { save.friendGames++; match.recorded = { friend: true }; }
   persistGame();
   const attrs = { mode: match.mode, opponent: isBotGame() ? BOTS[match.opponent].id : 'friend', result: outcome, reason: st.reason, moves, 'time.ms': ms, hints: match.hints, undos: match.undos };
   if (outcome === 'l') log.event('level.fail', attrs);
@@ -689,6 +690,13 @@ function undo() {
   else {
     let n = 0;
     while (g.history.length && (g.turn !== match.human || n === 0)) { g.undo(); n++; }
+  }
+  // Undoing the end of a game takes its result back off the record, so the
+  // game counts once however it finally ends.
+  if (match.recorded) {
+    if (match.recorded.friend) save.friendGames = Math.max(0, save.friendGames - 1);
+    else unrecordResult(save, match.recorded.bot, match.recorded.outcome);
+    match.recorded = null;
   }
   match.over = null;
   match.review = false;
