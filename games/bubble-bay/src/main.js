@@ -11,6 +11,7 @@ import {
   loadSave, writeSave, totalStars, recordWin, recordDaily, currentStreak, dailyDone, addOtters, useBooster,
 } from './save.js';
 import { frameMonitor } from './perf.js';
+import { calibrateSteps } from './ai.js';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -197,16 +198,13 @@ function toCove() {
 // --------------------------------------------------------------- the level
 
 // The daily tide's supply comes from the autoplayer, worked out a few
-// shots per frame while the title is showing.
+// shots per frame while the title is showing. Starting the daily finishes
+// it first if needed, so everyone gets the same supply on the same day.
 let dailyTune = null;
-function startDailyTuning() {
-  const key = todayKey();
+function startDailyTuning(key = todayKey()) {
   if (dailyTune && dailyTune.key === key) return;
   if (save.dailyTune && save.dailyTune.key === key) { dailyTune = { key, done: true, value: save.dailyTune }; return; }
-  import('./ai.js').then((ai) => {
-    const level = dailyLevel(key);
-    dailyTune = { key, done: false, gen: ai.calibrateSteps(level, { seeds: [1, 2, 3], steps: 64 }), value: null };
-  });
+  dailyTune = { key, done: false, gen: calibrateSteps(dailyLevel(key), { seeds: [1, 2, 3], steps: 64 }), value: null };
 }
 
 function pumpDailyTuning(budgetMs) {
@@ -227,12 +225,11 @@ function pumpDailyTuning(budgetMs) {
 function buildDaily() {
   const key = todayKey();
   const level = dailyLevel(key);
-  if (dailyTune && dailyTune.key === key && !dailyTune.done) pumpDailyTuning(2000);
-  const tune = dailyTune && dailyTune.key === key && dailyTune.done ? dailyTune.value : null;
-  if (tune) {
-    level.supply = tune.supply;
-    level.stars = [0, tune.stars[1], tune.stars[2]];
-  }
+  startDailyTuning(key);
+  pumpDailyTuning(Infinity);
+  const tune = dailyTune.value;
+  level.supply = tune.supply;
+  level.stars = [0, tune.stars[1], tune.stars[2]];
   return level;
 }
 
