@@ -377,6 +377,7 @@ const monitor = frameMonitor({
 });
 setInterval(() => monitor.check(performance.now()), 1000);
 
+const MENU_PAD = ['b', 'up', 'down', 'left', 'right', 'sup', 'sdown', 'sleft', 'sright'];
 let bakeIter = null;
 let prepIter = null;
 let last = performance.now();
@@ -399,6 +400,9 @@ function frame(now) {
     return;
   }
   input.pollPad();
+  // Menu-only pad buttons do nothing in play; drop them so a stale B or d-pad
+  // press can't close or jump around the next menu the moment it opens.
+  if (mode === 'play') for (const k of MENU_PAD) input.consumePad(k);
   updatePointer(dt);
 
   const esc = input.consume('Escape');
