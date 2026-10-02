@@ -46,12 +46,16 @@ export function loadSave(storage) {
     save.attempts = asObject(save.attempts);
     save.owned = asArray(save.owned).filter((id) => !!getUpgrade(id));
     save.book = asArray(save.book).filter((id) => BOOK_ORDER.includes(id));
-  save.met = asArray(save.met).filter((id) => !!CUSTOMERS[id]);
+    save.met = asArray(save.met).filter((id) => !!CUSTOMERS[id]);
     save.specials = asArray(save.specials).slice(-40);
     save.coins = Math.max(0, save.coins | 0);
     save.earned = Math.max(save.coins, save.earned | 0);
     save.unlocked = Math.max(1, Math.min(DAY_COUNT, save.unlocked | 0 || 1));
     save.daily = save.daily && typeof save.daily === 'object' ? save.daily : null;
+    // A board with a broken order is rebuilt for the day by refreshDaily.
+    if (save.daily && !(Array.isArray(save.daily.orders) && save.daily.orders.every(
+      (o) => o && typeof o === 'object' && typeof o.label === 'string' && o.need > 0,
+    ))) save.daily = null;
     return save;
   } catch {
     return defaultSave();

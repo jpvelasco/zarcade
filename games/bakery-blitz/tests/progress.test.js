@@ -58,6 +58,20 @@ test('a save survives a round trip, and rubbish in storage does not break it', (
   assert.equal(odd.coins, 0);
 });
 
+test('a daily board with broken orders is rebuilt instead of crashing', () => {
+  for (const orders of [[null, 3, {}], 'x', [{ label: 'Serve', need: 'lots' }]]) {
+    const save = loadSave(fakeStore(JSON.stringify({ daily: { date: '2026-10-02', orders } })));
+    assert.equal(save.daily, null);
+    const board = refreshDaily(save, '2026-10-02', 1);
+    assert.equal(board.orders.length, 3);
+    for (const order of board.orders) assert.equal(typeof order.label, 'string');
+  }
+  const good = defaultSave();
+  refreshDaily(good, '2026-10-02', 1);
+  const back = loadSave(fakeStore(JSON.stringify(good)));
+  assert.deepEqual(back.daily, good.daily, 'a healthy board is kept');
+});
+
 test('saving where storage is blocked fails quietly', () => {
   const blocked = { getItem() { throw new Error('nope'); }, setItem() { throw new Error('nope'); } };
   assert.equal(writeSave(blocked, defaultSave()), false);
