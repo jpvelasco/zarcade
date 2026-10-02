@@ -5,7 +5,7 @@ import { COLOR_NAMES } from './board.js';
 import { BoardView, drawJellyIcon } from './render.js';
 import { Sfx } from './audio.js';
 import { renderMap, scrollToLevel } from './map.js';
-import { loadSave, writeSave, totalStars, recordWin } from './save.js';
+import { loadSave, writeSave, totalStars, recordWin, SAVE_KEY } from './save.js';
 import { SPECIAL_LABELS } from './specials.js';
 import { frameMonitor } from './perf.js';
 
@@ -30,6 +30,20 @@ function persist() {
   log.warn('save.failed', { 'storage.available': !!storage });
 }
 const sfx = new Sfx(save.muted);
+
+// Another tab saved: take its progress, so this tab never writes a stale
+// copy over it (whichever tab saved last used to win). A level in progress
+// keeps going and records into the fresh copy when it is won.
+addEventListener('storage', (event) => {
+  if (event.key !== SAVE_KEY && event.key !== null) return;
+  const fresh = loadSave(storage);
+  for (const key of Object.keys(save)) delete save[key];
+  Object.assign(save, fresh);
+  sfx.setMuted(save.muted);
+  $('btn-mute').textContent = save.muted ? '🔇' : '🔊';
+  if (mode === 'title') toTitle();
+  else if (mode === 'map') toMap();
+});
 const view = new BoardView($('board'), { reduceMotion });
 
 let game = null;
