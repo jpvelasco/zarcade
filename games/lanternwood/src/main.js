@@ -60,6 +60,9 @@ function layout() {
 }
 
 function showScreen(id) {
+  // Presses made during play (sword, talk, walking) must not replay as menu
+  // input: a menu only reacts to presses made while it is open.
+  if (id) input.clear();
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   const playing = mode === 'play';
   $('hud-buttons').classList.toggle('hidden', !playing);
@@ -639,7 +642,9 @@ function frame(now) {
         if (input.consume('up') || input.consume('left')) { dlg.sel = (dlg.sel + n.choices.length - 1) % n.choices.length; highlightChoice(); sound.menu(); }
         if (input.consume('down') || input.consume('right')) { dlg.sel = (dlg.sel + 1) % n.choices.length; highlightChoice(); sound.menu(); }
       }
-      if (input.consume('attack') || input.consume('interact') || input.consume('confirm')) advanceDialogue();
+      // One gamepad press sends both attack and confirm: count it once.
+      const press = [input.consume('attack'), input.consume('interact'), input.consume('confirm')].some(Boolean);
+      if (press) advanceDialogue();
       if (autopilot) { autopilot.controls(game, dt); flushEvents(); }
       input.consume('item'); input.consume('cycle');
     } else if (game.mode === 'dead') {

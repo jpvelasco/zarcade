@@ -11,6 +11,8 @@ const EDGE_KEYS = {
   KeyI: 'bag', KeyM: 'map', Escape: 'pause', KeyP: 'pause', Enter: 'confirm',
 };
 
+const MENU_EDGES = ['up', 'down', 'left', 'right', 'confirm', 'back'];
+
 export class Input {
   constructor() {
     this.keys = new Set();
@@ -142,6 +144,9 @@ export class Input {
       interact: this.consume('interact'),
       cycle: this.consume('cycle') || this.consume('cycleBack'),
     };
+    // Menu edges mean nothing in play; drop them so walking or swinging never
+    // replays later as menu navigation, a dialogue choice or a confirm.
+    for (const name of MENU_EDGES) this.edges.delete(name);
     return ctl;
   }
 }
