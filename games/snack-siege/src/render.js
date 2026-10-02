@@ -99,7 +99,7 @@ export class Renderer {
     const bottom = -1.4;
     // Phones held upright keep sprites big enough and pan instead.
     const portrait = this.H > this.W * 1.15;
-    const minS = (portrait ? 23 : 15) * this.dpr;
+    const minS = (portrait ? 29 : 15) * this.dpr;
     const fitS = Math.min(this.W / (right - left), this.H / (top - bottom));
     const s = Math.max(minS, fitS);
     const changed = Math.abs(s - this.s) > 0.01;
@@ -378,7 +378,7 @@ export class Renderer {
       for (const id of game.active) { const b = game.phys.byId(id); if (b) bx = bx === null ? b.x : Math.max(bx, b.x); }
       if (flying && bx !== null) target = bx - this.viewW * 0.42;
       else if (flying || game.state === 'won' || game.state === 'lost') target = this.camTargetX;
-      else if (aiming && this.aimEndX !== null) target = Math.max(this.homeCamX(), this.aimEndX - this.viewW * 0.7);
+      else if (aiming && this.aimEndX !== null) target = Math.max(this.homeCamX(), this.aimEndX - this.viewW * 0.6);
     }
     target = Math.max(this.minCamX, Math.min(this.maxCamX, target));
     if (!this.needsPan) target = this.maxCamX;
