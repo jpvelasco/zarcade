@@ -230,12 +230,16 @@ function sleep(passedOut = false) {
   renderer.particles.length = 0;
   sound.play('sleep');
   mode = 'night';
+  nightAt = performance.now();
   showScreen('screen-night');
   ui.showNight(summary, world, saved);
 }
 
+// The bedtime card ignores presses for a moment, so a Space or A still being
+// mashed from play can't skip it unread.
+let nightAt = 0;
 function morning() {
-  if (mode !== 'night') return;
+  if (mode !== 'night' || performance.now() - nightAt < 700) return;
   sound.play('morning');
   log.event('level.start', dayAttrs());
   play();
