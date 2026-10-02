@@ -421,4 +421,15 @@ body[data-theme="night"] .skin.on { background: rgba(255, 220, 140, 0.2); }
   .results-card, .fail-card { max-width: 320px; }
   .results-card .stars { font-size: 2rem; }
   .toast { top: 12px; }
+  /* Tall cards (title, pause) scroll instead of spilling off a short screen. */
+  .overlay { overflow-y: auto; align-items: safe center; padding-top: 10px; padding-bottom: 10px; }
+  #screen-title { align-items: safe center; }
+  .logo h1 { font-size: 2.3rem; }
+  .logo-train { width: 30%; }
+  .progress { margin-top: 8px !important; }
+  .card.small { padding: 12px 18px; }
+  .card.small h2 { font-size: 1.35rem; margin-bottom: 0; }
+  #screen-pause .muted { display: none; }
+  .card .col { gap: 8px; }
+  .card .col .btn { min-height: 44px; padding-top: 7px; padding-bottom: 7px; }
 }
