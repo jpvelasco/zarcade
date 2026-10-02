@@ -22,19 +22,55 @@ export function loadSave(storage) {
     if (!raw) return base;
     const data = JSON.parse(raw);
     if (!data || typeof data !== 'object') return base;
-    const obj = (v) => (v && typeof v === 'object' ? v : {});
-    return {
-      ...base, ...data,
-      stars: { ...obj(data.stars) },
-      goals: { ...obj(data.goals) },
-      best: { ...obj(data.best) },
-      daily: { ...base.daily, ...obj(data.daily), best: { ...obj(obj(data.daily).best) } },
-      skirmish: { ...base.skirmish, ...obj(data.skirmish), best: { ...obj(obj(data.skirmish).best) } },
-      seen: { ...obj(data.seen) },
-    };
+    return sanitize(base, data);
   } catch {
     return base;
   }
+}
+
+const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+const count = (v, d = 0) => (Number.isFinite(v) && v >= 0 ? Math.floor(v) : d);
+// Only finite numbers survive in a table of times or star counts.
+function numbers(table, max = Infinity) {
+  const out = {};
+  for (const [k, v] of Object.entries(obj(table))) if (Number.isFinite(v) && v >= 0) out[k] = Math.min(max, v);
+  return out;
+}
+const oneOf = (v, list, d) => (list.includes(v) ? v : d);
+
+// Keep what is usable from a stored save and reset anything of the wrong
+// type, so a hand-edited or half-written save can never crash a screen.
+function sanitize(base, data) {
+  const daily = obj(data.daily), sk = obj(data.skirmish);
+  const goals = {};
+  for (const [k, v] of Object.entries(obj(data.goals))) if (Array.isArray(v)) goals[k] = v.map(Boolean);
+  return {
+    ...base, ...data,
+    stars: numbers(data.stars, 3),
+    goals,
+    best: numbers(data.best),
+    wins: count(data.wins),
+    played: count(data.played),
+    color: oneOf(data.color, COLORS.map((c) => c.id), base.color),
+    emblem: oneOf(data.emblem, EMBLEMS, base.emblem),
+    hero: oneOf(data.hero, [...HERO_ORDER, 'none'], null),
+    daily: {
+      lastWin: typeof daily.lastWin === 'string' ? daily.lastWin : null,
+      streak: count(daily.streak),
+      bestStreak: count(daily.bestStreak),
+      best: numbers(daily.best),
+    },
+    skirmish: {
+      ...base.skirmish,
+      ...(Number.isFinite(sk.seed) && sk.seed > 0 ? { seed: sk.seed } : {}),
+      best: numbers(sk.best),
+      wins: count(sk.wins),
+      size: oneOf(sk.size, ['small', 'medium', 'large'], base.skirmish.size),
+      rivals: oneOf(sk.rivals, [1, 2, 3], base.skirmish.rivals),
+      difficulty: oneOf(sk.difficulty, ['easy', 'normal', 'hard'], base.skirmish.difficulty),
+    },
+    seen: { ...obj(data.seen) },
+  };
 }
 
 // Returns false when nothing was saved (storage full, disabled or blocked).

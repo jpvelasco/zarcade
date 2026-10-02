@@ -27,6 +27,41 @@ test('saves round-trip under the namespaced key and survive bad data', () => {
   assert.equal(writeSave(throwing, save), false);
 });
 
+test('wrong-typed save fields are reset instead of breaking screens', () => {
+  const store = memoryStorage();
+  store.setItem(SAVE_KEY, JSON.stringify({
+    stars: { m1: '3', m2: 2, m3: 99 }, goals: { m1: 5, m2: [1, 0] }, best: { m1: 'fast', m2: 41.5 },
+    wins: 'lots', played: -2, color: 'nope', emblem: 7, hero: 'dragon',
+    daily: { lastWin: 7, streak: 'a', bestStreak: null, best: [] },
+    skirmish: { size: 'huge', rivals: 'x', difficulty: 'nightmare', seed: -1, best: { a: 3 } },
+    seen: 5, muted: true,
+  }));
+  const save = loadSave(store);
+  assert.deepEqual(save.stars, { m2: 2, m3: 3 });
+  assert.deepEqual(save.goals, { m2: [true, false] });
+  assert.deepEqual(save.best, { m2: 41.5 });
+  assert.equal(save.wins, 0);
+  assert.equal(save.played, 0);
+  assert.equal(save.color, 'bluebell');
+  assert.equal(save.emblem, 'crown');
+  assert.equal(save.hero, null);
+  assert.deepEqual(save.daily, { lastWin: null, streak: 0, bestStreak: 0, best: {} });
+  assert.deepEqual(save.skirmish, { best: { a: 3 }, wins: 0, size: 'medium', rivals: 1, difficulty: 'normal' });
+  assert.deepEqual(save.seen, {});
+  assert.equal(save.muted, true);
+  assert.equal(totalStars(save), 5);
+  // Winning with the cleaned save works.
+  const rec = recordCampaign(save, 0, { won: true, time: 60, sends: 3, lost: 0 });
+  assert.ok(rec.stars >= 1);
+  // A good save comes back unchanged.
+  const good = defaultSave();
+  good.stars.m1 = 2; good.goals.m1 = [true, false]; good.best.m1 = 88.2; good.wins = 4; good.hero = 'none';
+  good.daily = { lastWin: '2026-10-01', streak: 2, bestStreak: 3, best: { '2026-10-01': 70 } };
+  good.skirmish = { ...good.skirmish, seed: 1234, size: 'large', rivals: 3, difficulty: 'hard', best: { 'large-3-hard': 200 } };
+  writeSave(store, good);
+  assert.deepEqual(loadSave(store), good);
+});
+
 test('any win opens the next map; stars and bests only improve', () => {
   const save = defaultSave();
   assert.equal(isMapUnlocked(save, 1), false);
