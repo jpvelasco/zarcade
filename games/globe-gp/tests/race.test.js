@@ -137,6 +137,23 @@ test('skipping gates does not count the lap and sends you back', () => {
   assert.ok(back && Math.abs(t.delta(back.dist, t.gates[3] - 12)) < 1, 'respawned before the missed gate');
 });
 
+test('missing a late gate sends you back before it without taking a lap away', () => {
+  const race = solo('paris');
+  const r = race.player, t = race.track, L = t.length;
+  const last = t.gates.length - 1;
+  assert.ok(t.gates[last] > L / 2, 'the last gate is in the second half of the lap');
+  driveTo(race, r, r.along, L + 5);
+  driveTo(race, r, 5, t.gates[last - 1] + 5);
+  // Skip the last gate (as if going round it outside the walls), then cross.
+  const events = driveTo(race, r, t.gates[last] + 5, L + 5);
+  assert.ok(events.some((e) => e.type === 'missed'));
+  assert.equal(r.lap, 1, 'still on lap 1');
+  assert.ok(Math.abs(r.raceDist - (t.gates[last] - 12)) < 2, 'race distance is just before the missed gate');
+  driveTo(race, r, t.gates[last] - 12, L + 5);
+  assert.equal(r.lap, 2, 'the lap counts once the gate is taken');
+  assert.equal(r.lapTimes.length, 1);
+});
+
 test('taking a real shortcut keeps the lap valid', () => {
   const race = solo('paris');
   const r = race.player, t = race.track, L = t.length;

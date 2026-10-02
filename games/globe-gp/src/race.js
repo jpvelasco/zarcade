@@ -361,7 +361,12 @@ export class Race {
     const t = this.track;
     const gate = t.gates[r.cp] ?? t.gates[0];
     this.emit('missed', { racer: r.id });
+    // The forward crossing never counted a lap, so the move back over the
+    // line to a late gate must not take one away either.
+    const lap = r.lap;
     this.respawn(r, gate - 12);
+    r.lap = lap;
+    this.updateRaceDist(r);
   }
 
   finish(r) {
