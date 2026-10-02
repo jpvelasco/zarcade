@@ -488,9 +488,13 @@ canvas.addEventListener('pointerdown', (e) => {
   sound.unlock();
 });
 
-canvas.addEventListener('pointermove', (e) => {
+// Any movement shows the pointer again, over the list and buttons too.
+addEventListener('pointermove', () => {
   pointerIdle = 0;
   document.body.classList.remove('no-cursor');
+});
+
+canvas.addEventListener('pointermove', (e) => {
   if (!drag || e.pointerId !== drag.id) return;
   const dx = e.clientX - drag.x;
   const dy = e.clientY - drag.y;
