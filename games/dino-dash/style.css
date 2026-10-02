@@ -465,3 +465,30 @@ code { background: rgba(0, 0, 0, 0.07); padding: 2px 6px; border-radius: 6px; }
 }
 .item.affordable { border-color: #ffb52e; background: #fff6dc; }
 .item.affordable .iprice { color: #8a5208; }
+
+/* Phone landscape: two columns so the main buttons sit beside the
+   missions instead of below the fold. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .title-card, .over-card, #screen-pause .card {
+    width: min(720px, 100%);
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    column-gap: 16px;
+    align-items: center;
+    padding: 10px 16px 12px;
+  }
+  .title-card > *, .over-card > *, #screen-pause .card > * { grid-column: 1; }
+  .title-card > .col, .over-card > .col, #screen-pause .card > .col { grid-column: 2; grid-row: 1 / span 9; margin-top: 0; }
+  #screen-title { padding-left: 128px; }
+  .title-dino { width: 48px; height: 60px; }
+  .logo h1 { font-size: 38px; }
+  .over-card h2, #screen-pause h2 { font-size: 24px; margin-bottom: 0; }
+  .over-card .muted { margin: 2px 0; font-size: 14px; }
+  .badge { font-size: 16px; padding: 3px 12px; justify-self: center; }
+  .over-stats { margin: 4px 0 2px; }
+  .over-stats > div { padding: 4px; }
+  .stat-num { font-size: 20px; }
+  .missions { margin-top: 6px; padding: 6px 10px; }
+  .mission { padding: 1px 0; font-size: 13px; }
+  .daily-result { margin: 2px 0; font-size: 14px; }
+}
