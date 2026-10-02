@@ -741,6 +741,9 @@ function waitAWhile() {
 $('btn-play').addEventListener('click', () => { sound.click(); startFishing(); announceScene(); });
 $('btn-resume').addEventListener('click', resumeFishing);
 $('btn-title').addEventListener('click', toTitle);
+// pointerdown too: browsers send no click for a second finger, and the
+// other finger is often holding the reel.
+$('btn-pause').addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') { e.preventDefault(); pause(); } });
 $('btn-pause').addEventListener('click', pause);
 $('btn-mute').addEventListener('click', toggleMute);
 $('btn-wait').addEventListener('click', waitAWhile);
