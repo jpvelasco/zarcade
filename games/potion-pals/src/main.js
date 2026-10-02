@@ -157,10 +157,12 @@ function openSheet(kind, arg) {
 }
 
 function closeSheet() {
+  const backToShelf = $('screen-sheet').contains(document.activeElement);
   ui.close();
   modal = null;
   refreshHud();
   buildShelf();
+  if (backToShelf) setCursor(cursor, true);
 }
 
 function afterChange() {
