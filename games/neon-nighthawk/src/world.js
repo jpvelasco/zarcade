@@ -708,7 +708,9 @@ export class World {
       patrol.angle = wrapAngle(patrol.angle + clamp(wrapAngle(sweep - patrol.angle), -3 * dt, 3 * dt));
     }
     patrol.chasingEcho = false;
-    if (echo && !patrol.jammed && Math.hypot(echo.x - patrol.x, echo.y - patrol.y) < 300) patrol.alert = 2;
+    // The Echo projector upgrade lures sentries from farther away.
+    const lure = 300 * (this.stats.echoPull || 1);
+    if (echo && !patrol.jammed && Math.hypot(echo.x - patrol.x, echo.y - patrol.y) < lure) patrol.alert = 2;
     return true;
   }
 

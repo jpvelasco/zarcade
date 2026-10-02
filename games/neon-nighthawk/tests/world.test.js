@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { aiInput } from '../src/ai.js';
 import { BLOCK } from '../src/city.js';
 import { CHAPTERS } from '../src/story.js';
+import { statsFor } from '../src/progress.js';
 import { World, assistDirection, blockKey } from '../src/world.js';
 
 const DT = 1 / 60;
@@ -301,4 +302,22 @@ test('starting at a later job builds the same contract as playing up to it', () 
   }
   const jumped = new World(77, { chapter: 1, job: 2 });
   assert.deepEqual(jumped.contract.legs, played.contract.legs);
+});
+
+test('the Echo projector lures sentries from farther away', () => {
+  const lured = (echoLevel) => {
+    const world = new World(3, { chapter: 2, job: 1, stats: statsFor({ echo: echoLevel }) });
+    world.startContract();
+    world.traffic = [];
+    world.nextPatrolAt = Infinity;
+    const sentry = world.patrols.find((p) => p.mode === 'sentry');
+    world.patrols = [sentry];
+    world.player.x = sentry.x + BLOCK * 20;
+    world.player.y = sentry.y;
+    world.echoes = [{ points: [{ x: sentry.x + 360, y: sentry.y }], duration: 5, time: 0, x: sentry.x + 360, y: sentry.y, alive: true }];
+    world.step(DT, {});
+    return sentry.alert > 0;
+  };
+  assert.equal(lured(0), false, 'a stock decoy 360px away goes unnoticed');
+  assert.equal(lured(1), true, 'one upgrade level pulls the sentry over');
 });
