@@ -672,6 +672,7 @@ function hint() {
 
 function go() {
   if (!play || mode !== 'play') return;
+  settleStroke();
   audio.unlock();
   if (play.phase === 'run' || play.phase === 'won') { backToEdit(); return; }
   if (play.phase === 'fail') { backToEdit(); }
@@ -885,6 +886,7 @@ function announceSkins() {
 
 function pause() {
   if (mode !== 'play') return;
+  settleStroke();
   show('pause');
 }
 function resume() {
@@ -958,6 +960,15 @@ canvas.addEventListener('pointermove', (e) => {
     for (const i of steps) if (play.board.cells[i].k === 'grass') sandboxTap(i, 'tree');
   }
 });
+
+// Pausing or pressing Go mid-drag keeps the line drawn so far as one undo step.
+function settleStroke() {
+  clearTimeout(longTimer);
+  const d = down;
+  down = null;
+  if (!d || !play || !play.editor.stroke) return;
+  if (d.moved) { if (play.editor.endStroke()) changed('stroke', -1); } else play.editor.cancelStroke();
+}
 
 function endPointer(e) {
   clearTimeout(longTimer);
