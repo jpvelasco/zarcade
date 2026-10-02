@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   Alchemy, newState, normalize, dayKey, prevKey, roomsFor, palRoom,
-  requestText, riddleFor, ROOMS, POT_SIZE, START_SCROLLS,
+  requestText, riddleFor, ROOMS, ROOM_CAP, POT_SIZE, START_SCROLLS,
 } from '../src/alchemy.js';
 import { ITEM, PAL, frontier } from '../src/recipes.js';
 import { simulate } from '../src/bot.js';
@@ -141,6 +141,19 @@ test('pals spread evenly across the rooms they have', () => {
     used.add(room);
   }
   assert.equal(used.size, 3);
+});
+
+test('pals keep their room when a new room opens, and the opener moves in', () => {
+  let before = [];
+  for (let count = 1; count <= 32; count++) {
+    const rooms = roomsFor(count);
+    const now = [];
+    for (let order = 1; order <= count; order++) now.push(palRoom(order, rooms));
+    assert.deepEqual(now.slice(0, before.length), before, `someone moved house when pal ${count} arrived`);
+    if (rooms > roomsFor(count - 1)) assert.equal(now[count - 1], rooms - 1, `pal ${count} should move into the new room`);
+    for (let r = 0; r < rooms; r++) assert.ok(now.filter((x) => x === r).length <= ROOM_CAP, `room ${r} is over full`);
+    before = now;
+  }
 });
 
 test('requests appear once there is a pal, and are always brewable now', () => {

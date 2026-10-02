@@ -53,7 +53,9 @@ and drag a tile upwards into the cauldron. The whole game fits a
   exactly what it wants.
 - **Rooms** open as pals arrive: Workshop, Mossy Nook (3 pals), Cloud Loft (7),
   Root Cellar (12), Star Deck (18), Dream Attic (25). Each has its own
-  wallpaper, rug, window and decor, and holds up to six pals.
+  wallpaper, rug, window and decor, and holds up to six pals. A new pal moves
+  into the emptiest open room (so the one who opens a room moves straight in)
+  and stays there.
 - **Pal requests**: one per pal, up to three at a time, phrased from the target's tags ("Mossy
   wants something cold and sweet"). Targets are always something you could brew
   today, so a request is never blocked.

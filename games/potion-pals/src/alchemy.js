@@ -407,11 +407,25 @@ export class Alchemy {
   }
 }
 
-// Pals spread evenly across the unlocked rooms, by arrival order, so the same
-// save always arranges the treehouse the same way.
-export function palRoom(order, rooms) {
+// Each pal moves into the emptiest room open when it arrives (so the pal who
+// opens a new room moves straight into it) and then stays put. Arrival order
+// decides everything, so the same save always arranges the treehouse the same.
+const ROOM_PLAN = (() => {
+  const fill = ROOMS.map(() => 0);
+  const plan = [];
+  for (let order = 1; order <= PALS.length; order++) {
+    let best = 0;
+    for (let r = 1; r < roomsFor(order); r++) if (fill[r] < fill[best]) best = r;
+    fill[best]++;
+    plan.push(best);
+  }
+  return plan;
+})();
+
+export function palRoom(order, rooms = ROOMS.length) {
   const n = Math.max(1, rooms);
-  return (order - 1) % n;
+  const planned = ROOM_PLAN[order - 1];
+  return planned !== undefined && planned < n ? planned : (Math.max(1, order) - 1) % n;
 }
 
 // ------------------------------------------------------------------- copy
