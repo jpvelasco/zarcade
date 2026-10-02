@@ -230,6 +230,8 @@ function buildShelf() {
   const shelf = $('shelf');
   const list = alchemy.shelf();
   const filter = $('find').value.trim().toLowerCase();
+  // Re-appending the tiles drops focus; keyboard players keep their place.
+  const hadFocus = shelf.contains(document.activeElement);
   const frag = document.createDocumentFragment();
   for (const id of list) {
     const node = tileFor(id);
@@ -241,7 +243,7 @@ function buildShelf() {
   shelf.textContent = '';
   shelf.appendChild(frag);
   renderer.sprites.want(list, []);
-  setCursor(Math.min(cursor, visibleTiles().length - 1));
+  setCursor(Math.min(cursor, visibleTiles().length - 1), hadFocus);
 }
 
 function visibleTiles() {
@@ -307,7 +309,9 @@ function wireTile(node, id) {
   });
   node.addEventListener('pointercancel', () => { endGhost(); drag = null; });
   node.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') { e.preventDefault(); brew(); }
+    // Handled here, so the window's Space handler must not see it too (it
+    // would close the result card this brew just opened).
+    if (e.code === 'Space') { e.preventDefault(); e.stopPropagation(); brew(); }
   });
   node.addEventListener('click', (e) => {
     // Clicks from the keyboard (Enter) have no pointer behind them.
