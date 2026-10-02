@@ -93,6 +93,7 @@ function showScreen(id) {
 
 function setPlayUi(on) {
   $('hud').classList.toggle('hidden', !on);
+  document.body.classList.toggle('playing', on);
 }
 
 function muteLabel() {
@@ -770,7 +771,9 @@ window.addEventListener('resize', () => renderer.resize());
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change', (event) => {
   renderer.setReduced(event.matches);
 });
-input.bindHold($('stage'));
+// The whole screen is the button, including the gutters around the sky window
+// on phones.
+input.bindHold(document.body);
 
 {
   const sums = totals(save);
