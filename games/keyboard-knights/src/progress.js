@@ -83,6 +83,8 @@ export function defaultSave() {
   };
 }
 
+const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+
 export function loadSave(storage) {
   const base = defaultSave();
   try {
@@ -90,14 +92,19 @@ export function loadSave(storage) {
     if (!raw) return base;
     const data = JSON.parse(raw);
     if (!data || typeof data !== 'object') return base;
-    return {
+    const save = {
       ...base, ...data,
       equipped: { ...base.equipped, ...(data.equipped || {}) },
       daily: { ...base.daily, ...(data.daily || {}) },
       settings: { ...base.settings, ...(data.settings || {}) },
       owned: Array.isArray(data.owned) ? data.owned : base.owned,
-      history: Array.isArray(data.history) ? data.history : [],
+      history: Array.isArray(data.history) ? data.history.filter(isObj) : [],
     };
+    // Drop broken nested parts so one bad value can't stop the game loading.
+    for (const k of ['stars', 'best', 'keyStats', 'bestiary']) if (!isObj(save[k])) save[k] = base[k];
+    for (const [k, v] of Object.entries(save.keyStats)) if (!isObj(v)) delete save.keyStats[k];
+    for (const k of ['bestWpm', 'bestCombo', 'words']) if (typeof save[k] !== 'number') save[k] = base[k];
+    return save;
   } catch {
     return base;
   }

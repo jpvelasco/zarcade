@@ -12,6 +12,20 @@ function memoryStorage() {
 }
 const result = (over = {}) => ({ stars: 2, score: 300, wpm: 20, acc: 0.9, words: 12, correct: 40, maxCombo: 6, ...over });
 
+test('broken nested save values fall back to defaults (#114)', () => {
+  const store = memoryStorage();
+  store.setItem(STORAGE_KEY, JSON.stringify({ stars: null, keyStats: { f: null, j: { e: 0.1, t: 0, n: 2 } }, bestiary: null, best: 'x', history: [null, { d: '2026-10-01', wpm: 12, acc: 0.9, stage: 'meadow-1' }], bestWpm: null, who: 1 }));
+  const s = loadSave(store);
+  assert.deepEqual(s.stars, {});
+  assert.deepEqual(s.bestiary, {});
+  assert.deepEqual(s.best, {});
+  assert.deepEqual(Object.keys(s.keyStats), ['j']);
+  assert.equal(s.history.length, 1);
+  assert.equal(s.bestWpm, 0);
+  assert.equal(s.who, 1);
+  assert.doesNotThrow(() => { totalStars(s); checkUnlocks(s); nextStageIndex(s); });
+});
+
 test('saves round-trip and survive broken or blocked storage', () => {
   const store = memoryStorage();
   const s = defaultSave();
