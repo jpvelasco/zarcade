@@ -143,7 +143,7 @@ function toTitle() {
 // The run is over: fold it into the save and show the results.
 function endRun() {
   const w = world;
-  w.stats.runs = 1;
+  w.finish();
   const final = missions.check(w.stats);
   announceMissions(final);
   missions.commit(w.stats);

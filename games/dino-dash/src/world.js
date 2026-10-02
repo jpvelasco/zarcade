@@ -31,7 +31,6 @@ export class World {
     this.caughtTime = 0;
     this.events = [];
     this.stats = newStats();
-    if (daily) this.stats.dailyRuns = 1;
     this.passedBest = best <= 0;
     this.nextMilestone = Math.floor(this.d / 500) * 500 + 500;
 
@@ -46,6 +45,13 @@ export class World {
     this.slow = 0;
     this.track.fill(this.d + VIEW_AHEAD);
     if (startDistance > 0) this.track.clear(0, startDistance + 40);
+  }
+
+  // The run is over: count it (and a Daily Dash) for missions. Done at the
+  // end, after missions took their starting snapshot, so the counts register.
+  finish() {
+    this.stats.runs = 1;
+    this.stats.dailyRuns = this.daily ? 1 : 0;
   }
 
   emit(type, data) {

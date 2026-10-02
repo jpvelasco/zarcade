@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { KINDS, MAX_LEVEL, MissionRun, missionSet, missionView, defaultMissions, sanitizeMissions, multiplierOf, target } from '../src/missions.js';
-import { newStats } from '../src/world.js';
+import { newStats, World } from '../src/world.js';
 
 test('every level has three distinct missions with sensible targets', () => {
   for (let level = 1; level <= MAX_LEVEL + 1; level++) {
@@ -84,4 +84,25 @@ test('corrupt mission saves fall back to defaults', () => {
   assert.deepEqual(m.progress, [0, 0, 3]);
   assert.deepEqual(m.done, [false, true, false]);
   assert.equal(sanitizeMissions({ level: 999 }).level, MAX_LEVEL + 1);
+});
+
+test('playing a Daily Dash completes the "Play a Daily Dash" mission', () => {
+  const level = [...Array(MAX_LEVEL).keys()].map((i) => i + 1).find((l) => missionSet(l).some((m) => m.kind === 'dailyTotal'));
+  assert.ok(level, 'some level asks for a Daily Dash');
+  const state = { ...defaultMissions(), level };
+  const i = missionSet(level).findIndex((m) => m.kind === 'dailyTotal');
+  const world = new World({ seed: 3, daily: true });
+  const run = new MissionRun(state); // same order as main.js startRun / endRun
+  run.start(world.stats);
+  world.finish();
+  run.check(world.stats);
+  assert.equal(state.done[i], true);
+  // A regular run does not count.
+  const other = { ...defaultMissions(), level };
+  const plain = new World({ seed: 3 });
+  const run2 = new MissionRun(other);
+  run2.start(plain.stats);
+  plain.finish();
+  run2.check(plain.stats);
+  assert.equal(other.done[i], false);
 });
