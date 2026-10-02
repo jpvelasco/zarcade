@@ -249,8 +249,8 @@ function toShop() {
           persist();
           sfx.coin();
           log.event('upgrade.buy', { upgrade: up.id, cost: up.cost, coins: save.coins });
-          $('shop-note').textContent = `${up.name}: ${up.shop}`;
           toShop();
+          $('shop-note').textContent = `${up.name}: ${up.shop}`;
         });
         buy.append(price, button);
       }
