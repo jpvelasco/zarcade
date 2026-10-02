@@ -109,7 +109,7 @@ function startRun(song, diff, { tempoScale = 1, attract = false } = {}) {
   const beats = STYLES[song.style].beats;
   const lead = beats * spb + 0.7;
   let clock;
-  if (audio.running) {
+  if (audio.live) {
     const start = audio.ctx.currentTime + lead;
     clock = { kind: 'audio', start };
     audio.startSong(song.style, songEvents(song, { tempoScale }), start);

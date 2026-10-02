@@ -215,8 +215,19 @@ export class Audio {
 
   resume() {
     this.paused = false;
-    if (this.ctx && this.ctx.state === 'suspended') return this.ctx.resume();
+    if (this.ctx && this.ctx.state === 'suspended') {
+      // resume() is asynchronous: until it settles the clock is about to run,
+      // so a song started now can still be scheduled on it.
+      this.resuming = true;
+      const done = () => { this.resuming = false; };
+      return this.ctx.resume().then(done, done);
+    }
     return Promise.resolve();
+  }
+
+  /** Running, or a pause is being lifted and will be running in a moment. */
+  get live() {
+    return this.running || (!!this.resuming && !this.paused);
   }
 
   play(ev, at) {
