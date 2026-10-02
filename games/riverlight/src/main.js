@@ -126,11 +126,16 @@ function toTitle() {
 function refreshTitle() {
   const stars = totalStars(save);
   const cleared = Object.keys(save.stars).length;
-  const next = Math.min(save.unlocked, LEVEL_COUNT);
+  const next = continueId();
   $('title-progress').textContent = cleared
     ? `★ ${stars} of ${LEVEL_COUNT * 3} · ${cleared} garden${cleared === 1 ? '' : 's'} in bloom${save.zen ? ` · ${save.zen} zen` : ''}`
     : `${LEVEL_COUNT} gardens across ${SEASONS.length} seasons`;
   $('btn-play').textContent = cleared || save.current ? `Continue · garden ${next}` : 'Play';
+}
+
+// The garden Continue opens: the one in progress, else the newest unlocked.
+function continueId() {
+  return Math.min(save.current?.id ?? save.unlocked, save.unlocked, LEVEL_COUNT);
 }
 
 function newAttract() {
@@ -672,7 +677,7 @@ const loop = telemetry ? telemetry.guard(frame, 'riverlight.frame') : frame;
 
 // ------------------------------------------------------------------- wiring
 
-$('btn-play').addEventListener('click', () => startLevel(Math.min(save.current?.id ?? save.unlocked, save.unlocked, LEVEL_COUNT)));
+$('btn-play').addEventListener('click', () => startLevel(continueId()));
 $('btn-map').addEventListener('click', toMap);
 $('btn-zen').addEventListener('click', startZen);
 for (const el of document.querySelectorAll('[data-title]')) el.addEventListener('click', toTitle);
