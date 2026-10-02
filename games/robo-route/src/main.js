@@ -148,7 +148,7 @@ function relayout() {
   const playing = mode === 'play' || mode === 'paused';
   const narrow = innerWidth < 520;
   renderer.inset = playing ? { top: narrow ? 50 : 58, bottom: 4, left: 0, right: 0 } : mode === 'editor' ? { top: 56, bottom: 0, left: 0, right: 0 } : { top: 0, bottom: 0, left: 0, right: 0 };
-  if (playing && matchMedia('(max-width: 860px), (orientation: portrait)').matches) {
+  if (playing && matchMedia('(max-width: 860px) and (min-height: 521px), (orientation: portrait)').matches) {
     // Phones: give the board whatever the program panel does not need.
     const pnl = $('panel');
     const cs = getComputedStyle(pnl);

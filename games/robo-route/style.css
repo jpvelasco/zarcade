@@ -76,7 +76,7 @@ body.playing #board, body.editing #board { width: calc(100% - var(--panel-w)); }
 .hud-left, .hud-right { display: flex; align-items: center; gap: 8px; }
 .hud-left { min-width: 0; }
 
-@media (max-width: 860px), (orientation: portrait) {
+@media (max-width: 860px) and (min-height: 521px), (orientation: portrait) {
   :root { --t: 42px; }
   body.playing #board, body.editing #board { width: 100%; height: var(--board-h); }
   #panel, #editor {
@@ -90,6 +90,12 @@ body.playing #board, body.editing #board { width: calc(100% - var(--panel-w)); }
   #hud { width: 100%; }
 }
 @media (max-width: 380px) { :root { --t: 38px; } }
+/* A phone on its side keeps the desktop layout, the panel beside the board,
+   but narrower and with smaller tiles so the board still gets room. */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root { --panel-w: min(400px, 50vw); --t: 38px; }
+  #panel, #editor { gap: 6px; padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); overflow-y: auto; }
+}
 
 .icon-btn {
   width: 44px; height: 44px;
@@ -156,7 +162,7 @@ body.playing #board, body.editing #board { width: calc(100% - var(--panel-w)); }
   pointer-events: none;
 }
 body.playing .bubble { left: calc((100% - var(--panel-w)) / 2); }
-@media (max-width: 860px), (orientation: portrait) {
+@media (max-width: 860px) and (min-height: 521px), (orientation: portrait) {
   body.playing .bubble { left: 50%; top: calc(var(--board-h) - 64px); }
 }
 .bubble.bad { background: #fff0f1; border-color: #ffc0c8; }
@@ -353,7 +359,7 @@ body.playing .bubble { left: calc((100% - var(--panel-w)) / 2); }
 .goal span.done { background: rgba(53, 192, 106, 0.35); }
 .goal .g-steps { margin-left: auto; opacity: 0.8; }
 @media (max-width: 360px) { .goal .g-steps { display: none; } }
-@media (max-width: 860px), (orientation: portrait) { .goal { font-size: 14px; } .goal span { padding: 3px 10px; } }
+@media (max-width: 860px) and (min-height: 521px), (orientation: portrait) { .goal { font-size: 14px; } .goal span { padding: 3px 10px; } }
 
 /* ------------------------------------------------------------ controls */
 
@@ -374,7 +380,7 @@ body.playing .bubble { left: calc((100% - var(--panel-w)) / 2); }
 .ctl.speed { flex: 0.9; }
 .ctl:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25); }
 .ctl:disabled { opacity: 0.45; }
-@media (max-width: 860px), (orientation: portrait) { .ctl { height: 48px; } }
+@media (max-width: 860px) and (min-height: 521px), (orientation: portrait) { .ctl { height: 48px; } }
 
 /* ------------------------------------------------------------ buttons */
 
@@ -640,10 +646,11 @@ h3 { margin: 0 0 4px; font-size: 18px; font-weight: 900; }
 .ed-status { margin: 0; min-height: 1.3em; color: #ffe08a; font-weight: 800; }
 .ed-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .ed-actions .btn { flex: 1; padding: 8px 10px; min-height: 44px; }
-@media (max-width: 860px), (orientation: portrait) {
+@media (max-width: 860px) and (min-height: 521px), (orientation: portrait) {
   .tool { height: 46px; }
   .tool .tl { display: none; }
-  .ed-tools { grid-template-columns: repeat(9, 1fr); }
+  .ed-tools { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 4px; }
+  #title-bolt { width: 120px; height: 100px; }
 }
 
 /* ------------------------------------------------------------ toasts */
@@ -670,3 +677,12 @@ h3 { margin: 0 0 4px; font-size: 18px; font-weight: 900; }
   .tile.popin, .strip.nope, .tile.bug { animation: none; }
 }
 body.reduced .card, body.reduced .map-card, body.reduced .node.next, body.reduced .caret { animation: none; }
+
+/* A phone on its side: compact editor tools (see the layout rule above). */
+@media (orientation: landscape) and (max-height: 520px) {
+  .ctl { height: 44px; }
+  .tool { height: 40px; }
+  .tool .tl { display: none; }
+  .ed-tools { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 4px; }
+  #title-bolt { width: 120px; height: 100px; }
+}
