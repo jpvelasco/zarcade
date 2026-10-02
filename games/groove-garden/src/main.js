@@ -62,7 +62,16 @@ function configureRenderer() {
 }
 configureRenderer();
 
+// The results card ignores clicks for a moment after it appears, so a player
+// still mashing Space, A or the lanes doesn't skip straight past it.
+const RESULT_GUARD_MS = 800;
+let resultsShownAt = -Infinity;
+addEventListener('click', (e) => {
+  if (mode === 'results' && performance.now() - resultsShownAt < RESULT_GUARD_MS) { e.preventDefault(); e.stopPropagation(); }
+}, { capture: true });
+
 function showScreen(id) {
+  if (id === 'screen-results') resultsShownAt = performance.now();
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   const playing = mode === 'play' || mode === 'resuming';
   $('hud-buttons').classList.toggle('hidden', !playing);
@@ -206,6 +215,7 @@ function showResults() {
   const next = nextSong(r.song);
   $('btn-next').disabled = !next;
   $('btn-next').textContent = next ? `Next: ${next.title} →` : 'Next song →';
+  input.clear();
   showScreen('screen-results');
 }
 
@@ -241,6 +251,7 @@ function resume() {
 
 function finishResume() {
   mode = 'play';
+  input.clear(); // presses made during the 3-2-1 must not fire in a later menu
   if (run.clock.kind === 'audio') audio.resume();
   else if (run.clock.pausedAt !== null) {
     run.clock.start += performance.now() - run.clock.pausedAt;
