@@ -19,9 +19,11 @@ export const NUDGE_SWIPE = { px: 38, ms: 260 };
 
 // A quick upward flick on one half of the screen nudges the table towards
 // that side (like X / C). Returns -1, 1 or 0. `t` is the touch record from
-// pointerdown; each touch nudges at most once.
+// pointerdown; each touch nudges at most once. Only flipper touches nudge: a
+// touch on a waiting plunger ball is aiming a launch, and a nudge there
+// would only fill the tilt meter.
 export function flickNudge(t, x, y, now) {
-  if (t.nudged || t.kind === 'plunge') return 0;
+  if (t.nudged || t.kind !== 'flip') return 0;
   const dy = t.y0 - y;
   if (dy < NUDGE_SWIPE.px || Math.abs(x - t.x0) > dy || now - t.t0 > NUDGE_SWIPE.ms) return 0;
   t.nudged = true;

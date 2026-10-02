@@ -16,6 +16,7 @@ test('holding, slow drags, sideways slides and plunger swipes do not nudge', () 
   assert.equal(flickNudge(touch('left'), 100, 520, 1000 + NUDGE_SWIPE.ms + 50), 0, 'too slow');
   assert.equal(flickNudge(touch('left'), 180, 550, 1100), 0, 'mostly sideways');
   assert.equal(flickNudge(touch('right', 'plunge'), 100, 520, 1100), 0, 'plunging');
+  assert.equal(flickNudge(touch('right', 'pending'), 100, 520, 1100), 0, 'the ball is waiting on the plunger');
 });
 
 test('a touch held past the plunge becomes a flipper touch', () => {
