@@ -42,6 +42,9 @@ export const BRANCH_ICONS = {
   fan: svg(`<circle cx="32" cy="32" r="24" fill="#bfefff" stroke="#3f9fd6" stroke-width="3"/>${[0, 1, 2].map((i) => `<path d="M32 32Q${32 + 18 * Math.cos(i * 2.094)} ${32 + 18 * Math.sin(i * 2.094)} ${32 + 20 * Math.cos(i * 2.094 + 0.8)} ${32 + 20 * Math.sin(i * 2.094 + 0.8)}Z" fill="#3f9fd6"/>`).join('')}<path d="M32 10v8M32 46v8M10 32h8M46 32h8" stroke="#fff" stroke-width="3"/>`),
 };
 
+// Wiggles the worm (an emoji would need a Unicode 13 font).
+export const WORM_ICON = svg(`<path d="M8 44Q16 26 26 40T44 38" fill="none" stroke="#c94f7c" stroke-width="15" stroke-linecap="round"/><path d="M8 44Q16 26 26 40T44 38" fill="none" stroke="#ff8fb0" stroke-width="10" stroke-linecap="round"/><path d="M16 34v9M25 37v9M34 36v9" stroke="#e0628f" stroke-width="2.5" stroke-linecap="round"/><circle cx="48" cy="32" r="11" fill="#ff8fb0" stroke="#c94f7c" stroke-width="3"/><circle cx="51" cy="29" r="2.6" fill="#3a2230"/><path d="M45 36q4 3 8 0" fill="none" stroke="#3a2230" stroke-width="2" stroke-linecap="round"/>`);
+
 export function podIcon(paint) {
   const body = paint.rainbow ? 'url(#rb)' : paint.body;
   return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="rb" x1="0" x2="1"><stop offset="0" stop-color="#ff6bd5"/><stop offset=".33" stop-color="#ffd84a"/><stop offset=".66" stop-color="#5ef2a0"/><stop offset="1" stop-color="#5ec8ff"/></linearGradient></defs>

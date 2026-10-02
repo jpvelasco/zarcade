@@ -9,7 +9,7 @@ import { Input } from './input.js';
 import { Sound } from './audio.js';
 import { Bot } from './bot.js';
 import { frameMonitor } from './perf.js';
-import { PIECE_ICONS, BRANCH_ICONS, podIcon, MOLE_LOGO } from './icons.js';
+import { PIECE_ICONS, BRANCH_ICONS, podIcon, MOLE_LOGO, WORM_ICON } from './icons.js';
 
 const STEP = 1 / 60;
 const $ = (id) => document.getElementById(id);
@@ -40,6 +40,11 @@ const input = new Input(canvas, (x, y) => renderer.toWorld(x, y));
 input.bindTouch($('dpad'), $('btn-fly'));
 const sound = new Sound({ muted: save.muted, music: save.music });
 $('logo-art').innerHTML = MOLE_LOGO;
+// Coins and Wiggles are drawn, not emoji: the coin and worm emoji need a
+// Unicode 13 font.
+const COIN = '<i class="coin" aria-hidden="true"></i>';
+const WORM = `<span class="worm-ico">${WORM_ICON}</span>`;
+for (const el of document.querySelectorAll('.worm-ico')) el.innerHTML = WORM_ICON;
 
 let mode = 'title'; // title | play | paused | shop | rescue | tow | core | daily | dailyEnd | help
 let main = new Session(save);
@@ -132,8 +137,8 @@ function openDaily() {
   const streak = currentStreak(save, today);
   $('daily-stats').innerHTML = [
     ['Streak', streak ? `🔥 ${streak} day${streak > 1 ? 's' : ''}` : 'Start one today!'],
-    ['Today', res?.done ? `✓ Cleared · best ${res.best} 🪙` : res ? `${res.tries} tr${res.tries > 1 ? 'ies' : 'y'} so far` : 'Not dug yet'],
-    ['Reward', res?.done ? 'Already collected' : `+${100 + 25 * Math.min(Math.max(streak + 1, 1), 8)} 🪙 for your mine`],
+    ['Today', res?.done ? `✓ Cleared · best ${res.best} ${COIN}` : res ? `${res.tries} tr${res.tries > 1 ? 'ies' : 'y'} so far` : 'Not dug yet'],
+    ['Reward', res?.done ? 'Already collected' : `+${100 + 25 * Math.min(Math.max(streak + 1, 1), 8)} ${COIN} for your mine`],
   ].map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join('');
   showScreen('screen-daily');
 }
@@ -223,7 +228,7 @@ function handleEvents(session) {
       case 'acorn': sound.play('relic'); toast('🌰 The Golden Acorn! Fly it home!', 'gold'); break;
       case 'milestone':
         sound.play('milestone');
-        toast(`🏁 ${e.m} m${e.label ? ` · ${e.label}` : ''}! +${e.coins} 🪙${e.paint ? ` · new paint: ${paintById(e.paint).name}` : ''}`, 'gold', 3200);
+        toast(`🏁 ${e.m} m${e.label ? ` · ${e.label}` : ''}! +${e.coins} ${COIN}${e.paint ? ` · new paint: ${paintById(e.paint).name}` : ''}`, 'gold', 3200);
         log.event('milestone', { m: e.m });
         break;
       case 'record': toast(`⭐ New deepest dig: ${e.m} m!`, 'gold'); break;
@@ -255,10 +260,10 @@ function onDocked(session, e) {
   if (session.kind !== 'main') return;
   if (e.count) {
     sound.play('sell', e.count);
-    toast(`💰 Sold ${e.count} gem${e.count > 1 ? 's' : ''} for <b>${e.value} 🪙</b>`, 'gold');
+    toast(`💰 Sold ${e.count} gem${e.count > 1 ? 's' : ''} for <b>${e.value} ${COIN}</b>`, 'gold');
     bump('s-coins');
   }
-  for (const p of e.pieces) toast(`🏛️ ${p.dupe ? 'Spare' : 'New in the museum'}: <b>${p.name}</b> · +${p.reward} 🪙`, 'gold', 3200);
+  for (const p of e.pieces) toast(`🏛️ ${p.dupe ? 'Spare' : 'New in the museum'}: <b>${p.name}</b> · +${p.reward} ${COIN}`, 'gold', 3200);
   for (const id of e.paints) toast(`🎨 Set complete! New paint: <b>${paintById(id).name}</b>`, 'mint', 3600);
   if (e.trip) log.event('trip.end', { value: e.value, gems: e.count, pieces: e.pieces.length, coins: save.coins });
   lowFuelWarned = false;
@@ -296,7 +301,7 @@ function openRescue(reason) {
   const title = reason === 'fuel' ? 'Out of fuel!' : reason === 'hull' ? 'Bumped and bruised!' : 'Call Wiggles?';
   $('rescue-title').textContent = title;
   const why = reason === 'fuel' ? 'Your tank is empty.' : reason === 'hull' ? 'Your hull needs patching.' : 'Wiggles can tow you straight home.';
-  $('rescue-text').innerHTML = `${why} Wiggles the worm will tow you home ${fee ? `for <b>${fee} 🪙</b>` : '<b>for free</b>'}. You keep everything in your cargo hold.`;
+  $('rescue-text').innerHTML = `${why} Wiggles the worm will tow you home ${fee ? `for <b>${fee} ${COIN}</b>` : '<b>for free</b>'}. You keep everything in your cargo hold.`;
   $('btn-tow').textContent = reason === 'call' ? 'Tow me home' : 'Thanks, Wiggles!';
   $('btn-tow-cancel').classList.toggle('hidden', reason !== 'call');
   showScreen('screen-rescue');
@@ -323,7 +328,7 @@ function updateTow(dt) {
     renderer.setSession(main);
     const p = main.pod;
     tow.x = p.x - 1.3; tow.y = 0; tow.emerge = 1;
-    toast(`🪱 Wiggles towed you home${tow.fee ? ` · fee ${tow.fee} 🪙` : ''}. Wave goodbye!`, 'pink', 3000);
+    toast(`${WORM} Wiggles towed you home${tow.fee ? ` · fee ${tow.fee} ${COIN}` : ''}. Wave goodbye!`, 'pink', 3000);
     log.event('tow', { reason, fee: tow.fee });
     sound.play('worm');
     persist();
@@ -341,7 +346,7 @@ function onCore(e) {
   persist();
   if (autopilot) return;
   mode = 'core';
-  $('core-text').innerHTML = `${e.first ? 'Momo dug all the way down through soil, clay, stone, crystal, glowcaps, lava and the ancient ruins!' : 'The core shines for you again!'}<br><b>+${e.coins} 🪙</b>${e.paint ? ` · new paint: <b>Rainbow Core</b>` : ''}<br><span class="muted">Keep exploring, fill the museum, or start a fresh mine from the Workshop's Records tab.</span>`;
+  $('core-text').innerHTML = `${e.first ? 'Momo dug all the way down through soil, clay, stone, crystal, glowcaps, lava and the ancient ruins!' : 'The core shines for you again!'}<br><b>+${e.coins} ${COIN}</b>${e.paint ? ` · new paint: <b>Rainbow Core</b>` : ''}<br><span class="muted">Keep exploring, fill the museum, or start a fresh mine from the Workshop's Records tab.</span>`;
   showScreen('screen-core');
 }
 
@@ -353,8 +358,8 @@ function onDailyEnd(r) {
     mode = 'dailyEnd';
     $('de-title').textContent = r.success ? 'Goal complete! 🎉' : r.failReason === 'hull' ? 'Bumped and bruised!' : r.failReason ? 'Out of fuel!' : 'So close!';
     $('de-sub').textContent = r.success ? (r.firstClear ? `Streak: 🔥 ${r.streak} day${r.streak > 1 ? 's' : ''}` : 'Already cleared today. Nice extra run!') : 'Have another go! Same mine, fresh tank.';
-    const lines = [['Gems sold', `${r.score} 🪙`], ['Deepest', `${r.depth} m`]];
-    if (r.reward) lines.push(['Reward for your mine', `+${r.reward} 🪙`]);
+    const lines = [['Gems sold', `${r.score} ${COIN}`], ['Deepest', `${r.depth} m`]];
+    if (r.reward) lines.push(['Reward for your mine', `+${r.reward} ${COIN}`]);
     for (const id of r.paints) lines.push(['New paint', paintById(id).name]);
     if (r.newBest && !r.firstClear) lines.push(['Today', 'New best haul!']);
     $('de-lines').innerHTML = lines.map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join('');
@@ -383,7 +388,7 @@ function closeShop() {
 function canShop() { return main.pod.docked; }
 
 function renderShop() {
-  $('shop-coins').textContent = `🪙 ${save.coins.toLocaleString('en-US')}`;
+  $('shop-coins').innerHTML = `${COIN} ${save.coins.toLocaleString('en-US')}`;
   for (const t of document.querySelectorAll('.tab')) t.classList.toggle('on', t.dataset.tab === shopTab);
   const body = $('shop-body');
   const titles = { upgrades: 'Workshop', museum: 'Museum', paints: 'Paint Shed', records: 'Records' };
@@ -421,7 +426,7 @@ function upgradesHtml() {
     else if (info.locked) right = `<button class="btn buy" disabled>🔒 Needs<small>${UPGRADES.drill.names[info.locked]}</small></button>`;
     else {
       const short = info.cost - save.coins;
-      right = `<button class="btn buy ${info.affordable && shop ? 'primary' : ''}" data-buy="${key}" ${info.affordable && shop ? '' : 'disabled'}>${info.cost.toLocaleString('en-US')} 🪙<small>${short > 0 ? `${short.toLocaleString('en-US')} more` : shop ? 'Buy' : 'At base'}</small></button>`;
+      right = `<button class="btn buy ${info.affordable && shop ? 'primary' : ''}" data-buy="${key}" ${info.affordable && shop ? '' : 'disabled'}>${info.cost.toLocaleString('en-US')} ${COIN}<small>${short > 0 ? `${short.toLocaleString('en-US')} more` : shop ? 'Buy' : 'At base'}</small></button>`;
     }
     const next = info.maxed ? 'The very best!' : `Next: <b>${U.names[info.next]}</b> · ${statText(key, info.next)}`;
     html += `<div class="branch ${!info.maxed && info.affordable && shop ? 'can' : ''}">
@@ -468,7 +473,7 @@ function recordsHtml() {
   html += '</div><h3>Depth milestones</h3>';
   for (const m of MILESTONES) {
     const got = save.milestones.includes(m.m);
-    html += `<div class="ms ${got ? 'got' : ''}"><span>${got ? '✓' : '○'} ${m.m} m${m.label ? ` · ${m.label}` : ''}</span><span>+${m.coins} 🪙${m.paint ? ` · 🎨 ${paintById(m.paint).name}` : ''}</span></div>`;
+    html += `<div class="ms ${got ? 'got' : ''}"><span>${got ? '✓' : '○'} ${m.m} m${m.label ? ` · ${m.label}` : ''}</span><span>+${m.coins} ${COIN}${m.paint ? ` · 🎨 ${paintById(m.paint).name}` : ''}</span></div>`;
   }
   if (save.core && canShop()) html += '<div class="col"><button class="btn" data-fresh>⛏️ Dig a fresh mine (keep upgrades & museum)</button></div>';
   return html + '</div>';
@@ -557,8 +562,8 @@ function updateHud(dt) {
   goal.classList.toggle('hidden', s.kind !== 'daily');
   if (s.kind === 'daily') {
     const pr = s.dailyProgress();
-    const txt = pr.unit === 'acorn' ? `🎯 Golden Acorn: ${pr.now ? 'got it! Fly home' : 'not found yet'}` : `🎯 ${Math.min(pr.now, pr.target)}/${pr.target} ${pr.unit === 'coins' ? '🪙' : 'm'}${pr.now >= pr.target ? ' · fly home!' : ''}`;
-    if (hudCache.goal !== txt) { hudCache.goal = txt; goal.textContent = txt; }
+    const txt = pr.unit === 'acorn' ? `🎯 Golden Acorn: ${pr.now ? 'got it! Fly home' : 'not found yet'}` : `🎯 ${Math.min(pr.now, pr.target)}/${pr.target} ${pr.unit === 'coins' ? COIN : 'm'}${pr.now >= pr.target ? ' · fly home!' : ''}`;
+    if (hudCache.goal !== txt) { hudCache.goal = txt; goal.innerHTML = txt; }
   }
   // Fuel check: enough to fly home?
   const home = (p.depth + 1) / st.fly * st.flyBurn * 1.15 + 2.5;

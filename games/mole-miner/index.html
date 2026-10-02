@@ -34,7 +34,7 @@
     </div>
     <div class="stats">
       <div class="stat-row">
-        <span class="chip" id="s-coins" title="Coins">🪙 <b>0</b></span>
+        <span class="chip" id="s-coins" title="Coins"><i class="coin" aria-hidden="true"></i> <b>0</b></span>
         <span class="chip" id="s-cargo" title="Cargo hold">🎒 <b>0/8</b></span>
       </div>
       <div class="stat-row">
@@ -92,7 +92,7 @@
       <div class="col">
         <button id="btn-resume" class="btn primary">Resume</button>
         <button id="btn-pause-shop" class="btn">🔧 Workshop</button>
-        <button id="btn-call" class="btn">🪱 Call Wiggles home</button>
+        <button id="btn-call" class="btn"><span class="worm-ico" aria-hidden="true"></span> Call Wiggles home</button>
         <button id="btn-daily-restart" class="btn">↻ Restart daily dig</button>
         <div class="row">
           <button class="btn small" data-sound>🔊 Sound on</button>
@@ -109,7 +109,7 @@
     <div class="card wide shop-card">
       <div class="shop-head">
         <h2 id="shop-title">Workshop</h2>
-        <span id="shop-coins" class="pill coins-pill">🪙 0</span>
+        <span id="shop-coins" class="pill coins-pill"><i class="coin" aria-hidden="true"></i> 0</span>
       </div>
       <div class="tabs" role="tablist">
         <button class="tab" data-tab="upgrades" role="tab">🔧 Upgrades</button>
@@ -127,7 +127,7 @@
   <!-- Wiggles the worm -->
   <section id="screen-rescue" class="overlay dim hidden">
     <div class="card small">
-      <div class="worm-art" aria-hidden="true">🪱</div>
+      <div class="worm-art worm-ico" aria-hidden="true"></div>
       <h2 id="rescue-title">Out of fuel!</h2>
       <p id="rescue-text" class="muted"></p>
       <div class="col">
@@ -185,7 +185,7 @@
         <div class="tip-row"><span>▲</span><p><b>Fly</b> with the propeller. It burns fuel faster.</p></div>
         <div class="tip-row"><span>💎</span><p>Scoop up <b>gems</b>, then land on the <b>wooden pad</b> to sell, refuel and repair.</p></div>
         <div class="tip-row"><span>🔧</span><p>Spend coins in the <b>Workshop</b> to dig harder rock.</p></div>
-        <div class="tip-row"><span>🪱</span><p>Run out of fuel? <b>Wiggles</b> the worm tows you home.</p></div>
+        <div class="tip-row"><span><span class="worm-ico" aria-hidden="true"></span></span><p>Run out of fuel? <b>Wiggles</b> the worm tows you home.</p></div>
       </div>
       <p class="controls keys-only">← → ↓ drive & drill · ↑ fly · E workshop · Esc pause</p>
       <p class="controls touch-only">D-pad drives & drills · Fly button lifts you up</p>
