@@ -11,7 +11,7 @@ import {
 } from './progress.js';
 import { dailyLevel, dayKey } from './daily.js';
 import { encodeLevel, decodeLevel } from './code.js';
-import { loadSave, writeSave, clearSave } from './save.js';
+import { loadSave, writeSave, clearSave, STORAGE_KEY } from './save.js';
 import { Renderer, drawBolt, drawTopper, THEMES } from './render.js';
 import { Animator } from './animator.js';
 import { Panel } from './panel.js';
@@ -1415,6 +1415,23 @@ addEventListener('pagehide', persist);
 document.addEventListener('visibilitychange', () => {
   monitor.reset(performance.now());
   if (document.hidden) persist();
+});
+
+// Another tab saved: take its progress, so this tab never writes a stale copy
+// over it (whichever tab saved last used to win). A level in progress keeps
+// going and records into the fresh copy when it is solved.
+addEventListener('storage', (e) => {
+  if (e.key !== STORAGE_KEY && e.key !== null) return;
+  const fresh = loadSave(storage).state;
+  for (const key of Object.keys(state)) delete state[key];
+  Object.assign(state, fresh);
+  dirty = false;
+  sound.setMuted(state.settings.muted);
+  sound.setMusic(state.settings.music);
+  updateSoundButtons();
+  updateRunButtons();
+  if (mode === 'title') refreshTitle();
+  else if (mode === 'map' && !modal) toMap(mapWorld);
 });
 
 // ------------------------------------------------------------------ loop
