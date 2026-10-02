@@ -43,13 +43,28 @@ function conflicts(changes, region, cx, cy, margin = 30, gap = MIN_CHANGE_GAP) {
   return false;
 }
 
+// A change that sits mostly under the HUD in either picture cannot be compared.
+// `avoid` holds those screen corners as rects in room units.
+export function underHud(avoid, region) {
+  const cx = region.x + region.w / 2;
+  const cy = region.y + region.h / 2;
+  let covered = 0;
+  for (const a of avoid) {
+    if (cx >= a.x && cx <= a.x + a.w && cy >= a.y && cy <= a.y + a.h) return true;
+    const ix = Math.max(0, Math.min(region.x + region.w, a.x + a.w) - Math.max(region.x, a.x));
+    const iy = Math.max(0, Math.min(region.y + region.h, a.y + a.h) - Math.max(region.y, a.y));
+    covered += ix * iy;
+  }
+  return covered > 0.2 * region.w * region.h;
+}
+
 export function distanceToBox(box, px, py) {
   const dx = Math.max(box.x - px, 0, px - (box.x + box.w));
   const dy = Math.max(box.y - py, 0, py - (box.y + box.h));
   return Math.hypot(dx, dy);
 }
 
-export function buildDiff({ room = 'library', seed = 1, box, count = null } = {}) {
+export function buildDiff({ room = 'library', seed = 1, box, count = null, avoid = [] } = {}) {
   const def = ROOM[room];
   if (!def) throw new Error(`unknown room: ${room}`);
   const base = buildScene({ room, mode: 'diff', seed, box, items: [], extraMouse: false });
@@ -100,7 +115,7 @@ export function buildDiff({ room = 'library', seed = 1, box, count = null } = {}
         const region = made.region;
         const cx = region.x + region.w / 2;
         const cy = region.y + region.h / 2;
-        if (conflicts(changes, region, cx, cy, margin, gap)) {
+        if (conflicts(changes, region, cx, cy, margin, gap) || underHud(avoid, region)) {
           // Undo: an ambiguous click is worse than one difference fewer.
           Object.assign(copy, { ...cand.p });
           if (made.type === 'add') props.pop();
@@ -120,7 +135,7 @@ export function buildDiff({ room = 'library', seed = 1, box, count = null } = {}
   // picture, which always works and always reads as a difference.
   let guard = 0;
   while (changes.length < count && guard++ < 24) {
-    const extra = addInGap(rng, base, def, changes, W, H, guard);
+    const extra = addInGap(rng, base, def, changes, W, H, guard, avoid);
     if (!extra) break;
     props.push(extra);
     record('add', extra.z, propBox(extra));
@@ -179,7 +194,7 @@ function applyChange({ rng, type, base, def, props, copy, before, W, H }) {
 // Something new in the second picture, dropped into the emptiest spot left on
 // the floor. Sweeping a grid rather than guessing means this does not run out of
 // luck in a narrow room.
-function addInGap(rng, base, def, changes, W, H, round) {
+function addInGap(rng, base, def, changes, W, H, round, avoid = []) {
   const pool = def.clutter.pools;
   const shrink = Math.max(0.6, 1 - (round - 1) * 0.08);
   const pdef = PROPS[pool[(round * 7) % pool.length]] || PROPS[pool[0]];
@@ -192,6 +207,7 @@ function addInGap(rng, base, def, changes, W, H, round) {
       const baseY = Math.min(H - 20, base.floorY + (0.35 + j * 0.065) * base.floorDepth);
       if (baseY - h < 18) continue;
       const region = { x: cx - w / 2, y: baseY - h, w, h };
+      if (underHud(avoid, region)) continue;
       const cy = baseY - h / 2;
       let room = Infinity;
       for (const c of changes) {

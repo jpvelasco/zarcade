@@ -214,7 +214,7 @@ function buildRound(items = null) {
   // its three modes brings it all the way up.
   const light = 0.26 + game.roomLight(round.room) * 0.74;
   if (round.mode === 'diff') {
-    round.diff = buildDiff({ room: round.room, seed: round.seed, box: round.box });
+    round.diff = buildDiff({ room: round.room, seed: round.seed, box: round.box, avoid: hudAvoid(round.box) });
     round.total = round.diff.changes.length;
     renderer.setDiff(round.diff, { light });
   } else {
@@ -226,6 +226,34 @@ function buildRound(items = null) {
     renderer.onLanded = () => sound.delivered();
   }
   renderer.setProgress(round.found, round.total);
+}
+
+// The corners of each Difference picture that the HUD buttons cover, in room
+// units at the starting zoom, so no change is put where it can't be compared.
+function hudAvoid(box) {
+  const panels = renderer.panels();
+  const crect = canvas.getBoundingClientRect();
+  const out = [];
+  const pad = 10;
+  for (const node of document.querySelectorAll('#hud .pill, #hud .icon-btn, #btn-lantern, #arcade-fullscreen')) {
+    const r = node.getBoundingClientRect();
+    if (!r.width || !r.height) continue;
+    for (const p of panels) {
+      const s = Math.max(p.w / box.w, p.h / box.h);
+      const x0 = Math.max(r.left - crect.left - pad, p.x);
+      const x1 = Math.min(r.right - crect.left + pad, p.x + p.w);
+      const y0 = Math.max(r.top - crect.top - pad, p.y);
+      const y1 = Math.min(r.bottom - crect.top + pad, p.y + p.h);
+      if (x1 <= x0 || y1 <= y0) continue;
+      out.push({
+        x: box.w / 2 + (x0 - (p.x + p.w / 2)) / s,
+        y: box.h / 2 + (y0 - (p.y + p.h / 2)) / s,
+        w: (x1 - x0) / s,
+        h: (y1 - y0) / s,
+      });
+    }
+  }
+  return out;
 }
 
 // A real change of shape re-lays the room around the same list of things.

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildDiff, diffHitTest, diffRemaining, diffHintArea, distanceToBox, CHANGE_TYPES, visibleProps } from '../src/modes.js';
+import { buildDiff, diffHitTest, diffRemaining, diffHintArea, distanceToBox, CHANGE_TYPES, visibleProps, underHud } from '../src/modes.js';
 import { ROOM_IDS, sceneBox, targetCount, sideBySide } from '../src/rooms.js';
 import { autoplayDiff } from '../src/solver.js';
 
@@ -132,4 +132,26 @@ test('the two pictures stack on wide screens and sit side by side on a phone on 
   assert.equal(sideBySide(390, 676), false, 'portrait phone');
   assert.equal(sideBySide(624, 390), true, '844x390 phone with the list on the right');
   assert.equal(sideBySide(844, 208), true, 'a short strip never gets two slices');
+});
+
+// The HUD covers the corners of the pictures: on a 390x844 phone, the room,
+// found and time pills top left, sound and pause top right, and the lantern and
+// zoom buttons bottom left, in room units for a 1164x1000 room.
+test('no difference is put under the HUD', () => {
+  const box = sceneBox(390, 335);
+  const avoid = [
+    { x: 0, y: 0, w: 450, h: 340 },
+    { x: 840, y: 0, w: 330, h: 165 },
+    { x: 0, y: 700, w: 380, h: 300 },
+  ];
+  for (const room of ROOM_IDS) {
+    for (const seed of SEEDS) {
+      const n = wanted(room, box);
+      const diff = buildDiff({ room, seed, box, count: n, avoid });
+      assert.equal(diff.changes.length, n, `${room} seed ${seed}`);
+      for (const c of diff.changes) {
+        assert.equal(underHud(avoid, c.box), false, `${room} seed ${seed}: a ${c.type} sits under the HUD`);
+      }
+    }
+  }
 });
