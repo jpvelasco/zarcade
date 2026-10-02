@@ -22,7 +22,10 @@ if (reduced) document.body.classList.add('reduced');
 const telemetry = window.Telemetry || null;
 const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
 const DPR = Math.min(2, window.devicePixelRatio || 1);
-const today = params.get('day') || dayKey();
+// The day is read again on the title and the daily button, so a tab left open
+// overnight moves on to the new day's mystery.
+let today = params.get('day') || dayKey();
+const refreshDay = () => { today = params.get('day') || dayKey(); };
 
 // ------------------------------------------------------------------ save
 
@@ -272,6 +275,7 @@ function toTitle() {
   titleBottom = 0;
   session = null;
   stopSpeaking();
+  refreshDay();
   const streak = currentStreak(save, today);
   rankBox($('title-rank'), streak ? ` · 📅 streak ${streak}` : '');
   const done = dailyDone(save, today);
@@ -465,6 +469,7 @@ function caseKey(m) {
 function startStory(i) { beginCase(STORY_CASES[i], { kind: 'story', index: i, difficulty: STORY_CASES[i].difficulty }); }
 function startEndless(d, seed = save.endlessNext[d]) { beginCase(generateCase(seed, d), { kind: 'gen', difficulty: d, seed }); }
 function startDaily() {
+  refreshDay();
   if (dailyDone(save, today)) { toast('You solved today’s mystery! A new one comes tomorrow.'); sound.play('no'); return; }
   beginCase(dailyCase(today), { kind: 'daily', difficulty: 2, day: today });
 }
@@ -1102,7 +1107,7 @@ function startReveal() {
   show('reveal');
   sound.play('drum');
   const elapsed = Math.round((performance.now() - startedAt) / 1000);
-  revealResult = recordSolve(save, k, { wrong: session.wrong, hints: session.hints, day: today, storyIndex: meta.index ?? -1 });
+  revealResult = recordSolve(save, k, { wrong: session.wrong, hints: session.hints, day: meta.day ?? today, storyIndex: meta.index ?? -1 });
   persist();
   log.event('level.complete', { kind: meta.kind, difficulty: k.difficulty, stars: revealResult.stars, wrong: session.wrong, hints: session.hints, time: elapsed, rank: revealResult.rank.name });
   if (meta.kind === 'daily') log.event('daily.solved', { streak: save.daily.streak });
