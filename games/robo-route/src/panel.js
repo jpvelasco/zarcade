@@ -548,7 +548,11 @@ export class Panel {
       const f = findTile(this.prog[stripId], uid);
       if (f) return { strip: stripId, block: f.parent, index: f.index };
     }
-    const rbody = el.closest('.rbody');
+    // The body, or the frame around it: both mean "at the end of this
+    // Repeat". The frame matters on touch, where a finger near the last tile
+    // easily lands on the padding.
+    const blk = el.closest('.rbody, .rblock');
+    const rbody = blk && (blk.classList.contains('rbody') ? blk : blk.querySelector(':scope > .rbody'));
     if (rbody) {
       const block = Number(rbody.dataset.block);
       return { strip: stripId, block, index: this.list(stripId, block).length };
