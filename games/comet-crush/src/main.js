@@ -106,7 +106,9 @@ function startLevel(i, { fresh = false } = {}) {
 }
 
 function pause() {
-  if (mode !== 'play') return;
+  // Not while a cleared level fades out: the clear card is about to show
+  // and saves the result, and leaving from the pause menu would lose it.
+  if (mode !== 'play' || world.status === 'clearing' || world.status === 'cleared') return;
   mode = 'paused';
   updateSoundButtons();
   showScreen('screen-pause');
