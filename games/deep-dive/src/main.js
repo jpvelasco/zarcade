@@ -149,6 +149,7 @@ function startPlay() {
   returnMode = 'play';
   renderer.snapCamera(world);
   renderer.setWorld(world);
+  renderer.labels.length = 0;
   sound.setArea(world.areaIndex);
   input.clear();
   accumulator = 0;
@@ -717,7 +718,7 @@ function frame(now) {
   } else if (mode === 'title' && attractWorld) {
     const c = attractPilot.controls(attractWorld, dt);
     attractWorld.step(dt, c);
-    renderer.handleEvents(attractWorld.events, attractWorld);
+    renderer.handleEvents(attractWorld.events, attractWorld, { quiet: true });
     attractWorld.events.length = 0;
     if (attractWorld.status === 'out') attractWorld.returnToDock();
     renderer.warm(5);

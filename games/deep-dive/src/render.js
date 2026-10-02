@@ -474,11 +474,15 @@ export class Renderer {
   }
 
   label(x, y, text, color = '#ffffff') {
+    if (this.quiet) return;
     this.labels.push({ x, y, text, color, life: 0 });
     if (this.labels.length > 6) this.labels.shift();
   }
 
-  handleEvents(events, world) {
+  // `quiet` keeps the sparkles but drops the text labels: the title demo
+  // must not tell the player about finds that are not theirs.
+  handleEvents(events, world, { quiet = false } = {}) {
+    this.quiet = quiet;
     for (const e of events) {
       if (e.type === 'bump') {
         if (!this.reduced) this.cam.shake = Math.max(this.cam.shake, 3 + e.power * 6);
@@ -516,6 +520,7 @@ export class Renderer {
         this.snapCamera(world);
       }
     }
+    this.quiet = false;
   }
 
   snapCamera(world) {
