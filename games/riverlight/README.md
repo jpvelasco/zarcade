@@ -51,6 +51,7 @@ npm run serve      # then open http://localhost:8000/games/riverlight/
 | Right-click / long-press | Turn it back |
 | Arrow keys / WASD | Move the cursor |
 | Space / Enter / E | Turn the stone under the cursor clockwise |
+| Space / Enter (results) | Next garden |
 | Q | Turn it back |
 | Z (or U, Backspace) | Undo |
 | R | Reset the garden (undo brings it back) |
