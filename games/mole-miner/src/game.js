@@ -207,6 +207,7 @@ export class Session {
       this.save.stats.tows++;
     }
     this.mine.boulders.length = 0;
+    this.mine.wakeLoose();
     this.mine.resetToBase();
     this.events.push({ type: 'towed', fee, reason });
     // Land on the pad: sell, refuel, repair.

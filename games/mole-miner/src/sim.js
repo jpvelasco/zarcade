@@ -35,6 +35,16 @@ export class Mine {
     if (pod) Object.assign(this.pod, pod, { drill: null, flying: false, stranded: null });
     this.pod.fuel = Math.min(this.pod.fuel, stats.tank);
     this.pod.hull = Math.min(this.pod.hull, stats.hull);
+    this.wakeLoose();
+  }
+
+  // Boulders hanging over an empty tile (saved or towed mid-wobble) start to
+  // wobble again, so none floats forever.
+  wakeLoose() {
+    for (let y = 1; y < this.h; y++) {
+      for (let x = 0; x < this.w; x++) if (this.tiles[y * this.w + x] === T.EMPTY) this.wake(x, y);
+    }
+    this.events.length = 0;
   }
 
   // ------------------------------------------------------------ tiles

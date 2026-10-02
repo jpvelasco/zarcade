@@ -182,3 +182,20 @@ test('stopping near a one-tile shaft slips the pod in; driving past does not', (
   assert.ok(m2.pod.y < 0, 'drove over the shaft');
   assert.ok(m2.pod.x > 6.4, 'made it across');
 });
+
+test('a boulder left hanging by a reload or a tow still falls (#106)', () => {
+  // Saved mid-wobble: the tile under the boulder is already empty.
+  const w = makeWorld(['B....B', 'BPP.OB', 'B....B', 'B...#B', 'BBBBBB']);
+  const m = new Mine(w, STATS);
+  run(m, 2.5);
+  assert.equal(m.tile(4, 1), T.EMPTY);
+  assert.equal(m.tile(4, 2), T.BOULDER);
+  // Towed mid-wobble: the wobble list is cleared, the boulder wakes again.
+  m.setTile(4, 3, T.EMPTY);
+  m.wake(4, 3);
+  m.boulders.length = 0;
+  m.wakeLoose();
+  run(m, 2.5);
+  assert.equal(m.tile(4, 2), T.EMPTY);
+  assert.equal(m.tile(4, 3), T.BOULDER);
+});
