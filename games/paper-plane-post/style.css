@@ -639,7 +639,7 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
   .map-list { grid-template-columns: 1fr; }
   .grid-cards { grid-template-columns: 1fr; }
   .gauge { top: 20%; }
-  .rotate-hint {
+  body.playing .rotate-hint {
     position: fixed;
     left: 50%;
     top: calc(4vh + 100vw + 22px);
@@ -660,7 +660,7 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
     transform: translateX(-50%);
     pointer-events: none;
   }
-  .rotate-hint span { display: inline-block; animation: rotate-nudge 2.4s ease-in-out infinite; }
+  body.playing .rotate-hint span { display: inline-block; animation: rotate-nudge 2.4s ease-in-out infinite; }
 }
 
 .rotate-hint { display: none; }
