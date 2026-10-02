@@ -233,10 +233,12 @@
   function columns() {
     const list = cabs();
     if (list.length < 2) return 1;
-    const top = list[0].getBoundingClientRect().top;
+    // offsetTop ignores the lift and rise transforms, so a raised card still
+    // counts as part of its row.
+    const top = list[0].parentElement.offsetTop;
     let n = 0;
     for (const c of list) {
-      if (Math.abs(c.getBoundingClientRect().top - top) > 4) break;
+      if (c.parentElement.offsetTop !== top) break;
       n++;
     }
     return n;
