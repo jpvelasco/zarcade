@@ -765,6 +765,25 @@ export class Renderer {
 
   // ------------------------------------------------------------ HUD
 
+  drawItemBox(ctx, game, L, d, u, opts) {
+    const S = this.sprites;
+    const box = u * 2.3;
+    const bx = (L.x + L.w) * d - box - u * 0.6, by = L.y * d + u * 0.6;
+    ctx.fillStyle = 'rgba(20,12,36,0.62)';
+    roundedRect(ctx, bx, by, box, box, u * 0.5); ctx.fill();
+    ctx.strokeStyle = '#ffd25a'; ctx.lineWidth = Math.max(1.5, u * 0.1);
+    roundedRect(ctx, bx, by, box, box, u * 0.5); ctx.stroke();
+    const item = game.save.equipped;
+    if (S.items[item]) ctx.drawImage(S.items[item], bx + box * 0.15, by + box * 0.12, box * 0.7, box * 0.7);
+    ctx.font = `800 ${Math.round(u * 0.5)}px ui-rounded, system-ui, sans-serif`;
+    ctx.fillStyle = '#ffe9a8';
+    ctx.textAlign = 'center';
+    ctx.fillText(opts.itemKey ?? 'K', bx + box / 2, by + box * 0.92);
+    const owned = ITEMS.filter((i) => game.save.items[i]).length;
+    if (owned > 1) { ctx.fillStyle = 'rgba(255,233,168,0.75)'; ctx.fillText(opts.swapKey ?? 'Q ⇄', bx + box / 2, by + box + u * 0.45); }
+    ctx.textAlign = 'left';
+  }
+
   drawHud(ctx, game, opts) {
     const L = this.layout, d = this.dpr;
     const u = Math.max(13, Math.min(24, L.h / 15)) * d;
@@ -806,22 +825,9 @@ export class Renderer {
       ctx.strokeText(`⏱ ${tt}s`, x0, ly + u * 0.55);
       ctx.fillText(`⏱ ${tt}s`, x0, ly + u * 0.55);
     }
-    // Equipped item, top right of the view.
-    const box = u * 2.3;
-    const bx = (L.x + L.w) * d - box - u * 0.6, by = L.y * d + u * 0.6;
-    ctx.fillStyle = 'rgba(20,12,36,0.62)';
-    roundedRect(ctx, bx, by, box, box, u * 0.5); ctx.fill();
-    ctx.strokeStyle = '#ffd25a'; ctx.lineWidth = Math.max(1.5, u * 0.1);
-    roundedRect(ctx, bx, by, box, box, u * 0.5); ctx.stroke();
-    const item = game.save.equipped;
-    if (S.items[item]) ctx.drawImage(S.items[item], bx + box * 0.15, by + box * 0.12, box * 0.7, box * 0.7);
-    ctx.font = `800 ${Math.round(u * 0.5)}px ui-rounded, system-ui, sans-serif`;
-    ctx.fillStyle = '#ffe9a8';
-    ctx.textAlign = 'center';
-    ctx.fillText(opts.itemKey ?? 'K', bx + box / 2, by + box * 0.92);
-    const owned = ITEMS.filter((i) => game.save.items[i]).length;
-    if (owned > 1) { ctx.fillStyle = 'rgba(255,233,168,0.75)'; ctx.fillText(opts.swapKey || 'Q ⇄', bx + box / 2, by + box + u * 0.45); }
-    ctx.textAlign = 'left';
+    // Equipped item, top right of the view. Touch players have the item
+    // button instead (and the Bag button sits here in landscape).
+    if (opts.itemKey !== '') this.drawItemBox(ctx, game, L, d, u, opts);
     // Boss health
     const boss = game.enemies.find((e) => e.alive && (e.boss || e.mini));
     if (boss && game.mode === 'play') {
