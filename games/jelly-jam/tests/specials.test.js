@@ -57,6 +57,22 @@ test('stripe plus stripe clears a full cross', () => {
   assert.equal(areaFor(b, 15, CROSS).length, 6 + 6 - 1);
 });
 
+test('a combo uses up its partner, so stripe plus stripe is always one cross', () => {
+  for (const [sa, sb] of [[STRIPE_V, STRIPE_H], [STRIPE_H, STRIPE_V], [STRIPE_V, STRIPE_V], [STRIPE_H, STRIPE_H]]) {
+    const b = grid();
+    b.at(14).special = sa;
+    b.at(15).special = sb;
+    [b.cells[14], b.cells[15]] = [b.cells[15], b.cells[14]]; // the swap itself
+    const { hits, blasts } = detonate(b, swapBlast(b, 14, 15).seeds);
+    assert.equal(hits.length, 6 + 6 - 1, `${sa} + ${sb}`);
+    assert.equal(blasts.length, 1, 'the partner stripe does not fire again');
+  }
+  const b = grid();
+  b.at(14).special = BOMB;
+  b.at(15).special = BOMB;
+  assert.equal(detonate(b, swapBlast(b, 14, 15).seeds).blasts.length, 1);
+});
+
 test('bomb plus stripe clears a fat cross, bomb plus bomb a five by five', () => {
   const b = grid();
   b.at(14).special = BOMB;

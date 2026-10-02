@@ -85,6 +85,8 @@ export function detonate(board, seeds, { rng = board.rng } = {}) {
   let guard = 0;
   while (queue.length && guard++ < 400) {
     const seed = queue.shift();
+    // A combo uses up its partner special, so it must not fire again.
+    if (seed.spent !== undefined) fired.add(seed.spent);
     if (seed.index >= 0) {
       if (fired.has(seed.index)) continue;
       fired.add(seed.index);
@@ -113,7 +115,7 @@ export function swapBlast(board, a, b, { rng = board.rng } = {}) {
   const stripe = (s) => s === STRIPE_H || s === STRIPE_V;
 
   if (sa === RAINBOW && sb === RAINBOW) {
-    return { kind: WHOLE, seeds: [{ index: b, kind: WHOLE }], transforms: [] };
+    return { kind: WHOLE, seeds: [{ index: b, kind: WHOLE, spent: a }], transforms: [] };
   }
   const pearl = sa === RAINBOW ? a : sb === RAINBOW ? b : -1;
   if (pearl >= 0) {
@@ -137,10 +139,10 @@ export function swapBlast(board, a, b, { rng = board.rng } = {}) {
     const color = other && other.color !== null ? other.color : dominantColor(board, rng);
     return { kind: RAINBOW, seeds: [{ index: pearl, kind: RAINBOW, color }], transforms: [] };
   }
-  if (stripe(sa) && stripe(sb)) return { kind: CROSS, seeds: [{ index: b, kind: CROSS }], transforms: [] };
-  if (sa === BOMB && sb === BOMB) return { kind: MEGA, seeds: [{ index: b, kind: MEGA }], transforms: [] };
+  if (stripe(sa) && stripe(sb)) return { kind: CROSS, seeds: [{ index: b, kind: CROSS, spent: a }], transforms: [] };
+  if (sa === BOMB && sb === BOMB) return { kind: MEGA, seeds: [{ index: b, kind: MEGA, spent: a }], transforms: [] };
   if ((sa === BOMB && stripe(sb)) || (sb === BOMB && stripe(sa))) {
-    return { kind: BIG_CROSS, seeds: [{ index: b, kind: BIG_CROSS }], transforms: [] };
+    return { kind: BIG_CROSS, seeds: [{ index: b, kind: BIG_CROSS, spent: a }], transforms: [] };
   }
   // A special swapped with a plain jelly simply goes off where it lands.
   const solo = sa ? a : b;
