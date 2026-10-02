@@ -2,7 +2,7 @@
 // mystery and the help page. Everything here reads the Alchemy state and calls
 // back into `actions`; it never changes the rules itself.
 import { ITEM, ITEMS, PALS, PAL, BRANCHES, branchOf, DISCOVERIES } from './recipes.js';
-import { ROOMS, requestText, riddleFor } from './alchemy.js';
+import { ROOMS, SCROLL_EVERY, requestText, riddleFor } from './alchemy.js';
 import { drawItem, drawSilhouette, drawPal, drawPalSilhouette } from './art.js';
 
 const $ = (id) => document.getElementById(id);
@@ -180,7 +180,10 @@ export class UI {
         this.render();
       });
       box.appendChild(btn);
-      if (left && a.state.scrolls < 1) box.appendChild(el('p', 'muted small', 'Find three more things to earn another scroll.'));
+      if (left && a.state.scrolls < 1) {
+        const more = SCROLL_EVERY - (a.discovered % SCROLL_EVERY);
+        box.appendChild(el('p', 'muted small', more === 1 ? 'Your next discovery earns another scroll.' : `Find ${more} more things to earn another scroll.`));
+      }
     }
     return box;
   }
