@@ -589,11 +589,25 @@ export class Renderer {
       items.push({ kind: 'ball', d: this.depth(b.p.x, b.p.y, b.p.z), b });
     }
     items.sort((a, z) => z.d - a.d);
+    let hoopDrawn = false, covered = false;
     for (const it of items) {
-      if (it.kind === 'hoop') this.drawHoop(round, h, hd, ui);
-      else if (it.kind === 'blocker') this.drawBlocker(it.b, it.s);
+      if (it.kind === 'hoop') { this.drawHoop(round, h, hd, ui); hoopDrawn = true; }
+      else if (it.kind === 'blocker') { this.drawBlocker(it.b, it.s); covered ||= hoopDrawn; }
       else this.drawBall(it.b);
     }
+    // A bear standing in front of the hoop must not hide the target.
+    if (covered) this.drawHoopGhost(h, hd);
+  }
+
+  drawHoopGhost(h, hd) {
+    const g = this.g, c = this.court, bz = h.z + BOARD.offset;
+    g.globalAlpha = 0.85;
+    g.lineJoin = 'round';
+    this.quadStroke(h.x - BOARD.halfW, h.y - BOARD.below, h.x + BOARD.halfW, h.y + BOARD.above, bz, c.boardEdge, 0.05);
+    this.quadStroke(h.x - 0.3, h.y + 0.02, h.x + 0.3, h.y + 0.45, bz, c.boardEdge, 0.04);
+    this.drawRim(h, hd, true);
+    this.drawRim(h, hd, false);
+    g.globalAlpha = 1;
   }
 
   ballInHoopGroup(b, h, hd) {
@@ -823,7 +837,7 @@ export class Renderer {
     if (!this.p.ok || !this.q.ok) return;
     const wob = this.blockerHit > 0 && !this.reduced ? Math.sin(this.blockerHit * 40) * 0.06 : 0;
     const w = b.w * this.p.s * 1.15 * (1 + wob), hgt = this.p.y - this.q.y;
-    g.globalAlpha = 0.72;
+    g.globalAlpha = 0.6;
     g.drawImage(spr.canvas, this.p.x - w / 2, this.q.y - hgt * wob, w, hgt * (1 + wob));
     g.globalAlpha = 1;
   }
