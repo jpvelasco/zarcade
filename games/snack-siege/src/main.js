@@ -288,6 +288,7 @@ function startLevel(index, { daily = false, quick = false } = {}) {
   mode = 'play';
   endTimer = 0;
   endHandled = false;
+  winResult = null;
   sparePopped = 0;
   levelStartAt = performance.now();
   input.clear();
@@ -396,9 +397,11 @@ function starsHtml(n) {
   return [0, 1, 2].map((i) => `<span class="${i < n ? 'on' : ''}">★</span>`).join('');
 }
 
-function onWon() {
+// Save a win the moment the last bear pops, so restarting or leaving during
+// the celebration never throws the stars away.
+let winResult = null;
+function recordWin() {
   const g = game;
-  const lv = g.level;
   const before = new Set(SKINS.filter((s) => skinUnlocked(save, s)).map((s) => s.id));
   let newBest = false;
   let streakLine = '';
@@ -418,6 +421,14 @@ function onWon() {
     level: current.daily ? 0 : current.index + 1, daily: current.daily, stars: g.stars, score: g.score,
     shots: g.shots, spare: g.queue.length, 'combo.max': g.maxCombo, time: Math.round((performance.now() - levelStartAt) / 1000), 'best.new': newBest,
   });
+  winResult = { newBest, streakLine, unlocked };
+}
+
+function onWon() {
+  const g = game;
+  const lv = g.level;
+  if (!winResult) recordWin();
+  const { newBest, streakLine, unlocked } = winResult;
   mode = 'win';
   const last = !current.daily && current.index === LEVEL_COUNT - 1;
   $('win-title').textContent = current.daily ? 'Daily fort smashed!' : last ? 'You beat the Bear King!' : g.stars === 3 ? 'Sweet victory!' : 'Fort smashed!';
@@ -671,6 +682,7 @@ function frame(now) {
       if (game.state === 'won' || game.state === 'lost') {
         endTimer += dt;
         if (game.state === 'won') {
+          if (!winResult) recordWin();
           const spare = game.queue.length;
           const due = Math.floor((endTimer - 0.6) / 0.38);
           while (sparePopped < spare && sparePopped <= due) {
