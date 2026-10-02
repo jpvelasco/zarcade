@@ -20,7 +20,8 @@ npm run serve        # from the repo root
 | Pause | Esc / P / ❚❚ | ❚❚ | Start |
 | Mute | M / 🔊 | 🔊 | |
 
-Swipes trigger as soon as your finger moves, so you don't have to lift it.
+Swipes trigger as soon as your finger moves, so you don't have to lift it,
+and one swipe is one move, however long it is.
 Rolling in mid-air slams you down; jumping cancels a roll. Presses a moment
 early are remembered. Menus work with arrows or the d-pad plus Enter / A.
 

@@ -1,8 +1,9 @@
 // Keyboard, swipes (touch or mouse drag) and gamepad, merged into one
 // queue of presses: left, right, jump, roll.
 //   Keys:  ← → / A D change lane, ↑ / W / Space jump, ↓ / S roll.
-//   Swipe: fires as soon as the finger travels SWIPE_PX, not on release,
-//          and a long swipe can chain (left-left) by re-anchoring.
+//   Swipe: fires as soon as the finger travels SWIPE_PX, not on release.
+//          One swipe is one action: a long swipe never moves two lanes, but
+//          turning mid-swipe (up, then left) can add a different action.
 //   Pad:   d-pad or stick for lanes, A / up jump, B / down roll, Start pauses.
 const SWIPE_PX = 22;
 const KEYMAP = {
@@ -41,25 +42,15 @@ export class Input {
     surface.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (e.pointerType !== 'mouse') this.mode = 'touch';
-      this.swipe = { id: e.pointerId, x: e.clientX, y: e.clientY, fired: false };
+      this.swipe = { id: e.pointerId, x: e.clientX, y: e.clientY, fired: [] };
       try { surface.setPointerCapture(e.pointerId); } catch { /* optional */ }
       if (e.pointerType !== 'mouse') e.preventDefault();
     });
     surface.addEventListener('pointermove', (e) => {
       const s = this.swipe;
       if (!s || e.pointerId !== s.id) return;
-      const dx = e.clientX - s.x;
-      const dy = e.clientY - s.y;
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_PX) return;
-      let a;
-      if (Math.abs(dx) > Math.abs(dy)) a = dx < 0 ? 'left' : 'right';
-      else a = dy < 0 ? 'jump' : 'roll';
-      if (this.enabled) this.queue.push(a);
-      // Re-anchor so a continued drag can chain another lane change, but
-      // only after a deliberate extra distance.
-      s.x = e.clientX;
-      s.y = e.clientY;
-      s.fired = true;
+      const a = swipeStep(s, e.clientX, e.clientY);
+      if (a && this.enabled) this.queue.push(a);
     });
     const end = (e) => {
       if (this.swipe && e.pointerId === this.swipe.id) this.swipe = null;
@@ -127,6 +118,22 @@ export class Input {
     this.queue = rest.slice(0, 4);
     return out;
   }
+}
+
+// One pointer move of a swipe: returns the action it fires, or null. The
+// swipe re-anchors after each action, and each direction fires once.
+export function swipeStep(s, x, y) {
+  const dx = x - s.x;
+  const dy = y - s.y;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_PX) return null;
+  let a;
+  if (Math.abs(dx) > Math.abs(dy)) a = dx < 0 ? 'left' : 'right';
+  else a = dy < 0 ? 'jump' : 'roll';
+  s.x = x;
+  s.y = y;
+  if (s.fired.includes(a)) return null;
+  s.fired.push(a);
+  return a;
 }
 
 function isFormTarget(t) {
