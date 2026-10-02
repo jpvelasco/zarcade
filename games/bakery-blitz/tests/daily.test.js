@@ -150,3 +150,12 @@ test('no special on any day of a year ever runs the kitchen backwards', () => {
     }
   }
 });
+
+test('a real shift result carries everything the orders read', async () => {
+  const { buildDay } = await import('../src/levels.js');
+  const { playShift, PACE } = await import('../src/ai.js');
+  const { shift, result } = playShift(buildDay(12), { aps: PACE.pro });
+  assert.ok(shift.stats.perfectTips > 0);
+  const perfect = ALL_ORDERS.find((o) => o.id === 'perfect10');
+  assert.equal(orderProgress(perfect, result, 3), Math.min(perfect.need, shift.stats.perfectTips));
+});

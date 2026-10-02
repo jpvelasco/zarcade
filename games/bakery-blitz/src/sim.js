@@ -500,6 +500,7 @@ export class Shift {
       happy: this.stats.happy,
       missed: this.stats.missed,
       bestCombo: this.stats.bestCombo,
+      perfectTips: this.stats.perfectTips,
       dishes: { ...this.stats.dishes },
       seconds: Math.round(this.time),
     };
