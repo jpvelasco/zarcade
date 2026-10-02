@@ -181,6 +181,14 @@
     return -rvn;
   }
 
+  // Remember up to two surfaces the ball is pressed against this substep,
+  // so the stop rule can tell a ball held by a wall from one still rolling.
+  const TOUCH = 0.5;
+  function touch(s, nx, ny) {
+    if (s.nc === 0) { s.n1x = nx; s.n1y = ny; } else if (s.nc === 1) { s.n2x = nx; s.n2y = ny; }
+    s.nc++;
+  }
+
   function collideSeg(s, ax, ay, bx, by, rad, wvx, wvy, e, kind, idx) {
     const dx = bx - ax, dy = by - ay;
     const len2 = dx * dx + dy * dy;
@@ -189,12 +197,16 @@
     const qx = ax + dx * u, qy = ay + dy * u;
     let nx = s.x - qx, ny = s.y - qy;
     const d = hypot(nx, ny);
-    if (d >= rad) return;
+    if (d >= rad) {
+      if (d < rad + TOUCH) touch(s, nx / d, ny / d);
+      return;
+    }
     if (d < 1e-6) { nx = -dy; ny = dx; } // dead center: push along the normal
     const nl = hypot(nx, ny) || 1;
     nx /= nl; ny /= nl;
     s.x = qx + nx * rad;
     s.y = qy + ny * rad;
+    touch(s, nx, ny);
     const imp = hit(s, nx, ny, wvx, wvy, e);
     if (imp && s.events && imp > 25) s.events.push({ type: kind, x: qx, y: qy, strength: imp, i: idx });
   }
@@ -203,10 +215,14 @@
     let nx = s.x - cx, ny = s.y - cy;
     const d = hypot(nx, ny);
     const rad = r + BALL_R;
-    if (d >= rad) return;
+    if (d >= rad) {
+      if (d < rad + TOUCH) touch(s, nx / d, ny / d);
+      return;
+    }
     if (d < 1e-6) { nx = 1; ny = 0; } else { nx /= d; ny /= d; }
     s.x = cx + nx * rad;
     s.y = cy + ny * rad;
+    touch(s, nx, ny);
     const imp = hit(s, nx, ny, 0, 0, e, kind, kick);
     if (imp && s.events && (imp > 25 || kind === 'bumper')) s.events.push({ type: kind, x: cx + nx * r, y: cy + ny * r, strength: imp, i: idx });
   }
@@ -215,7 +231,10 @@
     const px = clamp(s.x, cx - hw, cx + hw), py = clamp(s.y, cy - hh, cy + hh);
     let nx = s.x - px, ny = s.y - py;
     let d = hypot(nx, ny);
-    if (d >= BALL_R) return;
+    if (d >= BALL_R) {
+      if (d < BALL_R + TOUCH) touch(s, nx / d, ny / d);
+      return;
+    }
     if (d < 1e-6) {
       // Center inside the box: push out along the shallowest axis.
       const l = s.x - (cx - hw), r = cx + hw - s.x, t = s.y - (cy - hh), b = cy + hh - s.y;
@@ -230,11 +249,13 @@
       s.x = px + nx * BALL_R;
       s.y = py + ny * BALL_R;
     }
+    touch(s, nx, ny);
     const imp = hit(s, nx, ny, wvx, wvy, 0.7);
     if (imp && s.events && imp > 25) s.events.push({ type: 'slider', x: px, y: py, strength: imp, i: idx });
   }
 
   function collideAll(H, s) {
+    s.nc = 0;
     const R = BALL_R + WALL_T;
     for (const g of H.segs) {
       if (s.x < g.x0 || s.x > g.x1 || s.y < g.y0 || s.y > g.y1) continue;
@@ -337,7 +358,7 @@
   // ------------------------------------------------------------ step
 
   function createSim(x, y, t = 0) {
-    return { x, y, vx: 0, vy: 0, t, portalLock: -1, boostIn: 0, lip: false, events: null, fell: null };
+    return { x, y, vx: 0, vy: 0, t, portalLock: -1, boostIn: 0, lip: false, events: null, fell: null, nc: 0, n1x: 0, n1y: 0, n2x: 0, n2y: 0 };
   }
 
   function speedOf(s) {
@@ -350,6 +371,20 @@
     return 170 + 330 * (1 - clamp(d / CUP_R, 0, 1));
   }
 
+  // Size of the pull that is not pushing the ball into a wall it touches.
+  // A slow ball pinned in a corner by a slope or a black hole is at rest.
+  function heldAccel(s, ax, ay) {
+    if (s.nc > 0) {
+      let k = ax * s.n1x + ay * s.n1y;
+      if (k < 0) { ax -= k * s.n1x; ay -= k * s.n1y; }
+      if (s.nc > 1) {
+        k = ax * s.n2x + ay * s.n2y;
+        if (k < 0) { ax -= k * s.n2x; ay -= k * s.n2y; }
+      }
+    }
+    return hypot(ax, ay);
+  }
+
   function substep(H, s, h) {
     const plat = H.dynamic ? platformAt(H, s.x, s.y, s.t) : -1;
     if (plat >= 0) {
@@ -360,7 +395,7 @@
     let speed = hypot(s.vx, s.vy);
     const { ax, ay } = accelAt(H, s, speed);
     const surf = surfaceAt(H, s.x, s.y);
-    if (speed < STOP_SPEED && hypot(ax, ay) <= surf.roll) {
+    if (speed < STOP_SPEED && heldAccel(s, ax, ay) <= surf.roll) {
       s.vx = 0;
       s.vy = 0;
     } else {

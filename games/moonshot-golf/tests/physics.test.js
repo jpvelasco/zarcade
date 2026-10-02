@@ -174,3 +174,28 @@ test('the aim preview starts at the ball and reflects off the first wall', () =>
   assert.ok(bounce && bounce[0] > 920, 'bounces at the right wall');
   assert.ok(pts[pts.length - 1][0] < bounce[0], 'then heads back');
 });
+
+test('a slow ball pinned against a wall by a slope or black hole comes to rest', () => {
+  const holes = require('../src/holes.js').HOLES;
+  const settle = (id, x, y, angle, power) => {
+    const p = Play.createPlay(holes.find((h) => h.id === id));
+    p.sim.x = x;
+    p.sim.y = y;
+    Play.putt(p, angle, power);
+    let t = 0;
+    while (p.status === 'rolling' && t < 30) { Play.stepPlay(p); t += P.STEP; }
+    return t;
+  };
+  // Comet ice against the inner ring, pulled in by the planet's gravity.
+  assert.ok(settle('saturn-6', 650, 260, Math.atan2(40, -150), 0.05) < 8, 'saturn-6 inner ring');
+  // The dune mound pushing a ball into the top-right corner.
+  assert.ok(settle('mars-5', 660, 95, -0.5, 0.05) < 8, 'mars-5 corner');
+  // A ramp pressing a ball into a plain wall.
+  const H = boxHole({ slopes: [{ pts: rect(50, 50, 900, 500), ax: 0, ay: 300 }] });
+  const p = Play.createPlay(H);
+  p.sim.x = 400; p.sim.y = 520;
+  Play.putt(p, 0, 0.02);
+  let t = 0;
+  while (p.status === 'rolling' && t < 30) { Play.stepPlay(p); t += P.STEP; }
+  assert.ok(t < 8, `ramp into wall settled after ${t.toFixed(1)}s`);
+});
