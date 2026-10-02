@@ -6,7 +6,7 @@ import { Input } from './input.js';
 import { Sound } from './audio.js';
 import { Autoplayer } from './ai.js';
 import { DmdShow, fmtScore } from './dmd.js';
-import { loadSave, writeSave, qualifies, addScore, best } from './scores.js';
+import { SAVE_KEY, loadSave, writeSave, qualifies, addScore, best } from './scores.js';
 import { BALLS_PER_GAME } from './rules.js';
 import { frameMonitor } from './perf.js';
 
@@ -307,6 +307,21 @@ addEventListener('resize', () => {
   queueMicrotask(() => monitor.mark(performance.now(), 'resize'));
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+
+// Another tab saved: take its copy, so this tab never writes a stale high-score
+// table over it (whichever tab saved last used to win).
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  const fresh = loadSave(storage);
+  for (const k of Object.keys(save)) delete save[k];
+  Object.assign(save, fresh);
+  sound.setMuted(save.muted);
+  sound.setMusic(save.music);
+  updateSoundButtons();
+  updateSide(true);
+  if (mode === 'title') toTitle();
+  else if (mode === 'scores') { lastScoreRank = -1; toScores(); }
+});
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 addEventListener('keydown', () => sound.unlock(), { once: true });
 
