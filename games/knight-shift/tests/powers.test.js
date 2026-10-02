@@ -86,6 +86,15 @@ test('a leaping pawn promotes on the last rank', () => {
   assert.ok(sans.includes('b6~a8=Q') && sans.includes('b6~c8=N'));
 });
 
+test('a leap can never land on a king', () => {
+  // The rook on d4 is a knight's jump from the black king on e6.
+  const pos = withPowers('8/8/4k3/8/3R4/8/8/4K3 w - - 0 1', [], [[0, 0, 1], [0, 0, 0]]);
+  const leaps = pos.legalMoves().filter((m) => mFlag(m) === LEAP).map((m) => pos.uci(m));
+  assert.ok(leaps.length > 0, 'the rook can still leap elsewhere');
+  assert.ok(!leaps.includes('L:d4e6'), 'no leap onto the king');
+  assert.equal(pos.moveFromUci('L:d4e6'), 0);
+});
+
 test('power games replay deterministically from a save', () => {
   const setup = makeSetup('powers', 777);
   const g = new Game(setup);

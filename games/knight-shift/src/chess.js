@@ -404,7 +404,8 @@ export class Position {
           const c = s + N_OFF[i];
           if (!onBoard(c)) continue;
           const q = b[c];
-          if (q && ((q >> 3) !== them || c === this.shield)) continue;
+          // A leap may not land on a king: kings are never captured.
+          if (q && ((q >> 3) !== them || c === this.shield || (q & 7) === KING)) continue;
           if (t === PAWN) {
             const r = rankOf(c);
             if (r === firstRank) continue;

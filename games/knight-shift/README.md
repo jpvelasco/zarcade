@@ -40,7 +40,8 @@ In menus, arrow keys or the d-pad move between buttons, and Enter or A picks.
   - **Swap** (uses your turn): two of your pieces (not the king, not two of
     the same kind) trade places. Pawns can't land on the first or last rank.
   - **Leap**: as your move, one piece (not the king or a knight) jumps like a
-    knight. A pawn that leaps to the last rank promotes.
+    knight. It can capture, but never a king. A pawn that leaps to the last
+    rank promotes.
   The bots collect and use powers too. Placement comes from a seed stored
   with the game, so saved games replay exactly.
 - **Chess960**: one of the 960 Fischer random back ranks. Castling works as
