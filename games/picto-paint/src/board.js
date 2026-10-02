@@ -287,7 +287,7 @@ export class Board {
     for (let i = 0; i < size; i++) {
       const ch = str[i];
       out[i] = ch === '.' ? UNKNOWN : ch === 'x' ? CROSS : ch.charCodeAt(0) - 97;
-      if (out[i] > 20 || out[i] < CROSS) return null;
+      if (out[i] > 20 || out[i] < UNKNOWN) return null;
     }
     return out;
   }
