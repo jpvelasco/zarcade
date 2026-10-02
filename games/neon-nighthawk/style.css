@@ -774,6 +774,14 @@ body.lite .arcade-link { backdrop-filter: none; }
   .garage-card { max-height: none; overflow: visible; }
   .upgrade-list { grid-template-columns: 1fr 1fr; margin: 10px 0 14px; }
   .upgrade { padding: 8px 10px; }
+  /* The title card starts below the fixed Arcade link and keeps its buttons
+     and the Shift code toggle on screen. */
+  .title-screen { padding-top: 60px; }
+  .title-card { max-width: 470px; }
+  .title-card h1 { font-size: min(13vh, 54px); }
+  .title-card .tagline { margin-top: 12px; }
+  .title-card .intro { margin-bottom: 12px; font-size: 13px; line-height: 1.4; }
+  .title-card .controls { display: none; }
 }
 
 /* Fingers need bigger targets than a mouse pointer. Touch players read
@@ -782,6 +790,7 @@ body.lite .arcade-link { backdrop-filter: none; }
   .button { min-height: 44px; font-size: 13px; }
   .icon-button { width: 44px; height: 44px; font-size: 18px; }
   .upgrade button, .paint { min-height: 44px; font-size: 12px; }
+  .shift-details summary { padding: 17px 0; }
   .ability-row { display: none; }
   .touch-button[data-hold='dash'], .touch-button[data-hold='pulse'], .touch-button[data-hold='echo'] { opacity: .5; transition: opacity .2s; }
   .touch-button.ready { opacity: 1; }
