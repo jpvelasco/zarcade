@@ -594,6 +594,50 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   .enemy { width: clamp(110px, 15vw, 170px); }
   .enemy.big { width: clamp(140px, 20vw, 220px); }
 }
+/* Phones held sideways: short and wide. Smaller cards and fighters so the
+   intent bubbles stay on screen; smaller map nodes so rows don't overlap. */
+@media (max-height: 500px) and (min-width: 601px) {
+  :root { --card-w: 92px; --card-h: 126px; }
+  .screen { padding-top: max(6px, env(safe-area-inset-top)); padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+  .topbar { min-height: 40px; }
+  .topbar .floor { display: none; }
+  .arena { padding-top: 30px; padding-bottom: 2px; gap: clamp(16px, 5vw, 60px); }
+  .caption { font-size: 13px; padding: 4px 10px; left: 64px; top: 10px; transform: none; width: auto; max-width: min(240px, 28vw); text-align: left; }
+  .hero-spot { width: 25vh; }
+  .enemy, .enemy.small { width: 24vh; }
+  .enemy.big { width: 27vh; }
+  .intent { font-size: 16px; min-height: 30px; padding: 1px 8px 1px 2px; }
+  .intent svg { width: 24px; height: 24px; }
+  .fname { font-size: 12px; }
+  .hpbar { height: 16px; }
+  .hpbar b { font-size: 11px; }
+  .block-badge { width: 28px; height: 28px; font-size: 12px; }
+  .statuses { min-height: 22px; flex-wrap: nowrap; }
+  .chip { height: 22px; font-size: 12px; }
+  .chip svg { width: 16px; height: 16px; }
+  .hand-area { min-height: calc(var(--card-h) + 8px); padding-bottom: 2px; }
+  .hand { height: calc(var(--card-h) + 12px); padding-top: 8px; }
+  .hand .card.sel { --lift: -22px; }
+  .hand-side { width: 90px; gap: 4px; padding-bottom: 2px; }
+  .energy { width: 52px; height: 52px; font-size: 21px; }
+  .end-turn { width: 90px; min-height: 46px; font-size: 16px; }
+  .pile { min-height: 34px; font-size: 14px; }
+  .card .cname { font-size: 12.5px; min-height: 26px; padding: 0 6px 0 12px; }
+  .card .ctext { font-size: 12px; }
+  .card .ctext small { font-size: 10.5px; }
+  .card .cost { width: 28px; height: 28px; font-size: 16px; left: -6px; top: -6px; }
+  .card .kind { font-size: 9px; }
+  .card .inner { inset: 5px 5px 6px; }
+  .map-head { position: absolute; left: max(64px, env(safe-area-inset-left)); top: 56px; max-width: 26vw; text-align: left; }
+  .map-head h2 { font-size: 20px; }
+  .map-head p { font-size: 13px; }
+  .map { margin-top: 0; }
+  .node { width: 34px; height: 34px; margin: -17px 0 0 -17px; padding: 3px; }
+  .node.boss { width: 50px; height: 50px; margin: -25px 0 0 -25px; }
+  .node .tick { width: 20px; height: 20px; right: -7px; top: -8px; }
+  .node .me { width: 40px; height: 40px; left: -22px; top: -24px; }
+  .map-legend { position: absolute; right: max(12px, env(safe-area-inset-right)); bottom: 8px; flex-direction: column; align-items: flex-start; gap: 2px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .title-hero, .title-mon, .big-icon.wiggle { animation: none !important; }
   .sheet, .toast { animation: none; }
