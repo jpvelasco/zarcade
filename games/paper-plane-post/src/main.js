@@ -188,6 +188,11 @@ function startRoute(index) {
 function startEndless({ daily = false } = {}) {
   state.kind = daily ? 'daily' : 'endless';
   const seedParam = Number.parseInt(query.get('seed') || '', 10);
+  // A tab left open overnight should fly today's valley, not yesterday's.
+  if (daily && state.daily.key !== dateKey()) {
+    state.daily = dailyInfo(dateKey());
+    freshenDaily(save);
+  }
   const info = state.daily;
   const scene = daily
     ? makeEndless({ seed: info.seed, theme: info.theme, goal: info.goal })
@@ -340,7 +345,7 @@ function showBreezeResult(result, folded) {
   $('result-eyebrow').textContent = daily ? `DAILY BREEZE · ${state.daily.name}` : 'ENDLESS BREEZE';
   $('result-stars').classList.add('hidden');
   const goal = daily ? state.daily.goal : 0;
-  $('result-title').textContent = daily && save.daily.done
+  $('result-title').textContent = daily && result.distance >= goal
     ? 'Goal reached!'
     : (OUTCOME_LINE[result.outcome] || 'Flight over');
   $('result-big').textContent = formatDistance(result.distance);
