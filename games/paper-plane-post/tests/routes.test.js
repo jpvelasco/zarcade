@@ -168,6 +168,19 @@ test('terrain smoothing, surfaces and trimming behave', () => {
   assert.equal(terrain.heightAt(400), -30, 'trimming keeps the rest of the line');
 });
 
+test('a bank climbing out of the water is dry land above the water line (#64)', () => {
+  const terrain = makeTerrain([[0, -14], [130, -8], [240, -2, 'water'], [730, -2], [810, -8, 'grass'], [960, -4]]);
+  assert.equal(terrain.kindAt(500), 'water');
+  assert.equal(terrain.kindAt(732), 'water', 'the very edge is still wet');
+  assert.equal(terrain.kindAt(780), 'grass');
+  const cliff = makeTerrain([[600, -63, 'water'], [760, -63], [810, -81, 'rock'], [900, -80]]);
+  assert.equal(cliff.kindAt(700), 'water');
+  assert.equal(cliff.kindAt(800), 'rock');
+  // In play: touching the bank before the green is short, not a splash.
+  const lake = routeById('lake-1');
+  assert.equal(lake.terrain.kindAt(790), 'grass');
+});
+
 test('drop radius and ring radius are the sizes the tests assume', () => {
   assert.equal(DROP_RADIUS, 7);
   for (const route of prepared) {

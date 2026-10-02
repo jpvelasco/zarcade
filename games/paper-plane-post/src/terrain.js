@@ -5,6 +5,8 @@
 // y grows downward, so a hilltop is a more negative number than a valley.
 
 export const SURFACES = ['grass', 'rock', 'water', 'snow', 'sand'];
+// How far a bank may rise out of the water before it counts as dry land.
+export const WATER_EDGE = 0.5;
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
@@ -49,7 +51,15 @@ export function makeTerrain(points, { kind = 'grass' } = {}) {
       return a.y + (b.y - a.y) * s;
     },
     kindAt(x) {
-      return nodes[this.spanAt(x)].kind;
+      const i = this.spanAt(x);
+      const kind = nodes[i].kind;
+      // A water span that climbs out of the lake is a dry bank once it is above
+      // the water line, which is all the renderer paints blue.
+      if (kind === 'water' && this.heightAt(x) < nodes[i].y - WATER_EDGE) {
+        const next = nodes[i + 1]?.kind;
+        return next && next !== 'water' ? next : 'grass';
+      }
+      return kind;
     },
     /** Downhill slope (dy/dx) at x, for ridge lift and for drawing. */
     slopeAt(x) {
