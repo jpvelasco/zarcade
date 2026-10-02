@@ -9,7 +9,7 @@ import { ANIMALS, ANIMAL_BY_ID } from './animals.js';
 import { THEMES, THEME_BY_ID } from './themes.js';
 import { dailyLevel, dateKey } from './daily.js';
 import {
-  loadSave, writeSave, recordLevel, recordEndless, recordDaily, totalStars, levelUnlocked,
+  SAVE_KEY, loadSave, writeSave, recordLevel, recordEndless, recordDaily, totalStars, levelUnlocked,
   islandUnlocked, islandStars, nextLevel, liveStreak, checkUnlocks,
 } from './save.js';
 import { frameMonitor } from './perf.js';
@@ -503,6 +503,24 @@ for (const b of document.querySelectorAll('[data-music]')) b.addEventListener('c
 for (const b of document.querySelectorAll('[data-title]')) b.addEventListener('click', () => { sound.ui(); toTitle(); });
 addEventListener('resize', () => { padRoom(); renderer.resize(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+
+// Another tab saved: take its progress, so this tab never writes a stale
+// copy over it (whichever tab saved last used to win).
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  const fresh = loadSave(storage);
+  checkUnlocks(fresh);
+  for (const k of Object.keys(save)) delete save[k];
+  Object.assign(save, fresh);
+  sound.setMuted(save.muted);
+  sound.setMusic(save.music);
+  if (!params.get('theme')) renderer.setTheme(save.theme);
+  updateSoundButtons();
+  if (mode === 'title') toTitle();
+  else if (mode === 'map') toMap();
+  else if (mode === 'collection') toCollection();
+  else if (mode === 'themes') toThemes();
+});
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 addEventListener('keydown', () => sound.unlock(), { once: true });
 
