@@ -339,3 +339,20 @@ code { background: rgba(59, 44, 34, 0.1); padding: 1px 5px; border-radius: 5px; 
   .tagline { display: none; }
   .title-crown { width: 60px; height: 60px; }
 }
+/* Phones held sideways: the results card goes two columns so the buttons
+   stay on screen. */
+@media (max-height: 500px) and (min-width: 561px) {
+  #screen-results .card {
+    width: min(780px, 100%); padding: 12px 16px 14px;
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; align-items: center;
+    grid-template-areas: "title lines" "stars lines" "sub unlocks" "goals buttons";
+  }
+  #res-title { grid-area: title; margin: 0 0 2px; font-size: 24px; }
+  #res-stars { grid-area: stars; font-size: 38px; }
+  #res-sub { grid-area: sub; margin: 4px 0; }
+  #res-goals { grid-area: goals; margin: 4px 0 0; }
+  #res-goals li { font-size: 14px; }
+  #res-lines { grid-area: lines; margin: 0; }
+  #res-unlocks { grid-area: unlocks; }
+  #res-buttons { grid-area: buttons; margin-top: 8px; }
+}
