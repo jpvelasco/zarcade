@@ -652,6 +652,8 @@ function hint() {
   if (!play || play.kind === 'sandbox') return;
   if (play.phase !== 'edit') backToEdit();
   if (!play.hintOrder) { toast('Thinking… 🤔'); return; }
+  // No answer came back (the helper failed or gave up): say so, don't cheer.
+  if (!play.hintOrder.length) { toast('No hint this time. Follow each train and join the gaps! 🚂', 3); audio.nope(); return; }
   const next = play.hintOrder.find((o) => {
     const p = play.editor.layout.get(o.cell);
     return !p || !o.options.some((q) => q.t === p.t && q.v === p.v);
