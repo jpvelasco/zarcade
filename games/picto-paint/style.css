@@ -502,6 +502,11 @@ code { background: rgba(0, 0, 0, 0.06); padding: 1px 5px; border-radius: 6px; }
   .overlay.low { align-items: center; justify-content: flex-end; padding: 10px max(12px, env(safe-area-inset-right)) 10px 12px; }
   .results-card { max-width: min(360px, 46vw); padding: 10px 14px; }
   .results-card .stars { font-size: 1.8rem; }
+  /* Pause: two columns of buttons so the card fits the short screen. */
+  #screen-pause .card { padding: 12px 18px; max-width: min(560px, 80vw); }
+  #screen-pause .card p { margin: 2px 0 8px; }
+  #screen-pause .col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #screen-pause .col > .btn.primary, #screen-pause .col > .row { grid-column: 1 / -1; }
 }
 
 @media (max-height: 600px) {
