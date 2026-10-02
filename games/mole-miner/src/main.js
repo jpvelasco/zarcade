@@ -351,7 +351,7 @@ function onDailyEnd(r) {
   persist();
   setTimeout(() => {
     mode = 'dailyEnd';
-    $('de-title').textContent = r.success ? 'Goal complete! 🎉' : r.failReason ? 'Out of fuel!' : 'So close!';
+    $('de-title').textContent = r.success ? 'Goal complete! 🎉' : r.failReason === 'hull' ? 'Bumped and bruised!' : r.failReason ? 'Out of fuel!' : 'So close!';
     $('de-sub').textContent = r.success ? (r.firstClear ? `Streak: 🔥 ${r.streak} day${r.streak > 1 ? 's' : ''}` : 'Already cleared today. Nice extra run!') : 'Have another go! Same mine, fresh tank.';
     const lines = [['Gems sold', `${r.score} 🪙`], ['Deepest', `${r.depth} m`]];
     if (r.reward) lines.push(['Reward for your mine', `+${r.reward} 🪙`]);
