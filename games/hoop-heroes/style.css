@@ -424,12 +424,24 @@ code, kbd { background: rgba(42, 29, 92, 0.1); padding: 1px 6px; border-radius: 
 @media (max-height: 560px) and (orientation: landscape) {
   .card { max-height: 100%; }
   .title-card { width: min(720px, 100%); display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; align-items: start; text-align: center; }
-  .title-card .logo, .title-card .tagline { grid-column: 1; }
-  .title-card > .col { grid-column: 1; }
-  .title-card .missions { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; }
-  .title-card .best-line, .title-card .settings { grid-column: 2; }
+  .title-card .logo { grid-column: 1; grid-row: 1; }
+  .title-card .tagline { grid-column: 1; grid-row: 2; }
+  .title-card > .col { grid-column: 1; grid-row: 3; }
+  .title-card .missions { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+  /* Best line and settings share row 3 beside the buttons, so all of it fits. */
+  .title-card .best-line { grid-column: 2; grid-row: 3; align-self: start; }
+  .title-card .settings { grid-column: 2; grid-row: 3; align-self: end; margin-top: 0; }
+  /* Clear the ← Arcade link when there is room to spare. */
+  #screen-title { padding-left: max(12px, env(safe-area-inset-left), min(128px, 100vw - 732px)); }
   #title-ace { width: 72px; height: 72px; }
   .logo .l1, .logo .l2 { font-size: 40px; }
+}
+@media (max-height: 420px) and (orientation: landscape) {
+  .title-card { padding-top: 8px; padding-bottom: 10px; }
+  .title-card .tagline { display: none; }
+  .title-card .missions { grid-row: 1 / span 3; align-self: start; }
+  .title-card .best-line { grid-row: 3; align-self: end; }
+  .title-card .settings { grid-column: 1 / -1; grid-row: 4; align-self: auto; margin-top: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
