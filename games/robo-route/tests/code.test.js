@@ -51,3 +51,12 @@ test('an untested level stays untested through a code', async () => {
   assert.equal(again.par, null, 'reopening it in the editor must not make it shareable');
   assert.equal(draftProblem(again), '');
 });
+
+test('codes asking for bigger strips than the editor makes are refused', () => {
+  const big = { id: 'x', name: 'Huge', map: ['0 0 0L'], start: [0, 0, 'E'], ops: 'FLR*1', limits: { main: 63, p1: 0 }, par: 2 };
+  assert.match(decodeLevel(encodeLevel(big)).error, /more tiles/);
+  const p1 = { ...big, limits: { main: 4, p1: 40 } };
+  assert.match(decodeLevel(encodeLevel(p1)).error, /more tiles/);
+  const ok = { ...big, limits: { main: 16, p1: 12 } };
+  assert.ok(decodeLevel(encodeLevel(ok)).def);
+});

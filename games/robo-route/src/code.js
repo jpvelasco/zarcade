@@ -10,6 +10,8 @@ const val = (c) => ABC.indexOf(c);
 const ITEMS = ['', 'L', 'B'];
 const COLS = ['', 'r', 'b'];
 export const NAME_MAX = 18;
+export const MAX_MAIN = 16;
+export const MAX_P1 = 12;
 
 export function cleanName(name) {
   return String(name || '').replace(/[^A-Za-z0-9 !?'-]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX).trim();
@@ -56,6 +58,8 @@ export function decodeLevel(code) {
   const cells = core.slice(10);
   if (w < 1 || h < 1 || w > MAX_SIZE || h > MAX_SIZE || cells.length !== w * h) return { error: 'That board has the wrong size.' };
   if (d > 3 || x >= w || y >= h) return { error: 'Bolt is off the board in that code.' };
+  // The editor makes strips of at most 16 (▶) and 12 (P1) tiles.
+  if (main > MAX_MAIN || p1 > MAX_P1) return { error: 'That code asks for more tiles than a strip can hold.' };
   const rows = [];
   for (let r = 0; r < h; r++) {
     const row = [];
