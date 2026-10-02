@@ -1,5 +1,5 @@
 // Save data: coins, tackle, the collection book, quests and the clock.
-import { FISH_BY_ID } from './data.js';
+import { FISH_BY_ID, WATER } from './data.js';
 import { SLOTS } from './gear.js';
 
 export const SAVE_KEY = 'reel-rumble.v1';
@@ -54,7 +54,7 @@ export function sanitize(raw) {
     for (const [k, v] of Object.entries(raw.medals)) if (['gold', 'silver', 'bronze'].includes(v)) s.medals[k] = v;
   }
   if (isObj(raw.clock)) s.clock = { day: Math.floor(num(raw.clock.day, 1, 1, 1e6)), hour: num(raw.clock.hour, 7, 0, 23.99) };
-  if (typeof raw.water === 'string') s.water = raw.water;
+  if (typeof raw.water === 'string' && Object.hasOwn(WATER, raw.water)) s.water = raw.water;
   if (isObj(raw.stats)) for (const k of Object.keys(s.stats)) s.stats[k] = Math.floor(num(raw.stats[k], 0, 0, 1e9));
   s.muted = raw.muted === true;
   s.music = raw.music !== false;

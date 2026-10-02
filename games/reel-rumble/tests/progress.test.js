@@ -51,3 +51,9 @@ test('recording catches tracks new species and records', () => {
   assert.equal(s.coins, 36);
   assert.ok(s.seen.includes('bass'));
 });
+
+test('a damaged water name is dropped, even one like "toString"', () => {
+  assert.equal(sanitize({ water: 'toString' }).water, 'pond');
+  assert.equal(sanitize({ water: 'atlantis' }).water, 'pond');
+  assert.equal(sanitize({ water: 'coral' }).water, 'coral');
+});
