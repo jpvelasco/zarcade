@@ -87,6 +87,18 @@ function warmUp(target) {
 const SCREENS = ['screen-title', 'screen-tracks', 'screen-garage', 'screen-pause', 'screen-results'];
 let backTo = 'screen-title';
 
+// Gamepad menus: the d-pad moves between the visible screen's buttons and A
+// presses the focused one.
+function padMenus() {
+  const screen = document.querySelector('.overlay:not(.hidden)');
+  if (!screen) return;
+  const items = [...screen.querySelectorAll('button:not(:disabled), a[href]')];
+  const at = items.indexOf(document.activeElement);
+  const step = input.consume('PadDown') || input.consume('PadRight') ? 1 : input.consume('PadUp') || input.consume('PadLeft') ? -1 : 0;
+  if (step && items.length) items[(at + step + items.length) % items.length].focus({ preventScroll: true });
+  if (input.consume('PadA') && at >= 0) items[at].click();
+}
+
 function showScreen(id) {
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   const racing = mode === 'race' || mode === 'paused';
@@ -183,8 +195,11 @@ function startRace(index) {
 }
 
 function pause() {
-  if (mode !== 'race') return;
+  // Once the race is over its result is recorded on the results card, so
+  // let that show instead of a pause menu that could skip it.
+  if (mode !== 'race' || world.status === 'finished' || world.status === 'wrecked') return;
   mode = 'paused';
+  input.clearPressed();
   $('btn-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
   showScreen('screen-pause');
 }
@@ -198,6 +213,7 @@ function resume() {
 
 function showResults() {
   mode = 'results';
+  input.clearPressed(); // a nitro press on A mid-race mustn't pick a button
   const p = world.player;
   const track = TRACKS[trackIndex];
   const lines = [];
@@ -299,6 +315,7 @@ function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   updatePointer(dt, mode === 'race');
+  input.pollPad();
 
   if (mode === 'race') {
     if (input.consume('Escape') || input.consume('KeyP')) pause();
@@ -306,6 +323,7 @@ function frame(now) {
     if (input.consume('Escape') || input.consume('KeyP')) resume();
   }
   if (input.consume('KeyM')) $('btn-mute').click();
+  if (mode !== 'race') padMenus();
 
   if (mode === 'race' && view.ready) {
     const controls = input.read();

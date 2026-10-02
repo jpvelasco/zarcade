@@ -1,5 +1,7 @@
 // Keyboard, touch, and gamepad, merged into one driving input:
 // { throttle, brake, steer, nitro, fire } with steer +1 = right on screen.
+const PAD_PRESSES = [[9, 'Escape'], [0, 'PadA'], [12, 'PadUp'], [13, 'PadDown'], [14, 'PadLeft'], [15, 'PadRight']];
+
 export class Input {
   constructor() {
     this.keys = new Set();
@@ -61,6 +63,19 @@ export class Input {
     window.addEventListener('touchstart', () => { this.touchMode = true; }, { once: true, passive: true });
   }
 
+  // Gamepad buttons as one-shot presses, polled every frame so Start can
+  // resume from the pause menu and A / the d-pad can work the menus.
+  pollPad() {
+    const pad = navigator.getGamepads ? [...navigator.getGamepads()].find(Boolean) : null;
+    if (!pad) return;
+    this.padHeld = this.padHeld || {};
+    for (const [i, code] of PAD_PRESSES) {
+      const on = !!pad.buttons[i]?.pressed;
+      if (on && !this.padHeld[i]) this.pressed.add(code);
+      this.padHeld[i] = on;
+    }
+  }
+
   consume(code) {
     const had = this.pressed.has(code);
     this.pressed.delete(code);
@@ -96,8 +111,6 @@ export class Input {
       brake = Math.max(brake, pad.buttons[6]?.value || 0);
       nitro = nitro || !!pad.buttons[0]?.pressed;
       fire = fire || !!pad.buttons[1]?.pressed || !!pad.buttons[2]?.pressed;
-      if (pad.buttons[9]?.pressed && !this.padStart) this.pressed.add('Escape');
-      this.padStart = !!pad.buttons[9]?.pressed;
     }
     return { throttle, brake, steer: Math.max(-1, Math.min(1, steer)), nitro, fire };
   }
