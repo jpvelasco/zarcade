@@ -28,6 +28,14 @@ export function flickNudge(t, x, y, now) {
   return t.side === 'left' ? -1 : 1;
 }
 
+// A touch that began while a ball waited on the plunger might still become a
+// plunger swipe. Once there's nothing left to plunge, a touch that is still
+// held is a flipper touch, so a thumb resting on a flipper lifts it.
+export function settleTouch(t, canPlunge) {
+  if (t.kind === 'pending' && !canPlunge) t.kind = 'flip';
+  return t.kind;
+}
+
 export class Input {
   constructor(surface, { canPlunge = () => false } = {}) {
     this.canPlunge = canPlunge;
@@ -150,7 +158,9 @@ export class Input {
     let right = k(RIGHT_KEYS) || this.pad.right || now < this.tapFlip.right;
     let touchPlunge = false;
     let touchPull = 0;
+    const canPlunge = this.touches.size ? this.canPlunge() : false;
     for (const t of this.touches.values()) {
+      settleTouch(t, canPlunge);
       if (t.kind === 'flip') { if (t.side === 'left') left = true; else right = true; }
       if (t.kind === 'plunge') { touchPlunge = true; touchPull = Math.max(touchPull, t.pull); }
     }

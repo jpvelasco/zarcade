@@ -36,7 +36,8 @@ let mode = 'loading'; // loading | title | scores | help | play | paused | initi
 let world = new World({ seed: (Math.random() * 1e9) | 0, attract: true });
 let attractAi = new Autoplayer((Math.random() * 1e9) | 0);
 const autopilot = params.has('autopilot') ? new Autoplayer(7) : null;
-const input = new Input(canvas, { canPlunge: () => mode === 'play' && !!world.shooterBall() && !autopilot });
+// A ball that is about to auto-launch (ball save, lock) can't be plunged.
+const input = new Input(canvas, { canPlunge: () => { const b = mode === 'play' && !autopilot && world.shooterBall(); return !!b && !b.auto; } });
 let accumulator = 0;
 let overTimer = 0;
 let gameStartedAt = 0;
