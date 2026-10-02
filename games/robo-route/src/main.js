@@ -131,6 +131,19 @@ function show(id) {
   if (id) $(id).querySelector('.btn.primary, .node.next, .btn')?.focus({ preventScroll: true });
 }
 
+// What the strips need, measured from their contents: the element itself is
+// stretched to fill the panel, so its own height is only what it was given.
+// A Repeat block is taller than a tile, so leave room for one to grow.
+function stripsHeight(el) {
+  const cs = getComputedStyle(el);
+  const kids = [...el.children];
+  let h = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  for (const k of kids) h += k.offsetHeight;
+  h += parseFloat(cs.rowGap || cs.gap || 8) * Math.max(0, kids.length - 1);
+  if (current?.level.ops.includes('@')) h += 40;
+  return h;
+}
+
 function relayout() {
   const playing = mode === 'play' || mode === 'paused';
   const narrow = innerWidth < 520;
@@ -141,7 +154,7 @@ function relayout() {
     const cs = getComputedStyle(pnl);
     let need = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
     const kids = [...pnl.children].filter((k) => !k.classList.contains('hidden'));
-    for (const k of kids) need += k === $('strips') ? k.scrollHeight : k.offsetHeight;
+    for (const k of kids) need += k === $('strips') ? stripsHeight(k) : k.offsetHeight;
     need += parseFloat(cs.rowGap || cs.gap || 6) * (kids.length - 1) + 3;
     const boardH = Math.max(innerHeight * 0.36, Math.min(innerHeight * 0.6, innerHeight - need));
     document.documentElement.style.setProperty('--board-h', `${Math.round(boardH)}px`);
