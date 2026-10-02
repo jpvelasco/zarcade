@@ -134,6 +134,18 @@ test('every mystery page option works and stays gentle', () => {
   }
 });
 
+test('heal events never say "healed 0 HP"', () => {
+  for (const hp of ['full', 'hurt']) {
+    const run = newRun({ seed: 11 });
+    if (hp === 'hurt') run.hp -= 4;
+    run.phase = 'event';
+    run.event = { id: 'door', result: null };
+    assert.ok(chooseEvent(run, 1));
+    assert.doesNotMatch(run.event.result, /healed 0/);
+    if (hp === 'hurt') assert.equal(run.event.result, 'You healed 4 HP.');
+  }
+});
+
 test('treasure gives gold and a sticker', () => {
   const run = newRun({ seed: 12 });
   run.phase = 'map';

@@ -383,7 +383,11 @@ export function chooseEvent(run, index) {
   const e = run.event;
   switch (effect) {
     case 'gold': run.gold += n; run.stats.goldEarned += n; e.result = `You got ${n} gold!`; break;
-    case 'heal': e.result = `You healed ${heal(run, n)} HP.`; break;
+    case 'heal': {
+      const healed = heal(run, n);
+      e.result = healed ? `You healed ${healed} HP.` : 'You feel cozy and rested. You were already full of HP!';
+      break;
+    }
     case 'maxhp': run.maxHp += n; run.hp += n; e.result = `Max HP +${n}!`; break;
     case 'hurt': hurt(run, n); e.result = `Ouch! You lost ${n} HP, but you got away.`; break;
     case 'none': e.result = 'You hop around the puddle. Boing, boing!'; break;
