@@ -88,6 +88,13 @@ export function loadSave(storage) {
   }
 }
 
+// Takes another tab's newer save into this tab's save object in place, so a
+// stale copy here is never written back over it.
+export function adoptSave(save, fresh) {
+  for (const key of Object.keys(save)) delete save[key];
+  return Object.assign(save, fresh);
+}
+
 export function writeSave(storage, save) {
   try {
     storage.setItem(SAVE_KEY, JSON.stringify(save));

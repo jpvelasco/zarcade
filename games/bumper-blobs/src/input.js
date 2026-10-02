@@ -39,6 +39,7 @@ export class Input {
     this.globalEdges = new Set(); // raw key codes pressed (Escape, KeyP, KeyM ...)
     this.pads = [null, null, null, null];
     this.padPrev = [{}, {}, {}, {}];
+    this.dropped = new Set(); // pads that went away since the last check
     this.touch = { stick: null, mx: 0, my: 0, dash: false, poundQueued: false };
     this.lastDevice = 'k0';
     this.captureKeys = false; // true during play and on the join screen
@@ -49,6 +50,8 @@ export class Input {
       if ((this.captureKeys && map) || e.code === 'KeyP' || e.code === 'KeyM' || e.code === 'Escape') e.preventDefault();
       else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) && !isFormTarget(e.target)) e.preventDefault();
       this.keys.add(e.code);
+      // A held dash key auto-repeats; it must never press a menu button.
+      if (e.repeat && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') && isFormTarget(e.target)) e.preventDefault();
       if (e.repeat) return;
       this.globalEdges.add(e.code);
       if (map) { this.edge(map[0], map[1]); this.lastDevice = map[0]; }
@@ -97,7 +100,8 @@ export class Input {
   pollPads() {
     const list = navigator.getGamepads ? navigator.getGamepads() : [];
     for (let i = 0; i < 4; i++) {
-      const pad = list[i] || null;
+      const pad = list[i] && list[i].connected !== false ? list[i] : null;
+      if (!pad && this.pads[i]) this.dropped.add(i);
       this.pads[i] = pad;
       if (!pad) { this.padPrev[i] = {}; continue; }
       const b = (k) => !!pad.buttons[k]?.pressed;
@@ -115,12 +119,19 @@ export class Input {
 
   padConnected(i) { return !!this.pads[i]; }
 
+  // Indices of gamepads unplugged since the last call.
+  takeDropped() {
+    const out = [...this.dropped];
+    this.dropped.clear();
+    return out;
+  }
+
   // Controls for one device this frame.
   read(device, out = { mx: 0, my: 0, dash: false, pound: false }) {
     out.mx = 0; out.my = 0; out.dash = false; out.pound = false;
     if (device === 'solo') {
       const tmp = { mx: 0, my: 0, dash: false, pound: false };
-      for (const d of ['k0', 'k1', 'p0', 'p1', 'p2', 'p3', 'touch']) {
+      for (const d of ['k0', 'k1', 'k2', 'k3', 'p0', 'p1', 'p2', 'p3', 'touch']) {
         this.read(d, tmp);
         out.mx += tmp.mx; out.my += tmp.my;
         out.dash = out.dash || tmp.dash;

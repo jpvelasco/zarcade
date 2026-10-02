@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadSave, writeSave, defaultSave, recordMatch, hatUnlocked, nextHat, HATS, TROPHIES, SAVE_KEY, COLORS, FACES } from '../src/save.js';
+import { adoptSave, loadSave, writeSave, defaultSave, recordMatch, hatUnlocked, nextHat, HATS, TROPHIES, SAVE_KEY, COLORS, FACES } from '../src/save.js';
 import { Match } from '../src/match.js';
 
 const memory = (init = {}) => {
@@ -71,4 +71,23 @@ test('bot-only matches do not change progress', () => {
   const res = recordMatch(s, finishedMatch(0), []);
   assert.equal(res.stars, 0);
   assert.equal(s.stats.matches, 0);
+});
+
+test('another tab\'s save replaces this tab\'s copy in place, so it is never written over', () => {
+  const store = memory();
+  const mine = loadSave(store);
+  const ref = mine;
+  // The other tab plays a match and saves.
+  const theirs = defaultSave();
+  theirs.stars = 50; theirs.stats.matches = 9; theirs.trophies.push('firstMatch');
+  writeSave(store, theirs);
+  adoptSave(mine, loadSave(store));
+  assert.equal(mine, ref);
+  mine.muted = true;
+  writeSave(store, mine);
+  const back = loadSave(store);
+  assert.equal(back.stars, 50);
+  assert.equal(back.stats.matches, 9);
+  assert.deepEqual(back.trophies, ['firstMatch']);
+  assert.equal(back.muted, true);
 });

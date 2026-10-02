@@ -8,7 +8,7 @@ import { Input, deviceLabel, deviceHelp } from './input.js';
 import { Sound } from './audio.js';
 import { ARENAS, arenaById } from './arenas.js';
 import { STEP, MODE_INFO, MODES, ROUND, BOT_LEVELS } from './config.js';
-import { loadSave, writeSave, recordMatch, COLORS, FACES, HATS, TROPHIES, hatUnlocked, nextHat } from './save.js';
+import { SAVE_KEY, adoptSave, loadSave, writeSave, recordMatch, COLORS, FACES, HATS, TROPHIES, hatUnlocked, nextHat } from './save.js';
 import { frameMonitor } from './perf.js';
 import { hashSeed } from './rng.js';
 
@@ -58,7 +58,14 @@ const humanControls = [];
 
 // ------------------------------------------------------------ screens
 
+// Results cards ignore presses for a moment, so mashing dash at the end of a
+// round can't skip them.
+const RESULTS_GRACE = 800;
+let resultsAt = -Infinity;
+const resultsSettled = () => performance.now() - resultsAt >= RESULTS_GRACE;
+
 function showScreen(id) {
+  if (id === 'screen-round' || id === 'screen-podium') resultsAt = performance.now();
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   const playing = mode === 'play' || mode === 'round';
   $('hud').classList.toggle('hidden', !playing && mode !== 'paused');
@@ -589,6 +596,8 @@ function toCollection() {
 
 function pause() {
   if (mode !== 'play') return;
+  // The round is already decided: show its result (the podium saves a win).
+  if (game?.world?.phase === 'done') { finishRound(); return; }
   mode = 'paused';
   updateSoundButtons();
   showScreen('screen-pause');
@@ -646,6 +655,22 @@ for (const b of document.querySelectorAll('[data-title]')) b.addEventListener('c
 for (const b of document.querySelectorAll('[data-back]')) b.addEventListener('click', back);
 addEventListener('resize', () => { renderer.resize(); if (game) buildHud(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+for (const id of ['screen-round', 'screen-podium']) {
+  $(id).addEventListener('click', (e) => { if (!resultsSettled()) { e.stopPropagation(); e.preventDefault(); } }, true);
+}
+
+// Another tab saved: take its progress, so this tab never writes a stale copy
+// over it. A match in progress records into the fresh copy when it ends.
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  adoptSave(save, loadSave(storage));
+  sound.setMuted(save.muted);
+  sound.setMusic(save.music);
+  updateSoundButtons();
+  if (mode === 'title') toTitle();
+  else if (mode === 'setup') renderSetup();
+  else if (mode === 'collection') toCollection();
+});
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 addEventListener('keydown', () => sound.unlock(), { once: true });
 
@@ -728,6 +753,13 @@ function frame(now) {
     else if (esc) back();
   }
   if (input.takeKey('KeyM')) toggleMute();
+  // A player's gamepad went away mid-round: pause until it's back.
+  for (const i of input.takeDropped()) {
+    if (mode === 'play' && game?.devices.some((d) => d === `p${i}` || d === 'solo')) pause();
+    // On the join screen its seat frees up, so the others aren't kept waiting.
+    const seat = mode === 'join' && join.slots.find((sl) => sl.device === `p${i}`);
+    if (seat) leaveSlot(seat);
+  }
   if (mode !== 'play' && mode !== 'join') {
     // Gamepad menu navigation.
     for (const d of ['p0', 'p1', 'p2', 'p3']) {
@@ -772,7 +804,7 @@ function frame(now) {
     } else {
       g.roundTimer -= dt;
       $('round-next').textContent = `Next round in ${Math.max(1, Math.ceil(g.roundTimer))}…`;
-      if (input.takeAny('dash')) g.roundTimer = 0;
+      if (input.takeAny('dash') && resultsSettled()) g.roundTimer = 0;
       if (g.roundTimer <= 0) startRound();
     }
     if (game && game.world) updateHud();
