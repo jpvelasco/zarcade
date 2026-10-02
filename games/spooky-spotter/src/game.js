@@ -179,14 +179,15 @@ export class Game {
     const stars = starsFor({ room, mode, seconds, hints, misses });
     // Today's room is the same for everyone, so it can land on a room the
     // player has not reached. That round still counts for the streak and the
-    // mouse, but it must not open doors out of order.
-    if (daily && !this.isModeOpen(room, mode)) {
+    // mouse, but it must not open doors out of order. Neither may any other
+    // round of a mode that is not open yet (Again on a peek-ahead daily).
+    if (!this.isModeOpen(room, mode)) {
       s.totals.rounds++;
       s.totals.found += found;
       s.totals.hints += hints;
       s.totals.seconds += seconds;
       const gained = mouse ? this.spotMouse(room) : [];
-      this.completeDaily(stars);
+      if (daily) this.completeDaily(stars);
       return {
         stars, firstClear: false, newBest: false, grew: false, curios: gained,
         unlockedRoom: null, party: false, par: parTime(room, mode), visit: true,

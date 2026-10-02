@@ -691,7 +691,12 @@ $('btn-pause-help').onclick = () => openSheet('How to play', renderHelp(), 'paus
 $('btn-lantern').onclick = useLantern;
 $('btn-zoom-in').onclick = () => renderer.zoomBy(1.25);
 $('btn-zoom-out').onclick = () => renderer.zoomBy(1 / 1.25);
-$('result-again').onclick = () => startRound(round.room, round.mode, false);
+$('result-again').onclick = () => {
+  // Again on today's room plays today's room again, not a normal round of a
+  // room that may still be locked.
+  if (round.daily) playDaily();
+  else startRound(round.room, round.mode, false);
+};
 $('result-map').onclick = toMap;
 for (const b of document.querySelectorAll('[data-sound]')) b.onclick = toggleSound;
 for (const b of document.querySelectorAll('[data-music]')) b.onclick = toggleMusic;

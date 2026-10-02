@@ -219,6 +219,20 @@ test("today's room in a locked part of the manor counts for the streak only", ()
   assert.equal(open.state.rooms.observatory.hunt.cleared, true);
 });
 
+test('a normal round of a locked room (Again after a peek-ahead daily) opens nothing', () => {
+  const game = fresh();
+  game.ensureDaily('2026-10-02');
+  assert.equal(game.isModeOpen('attic', 'hunt'), false);
+  const out = game.finishRound({ room: 'attic', mode: 'hunt', seconds: 30, hints: 0, misses: 0, found: 6, daily: false });
+  assert.equal(out.visit, true);
+  assert.deepEqual(out.curios, [], 'no curio for a room you have not reached');
+  assert.equal(game.state.rooms.attic.hunt.cleared, false);
+  assert.equal(game.state.rooms.attic.hunt.stars, 0);
+  assert.equal(game.hasCurio('crown'), false);
+  assert.equal(game.state.daily.done, false, 'only a daily round counts for the daily');
+  assert.equal(game.state.totals.rounds, 1);
+});
+
 test('a daily round reports through finishRound', () => {
   const game = fresh();
   game.ensureDaily('2026-10-01');
