@@ -176,7 +176,9 @@ export function isLessonUnlocked(save, index) {
 }
 
 // Record a finished run. Returns what is new, for the results screen.
-export function recordRun(save, stage, result, dateKey) {
+export function recordRun(save, stage, result, today) {
+  // A daily quest counts for its own day, even when it ends after midnight.
+  const dateKey = stage.daily && stage.dateKey ? stage.dateKey : today;
   const id = stage.id;
   const d = save.daily;
   const prevStars = stage.daily ? (d.last === dateKey ? d.todayStars || 0 : 0) : save.stars[id] || 0;

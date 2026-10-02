@@ -124,3 +124,12 @@ test('Play continues from the chosen region first', () => {
   recordRun(s, STAGES[12], result(), '2026-10-01');
   assert.equal(nextStageIndex(s), 13);
 });
+
+test('a daily quest finished after midnight counts for its own day (#118)', () => {
+  const s = defaultSave();
+  const out = recordRun(s, makeDaily('2026-10-01', 0), result({ stars: 3 }), '2026-10-02');
+  assert.equal(out.dailyRepeat, false);
+  assert.equal(s.daily.last, '2026-10-01');
+  assert.equal(dailyDoneToday(s, '2026-10-02'), false, "tomorrow's quest is still to play");
+  assert.equal(liveStreak(s, '2026-10-02'), 1);
+});
