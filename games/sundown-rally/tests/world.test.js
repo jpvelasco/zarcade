@@ -242,3 +242,23 @@ test('wall-foot scenery sits beyond where the wall stops the jeep (#151)', () =>
   assert.ok(foot.length > 20);
   for (const o of foot) assert.ok(Math.abs(o.lateral) >= w.track.wallLimit, `${o.type} at ${o.lateral.toFixed(1)}`);
 });
+
+test('a jeep too slow to jump rolls up and over a ramp (#152)', () => {
+  const w = new World(TRACKS[0]);
+  const r = w.ramps[0], t = w.track, v = w.player.vehicle;
+  for (const z of w.zombies) z.alive = false;
+  for (const o of w.obstacles) if (Math.abs(o.along - r.along) < 30) o.alive = false;
+  const p = t.pointAt(r.along - 10, r.lateral);
+  Object.assign(v, { x: p.x, z: p.z, y: p.y, heading: p.heading });
+  w.player.hint = Math.floor((r.along - 10) / 2);
+  w.time = -DT;
+  let top = 0;
+  for (let i = 0; i < 60 * 6; i++) {
+    w.step(DT, { throttle: v.speed < 5 ? 1 : 0 });
+    const lift = v.y - t.groundHeight(v.x, v.z);
+    top = Math.max(top, lift);
+    assert.ok(lift > -0.05, `sank ${lift.toFixed(2)} m into the ground`);
+  }
+  assert.ok(w.player.along > r.along + 8, 'never got past the ramp');
+  assert.ok(top > r.height * 0.8, `only rose ${top.toFixed(2)} m over the ramp`);
+});

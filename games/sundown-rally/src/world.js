@@ -134,7 +134,7 @@ export class World {
     const near = t.nearestLocal(v.x, v.z, racer.hint);
     const ground = {
       offroad: near.distance > t.half,
-      height: (x, z) => t.groundHeight(x, z, t.nearestLocal(x, z, near.index)),
+      height: (x, z) => t.groundHeight(x, z, t.nearestLocal(x, z, near.index)) + this.rampLift(x, z, racer.along),
     };
     const hadAir = v.airTime;
     stepVehicle(v, input, dt, ground);
@@ -225,6 +225,19 @@ export class World {
     racer.vehicle.hp -= dealt;
     racer.sinceDamage = 0;
     return dealt;
+  }
+
+  // Height of a ramp's slope at (x, z), so a jeep too slow to jump rolls up
+  // and over the ramp instead of through it.
+  rampLift(x, z, along) {
+    for (const r of this.ramps) {
+      if (Math.abs(r.along - along) > 12) continue;
+      const dx = x - r.x, dz = z - r.z;
+      const fx = Math.sin(r.heading), fz = Math.cos(r.heading);
+      const a = dx * fx + dz * fz, side = dx * fz - dz * fx;
+      if (Math.abs(side) < r.width / 2 && Math.abs(a) < r.length / 2) return r.height * (a / r.length + 0.5);
+    }
+    return 0;
   }
 
   checkRamps(racer) {

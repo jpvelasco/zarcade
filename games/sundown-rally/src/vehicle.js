@@ -85,6 +85,11 @@ export function stepVehicle(v, input, dt, ground) {
       v.grounded = false;
       v.y = coast;
       v.vy -= GRAVITY * dt;
+    } else if (g < v.y - 0.6) {
+      // The ground fell away (a ramp's top edge): drop instead of snapping down.
+      v.grounded = false;
+      v.vy = Math.min(0, v.vy) - GRAVITY * dt;
+      v.y += v.vy * dt;
     } else {
       v.vy = clamp((g - v.y) / dt, -25, 25);
       v.y = g;
