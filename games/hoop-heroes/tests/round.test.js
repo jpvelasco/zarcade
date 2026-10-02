@@ -81,6 +81,18 @@ test('balls in the air at the buzzer still count', () => {
   assert.ok(round.events.some((e) => e.type === 'score' && e.buzzer));
 });
 
+test('running out of balls with time left is not a buzzer beater', () => {
+  const trick = new Round(trickRules(TRICK_LEVELS[4], 'park'), { countdown: false });
+  trick.run(90, (r) => perfect(r));
+  assert.ok(trick.stats.valid >= 6);
+  assert.equal(trick.stats.buzzer, 0);
+  const racks = new Round(racksRules('park', 60), { countdown: false });
+  racks.run(60, (r) => perfect(r));
+  assert.equal(racks.status, 'done');
+  assert.ok(racks.timeLeft > 5);
+  assert.equal(racks.stats.buzzer, 0);
+});
+
 test('every trick-shot level is solvable for three stars, on every court gravity', () => {
   for (const level of TRICK_LEVELS) {
     for (const court of ['park', 'space']) {

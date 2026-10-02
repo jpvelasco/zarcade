@@ -182,7 +182,8 @@ export class Round {
     if (bank) st.banks++;
     if (ball.tramp) st.tramps++;
     if (ball.money) st.money++;
-    const buzzer = this.status === 'buzzer';
+    // Only when the clock ran out: running out of balls is not a buzzer beater.
+    const buzzer = this.status === 'buzzer' && !!this.rules.time && this.timeLeft <= 0;
     if (buzzer) st.buzzer++;
     if (swish) {
       this.swishRun++;
