@@ -109,12 +109,15 @@ export class Track {
     return cx * 100003 + cz;
   }
 
-  // Projects (x, z) onto the segment starting at sample i.
+  // Projects (x, z) onto the segment starting at sample i. Past either end
+  // of the road, `over` is how far beyond it the point is (negative behind
+  // the start) and counts toward the distance from the road.
   project(i, x, z) {
     const s = this.samples[i];
-    const along = (x - s.x) * s.dx + (z - s.z) * s.dz;
+    const raw = s.dist + (x - s.x) * s.dx + (z - s.z) * s.dz;
     const lateral = (x - s.x) * s.dz - (z - s.z) * s.dx; // signed sideways offset
-    return { index: i, along: clamp(s.dist + along, 0, this.length), lateral, distance: Math.abs(lateral) };
+    const over = raw < 0 ? raw : raw > this.length ? raw - this.length : 0;
+    return { index: i, along: clamp(raw, 0, this.length), lateral, over, distance: over ? Math.hypot(lateral, over) : Math.abs(lateral) };
   }
 
   // Nearest road point to (x, z) anywhere on the track, or null if farther
@@ -204,5 +207,10 @@ export class Track {
   // Soft limit on how far the jeep may leave the road.
   get boundary() {
     return this.half + BOUNDARY;
+  }
+
+  // Canyon walls are too steep to drive up: the jeep stops at their foot.
+  get wallLimit() {
+    return this.def.walls ? this.half + this.def.walls.from : Infinity;
   }
 }

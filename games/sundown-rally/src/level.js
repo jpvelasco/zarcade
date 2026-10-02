@@ -125,7 +125,9 @@ function placeDecor(track, def, r, level, id) {
       // Leave room beside the road so a wobbly driver can recover.
       if (type === 'building') lateral = half + 11 + r() * 7;
       else lateral = half + 6 + Math.pow(r(), 1.6) * 140;
-      if (def.walls && lateral > half + def.walls.from - 3) lateral = half + def.walls.from - 2 + r() * 4; // at the wall's foot
+      // At the wall's foot, just past where the jeep stops, so a rock never
+      // pins it against the wall.
+      if (def.walls && lateral > half + def.walls.from - 3) lateral = half + def.walls.from + r() * 2;
       const p = track.pointAt(d, side * lateral);
       const near = track.nearest(p.x, p.z);
       if (near && near.distance < half + 4) continue; // too close to another stretch of road

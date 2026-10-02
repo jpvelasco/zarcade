@@ -144,12 +144,16 @@ export class World {
     racer.along = now.along;
     racer.lateral = now.lateral;
 
-    // Soft boundary: the desert pushes you back toward the road.
-    if (now.distance > t.boundary) {
-      const excess = now.distance - t.boundary;
-      const s = t.samples[now.index], sign = Math.sign(now.lateral);
-      v.x -= s.dz * sign * excess;
-      v.z += s.dx * sign * excess;
+    // Canyon walls: slide along the foot of the wall instead of climbing it.
+    if (now.distance > t.wallLimit) {
+      const [nx, nz] = this.holdWithin(v, now, t.wallLimit);
+      const out = v.vx * nx + v.vz * nz;
+      if (out > 0) { v.vx -= out * nx; v.vz -= out * nz; }
+      this.turnAlong(racer, -nx, -nz, dt);
+    } else if (now.distance > t.boundary) {
+      // Soft boundary: the desert pushes you back toward the road, sideways
+      // or, behind the start, forward.
+      this.holdWithin(v, now, t.boundary);
       v.vx *= 0.9;
       v.vz *= 0.9;
       if (racer.isPlayer) this.emit('boundary', {});
@@ -192,6 +196,23 @@ export class World {
       racer.wrecked = true;
       this.emit('wrecked', { racer: racer.id, x: v.x, y: v.y, z: v.z });
     }
+  }
+
+  // Moves the jeep straight back toward the road until it is `limit` meters
+  // away. Returns the outward direction.
+  holdWithin(v, near, limit) {
+    const s = this.track.samples[near.index], d = near.distance;
+    const nx = (s.dz * near.lateral + s.dx * near.over) / d;
+    const nz = (s.dz * near.over - s.dx * near.lateral) / d;
+    v.x -= nx * (d - limit);
+    v.z -= nz * (d - limit);
+    // Settle onto the ground at the new spot, or the climb just undone would
+    // launch the jeep off the slope next step.
+    if (v.grounded) {
+      v.y = this.track.groundHeight(v.x, v.z);
+      v.vy = Math.min(v.vy, 0);
+    }
+    return [nx, nz];
   }
 
   clearance(v) {
@@ -274,15 +295,21 @@ export class World {
           this.emit('crash', { racer: racer.id, soft: false, kind: o.type, x: v.x, y: v.y, z: v.z, impact });
         }
       }
-      // Turn the nose along the face. Grip only lets the jeep travel where
-      // it points, so this is what lets the slide carry on.
-      const fx = Math.sin(v.heading), fz = Math.cos(v.heading);
-      if (fx * nx + fz * nz < -0.05) {
-        let diff = Math.atan2(tx, tz) - v.heading;
-        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-        v.heading += clamp(diff, -GLANCE_TURN * dt, GLANCE_TURN * dt);
-      }
+      this.turnAlong(racer, nx, nz, dt, tx, tz);
     }
+  }
+
+  // Turns the nose along a face whose normal (nx, nz) points at the jeep.
+  // Grip only lets the jeep travel where it points, so this is what lets a
+  // slide carry on.
+  turnAlong(racer, nx, nz, dt, tx, tz) {
+    const v = racer.vehicle;
+    const fx = Math.sin(v.heading), fz = Math.cos(v.heading);
+    if (fx * nx + fz * nz >= -0.05) return;
+    if (tx === undefined) [tx, tz] = this.glanceTangent(racer, nx, nz);
+    let diff = Math.atan2(tx, tz) - v.heading;
+    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    v.heading += clamp(diff, -GLANCE_TURN * dt, GLANCE_TURN * dt);
   }
 
   // The way along an obstacle's face the jeep should slide: the side the nose

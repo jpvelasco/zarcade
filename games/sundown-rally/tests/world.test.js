@@ -195,3 +195,50 @@ test('driving straight into a rock glances off instead of getting stuck', () => 
   assert.ok(v.speed > 8, `crawling at ${v.speed.toFixed(1)} m/s`);
   assert.ok(Math.hypot(v.x - rock.x, v.z - rock.z) > reach + 3, 'still pressed against the rock');
 });
+
+// Turns the jeep to `turn` radians off the road direction and holds the gas.
+function driveOff(def, turn, seconds) {
+  const w = new World(def);
+  for (let i = 0; i < 60 * 3; i++) w.step(DT, {});
+  w.player.vehicle.heading += turn;
+  let maxY = -Infinity;
+  for (let i = 0; i < 60 * seconds; i++) {
+    w.step(DT, { throttle: 1, nitro: true });
+    maxY = Math.max(maxY, w.player.vehicle.y);
+  }
+  return { w, maxY };
+}
+
+test('driving back past the start line is stopped near the start (#150)', () => {
+  for (const def of TRACKS) {
+    const { w } = driveOff(def, Math.PI, 20);
+    const v = w.player.vehicle, s = w.track.samples[0];
+    const behind = -((v.x - s.x) * s.dx + (v.z - s.z) * s.dz);
+    assert.ok(behind < w.track.boundary + 2, `${def.id}: ${behind.toFixed(0)} m behind the start`);
+  }
+});
+
+test('canyon walls stop the jeep at their foot (#151)', () => {
+  const def = TRACKS.find((d) => d.walls);
+  for (const side of [-1, 1]) {
+    const { w, maxY } = driveOff(def, side * Math.PI / 2, 6);
+    const t = w.track;
+    assert.ok(Math.abs(w.player.lateral) <= t.wallLimit + 0.5, `lateral ${w.player.lateral.toFixed(1)}`);
+    assert.ok(maxY < t.roadHeightAt(w.player.along) + 10, `climbed to y ${maxY.toFixed(1)}`);
+    assert.ok(w.player.vehicle.grounded, 'bounced off the wall into the air');
+  }
+});
+
+test('a jeep driven into a canyon wall turns along it and keeps going (#151)', () => {
+  const def = TRACKS.find((d) => d.walls);
+  const { w } = driveOff(def, Math.PI / 2, 4);
+  assert.ok(w.player.vehicle.speed > 8, `stuck at ${w.player.vehicle.speed.toFixed(1)} m/s`);
+});
+
+test('wall-foot scenery sits beyond where the wall stops the jeep (#151)', () => {
+  const def = TRACKS.find((d) => d.walls);
+  const w = new World(def);
+  const foot = w.obstacles.filter((o) => o.decor && Math.abs(o.lateral) > w.track.half + def.walls.from - 3);
+  assert.ok(foot.length > 20);
+  for (const o of foot) assert.ok(Math.abs(o.lateral) >= w.track.wallLimit, `${o.type} at ${o.lateral.toFixed(1)}`);
+});
