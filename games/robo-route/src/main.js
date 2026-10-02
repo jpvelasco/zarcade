@@ -688,6 +688,7 @@ function pause() {
   if (mode !== 'play' || modal) return;
   if (runner.status === 'running') runner.status = 'paused';
   mode = 'paused';
+  $('btn-pause-map').textContent = current?.editorTest ? 'Back to building' : 'Level map';
   updateSoundButtons();
   updateRunButtons();
   show('screen-pause');
@@ -1255,14 +1256,19 @@ $('map-garage').addEventListener('click', openGarage);
 $('map-bugs').addEventListener('click', openBugs);
 $('map-editor').addEventListener('click', () => openEditor());
 $('map-title-btn').addEventListener('click', toTitle);
-$('btn-map').addEventListener('click', () => { sound.play('click'); toMap(current?.def.world || mapWorld); });
+// Leaving a test of your own level goes back to building it.
+function leaveLevel() {
+  if (current?.editorTest) backToEditor();
+  else toMap(current?.def.world || mapWorld);
+}
+$('btn-map').addEventListener('click', () => { sound.play('click'); leaveLevel(); });
 $('btn-hint').addEventListener('click', openHint);
 $('btn-mute').addEventListener('click', toggleMute);
 $('btn-view').addEventListener('click', turnCamera);
 $('btn-pause').addEventListener('click', pause);
 $('btn-resume').addEventListener('click', resume);
 $('btn-help').addEventListener('click', openHelp);
-$('btn-pause-map').addEventListener('click', () => { mode = 'play'; toMap(current?.def.world || mapWorld); });
+$('btn-pause-map').addEventListener('click', () => { mode = 'play'; leaveLevel(); });
 $('btn-pause-title').addEventListener('click', toTitle);
 $('btn-run').addEventListener('click', run);
 $('btn-step').addEventListener('click', step);
@@ -1364,7 +1370,7 @@ addEventListener('keydown', (e) => {
       openHint();
       break;
     case 'q':
-      toMap(current.def.world || mapWorld);
+      leaveLevel();
       break;
     case 'c':
       panel.cycleColour();
