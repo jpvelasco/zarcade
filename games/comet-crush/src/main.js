@@ -46,7 +46,16 @@ let isAttract = false; // the title/level-select backdrop is an autopilot demo
 
 const SCREENS = ['screen-title', 'screen-levels', 'screen-pause', 'screen-clear', 'screen-over', 'screen-victory'];
 
+// Result cards ignore clicks for a moment after they appear, so a player
+// still mashing Space or tapping to launch doesn't skip straight past them.
+const RESULT_SCREENS = ['screen-clear', 'screen-over', 'screen-victory'];
+const RESULT_GUARD_MS = 700;
+let shownAt = 0;
+let shownId = null;
+
 function showScreen(id) {
+  shownAt = performance.now();
+  shownId = id;
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   $('hud-buttons').classList.toggle('hidden', mode !== 'play');
   input.enabled = mode === 'play';
@@ -269,6 +278,9 @@ $('btn-victory-levels').addEventListener('click', toLevels);
 for (const b of document.querySelectorAll('[data-sound]')) b.addEventListener('click', toggleMute);
 for (const b of document.querySelectorAll('[data-music]')) b.addEventListener('click', toggleMusic);
 for (const b of document.querySelectorAll('[data-title]')) b.addEventListener('click', () => { isAttract = false; toTitle(); });
+addEventListener('click', (e) => {
+  if (RESULT_SCREENS.includes(shownId) && performance.now() - shownAt < RESULT_GUARD_MS) { e.preventDefault(); e.stopPropagation(); }
+}, { capture: true });
 addEventListener('resize', () => renderer.resize());
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
