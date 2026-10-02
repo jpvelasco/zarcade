@@ -204,7 +204,7 @@ main {
 .stage {
   --accent: var(--cyan);
   display: grid;
-  grid-template-columns: minmax(0, 600px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 600px) minmax(300px, 1fr);
   justify-content: center;
   gap: clamp(20px, 3vw, 40px);
   align-items: center;
@@ -286,10 +286,14 @@ main {
   color: var(--accent);
 }
 
+/* The title scales with its own column, so one long word ("Lanternwood")
+   never spills past the edge on a narrow two-column stage. */
+.stage-info { container-type: inline-size; }
+
 .stage-title {
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(34px, 5vw, 60px);
+  font-size: clamp(28px, 12cqi, 60px);
   font-weight: 800;
   font-style: italic;
   line-height: 1;
