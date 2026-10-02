@@ -114,6 +114,28 @@ Target 60 fps on a laptop and stay smooth under Chrome CPU throttling ×4.
 - Phone layouts (390×844 portrait) must be usable without page scroll or zoom.
 - Text readable by kids: big, high-contrast, friendly copy.
 
+## Bugs every game has had
+
+The October 2026 bug hunt filed 270 issues; most were these. Build them out
+from the start:
+
+- A second open tab overwrites the save. Listen for `storage` events and
+  adopt the other tab's save.
+- One damaged save field crashes the load or shows NaN. Sanitize field by
+  field and keep defaults for anything wrong.
+- Pausing or leaving during a win celebration loses the win. Record the
+  result the moment it's earned, not when the card appears.
+- Mashing skips the results card. Ignore presses for ~0.7 s, and ignore a key
+  already held when the card opened.
+- Gamepad presses leak between play and menus, one tap acts for several
+  frames, or the pad can't drive menus (d-pad focus, A presses, B/Start back).
+- A second finger is ignored by the pause button; listen for `pointerdown`.
+- Touch controls stay held after `blur`; WebGL games run blind after
+  `webglcontextlost` (pause instead).
+- Debug modes like `?autoplay` write to the real save.
+- Phone landscape (844×390) cuts off pause and results buttons, including
+  Back to arcade.
+
 ## Tests (required)
 
 - Pure rules, generation and AI in DOM-free modules with `node:test` tests.
