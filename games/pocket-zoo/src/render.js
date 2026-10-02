@@ -262,7 +262,7 @@ export class Renderer {
           const cost = zoo.buildCost(i);
           const can = zoo.coins >= cost;
           const bob = can && !this.reduced ? Math.sin(t * 3 + i) * 3 : 0;
-          this.plate(cx, cy + bob, `Build · ${fmt(cost)}`, can ? '#5ac85a' : '#9a8ca8', '🏗️');
+          this.plate(cx, cy + bob, `Build · ${fmt(cost)}`, can ? '#5ac85a' : '#9a8ca8', hammerIcon);
           if (waiting && !waitShown) {
             waitShown = true;
             this.bubble(cx, cy - 46 + bob, `${waiting} waiting for a home!`);
@@ -321,12 +321,17 @@ export class Renderer {
     ctx.font = `900 30px ${FONT}`;
     ctx.fillText(BIOMES[b].name, 0, -30);
     ctx.font = `800 22px ${FONT}`;
-    if (next) {
-      ctx.fillStyle = can ? '#2f8a3a' : '#8a6a5a';
-      ctx.fillText(can ? `Tap to open · ${fmt(cost)} coins` : `🔒 Opens for ${fmt(cost)} coins`, 0, 12);
+    if (next && can) {
+      ctx.fillStyle = '#2f8a3a';
+      ctx.fillText(`Tap to open · ${fmt(cost)} coins`, 0, 12);
     } else {
-      ctx.fillStyle = '#9a8a8a';
-      ctx.fillText(`🔒 Open the ${BIOMES[b - 1].short} first`, 0, 12);
+      // Painted padlock rather than an emoji, so it looks the same everywhere.
+      const text = next ? `Opens for ${fmt(cost)} coins` : `Open the ${BIOMES[b - 1].short} first`;
+      const color = next ? '#8a6a5a' : '#9a8a8a';
+      const tw = ctx.measureText(text).width;
+      ctx.fillStyle = color;
+      ctx.fillText(text, 13, 12);
+      lockIcon(ctx, 13 - tw / 2 - 15, 12, color);
     }
     ctx.restore();
   }
@@ -334,7 +339,8 @@ export class Renderer {
   plate(x, y, text, color, icon) {
     const ctx = this.ctx;
     ctx.font = `900 19px ${FONT}`;
-    const w = ctx.measureText(text).width + 56;
+    const tw = ctx.measureText(text).width;
+    const w = tw + 62;
     ctx.beginPath();
     ctx.roundRect(x - w / 2, y - 22, w, 44, 22);
     ctx.fillStyle = color;
@@ -345,7 +351,8 @@ export class Renderer {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(`${icon} ${text}`, x, y + 1);
+    ctx.fillText(text, x + 13, y + 1);
+    icon(ctx, x + 13 - tw / 2 - 15, y, '#ffffff');
   }
 
   bubble(x, y, text) {
@@ -571,3 +578,36 @@ export class Renderer {
 }
 
 export { RARITY, ROAD };
+
+// Sign icons are painted, not emoji, so every platform shows the same thing.
+function lockIcon(ctx, x, y, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  ctx.arc(0, -3, 5, Math.PI, 0);
+  ctx.lineTo(5, 1);
+  ctx.moveTo(-5, -3);
+  ctx.lineTo(-5, 1);
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(-8, -1, 16, 12, 3);
+  ctx.fill();
+  ctx.restore();
+}
+
+function hammerIcon(ctx, x, y, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(-0.7);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(-2, -4, 4.5, 16, 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.roundRect(-8, -10, 16, 7, 2.5);
+  ctx.fill();
+  ctx.restore();
+}
