@@ -342,6 +342,8 @@ p { line-height: 1.4; }
 .head h2 { flex: 1; margin: 0; text-align: center; font-size: 24px; }
 .map-card canvas { flex: 1; min-height: 0; width: 100%; object-fit: contain; border-radius: 16px; background: #040e22; }
 .map-lines { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
+/* The next-part hint is a sentence: let it wrap instead of running off the card. */
+.map-lines .pill.area { white-space: normal; text-align: center; justify-content: center; border-radius: 16px; max-width: 100%; }
 
 .tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
 .tab {
