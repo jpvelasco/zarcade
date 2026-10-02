@@ -8,7 +8,7 @@ import { renderMap, scrollToLevel } from './map.js';
 import { paintBubbleIcon, paintOtter, drawCrabBody, drawLauncher, Sprites } from './sprites.js';
 import { OTTER_COUNT, OTTER_NAMES, otterLook } from './otters.js';
 import {
-  loadSave, writeSave, totalStars, recordWin, recordDaily, currentStreak, dailyDone, addOtters, useBooster,
+  SAVE_KEY, loadSave, writeSave, totalStars, recordWin, recordDaily, currentStreak, dailyDone, addOtters, useBooster,
 } from './save.js';
 import { frameMonitor } from './perf.js';
 import { calibrateSteps } from './ai.js';
@@ -895,6 +895,20 @@ addEventListener('orientationchange', () => setTimeout(layout, 120));
 new ResizeObserver(layout).observe($('screen-play'));
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && mode === 'play') pause();
+});
+
+// Another tab saved: take its progress, so this tab never writes a stale
+// copy over it (whichever tab saved last used to win).
+addEventListener('storage', (event) => {
+  if (event.key !== SAVE_KEY && event.key !== null) return;
+  const fresh = loadSave(storage);
+  for (const key of Object.keys(save)) delete save[key];
+  Object.assign(save, fresh);
+  sfx.setMuted(save.muted);
+  if (mode === 'title') toTitle();
+  else if (mode === 'map') toMap(levelId || save.unlocked);
+  else if (mode === 'cove') toCove();
+  else if (game) updateHud(true);
 });
 
 if (params.has('autoplay')) {
