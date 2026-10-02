@@ -40,6 +40,8 @@ export function freshSave() {
   };
 }
 
+const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+
 export function loadSave(storage) {
   const save = freshSave();
   try {
@@ -47,7 +49,14 @@ export function loadSave(storage) {
     if (!raw) return save;
     const data = JSON.parse(raw);
     if (!data || typeof data !== 'object') return save;
-    for (const k of Object.keys(save)) if (data[k] !== undefined) save[k] = typeof save[k] === 'object' && save[k] && !Array.isArray(save[k]) ? { ...save[k], ...data[k] } : data[k];
+    for (const k of Object.keys(save)) {
+      const v = data[k];
+      if (v === undefined) continue;
+      if (isObj(save[k])) { if (isObj(v)) save[k] = { ...save[k], ...v }; } else if (typeof v === typeof save[k]) save[k] = v;
+    }
+    // Drop broken nested parts so one bad value can't stop the game loading.
+    for (const [id, r] of Object.entries(save.slopes)) if (!isObj(r)) delete save.slopes[id];
+    if (!isObj(save.daily.days)) save.daily.days = {};
   } catch { /* corrupt or blocked: start fresh */ }
   return save;
 }

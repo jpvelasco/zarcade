@@ -24,6 +24,20 @@ test('saves round-trip under the namespaced key and survive bad data', () => {
   assert.equal(writeSave(throwing, s), false);
 });
 
+test('broken nested save values fall back to defaults (#76)', () => {
+  const st = memory();
+  st.setItem(SAVE_KEY, JSON.stringify({ slopes: { '1-1': null, '1-2': { done: true, stars: 2, best: null } }, daily: { days: null, streak: 3 }, museum: null, skin: 5, endless: [] }));
+  const s = loadSave(st);
+  assert.deepEqual(Object.keys(s.slopes), ['1-2']);
+  assert.equal(totalStars(s), 2);
+  assert.deepEqual(s.daily.days, {});
+  assert.equal(s.daily.streak, 3);
+  assert.deepEqual(s.museum, {});
+  assert.equal(s.skin, 'snowy');
+  assert.deepEqual(s.endless, freshSave().endless);
+  assert.doesNotThrow(() => { unlockedIds(s); currentStreak(s, '2026-10-02'); });
+});
+
 test('finishing a slope records stars, bests and the museum, and opens the next', () => {
   const s = freshSave();
   assert.equal(slopeUnlocked(s, SLOPES, 0), true);
