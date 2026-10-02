@@ -413,10 +413,11 @@ function updateInsets() {
 }
 
 function saveProgress() {
-  if (!board || !puzzle || board.solved || daily) return;
+  if (!board || !puzzle || board.solved) return;
   if (!board.filledCount() && !board.undoStack.length) return;
+  // The Daily Critter keeps its board too (its id carries the date).
   save.progress[puzzle.id] = { cells: board.serialize(), time: Math.round(board.time), hints: board.hints };
-  save.lastPlayed = puzzle.id;
+  if (!daily) save.lastPlayed = puzzle.id;
   persist();
   progressDirty = false;
 }
@@ -432,7 +433,7 @@ function startPuzzle(p, { dailyKey = null, fresh = false } = {}) {
   sound.unlock();
   puzzle = p;
   daily = dailyKey;
-  const prog = !fresh && !dailyKey ? save.progress[p.id] : null;
+  const prog = !fresh ? save.progress[p.id] : null;
   const cells = prog ? Board.parseCells(prog.cells, p.w * p.h) : null;
   board = new Board(p, { mode: save.settings.mode, cells, time: cells ? prog.time : 0, hints: cells ? prog.hints : 0 });
   tool = 'fill';
@@ -679,6 +680,7 @@ function finishPuzzle() {
     const r = recordDaily(save.daily, daily, seconds);
     save.daily = r.daily;
     if (!save.critters.includes(daily)) save.critters.unshift(daily);
+    delete save.progress[puzzle.id];
     results = { daily: true, extended: r.extended, streak: save.daily.streak, seconds, stars: 3, unlocks: [] };
   } else {
     results = { ...recordSolve(save, puzzle, seconds, board.hints), seconds };
@@ -1026,7 +1028,7 @@ $('btn-hint-ok').addEventListener('click', hideHint);
 $('btn-intro').addEventListener('click', dismissIntro);
 $('btn-resume').addEventListener('click', resume);
 $('btn-restart').addEventListener('click', () => {
-  if (!daily) delete save.progress[puzzle.id];
+  delete save.progress[puzzle.id];
   persist();
   log.event('level.restart', { puzzle: puzzle.id });
   startPuzzle(puzzle, { dailyKey: daily, fresh: true });
