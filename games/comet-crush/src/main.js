@@ -355,7 +355,7 @@ function frame(now) {
   const stepping = mode === 'play' || (isAttract && (mode === 'title' || mode === 'levels'));
   if (world && stepping) {
     const playing = mode === 'play';
-    const controls = playing ? (autopilot ? autopilot.controls(world, dt) : input.read(world.paddle.x)) : attractPilot.controls(world, dt);
+    const controls = playing ? (autopilot ? autopilot.controls(world, dt) : input.read(world.paddle.x, world.paddle.w)) : attractPilot.controls(world, dt);
     accumulator += dt;
     let first = true;
     while (accumulator >= STEP) {
