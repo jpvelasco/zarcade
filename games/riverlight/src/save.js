@@ -13,17 +13,33 @@ export function loadSave(storage) {
     if (!raw) return defaultSave();
     const data = JSON.parse(raw);
     const save = { ...defaultSave(), ...data };
-    for (const key of ['stars', 'best']) if (!save[key] || typeof save[key] !== 'object') save[key] = {};
+    // Keep only well-formed entries: stars 1-3 and best moves >= 0, keyed by real garden ids.
+    save.stars = cleanCounts(save.stars, (v) => (Number.isInteger(v) && v >= 1 && v <= 3 ? v : null));
+    save.best = cleanCounts(save.best, (v) => (Number.isInteger(v) && v >= 0 ? v : null));
     save.unlocked = Math.max(1, Math.min(LEVEL_COUNT, save.unlocked | 0 || 1));
     save.zen = Math.max(0, save.zen | 0);
     save.sound = save.sound !== false;
     save.music = save.music !== false;
-    if (!Array.isArray(save.seen)) save.seen = [];
-    if (!save.current || typeof save.current !== 'object' || !Array.isArray(save.current.rots)) save.current = null;
+    save.seen = Array.isArray(save.seen) ? save.seen.filter((t) => typeof t === 'string') : [];
+    const cur = save.current;
+    if (!cur || typeof cur !== 'object' || !Number.isInteger(cur.id) || cur.id < 1 || cur.id > LEVEL_COUNT ||
+      !Array.isArray(cur.rots) || !cur.rots.every(Number.isInteger)) save.current = null;
+    else save.current = { id: cur.id, rots: cur.rots.slice(), moves: Math.max(0, cur.moves | 0) };
     return save;
   } catch {
     return defaultSave();
   }
+}
+
+function cleanCounts(obj, check) {
+  const out = {};
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return out;
+  for (const [key, value] of Object.entries(obj)) {
+    const id = Number(key);
+    const v = check(value);
+    if (Number.isInteger(id) && id >= 1 && id <= LEVEL_COUNT && v != null) out[id] = v;
+  }
+  return out;
 }
 
 export function writeSave(storage, save) {

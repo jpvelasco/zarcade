@@ -49,3 +49,17 @@ test('broken or blocked storage falls back to a fresh save', () => {
   assert.deepEqual(odd.stars, {});
   assert.equal(odd.current, null);
 });
+
+test('damaged fields are dropped on load instead of crashing Continue (#169)', () => {
+  const load = (data) => loadSave({ getItem: () => JSON.stringify(data) });
+  assert.equal(load({ unlocked: 3, current: { id: 'x', rots: [1, 2] } }).current, null);
+  assert.equal(load({ current: { id: 99, rots: [1] } }).current, null);
+  assert.equal(load({ current: { id: 1, rots: [1.5, null, 0] } }).current, null);
+  assert.deepEqual(load({ current: { id: 2, rots: [1, 0], moves: 'q' } }).current, { id: 2, rots: [1, 0], moves: 0 });
+  const odd = load({ stars: { 1: 'abc', 2: 99, 3: 2, x: 3 }, best: { 1: 'x', 3: 7, 4: -1 }, seen: [null, 'split', 5] });
+  assert.deepEqual(odd.stars, { 3: 2 });
+  assert.deepEqual(odd.best, { 3: 7 });
+  assert.deepEqual(odd.seen, ['split']);
+  assert.equal(totalStars(odd), 2);
+  assert.deepEqual(load({ stars: [3, 3] }).stars, {});
+});
