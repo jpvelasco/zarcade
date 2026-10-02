@@ -1,5 +1,7 @@
 // Keyboard, touch, and gamepad merged into one flight input:
 // { x, y, fire, missile, boost, brake, rollLeft, rollRight } with x/y in -1..1.
+const PAD_PRESSES = [[9, 'Escape'], [3, 'KeyC'], [0, 'PadA'], [12, 'PadUp'], [13, 'PadDown'], [14, 'PadLeft'], [15, 'PadRight']];
+
 export class Input {
   constructor() {
     this.keys = new Set();
@@ -14,7 +16,7 @@ export class Input {
       this.keys.add(e.code);
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
-    window.addEventListener('blur', () => this.keys.clear());
+    window.addEventListener('blur', () => { this.keys.clear(); this.releaseTouch(); });
     window.addEventListener('touchstart', () => { this.touchMode = true; }, { once: true, passive: true });
 
     // Left half of the screen is a floating joystick.
@@ -58,6 +60,28 @@ export class Input {
     }
   }
 
+  // Gamepad buttons as one-shot presses, polled every frame so Start can
+  // resume from pause and A / the d-pad can work the menus and Space Burger.
+  pollPad() {
+    const pad = navigator.getGamepads ? [...navigator.getGamepads()].find(Boolean) : null;
+    if (!pad) return;
+    this.padHeld = this.padHeld || {};
+    for (const [i, code] of PAD_PRESSES) {
+      const on = !!pad.buttons[i]?.pressed;
+      if (on && !this.padHeld[i]) this.pressed.add(code);
+      this.padHeld[i] = on;
+    }
+  }
+
+  // Lets go of every touch control, for when the lift may never arrive.
+  releaseTouch() {
+    this.stick = { x: 0, y: 0, id: null, ox: 0, oy: 0 };
+    const knob = document.getElementById('stick-knob');
+    if (knob) { knob.classList.remove('on'); knob.style.transform = ''; }
+    this.touchButtons.clear();
+    for (const btn of document.querySelectorAll('#touch .tbtn')) btn.classList.remove('active');
+  }
+
   consume(code) {
     const had = this.pressed.has(code);
     this.pressed.delete(code);
@@ -99,10 +123,6 @@ export class Input {
       brake = brake || (pad.buttons[6]?.value || 0) > 0.3;
       rollLeft = rollLeft || !!pad.buttons[4]?.pressed;
       rollRight = rollRight || !!pad.buttons[5]?.pressed;
-      if (pad.buttons[9]?.pressed && !this.padStart) this.pressed.add('Escape');
-      this.padStart = !!pad.buttons[9]?.pressed;
-      if (pad.buttons[3]?.pressed && !this.padY) this.pressed.add('KeyC');
-      this.padY = !!pad.buttons[3]?.pressed;
     }
     return { x: Math.max(-1, Math.min(1, x)), y: Math.max(-1, Math.min(1, y)), fire, missile, boost, brake, rollLeft, rollRight };
   }

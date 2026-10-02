@@ -82,6 +82,18 @@ function warmUp(target) {
 
 const SCREENS = ['screen-title', 'screen-galaxy', 'screen-hangar', 'screen-pause', 'screen-shop', 'screen-results'];
 
+// Gamepad menus: the d-pad moves between the visible screen's buttons and A
+// presses the focused one.
+function padMenus() {
+  const screen = document.querySelector('.overlay:not(.hidden)');
+  if (!screen) return;
+  const items = [...screen.querySelectorAll('button:not(:disabled), a[href]')];
+  const at = items.indexOf(document.activeElement);
+  const step = input.consume('PadDown') || input.consume('PadRight') ? 1 : input.consume('PadUp') || input.consume('PadLeft') ? -1 : 0;
+  if (step && items.length) items[(at + step + items.length) % items.length].focus({ preventScroll: true });
+  if (input.consume('PadA') && at >= 0) items[at].click();
+}
+
 function showScreen(id) {
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   const flying = mode === 'flight' || mode === 'paused' || mode === 'shop';
@@ -224,8 +236,11 @@ function launch(id = selected) {
 }
 
 function pause() {
-  if (mode !== 'flight') return;
+  // Once the boss is down (or the ship is lost) the result is recorded on the
+  // results card, so let that show instead of a pause menu that could skip it.
+  if (mode !== 'flight' || ['arriving', 'finished', 'destroyed'].includes(world.status)) return;
   mode = 'paused';
+  input.clearPressed();
   $('btn-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
   showScreen('screen-pause');
 }
@@ -243,6 +258,7 @@ let shopFreebie = false; // the visit's free Comet Cola is still unclaimed
 
 function openShop() {
   mode = 'shop';
+  input.clearPressed(); // a fire press on A mid-flight mustn't pick an item
   shopFreebie = true;
   renderShop();
   showScreen('screen-shop');
@@ -254,7 +270,7 @@ function renderShop() {
   $('shop-status').textContent = `Hull ${Math.round(p.hull)}/${p.maxHull} · Cannons ${p.cannon}/4 · Missiles ${p.missiles}`;
   const list = $('menu-list');
   list.innerHTML = '';
-  for (const item of MENU) {
+  MENU.forEach((item, index) => {
     const free = shopFreebie && item.id === FREE_ITEM;
     const price = menuPrice(item, world.planet.depth, { freebie: shopFreebie });
     const b = document.createElement('button');
@@ -272,9 +288,11 @@ function renderShop() {
       log.event('shop.purchase', { item: item.id, price, planet: world.planet.id });
       audio.handleEvents([{ type: 'pickup', kind: 'power' }]);
       renderShop();
+      // Keep keyboard and gamepad focus where it was.
+      (list.children[index]?.disabled ? $('btn-leave-shop') : list.children[index])?.focus({ preventScroll: true });
     });
     list.appendChild(b);
-  }
+  });
 }
 
 function leaveShop() {
@@ -288,6 +306,7 @@ function leaveShop() {
 
 function showResults() {
   mode = 'results';
+  input.clearPressed();
   const p = world.player, pl = world.planet;
   const lines = [], buttons = [];
   const starEls = $('res-stars').querySelectorAll('span');
@@ -315,7 +334,7 @@ function showResults() {
     });
     $('res-stars').classList.add('hidden');
     $('res-score').textContent = `${Math.round(Math.min(1, p.s / world.journey.length) * 100)}% of the way to ${pl.name}`;
-    lines.push(['Stardust kept', `✨ ${p.dust}`], ['Tip: roll with Q / E to deflect shots, and upgrade in the hangar']);
+    lines.push(['Stardust kept', `✨ ${p.dust}`], [`Tip: roll with ${input.touchMode ? '🌀' : 'Q / E'} to deflect shots, and upgrade in the hangar`]);
     buttons.push(['Try again', true, () => launch(pl.id)], ['Galaxy map', false, () => toMenu('screen-galaxy')]);
   }
   buttons.push(['Hangar', false, () => toMenu('screen-hangar')]);
@@ -354,6 +373,9 @@ $('btn-mute').addEventListener('click', () => {
   $('btn-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+// Nothing is drawn while the GPU context is gone, so don't fly blind.
+// Three.js restores the scene when the context comes back.
+renderer.domElement.addEventListener('webglcontextlost', () => pause());
 
 function toggleView() {
   save.view = save.view === 'cockpit' ? 'chase' : 'cockpit';
@@ -393,8 +415,14 @@ function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   updatePointer(dt, mode === 'flight');
+  input.pollPad();
 
-  if (input.consume('Escape') || input.consume('KeyP')) { if (mode === 'flight') pause(); else if (mode === 'paused') resume(); }
+  if (input.consume('Escape') || input.consume('KeyP')) {
+    if (mode === 'flight') pause();
+    else if (mode === 'paused') resume();
+    else if (mode === 'shop') leaveShop();
+  }
+  if (mode !== 'flight') padMenus();
   if (input.consume('KeyM')) $('btn-mute').click();
   if (input.consume('KeyC') && mode === 'flight') toggleView();
 
