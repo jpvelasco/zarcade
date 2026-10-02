@@ -710,6 +710,8 @@ function undo() {
   sound.play('select');
   log.event('undo.used', { mode: match.mode, moves: g.history.length });
   persistGame();
+  // Fog pass and play: the device goes back to the other player behind the curtain.
+  if (match.opponent === 'friend' && match.mode === 'fog') { updateHud(); showPass(); return; }
   afterTurn();
 }
 
