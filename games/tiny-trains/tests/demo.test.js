@@ -27,3 +27,19 @@ test('sandbox boards round-trip and send one train per depot', () => {
   assert.equal(simulate(again.board, again.layout, { requireServed: false }).outcome, 'win');
   assert.equal(sandboxBoard({ cells: [1, 2] }).board.cells.length, emptySandbox().cells.length);
 });
+
+test('sandbox undo takes back board changes like a new depot', () => {
+  const { board, layout } = sandboxBoard(null);
+  const ed = new Editor(board, { layout, unlimited: true, undoBoard: true });
+  ed.beginStroke(); ed.drawStroke([19, 20, 21, 22, 23]); ed.endStroke();
+  assert.equal(ed.count, 5);
+  // Put a depot on a track square, the way the sandbox tool does.
+  ed.push();
+  ed.layout.delete(21);
+  board.cells[21] = { k: 'depot', dir: 1, color: 'red', x: 3, y: 2 };
+  assert.ok(ed.undo());
+  assert.equal(board.cells[21].k, 'grass');
+  assert.equal(ed.count, 5);
+  assert.ok(ed.undo());
+  assert.equal(ed.count, 0);
+});

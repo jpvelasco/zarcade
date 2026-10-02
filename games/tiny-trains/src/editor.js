@@ -5,9 +5,12 @@
 import { openEdges, pieceJoining, turn, opposite, DX, DY, switchParts, VARIANTS } from './pieces.js';
 
 export class Editor {
-  constructor(board, { layout = null, unlimited = false } = {}) {
+  constructor(board, { layout = null, unlimited = false, undoBoard = false } = {}) {
     this.board = board;
     this.unlimited = unlimited;
+    // The sandbox also changes the board itself (depots, stations, trees),
+    // so its undo steps remember the cells too.
+    this.undoBoard = undoBoard;
     this.layout = new Map(layout || []);
     this.undoStack = [];
     this.stroke = null;
@@ -34,14 +37,20 @@ export class Editor {
 
   snapshot() { return new Map(this.layout); }
 
+  step(layout) {
+    return { layout, cells: this.undoBoard ? this.board.cells.map((c) => ({ ...c })) : null };
+  }
+
   push() {
-    this.undoStack.push(this.snapshot());
+    this.undoStack.push(this.step(this.snapshot()));
     if (this.undoStack.length > 200) this.undoStack.shift();
   }
 
   undo() {
     if (!this.undoStack.length) return false;
-    this.layout = this.undoStack.pop();
+    const step = this.undoStack.pop();
+    this.layout = step.layout;
+    if (step.cells) step.cells.forEach((c, i) => { this.board.cells[i] = c; });
     return true;
   }
 
@@ -196,7 +205,7 @@ export class Editor {
 
   endStroke() {
     if (this.stroke && this.stroke.changed) {
-      this.undoStack.push(this.stroke.base);
+      this.undoStack.push(this.step(this.stroke.base));
       if (this.undoStack.length > 200) this.undoStack.shift();
     }
     const changed = !!(this.stroke && this.stroke.changed);

@@ -374,7 +374,7 @@ function startPlay({ kind, level }) {
     }
     theme = THEME_ORDER[level.world] || 'meadow';
   }
-  const editor = new Editor(board, { layout, unlimited: kind === 'sandbox' });
+  const editor = new Editor(board, { layout, unlimited: kind === 'sandbox', undoBoard: kind === 'sandbox' });
   play = {
     kind, level, raw, board, editor, theme,
     phase: 'edit', run: null, runs: 0, tool: 'track', paint: 'red',
