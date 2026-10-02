@@ -48,9 +48,12 @@ export function loadSave(storage) {
     const data = JSON.parse(raw);
     if (!data || typeof data !== 'object') return save;
     for (const k of Object.keys(save)) {
-      if (data[k] === undefined) continue;
-      if (typeof save[k] === 'object' && !Array.isArray(save[k])) save[k] = { ...save[k], ...data[k] };
-      else save[k] = data[k];
+      const v = data[k];
+      // Keep the default when a field is missing or the wrong type, so an
+      // odd save can never stop the game from starting.
+      if (v === undefined || v === null || typeof v !== typeof save[k] || Array.isArray(v) !== Array.isArray(save[k])) continue;
+      if (typeof save[k] === 'object' && !Array.isArray(save[k])) save[k] = { ...save[k], ...v };
+      else save[k] = v;
     }
     if (!SKINS.some((s) => s.id === save.skin)) save.skin = 'pretzel';
   } catch {

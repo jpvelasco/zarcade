@@ -31,6 +31,20 @@ test('blocked or corrupt storage falls back to a fresh save', () => {
   assert.deepEqual(loadSave(thrower), defaultSave());
 });
 
+test('a save with missing or wrong-typed fields still loads and plays', () => {
+  const s = memory();
+  s.setItem(SAVE_KEY, JSON.stringify({ stars: null, seenSkins: null, seenBeans: 'cherry', best: { 3: 900 }, pops: 'lots', daily: null }));
+  const save = loadSave(s);
+  assert.deepEqual(save.stars, {});
+  assert.deepEqual(save.seenSkins, ['pretzel']);
+  assert.deepEqual(save.seenBeans, []);
+  assert.equal(save.best[3], 900);
+  assert.equal(save.pops, 0);
+  assert.equal(freshSkins(save).length, 0);
+  save.seenBeans.push('blue');
+  assert.equal(dailyState(save, '2026-10-02').streak, 0);
+});
+
 test('levels unlock one star at a time and bests only go up', () => {
   const save = defaultSave();
   assert.equal(isUnlocked(save, 0), true);
