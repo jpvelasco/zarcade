@@ -78,22 +78,33 @@ export class MissionRun {
   constructor(state) {
     this.state = state;
     this.base = null; // stats snapshot from when the current set started
+    this.cleanPeak = 0; // longest no-bump streak since then
     this.set = missionSet(state.level);
   }
 
   start(stats) {
     this.base = { ...stats };
+    this.cleanPeak = 0;
+  }
+
+  // cleanBest is a running maximum, so after a mid-run level-up the new set
+  // needs the streaks run since then, not the run's old best.
+  track(stats) {
+    const since = (stats.distance || 0) - (this.base.distance || 0);
+    this.cleanPeak = Math.max(this.cleanPeak, Math.min(stats.clean || 0, since));
   }
 
   value(i, stats) {
     const m = this.set[i];
     const k = KINDS[m.kind];
-    const now = (stats[k.stat] || 0) - (this.base[k.stat] || 0);
+    let now = (stats[k.stat] || 0) - (this.base[k.stat] || 0);
+    if (k.stat === 'cleanBest') now = Math.max(now, this.cleanPeak);
     return k.scope === 'total' ? this.state.progress[i] + now : Math.max(this.state.progress[i], now);
   }
 
   // Check missions mid-run. Returns { completed: [mission], levelUp: { level, reward } | null }.
   check(stats) {
+    this.track(stats);
     const completed = [];
     for (let i = 0; i < 3; i++) {
       if (this.state.done[i]) continue;
@@ -110,7 +121,7 @@ export class MissionRun {
       this.state.progress = [0, 0, 0];
       this.state.done = [false, false, false];
       this.set = missionSet(this.state.level);
-      this.base = { ...stats };
+      this.start(stats);
       levelUp = { level: this.state.level, multiplier: multiplierOf(this.state), reward };
     }
     return { completed, levelUp };
@@ -118,6 +129,7 @@ export class MissionRun {
 
   // End of run: fold this run into saved progress.
   commit(stats) {
+    this.track(stats);
     for (let i = 0; i < 3; i++) {
       if (this.state.done[i]) continue;
       this.state.progress[i] = Math.min(this.set[i].target, this.value(i, stats));

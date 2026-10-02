@@ -106,3 +106,26 @@ test('playing a Daily Dash completes the "Play a Daily Dash" mission', () => {
   run2.check(plain.stats);
   assert.equal(other.done[i], false);
 });
+
+test('a no-bump mission after a mid-run level-up counts new streaks', () => {
+  const state = { ...defaultMissions(), level: 4 };
+  const run = new MissionRun(state);
+  const stats = newStats();
+  run.start(stats);
+  // A long clean streak, then everything else in the set finishes.
+  Object.assign(stats, { distance: 800, clean: 800, cleanBest: 800 });
+  for (const m of run.set) if (KINDS[m.kind].stat !== 'cleanBest') stats[KINDS[m.kind].stat] = Math.max(stats[KINDS[m.kind].stat], m.target + 800);
+  const { levelUp } = run.check(stats);
+  assert.ok(levelUp, 'set finished');
+  const i = run.set.findIndex((m) => m.kind === 'cleanRun');
+  assert.ok(i >= 0, 'level 5 also has a no-bump mission');
+  const goal = run.set[i].target;
+  // A bump, then a fresh streak shorter than the old best but past the target.
+  stats.distance += 10;
+  stats.clean = 0;
+  run.check(stats);
+  stats.distance += goal;
+  stats.clean = goal;
+  run.check(stats);
+  assert.equal(state.done[i], true);
+});
