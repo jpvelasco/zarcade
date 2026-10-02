@@ -395,8 +395,24 @@ export class Renderer {
   sx(wx) { return wx * this.view.z + this.view.tx; }
   sy(wy) { return wy * this.view.z + this.view.ty; }
 
+  // Screen x of the row-clue band's right edge and y of the column-clue
+  // band's bottom edge. Zoomed in, the bands pin to the screen and cover
+  // squares, so squares only count where they show.
+  bandEdges() {
+    const L = this.lay;
+    const Cu = L.clue * Math.min(this.S, L.s * 1.45);
+    const clueW = L.rc * Cu;
+    const clueH = L.cc * Cu;
+    return {
+      x: Math.max(this.sx(L.gx) - clueW, 2) + clueW,
+      y: Math.max(this.sy(L.gy) - clueH, this.insets.top) + clueH,
+    };
+  }
+
   cellAt(x, y) {
     if (!this.lay || !this.board) return -1;
+    const edge = this.bandEdges();
+    if (x < edge.x || y < edge.y) return -1;
     const S = this.S;
     const cx = Math.floor((x - this.sx(this.lay.gx)) / S);
     const cy = Math.floor((y - this.sy(this.lay.gy)) / S);
@@ -406,6 +422,9 @@ export class Renderer {
 
   // Nearest cell, clamped to the grid (for drags that leave the board).
   cellNear(x, y) {
+    const edge = this.bandEdges();
+    x = Math.max(x, edge.x);
+    y = Math.max(y, edge.y);
     const S = this.S;
     const cx = Math.max(0, Math.min(this.board.w - 1, Math.floor((x - this.sx(this.lay.gx)) / S)));
     const cy = Math.max(0, Math.min(this.board.h - 1, Math.floor((y - this.sy(this.lay.gy)) / S)));
