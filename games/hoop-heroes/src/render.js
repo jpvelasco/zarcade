@@ -862,10 +862,19 @@ export class Renderer {
     const hop = follow > 0 ? Math.sin(follow * Math.PI) * 10 * k : Math.sin(this.time * 2.2) * 1.5 * k;
     // Over-the-shoulder: Ace stands a little left of the ball and leans in,
     // so the court in front of him (trampolines, spots) stays visible.
-    const shift = (this.W < 520 ? 100 : 120) * k, lean = 0.18;
-    const hcx = bx - shift, baseY = by + (HERO.H - HERO.HOLD_Y) * k - hop + 10 * k;
+    // On narrow portrait phones his body is drawn smaller than the ball in his
+    // paws would suggest, kept on screen and standing on the bottom edge (he
+    // reaches up for the ball), so he doesn't fill the view or hide the
+    // trampoline.
+    const narrow = this.H > this.W && this.W < 520;
+    const kb = narrow ? k * 0.8 : k;
+    const shift = (narrow ? 72 : this.W < 520 ? 100 : 120) * kb, lean = 0.18;
+    const hcx = narrow ? Math.max(bx - shift, 100 * kb) : bx - shift;
+    let stand = by + (HERO.H - HERO.HOLD_Y) * kb + 10 * kb;
+    if (narrow) stand = Math.max(stand, this.H + 8);
+    const baseY = stand - hop;
     const cl = Math.cos(lean), sl = Math.sin(lean);
-    const toScreen = (lx, ly) => [hcx + (lx * cl - ly * sl) * k, baseY + (lx * sl + ly * cl) * k];
+    const toScreen = (lx, ly) => [hcx + (lx * cl - ly * sl) * kb, baseY + (lx * sl + ly * cl) * kb];
     const [shLx, shLy] = toScreen(-HERO.SHOULDER_X, HERO.SHOULDER_Y - HERO.H);
     const [shRx, shRy] = toScreen(HERO.SHOULDER_X, HERO.SHOULDER_Y - HERO.H);
     const reach = follow > 0 ? 1 + follow * 0.4 : 0.25 + pop * 0.75;
@@ -874,16 +883,16 @@ export class Renderer {
     g.save();
     g.translate(hcx, baseY);
     g.rotate(lean);
-    g.drawImage(this.hero, (-HERO.W / 2) * k, -HERO.H * k, HERO.W * k, HERO.H * k);
+    g.drawImage(this.hero, (-HERO.W / 2) * kb, -HERO.H * kb, HERO.W * kb, HERO.H * kb);
     g.restore();
     const shL = shLx, shR = shRx, shY = (shLy + shRy) / 2;
     void shY;
     g.lineCap = 'round';
     g.strokeStyle = '#e9b77a';
-    g.lineWidth = 26 * k;
+    g.lineWidth = 26 * kb;
     g.beginPath();
-    g.moveTo(shL, shLy); g.quadraticCurveTo(shL - 10 * k, (shLy + pawY) / 2, bx - pawDX - 4 * k, pawY + 14 * k);
-    g.moveTo(shR, shRy); g.quadraticCurveTo(shR + 34 * k, (shRy + pawY) / 2 + 10 * k, bx + pawDX + 4 * k, pawY + 14 * k);
+    g.moveTo(shL, shLy); g.quadraticCurveTo(shL - 10 * kb, (shLy + pawY) / 2, bx - pawDX - 4 * k, pawY + 14 * k);
+    g.moveTo(shR, shRy); g.quadraticCurveTo(shR + 34 * kb, (shRy + pawY) / 2 + 10 * kb, bx + pawDX + 4 * k, pawY + 14 * k);
     g.stroke();
     // Wristbands in the jersey trim.
     g.strokeStyle = this.jersey.trim;
