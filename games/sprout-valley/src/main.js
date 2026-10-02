@@ -64,7 +64,10 @@ function showScreen(id) {
   $('touch').classList.toggle('hidden', !(coarse && mode === 'play' && !isDemo));
   input.enabled = mode === 'play' && !isDemo;
   if (id) {
-    const first = $(id).querySelector('.btn.primary:not([disabled]), .btn:not([disabled])');
+    // The primary button if it's showing, else the first one showing (a hidden
+    // Continue can't take focus, which left gamepad A pressing nothing).
+    const shown = (sel) => [...$(id).querySelectorAll(sel)].find((el) => !el.closest('.hidden'));
+    const first = shown('.btn.primary:not([disabled])') || shown('.btn:not([disabled])');
     first?.focus({ preventScroll: true });
   } else if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   sound.setLevel(mode === 'play' ? 0.6 : mode === 'paused' ? 0.25 : 0.4);
