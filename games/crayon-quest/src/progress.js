@@ -33,8 +33,28 @@ export function normalize(data) {
   for (const k of ['cards', 'monsters', 'stickers']) if (!Array.isArray(out.album[k])) out.album[k] = [];
   if (!Array.isArray(out.history)) out.history = [];
   if (!Array.isArray(out.unlocked) || !out.unlocked.includes('kid')) out.unlocked = ['kid', ...(Array.isArray(out.unlocked) ? out.unlocked : [])];
-  if (out.current && (typeof out.current !== 'object' || out.current.v !== 1 || out.current.phase === 'over')) out.current = null;
+  if (out.current && (out.current.phase === 'over' || !plausibleRun(out.current))) out.current = null;
   return out;
+}
+
+const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+const ROOM = { reward: 'reward', shop: 'shop', event: 'event', rest: 'rest', treasure: 'treasure' };
+
+// A saved run has the shape the game needs to resume it. A damaged or
+// half-written one is dropped rather than crashing the page.
+export function plausibleRun(r) {
+  if (!isObj(r) || r.v !== 1) return false;
+  for (const k of ['deck', 'stickers', 'visited', 'met', 'seenCards', 'seenStickers']) if (!Array.isArray(r[k])) return false;
+  if (!isObj(r.rng) || !Number.isFinite(r.rng.s) || !isObj(r.map) || !isObj(r.map.nodes) || !isObj(r.stats)) return false;
+  if (!Number.isFinite(r.hp) || !Number.isFinite(r.maxHp) || !Number.isFinite(r.gold) || !Number.isInteger(r.floor)) return false;
+  if (r.phase === 'battle') {
+    const b = r.battle;
+    if (!isObj(b) || !isObj(b.player) || !isObj(b.player.magic)) return false;
+    for (const k of ['enemies', 'draw', 'hand', 'discard', 'poofed']) if (!Array.isArray(b[k])) return false;
+  } else if (ROOM[r.phase]) {
+    if (!isObj(r[ROOM[r.phase]])) return false;
+  } else if (r.phase !== 'map') return false;
+  return true;
 }
 
 export function loadProfile(storage) {

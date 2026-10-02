@@ -33,6 +33,24 @@ test('normalize fills in missing fields and drops finished runs', () => {
   assert.ok(p.unlocked.includes('kid'));
 });
 
+test('normalize keeps a real saved run and drops a damaged one', () => {
+  const run = newRun({ seed: 3 });
+  const kept = normalize(JSON.parse(JSON.stringify({ v: 1, current: run })));
+  assert.equal(kept.current.seed, 3);
+  for (const current of [
+    { v: 1, phase: 'map' },
+    { v: 1, phase: 'battle' },
+    { ...run, phase: 'battle', battle: null },
+    { ...run, deck: null },
+    { ...run, phase: 'shop', shop: null },
+    { ...run, phase: 'mystery' },
+    [1, 2],
+    'run',
+  ]) {
+    assert.equal(normalize({ v: 1, current }).current, null, JSON.stringify(current).slice(0, 60));
+  }
+});
+
 test('heroes unlock generously', () => {
   const p = defaultProfile();
   assert.deepEqual(checkUnlocks(p), []);
