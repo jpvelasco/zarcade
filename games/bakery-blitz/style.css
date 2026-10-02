@@ -570,7 +570,7 @@ h3.section { margin: 16px 0 8px; font-size: 1rem; color: var(--crust); text-alig
   .hud-side { gap: 5px; }
   .hud-side:first-child { flex: 1; min-width: 0; }
   .hud-day b { font-size: 0.86rem; }
-  .icon-btn { width: 36px; height: 36px; border-radius: 11px; font-size: 1rem; }
+  .icon-btn { width: 44px; height: 44px; border-radius: 12px; font-size: 1.05rem; }
   .coins { padding: 4px 8px; font-size: 0.86rem; }
   .coin-dot { width: 13px; height: 13px; }
   .combo-jar { padding: 4px 7px; font-size: 0.8rem; }

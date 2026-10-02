@@ -78,7 +78,8 @@ export class ShopView {
     let winH;
     if (portrait) {
       const body = Math.min(seatW * 0.95, h * 0.2);
-      const front = body * 2.05;
+      // Tall enough for a bubble of big, tappable order chips.
+      const front = body * 2.6;
       winH = Math.max(h * 0.09, Math.min(h * 0.17, front * 0.5));
       seatH = Math.min(h * 0.5, front + winH + pad);
     } else {
@@ -165,10 +166,13 @@ export class ShopView {
     const metrics = { box, customer, feet, bodySize, headTop, heartSize, heartY, chips: [], bubble: null };
     if (!customer || customer.state !== 'seated') return metrics;
     const count = customer.tickets.length;
-    const size = Math.min(box.w * 0.46, box.h * 0.17, 44);
+    const most = Math.min(box.h * (this.L.portrait ? 0.17 : 0.21), 44);
+    // The biggest chip that fits `n` across the seat.
+    const across = (n) => (box.w * 0.94) / (n + (n - 1) * 0.14);
+    // Chips that would be cramped in one row wrap, and then grow to fill it.
+    const perRow = count === 1 || across(count) >= most * 0.8 ? count : Math.ceil(count / 2);
+    const size = Math.min(most, across(perRow));
     const gap = size * 0.14;
-    // Four chips never fit across a phone-width seat, so they wrap.
-    const perRow = count * size + (count - 1) * gap <= box.w * 0.94 ? count : Math.ceil(count / 2);
     const rows = Math.ceil(count / perRow);
     const bubbleH = rows * size + (rows - 1) * gap + size * 0.44;
     const bubbleW = perRow * size + (perRow - 1) * gap + size * 0.44;
@@ -198,7 +202,9 @@ export class ShopView {
     if (!this.shift || !this.L) return null;
     for (let i = 0; i < this.shift.seats.length; i++) {
       for (const chip of this.chipBoxes(i)) {
-        if (x >= chip.x - 7 && x <= chip.x + chip.w + 7 && y >= chip.y - 7 && y <= chip.y + chip.h + 7) {
+        // Small chips get a wider touch margin, so every chip is a 48 px target.
+        const m = Math.max(7, (48 - chip.w) / 2);
+        if (x >= chip.x - m && x <= chip.x + chip.w + m && y >= chip.y - m && y <= chip.y + chip.h + m) {
           return { kind: 'ticket', id: chip.ticket.id, state: chip.ticket.state };
         }
       }
