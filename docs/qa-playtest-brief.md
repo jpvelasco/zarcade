@@ -67,6 +67,10 @@ Commit per game, only that game's folder:
 `git commit -m "<Title>: <what changed>" -- games/<slug>`. Never `git add -A`,
 never touch other folders, the arcade, shared `telemetry.js`/`fullscreen.js`
 copies, or root files. If `.git/index.lock` exists, wait and retry.
+`git commit -- <path>` skips untracked files, so `git add games/<slug>` new
+files first. Never use `git stash`, `git checkout -- .` or `git reset`: the
+working tree is shared with other agents. Run the game's tests before each
+commit.
 
 ## Report
 
