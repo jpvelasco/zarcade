@@ -148,6 +148,9 @@ export class Session {
       this.helpFill();
       return { kind: 'step', cells: h.missing, lines: stepLines(k, h.step, clues), counted: true };
     }
+    // A full grid still needs the crime clue to say which row is the culprit.
+    const crimeHidden = k.clues.some((c, i) => c.t === 'crime' && !this.found.has(i));
+    if (h.kind === 'done' && crimeHidden) return this.findHint();
     if (h.kind === 'done') return { kind: 'done', cells: [], lines: ['Your grid is all filled in!', 'Tap “Solve it!” to catch the culprit.'], counted: false };
     return this.findHint() || { kind: 'done', cells: [], lines: ['You have every clue!', 'Read them again, one at a time.'], counted: false };
   }

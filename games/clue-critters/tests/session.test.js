@@ -129,6 +129,22 @@ test('hints count, fix wrong marks and walk to a full grid', () => {
   for (const x of [w]) for (const line of x.lines) assert.ok(line.length > 0);
 });
 
+test('a full grid with the crime clue still hidden points at the crime clue (#95)', () => {
+  for (const k of [STORY_CASES[0], generateCase(7, 2), generateCase(11, 3)]) {
+    const s = new Session(k);
+    const crime = k.clues.findIndex((c) => c.t === 'crime');
+    k.clues.forEach((c, i) => { if (i !== crime) s.found.add(i); });
+    for (const cat of ['place', 'thing']) for (let r = 0; r < k.n; r++) s.set(cat, r, k.solution[cat][r], YES);
+    assert.ok(s.gridDone);
+    const h = s.hint();
+    assert.equal(h.kind, 'more', k.id);
+    assert.equal(h.counted, false, 'the nudge is free');
+    assert.deepEqual(h.target, { place: k.clues[crime].src.place, spot: k.clues[crime].src.spot });
+    s.found.add(crime);
+    assert.equal(s.hint().kind, 'done');
+  }
+});
+
 test('a wrong accusation is gentle and counted', () => {
   const k = STORY_CASES[0];
   const s = new Session(k);

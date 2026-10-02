@@ -290,12 +290,13 @@ export function gridComplete(grid, n, world) {
 export function nextHint(grid, n, world, foundClues) {
   const wrong = wrongMarks(grid, n, world);
   if (wrong.length) return { kind: 'wrong', cell: wrong[0] };
+  // Every ✓ in place is a finished grid: blank boxes left over need no hint.
+  if (gridComplete(grid, n, world)) return { kind: 'done' };
   const result = deduce(n, foundClues);
   for (const step of result.steps) {
     const missing = step.facts.filter((f) => grid[f.cat][f.s][f.v] !== (f.mark === 'yes' ? YES : NO));
     if (missing.length) return { kind: 'step', step, missing };
   }
-  if (gridComplete(grid, n, world)) return { kind: 'done' };
   return { kind: 'more' };
 }
 
