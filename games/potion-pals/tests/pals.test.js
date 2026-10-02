@@ -9,7 +9,7 @@ import { PALS } from '../src/recipes.js';
 const owned = (ids, rooms = 1) => ids.map((id, i) => ({ id, room: i % rooms }));
 
 test('the layout fits a laptop and a phone', () => {
-  for (const [W, H] of [[1366, 700], [1024, 560], [390, 620], [820, 1024], [360, 480]]) {
+  for (const [W, H] of [[1366, 700], [1024, 560], [390, 620], [820, 1024], [360, 480], [844, 220], [932, 260]]) {
     const lay = layout(W, H);
     assert.equal(lay.rooms.length, ROOMS.length);
     for (const r of lay.rooms) {
@@ -26,7 +26,7 @@ test('the layout fits a laptop and a phone', () => {
 });
 
 test('rooms never overlap', () => {
-  for (const [W, H] of [[1366, 700], [390, 620]]) {
+  for (const [W, H] of [[1366, 700], [390, 620], [844, 220]]) {
     const { rooms } = layout(W, H);
     for (let i = 0; i < rooms.length; i++) {
       for (let j = i + 1; j < rooms.length; j++) {

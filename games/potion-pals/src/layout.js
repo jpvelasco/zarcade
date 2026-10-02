@@ -8,18 +8,22 @@
 
 export const ROOM_ORDER_WIDE = [[1, 1], [0, 1], [2, 1], [1, 0], [0, 0], [2, 0]];
 export const ROOM_ORDER_TALL = [[0, 2], [1, 2], [0, 1], [1, 1], [0, 0], [1, 0]];
+// A phone held sideways leaves a short, wide scene: one row of six rooms,
+// filling outwards from the trunk.
+export const ROOM_ORDER_STRIP = [[2, 0], [3, 0], [1, 0], [4, 0], [0, 0], [5, 0]];
 
 export function layout(W, H) {
   const portrait = H > W * 1.05;
+  const strip = !portrait && W > H * 2.6;
   const pad = Math.round(Math.max(7, Math.min(18, W * 0.02)));
   // The hearth takes the bottom strip; the rooms share what is left above it.
-  const hearthH = Math.round(Math.max(140, Math.min(300, H * 0.4)));
+  const hearthH = strip ? Math.round(H * 0.5) : Math.round(Math.max(140, Math.min(300, H * 0.4)));
   const roomsTop = Math.round(Math.min(66, H * 0.085));
   const roomsBottom = H - hearthH;
   const roomsH = Math.max(80, roomsBottom - roomsTop - pad);
-  const cols = portrait ? 2 : 3;
-  const rows = portrait ? 3 : 2;
-  const order = portrait ? ROOM_ORDER_TALL : ROOM_ORDER_WIDE;
+  const cols = portrait ? 2 : strip ? 6 : 3;
+  const rows = portrait ? 3 : strip ? 1 : 2;
+  const order = portrait ? ROOM_ORDER_TALL : strip ? ROOM_ORDER_STRIP : ROOM_ORDER_WIDE;
 
   const gridW = W - pad * 2;
   const cellW = Math.floor((gridW - pad * (cols - 1)) / cols);
@@ -44,7 +48,7 @@ export function layout(W, H) {
   const r = Math.round(Math.min(hearth.h * 0.4, W * 0.2, 104));
   const cauldron = { x: Math.round(W / 2), y: Math.round(hearth.y + hearth.h * 0.5), r };
 
-  return { W, H, portrait, pad, rooms, hearth, cauldron, trunkW: Math.round(Math.max(44, Math.min(104, W * 0.085))) };
+  return { W, H, portrait, strip, pad, rooms, hearth, cauldron, trunkW: Math.round(Math.max(44, Math.min(104, W * 0.085))) };
 }
 
 // The three slots hovering just over the cauldron's rim, left to right.
