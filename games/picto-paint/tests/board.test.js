@@ -125,4 +125,6 @@ test('boards save and load as short strings', () => {
   const again = new Board(C, { cells: Board.parseCells(s, 9) });
   assert.deepEqual(Array.from(again.cells), Array.from(b.cells));
   assert.equal(Board.parseCells('abc', 9), null);
+  assert.equal(Board.parseCells('ZZZ......', 9), null, 'characters below a are not paints');
+  assert.equal(Board.parseCells('a.x.-....', 9), null);
 });
