@@ -448,6 +448,7 @@ figcaption { font-size: 13px; font-weight: 900; text-align: left; margin-bottom:
 @keyframes hit { 0% { background: #9ff0b0; } 100% { background: var(--paper); } }
 @keyframes miss { 0%, 60% { background: #ff9fae; } 100% { background: var(--paper); } }
 .kbd:not(.show-punct) .punct-only { display: none; }
+.kbd:not(.show-shift) .shift-only { display: none; }
 .kbd:not(.show-semi) .semi-only { display: none; }
 .kbd.fingers .kb-key[data-finger="lp"] { background: color-mix(in srgb, var(--f-lp) 45%, var(--paper)); }
 .kbd.fingers .kb-key[data-finger="lr"] { background: color-mix(in srgb, var(--f-lr) 45%, var(--paper)); }
@@ -499,6 +500,16 @@ body:not(.touch) .kb-key { cursor: default; }
 @media (max-height: 560px) {
   .title-knight { display: none; }
   .tagline { display: none; }
+}
+/* Landscape phones: a flatter keyboard so the road stays in view. The keys
+   are wide here, so shorter ones are still easy to hit. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .kbd { padding-top: 4px; padding-bottom: max(4px, env(safe-area-inset-bottom)); gap: 3px; border-top-width: 3px; }
+  .kb-row { gap: 4px; }
+  .kb-key { height: clamp(28px, 8.4vh, 40px); border-radius: 9px; font-size: clamp(16px, 5vh, 20px); box-shadow: 0 3px 0 var(--edge); }
+  .kb-space, .kb-spin { font-size: 14px; }
+  .hand { display: none; }
+  .kb-finger { font-size: 14px; text-align: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

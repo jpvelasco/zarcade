@@ -212,8 +212,9 @@ function startStage(st, { retry = false } = {}) {
   renderer.reset();
   sound.setRegion(st.region);
   keyboard.configure({
-    punct: st.tier === 4,
-    semicolon: !!st.keys?.includes(';'),
+    punct: st.tier === 4 && !st.words.capitals,
+    shift: !!st.words.capitals,
+    semicolon: !!st.keys?.includes(';') && !st.words.capitals,
     guide: !!st.lesson,
   });
   keyboard.setSpecialReady(false);
@@ -476,11 +477,14 @@ $('btn-retry').addEventListener('click', () => startStage(stage, { retry: true }
 $('btn-fail-map').addEventListener('click', () => openMenu(stage?.lesson ? 'lessons' : 'map'));
 
 let resizeQueued = false;
-addEventListener('resize', () => {
+const queueResize = () => {
   if (resizeQueued) return;
   resizeQueued = true;
   requestAnimationFrame(() => { resizeQueued = false; renderer.resize(); });
-});
+};
+addEventListener('resize', queueResize);
+// The keyboard dock changes the road's height (guide, punctuation row).
+if (window.ResizeObserver) new ResizeObserver(queueResize).observe($('stage'));
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 

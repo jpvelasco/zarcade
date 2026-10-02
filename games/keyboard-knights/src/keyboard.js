@@ -38,12 +38,12 @@ export class ScreenKeyboard {
     rows.forEach((row, ri) => {
       const el = document.createElement('div');
       el.className = `kb-row row-${ri}`;
-      if (ri === 2) el.appendChild(this.makeKey('shift', '⇧', 'kb-shift wide punct-only', 'left'));
+      if (ri === 2) el.appendChild(this.makeKey('shift', '⇧', 'kb-shift wide shift-only', 'left'));
       for (const k of row) {
         const extra = k === ';' ? 'semi-only' : /[a-z]/.test(k) ? '' : 'punct-only';
         el.appendChild(this.makeKey(k, k, extra));
       }
-      if (ri === 2) el.appendChild(this.makeKey('shift', '⇧', 'kb-shift wide punct-only', 'right'));
+      if (ri === 2) el.appendChild(this.makeKey('shift', '⇧', 'kb-shift wide shift-only', 'right'));
       if (ri === 3) el.classList.add('punct-only');
       r.appendChild(el);
     });
@@ -96,9 +96,11 @@ export class ScreenKeyboard {
     for (const [k, list] of this.keys) if (/[a-z]/.test(k)) for (const b of list) b.textContent = on ? k.toUpperCase() : k;
   }
 
-  // punct: show punctuation and Shift; semicolon: show ;; guide: lesson hints.
-  configure({ punct = false, semicolon = false, guide = false, fingers = false } = {}) {
+  // punct: show punctuation and Shift; shift: just Shift (capitals);
+  // semicolon: show ;; guide: lesson hints.
+  configure({ punct = false, shift = false, semicolon = false, guide = false, fingers = false } = {}) {
     this.root.classList.toggle('show-punct', punct);
+    this.root.classList.toggle('show-shift', shift || punct);
     this.root.classList.toggle('show-semi', semicolon || punct);
     this.root.classList.toggle('guide', guide);
     this.root.classList.toggle('fingers', fingers || guide);

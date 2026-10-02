@@ -1,6 +1,9 @@
 // Canvas renderer: the storybook road, the knight, monsters with word tags,
 // confetti and the HUD. Reads battle state and never changes it.
 import { REACH_X, VIEW_X, METER_MAX, HEARTS } from './battle.js';
+
+// The DOM mute and pause buttons sit in this top-right corner (CSS px).
+const HUD_CORNER = { w: 120, h: 66 };
 import { REGIONS } from './stages.js';
 import { mulberry32 } from './rng.js';
 import { monsterSprite, knightSprite, swordSprite, petSprite, glowSprite } from './sprites.js';
@@ -52,7 +55,8 @@ export class Renderer {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     this.dpr = dpr;
     this.W = Math.max(200, Math.round(rect.width));
-    this.H = Math.max(200, Math.round(rect.height));
+    // Never taller than the stage, or the lanes would hide behind the keyboard.
+    this.H = Math.max(120, Math.round(rect.height));
     this.canvas.width = Math.round(this.W * dpr);
     this.canvas.height = Math.round(this.H * dpr);
     this.canvas.style.width = `${this.W}px`;
@@ -590,6 +594,8 @@ export class Renderer {
         y = hit.y - 4;
       }
       y = Math.max(h + 4, y);
+      // Keep clear of the mute and pause buttons in the top-right corner.
+      if (y - h - (m.boss ? 18 : 0) < HUD_CORNER.h && cx + w / 2 > this.W - HUD_CORNER.w) cx = Math.max(w / 2 + 6, this.W - HUD_CORNER.w - w / 2);
       placed.push({ x: cx - w / 2, y: y - h, w, h });
       const x0 = cx - w / 2;
       ctx.save();
