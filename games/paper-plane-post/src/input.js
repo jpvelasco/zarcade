@@ -8,6 +8,19 @@ const PAUSE = new Set(['Escape', 'KeyP']);
 // Anything the player might actually be clicking instead of flying.
 const UI = 'button, a, input, select, .overlay, .card';
 
+/**
+ * What is really under a press. Chrome's touch adjustment hands a touch that
+ * lands *near* a button to the button, so a thumb held just beside ♪ or ❚❚
+ * would toggle it instead of diving. Ask the page what is under the finger.
+ */
+export function holdTarget(event, doc = globalThis.document) {
+  const target = event.target;
+  if (event.pointerType !== 'touch' || !doc?.elementFromPoint || !target?.closest?.(UI)) return target;
+  const under = doc.elementFromPoint(event.clientX, event.clientY);
+  if (!under || under.closest?.(UI)) return target;
+  return under;
+}
+
 export class Input {
   constructor() {
     this.keys = new Set();
@@ -19,6 +32,7 @@ export class Input {
     this.wasDown = false;
     this.pressed = false;
     this.released = false;
+    this.swallow = null;
 
     window.addEventListener('keydown', (event) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -42,7 +56,10 @@ export class Input {
   /** Make `element` the hold area: a press anywhere on it dives. */
   bindHold(element) {
     const down = (event) => {
-      if (event.target.closest && event.target.closest(UI)) return;
+      this.swallow = null;
+      const target = holdTarget(event);
+      if (target !== event.target) this.swallow = event.target.closest(UI);
+      if (target.closest && target.closest(UI)) return;
       if (event.pointerType === 'touch') this.touch = true;
       else this.pointer = true;
       element.setPointerCapture?.(event.pointerId);
@@ -52,6 +69,16 @@ export class Input {
       this.pointer = false;
       this.touch = false;
     };
+    // A press that was really on open sky must not also click the button that
+    // touch adjustment handed it to.
+    window.addEventListener('click', (event) => {
+      const swallow = this.swallow;
+      this.swallow = null;
+      if (swallow && event.target.closest?.(UI) === swallow) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }, true);
     element.addEventListener('pointerdown', down);
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
