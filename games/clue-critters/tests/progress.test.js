@@ -97,3 +97,11 @@ test('saves round-trip and survive bad data', () => {
   assert.equal(loadSave(null).v, 1);
   assert.ok(clearSave(storage));
 });
+
+test('damaged case-file entries are dropped on load (#96)', () => {
+  const good = { id: 'pie', kind: 'story', title: 'The Prize Pie', culprit: 'bunny', reason: 'Yum!', stars: 3, day: '', storyIndex: 0 };
+  const out = normalize({ v: 1, book: [null, { id: 3 }, 'x', { ...good, culprit: 'dragon' }, good, { ...good, stars: 9 }, { ...good, stars: -2 }] });
+  assert.equal(out.book.length, 3);
+  assert.deepEqual(out.book.map((e) => e.stars), [3, 3, 0]);
+  assert.ok(out.book.every((e) => e.culprit === 'bunny'));
+});

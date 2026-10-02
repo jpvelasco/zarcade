@@ -1,5 +1,6 @@
 // Saves, stars, ranks, unlocks and the daily streak. DOM-free.
 import { dayGap } from './rng.js';
+import { CRITTERS } from './data.js';
 
 export const STORAGE_KEY = 'clue-critters.v1';
 
@@ -75,7 +76,11 @@ export function normalize(raw) {
   out.settings = { ...base.settings, ...(raw.settings || {}) };
   out.story = raw.story && typeof raw.story === 'object' ? raw.story : {};
   out.friends = raw.friends && typeof raw.friends === 'object' ? raw.friends : {};
-  out.book = Array.isArray(raw.book) ? raw.book.slice(-200) : [];
+  // Case files are drawn straight from these entries, so drop damaged ones.
+  const entryOk = (e) => e && typeof e === 'object' && CRITTERS.some((c) => c.id === e.culprit);
+  out.book = Array.isArray(raw.book)
+    ? raw.book.filter(entryOk).slice(-200).map((e) => ({ ...e, stars: Math.max(0, Math.min(3, e.stars | 0)) }))
+    : [];
   out.seenUnlocks = Array.isArray(raw.seenUnlocks) ? raw.seenUnlocks : base.seenUnlocks;
   return out;
 }
