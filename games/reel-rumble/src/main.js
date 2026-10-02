@@ -9,7 +9,7 @@ import { Renderer } from './render.js';
 import { Sound } from './audio.js';
 import { Input } from './input.js';
 import { drawFish, bakeFish } from './fishart.js';
-import { loadSave, writeSave, recordCatch, markSeen } from './progress.js';
+import { SAVE_KEY, loadSave, writeSave, recordCatch, markSeen } from './progress.js';
 import { QUESTS, openQuests, questProgress, settleQuests, TOURNAMENTS, TOURNAMENT_BY_ID, TOURNAMENT_FISH, tournamentOpen, newTournament, tournamentCount, tournamentResult, awardMedal } from './quests.js';
 import { frameMonitor } from './perf.js';
 import { hashSeed } from './rng.js';
@@ -57,7 +57,22 @@ let steerTouch = 0;
 
 const SCREENS = ['screen-title', 'screen-map', 'screen-shop', 'screen-book', 'screen-gill', 'screen-bait', 'screen-pause', 'screen-catch', 'screen-tourney'];
 
+// Result cards ignore clicks for a moment after they appear, and ignore a
+// Space or Enter that was already held down (reeling) when they appeared, so
+// neither mashing nor letting go of the reel skips them.
+const RESULT_SCREENS = new Set(['screen-catch', 'screen-tourney']);
+const RESULT_GUARD_MS = 700;
+let shownAt = 0;
+let shownId = null;
+let keyDownAt = 0;
+let padClick = false;
+
 function showScreen(id) {
+  shownAt = performance.now();
+  shownId = id;
+  // Gamepad presses from fishing (A to cast, hook and reel) must not act on
+  // the screen that just opened.
+  input.padEdges.clear();
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   const fishing = mode === 'fish';
   $('hud').classList.toggle('hidden', !(fishing || mode === 'catch'));
@@ -167,6 +182,9 @@ function startFishing(waterId = save.water, { force = false } = {}) {
 function resumeFishing() {
   if (!trip) return startFishing();
   if (WATER[save.water] !== trip.water) return startFishing(save.water);
+  // Back from a menu opened behind the catch card: finish with that fish
+  // instead of fishing on with the line stuck on "landed".
+  if (trip.state === 'landed' && landTimer <= 0) return keepFishing();
   mode = 'fish';
   menuFrom = 'fish';
   renderer.setScene(trip);
@@ -203,7 +221,7 @@ function onEvents(events) {
         log.event('fish.hooked', { fish: trip.fight?.fish.id, quality: e.quality });
         break;
       case 'special': toast(`✨ ${SPECIALS[e.special].tip}`, true); break;
-      case 'landed': landTimer = 1.0; break;
+      case 'landed': landTimer = 1.0; bankCatch(); break;
       case 'lost': {
         save.stats.lost++;
         persist();
@@ -222,17 +240,28 @@ function onEvents(events) {
   }
 }
 
-function showCatch() {
+// Record the landed fish the moment it lands, so pausing and leaving before
+// the catch card shows can't lose it. Once per fish.
+let banked = null;
+function bankCatch() {
   const r = trip.result;
+  if (banked && banked.r === r) return banked;
   const { period, weather } = trip;
   const rec = recordCatch(save, r);
   const done = settleQuests(save, { result: r, water: save.water, period, weather });
   persist();
-  mode = 'catch';
   log.event('level.complete', {
     water: save.water, fish: r.fish.id, rarity: r.fish.rarity, kg: r.kg, cm: r.cm, coins: r.coins,
     'fight.s': Math.round(r.time), quality: r.quality, 'species.new': rec.newSpecies, species: speciesCaught(save),
   });
+  banked = { r, rec, done };
+  if (tourney) countTourney(r);
+  return banked;
+}
+
+function showCatch() {
+  const { r, rec, done } = bankCatch();
+  mode = 'catch';
   const badges = [];
   if (rec.newSpecies) badges.push('<span class="badge gold">NEW FISH!</span>');
   if (rec.newRecord) badges.push('<span class="badge teal">NEW RECORD!</span>');
@@ -258,7 +287,6 @@ function showCatch() {
   if (rec.newSpecies) sound.newSpecies(); else sound.coin();
   bumpCoins();
   for (const q of done) questDone(q);
-  if (tourney) countTourney(r);
 }
 
 function shadeText(hex) {
@@ -728,6 +756,40 @@ for (const [id, d] of [['steer-left', -1], ['steer-right', 1]]) {
 }
 addEventListener('resize', () => renderer.resize());
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+addEventListener('keydown', (e) => {
+  if (!e.repeat && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter')) keyDownAt = performance.now();
+}, { capture: true });
+addEventListener('click', (e) => {
+  if (!RESULT_SCREENS.has(shownId)) return;
+  const early = performance.now() - shownAt < RESULT_GUARD_MS;
+  const heldKey = e.detail === 0 && !padClick && keyDownAt < shownAt;
+  if (early || heldKey) { e.preventDefault(); e.stopPropagation(); }
+}, { capture: true });
+
+// Another tab saved: take its coins, tackle, book and quests, so this tab
+// never writes a stale copy over them. This tab keeps fishing where it is.
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  const water = save.water;
+  const fresh = loadSave(storage);
+  for (const k of Object.keys(save)) delete save[k];
+  Object.assign(save, fresh, { water });
+  sound.setMuted(save.muted);
+  sound.setMusic(save.music);
+  updateSoundButtons();
+  if (trip) {
+    if (trip.state === 'ready') trip.setEquip(save.equip);
+    else pendingEquip = true;
+  }
+  updateHud();
+  const open = visibleScreen()?.id;
+  if (open === 'screen-shop') renderShop();
+  else if (open === 'screen-book') renderBook();
+  else if (open === 'screen-gill') renderGill();
+  else if (open === 'screen-map') renderMap();
+  else if (open === 'screen-bait') renderBait();
+  else if (open === 'screen-title') $('title-stats').innerHTML = speciesCaught(save) ? `📖 ${speciesCaught(save)} / ${FISH.length} fish · ${COIN} ${save.coins.toLocaleString('en-US')}` : '';
+});
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 addEventListener('keydown', () => sound.unlock(), { once: true });
 
@@ -811,7 +873,7 @@ function frame(now) {
   if (mode !== 'fish') {
     if (input.consumePad('up') || input.consumePad('left')) moveFocus(-1);
     if (input.consumePad('down') || input.consumePad('right')) moveFocus(1);
-    if (input.consumePad('a')) document.activeElement?.click?.();
+    if (input.consumePad('a')) { padClick = true; document.activeElement?.click?.(); padClick = false; }
     if (input.consumePad('b')) back();
   }
 
