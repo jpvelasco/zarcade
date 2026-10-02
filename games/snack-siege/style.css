@@ -448,6 +448,16 @@ code { background: rgba(74, 29, 46, 0.08); padding: 2px 6px; border-radius: 6px;
 }
 @media (max-height: 520px) {
   .card { padding: 12px 16px; }
+  h2 { font-size: 24px; }
+  .row, .col { gap: 7px; margin-top: 8px; }
+  .btn { min-height: 44px; padding: 6px 14px; }
+  .card p { margin: 4px 0; }
+  .stars { margin: 0; }
+  .stars span:nth-child(2) { font-size: 46px; transform: translateY(-4px); }
+  .res-lines { grid-template-columns: 1fr 1fr; column-gap: 22px; max-width: 420px; margin-top: 2px; }
+  .res-lines .tip { grid-column: 1 / -1; }
+  .big-score, .best-line { display: inline-block; vertical-align: middle; margin: 0 6px; }
+  .unlock { padding: 4px 10px; margin: 6px 0 0; }
   .logo .l1, .logo .l2 { font-size: 44px; }
   .tagline, .controls { display: none; }
   .btn.big { min-height: 50px; }
