@@ -27,13 +27,19 @@ export class Input {
       this.keys.add(e.code);
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
-    window.addEventListener('blur', () => { this.keys.clear(); this.touch.clear(); });
+    window.addEventListener('blur', () => {
+      this.keys.clear();
+      this.touch.clear();
+      for (const b of document.querySelectorAll('#touch .active')) b.classList.remove('active');
+    });
 
     for (const btn of document.querySelectorAll('#touch [data-key]')) {
       const key = btn.dataset.key;
       const on = (e) => { e.preventDefault(); this.touch.add(key); btn.classList.add('active'); };
       const off = (e) => { e.preventDefault(); this.touch.delete(key); btn.classList.remove('active'); };
-      btn.addEventListener('pointerdown', on);
+      // Let a sliding thumb go, so moving from ◀ onto ▶ switches buttons.
+      btn.addEventListener('pointerdown', (e) => { if (btn.hasPointerCapture?.(e.pointerId)) btn.releasePointerCapture(e.pointerId); on(e); });
+      btn.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'mouse' || e.buttons) on(e); });
       btn.addEventListener('pointerup', off);
       btn.addEventListener('pointercancel', off);
       btn.addEventListener('pointerleave', off);

@@ -1,5 +1,6 @@
 import { CARS, CAR_BY_ID, UPGRADES } from './cars.js';
-import { CUPS } from './championship.js';
+import { CUPS, CUP_BY_ID, cupComplete, placeOf } from './championship.js';
+import { RIVALS } from './ai.js';
 import { wrapAngle } from './math.js';
 
 // Save data: coins, cars, upgrades, liveries, stars, best times, settings.
@@ -57,7 +58,7 @@ export function sanitize(raw) {
   const cupIds = new Set(CUPS.map((c) => c.id));
   if (isObj(raw.cupStars)) for (const [id, n] of Object.entries(raw.cupStars)) if (cupIds.has(id) && Number.isInteger(n) && n >= 0 && n <= 3) s.cupStars[id] = n;
   if (isObj(raw.cupBest)) for (const [id, n] of Object.entries(raw.cupBest)) if (cupIds.has(id) && Number.isInteger(n) && n >= 1) s.cupBest[id] = n;
-  if (isObj(raw.cup) && cupIds.has(raw.cup.cupId) && Number.isInteger(raw.cup.round) && isObj(raw.cup.points) && isObj(raw.cup.places)) s.cup = raw.cup;
+  s.cup = sanitizeCup(raw.cup);
   for (const key of ['best', 'bestLap']) {
     if (isObj(raw[key])) for (const [k, t] of Object.entries(raw[key])) if (Number.isFinite(t) && t > 0) s[key][k] = t;
   }
@@ -67,6 +68,33 @@ export function sanitize(raw) {
   for (const key of ['muted', 'music', 'autoAccel']) if (typeof raw[key] === 'boolean') s[key] = raw[key];
   if (['buttons', 'tilt'].includes(raw.touchSteer)) s.touchSteer = raw.touchSteer;
   return s;
+}
+
+// Everyone in a World Tour cup.
+export const ROSTER = ['player', ...RIVALS.map((r) => r.id)];
+
+// A cup in progress with every field checked, so a damaged one can't crash
+// the World Tour screens. A cup that can't be trusted is dropped.
+export function sanitizeCup(raw) {
+  if (!isObj(raw) || !CUP_BY_ID[raw.cupId] || !isObj(raw.points) || !isObj(raw.places)) return null;
+  const { round } = raw;
+  if (!Number.isInteger(round) || round < 0 || round > CUP_BY_ID[raw.cupId].races.length) return null;
+  const cup = { cupId: raw.cupId, round, points: {}, places: {} };
+  for (const key of ROSTER) {
+    const points = raw.points[key], places = raw.places[key];
+    if (!Number.isFinite(points) || points < 0 || !Array.isArray(places) || places.length !== round) return null;
+    if (!places.every((p) => Number.isInteger(p) && p >= 1 && p <= ROSTER.length)) return null;
+    cup.points[key] = points;
+    cup.places[key] = places.slice();
+  }
+  return cup;
+}
+
+// Takes another tab's newer save into this tab's save object in place, so a
+// stale copy here is never written back over it.
+export function adoptSave(save, fresh) {
+  for (const key of Object.keys(save)) delete save[key];
+  return Object.assign(save, fresh);
 }
 
 export function loadSave(storage) {
@@ -178,6 +206,18 @@ export function recordCup(save, cupId, place) {
   const bonus = [150, 100, 60][place - 1] || 20;
   save.coins += bonus;
   return { stars, newStars: Math.max(0, stars - prev), bonus };
+}
+
+// Awards a finished cup (its last race done) and clears it. Called the moment
+// the last result lands and again on load, so leaving before the trophy
+// screen never loses the trophy. Returns null when no cup is finished.
+export function settleCup(save) {
+  const state = save.cup;
+  if (!state || !cupComplete(state)) return null;
+  const place = placeOf(state, 'player');
+  const res = recordCup(save, state.cupId, place);
+  save.cup = null;
+  return { state, place, ...res };
 }
 
 // ---------------------------------------------------------------- ghosts

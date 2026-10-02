@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {
   SAVE_KEY, defaultSave, loadSave, writeSave, sanitize, totalStars, carStatus, buyCar, buyUpgrade, upgradeCost,
   recordRace, recordCup, recordTimeTrial, medalFor, encodeGhost, decodeGhost, saveGhost, loadGhost, cupUnlocked,
+  ROSTER, sanitizeCup, settleCup, adoptSave,
 } from '../src/progress.js';
-import { CUPS } from '../src/championship.js';
+import { CUPS, newCup, applyResult } from '../src/championship.js';
 
 function memory() {
   const data = new Map();
@@ -42,6 +43,63 @@ test('sanitize drops invalid values', () => {
   assert.deepEqual(s.upgrades.bug, {});
   assert.equal(s.muted, false);
   assert.deepEqual(s.liveries, {});
+});
+
+test('a damaged cup in progress is dropped instead of crashing the World Tour', () => {
+  const good = applyResult(newCup('sunrise', ROSTER), ROSTER);
+  assert.deepEqual(sanitizeCup(JSON.parse(JSON.stringify(good))), good);
+  const damaged = [
+    { ...good, places: {} },
+    { ...good, points: { player: 10 } },
+    { ...good, round: 9 },
+    { ...good, round: -1 },
+    { ...good, round: 2 },
+    { ...good, points: { ...good.points, player: 'lots' } },
+    { ...good, places: { ...good.places, yuki: 5 } },
+    { ...good, places: { ...good.places, yuki: [0] } },
+    { ...good, cupId: 'moon' },
+    'cup',
+  ];
+  for (const cup of damaged) {
+    assert.equal(sanitizeCup(cup), null, JSON.stringify(cup));
+    assert.equal(sanitize({ coins: 7, cup }).cup, null);
+    assert.equal(sanitize({ coins: 7, cup }).coins, 7, 'the rest of the save survives');
+  }
+  // Unknown keys never reach the standings table.
+  const extra = sanitizeCup({ ...good, points: { ...good.points, ghost: 3 }, places: { ...good.places, ghost: [1] } });
+  assert.deepEqual(Object.keys(extra.points), ROSTER);
+});
+
+test('a finished cup is awarded even if the trophy screen was never opened', () => {
+  const s = defaultSave();
+  s.cup = newCup('sunrise', ROSTER);
+  for (let i = 0; i < CUPS[0].races.length - 1; i++) applyResult(s.cup, ROSTER);
+  assert.equal(settleCup(s), null, 'not finished yet');
+  applyResult(s.cup, ROSTER);
+  // Saved after the last race, then the tab was closed.
+  const store = memory();
+  writeSave(store, s);
+  const loaded = loadSave(store);
+  assert.equal(loaded.cup.round, CUPS[0].races.length, 'a finished cup survives loading');
+  const res = settleCup(loaded);
+  assert.equal(res.place, 1);
+  assert.equal(res.stars, 3);
+  assert.equal(loaded.cupStars.sunrise, 3);
+  assert.equal(loaded.coins, 150);
+  assert.equal(loaded.cup, null);
+  assert.equal(settleCup(loaded), null, 'awarded once');
+});
+
+test('adopting another tab\'s save replaces this tab\'s copy in place', () => {
+  const mine = defaultSave();
+  const ref = mine;
+  mine.coins = 5;
+  const theirs = sanitize({ coins: 420, wins: 3, owned: ['bug'] });
+  adoptSave(mine, theirs);
+  assert.equal(ref, mine);
+  assert.equal(mine.coins, 420);
+  assert.equal(mine.wins, 3);
+  assert.ok(mine.owned.includes('bug'));
 });
 
 test('stars unlock cups and cars; coins buy cars and upgrades', () => {

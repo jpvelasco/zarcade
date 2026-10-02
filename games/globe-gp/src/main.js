@@ -4,10 +4,10 @@ import { CARS, CAR_BY_ID, UPGRADES, statBars } from './cars.js';
 import { Race, DT, medalRace, medalsFrom } from './race.js';
 import { getTrack } from './track.js';
 import { RIVALS, DIFFICULTY } from './ai.js';
-import { CUPS, CUP_BY_ID, newCup, applyResult, standings, cupComplete, pointsFor, raceCoins, trophyFor } from './championship.js';
+import { CUPS, CUP_BY_ID, newCup, applyResult, standings, pointsFor, raceCoins, trophyFor } from './championship.js';
 import {
   loadSave, writeSave, totalStars, cupUnlocked, carStatus, buyCar, upgradesFor, upgradeCost, buyUpgrade, liveryFor,
-  recordRace, recordCup, recordTimeTrial, medalFor, loadGhost, saveGhost, DIFFICULTIES,
+  recordRace, recordTimeTrial, medalFor, loadGhost, saveGhost, DIFFICULTIES, SAVE_KEY, adoptSave, settleCup,
 } from './progress.js';
 import { buildWorld } from './render/world.js';
 import { RaceView } from './render/view.js';
@@ -33,6 +33,8 @@ function persist() {
   saveWarned = true;
   log.warn('save.failed', {});
 }
+// A cup whose last race finished before the trophy screen was seen.
+if (settleCup(save)) persist();
 
 const input = new Input();
 input.steerMode = save.touchSteer;
@@ -479,7 +481,10 @@ function beginRace() {
 
 function pause() {
   if (mode !== 'race') return;
+  // Over the line already: go straight to the results, which save the race.
+  if (race?.status === 'finished') { showResults(); return; }
   mode = 'paused';
+  input.clearPressed();
   $('btn-sound').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
   $('btn-music').textContent = `Music: ${save.music ? 'on' : 'off'}`;
   audio.silence();
@@ -497,6 +502,8 @@ function resume() {
 
 function showResults() {
   mode = 'results';
+  resultsAt = performance.now();
+  input.clearPressed();
   const p = race.player;
   const s = setup;
   const loc = race.location;
@@ -505,6 +512,7 @@ function showResults() {
   const place = me.place;
   const lines = [];
   const buttons = [];
+  let cupEnd = null;
   view.cam.mode = 'orbit';
   view.cam.t = 0;
 
@@ -531,6 +539,9 @@ function showResults() {
     if (s.cupId && save.cup?.cupId === s.cupId) {
       cupState = save.cup;
       applyResult(cupState, results.map((r) => r.key));
+      // The trophy is saved now, not when its screen is opened.
+      cupEnd = settleCup(save);
+      if (cupEnd) log.event('cup.complete', { cup: cupEnd.state.cupId, place: cupEnd.place, stars: cupEnd.stars });
     }
     const head = `<div class="tr head"><span>#</span><span>Driver</span><span class="num">${race.kind === 'elimination' ? 'Out' : 'Time'}</span><span class="num">${cupState ? 'Pts' : ''}</span></div>`;
     const winner = results[0].time;
@@ -545,7 +556,7 @@ function showResults() {
       location: loc.id, kind: race.kind, place, 'time.s': Math.round((p.finishTime || 0) * 10) / 10, coins: res.coins, stars: place <= 3 ? 4 - place : 0, cup: s.cupId || '',
     });
     if (cupState) {
-      if (cupComplete(cupState)) buttons.push(['See the trophy →', true, () => showCupEnd()]);
+      if (cupEnd) buttons.push(['See the trophy →', true, () => showCupEnd(cupEnd)]);
       else {
         const nxt = CUP_BY_ID[s.cupId].races[cupState.round];
         buttons.push([`Next: ${LOCATION_BY_ID[nxt.loc].city} →`, true, () => startRace({ loc: nxt.loc, kind: nxt.kind, cupId: s.cupId })]);
@@ -556,11 +567,16 @@ function showResults() {
   }
   persist();
   if (!s.cupId) buttons.push(['Menu', false, () => toTitle()]);
-  else if (!cupComplete(save.cup || { cupId: s.cupId, round: 0 })) buttons.push(['Standings', false, () => { disposeRace(); setup = { cupId: s.cupId }; backStack.length = 0; backStack.push('screen-title', 'screen-cups'); openScreen('screen-cup', false); }]);
+  else if (!cupEnd) buttons.push(['Standings', false, () => { disposeRace(); setup = { cupId: s.cupId }; backStack.length = 0; backStack.push('screen-title', 'screen-cups'); openScreen('screen-cup', false); }]);
   $('res-lines').innerHTML = lines.map(([a, b]) => (b === undefined ? `<div class="highlight">${a}</div>` : `<div><span>${a}</span><b>${b}</b></div>`)).join('');
   setButtons(buttons);
   showScreen('screen-results', { push: false });
 }
+
+// Presses in the first moments of the results card are the race's gas and
+// boost, not a choice.
+const RESULTS_GRACE = 700;
+let resultsAt = -Infinity;
 
 function setButtons(buttons) {
   const row = $('res-buttons');
@@ -569,21 +585,20 @@ function setButtons(buttons) {
     const b = document.createElement('button');
     b.className = `btn${primary ? ' primary' : ''}`;
     b.textContent = label;
-    b.addEventListener('click', () => { audio.click(); fn(); });
+    b.addEventListener('click', () => {
+      if (performance.now() - resultsAt < RESULTS_GRACE) return;
+      audio.click();
+      fn();
+    });
     row.appendChild(b);
   }
 }
 
-function showCupEnd() {
-  const state = save.cup;
+// `res` is the cup `settleCup` already saved when its last race finished.
+function showCupEnd(res) {
+  const { state, place } = res;
   const cup = CUP_BY_ID[state.cupId];
-  const st = standings(state);
-  const place = st.findIndex((x) => x.key === 'player') + 1;
-  const res = recordCup(save, cup.id, place);
   const trophy = trophyFor(place);
-  save.cup = null;
-  persist();
-  log.event('cup.complete', { cup: cup.id, place, stars: res.stars });
   $('res-title').textContent = trophy ? `${cup.name}: ${trophy[0].toUpperCase()}${trophy.slice(1)} trophy!` : `${cup.name} complete`;
   $('res-podium').innerHTML = `<div><div class="trophy">${{ gold: '🏆', silver: '🥈', bronze: '🥉' }[trophy] || '🎗️'}</div><div class="big-stars">${'★'.repeat(res.stars)}${'☆'.repeat(3 - res.stars)}</div></div>`;
   $('res-table').innerHTML = standingsTable(state);
@@ -614,6 +629,23 @@ $('btn-quit').addEventListener('click', () => { if (setup?.cupId) log.event('cup
 $('btn-sound').addEventListener('click', toggleSound);
 $('btn-music').addEventListener('click', toggleMusic);
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+// No picture while the WebGL context is gone, so don't race blind.
+$('scene').addEventListener('webglcontextlost', () => { log.warn('webgl.lost', { mode }); pause(); });
+
+// Another tab saved: take its progress, so this tab never writes a stale copy
+// over it. A race in progress records into the fresh copy when it ends.
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  adoptSave(save, loadSave(storage));
+  input.steerMode = save.touchSteer;
+  input.autoAccel = save.autoAccel;
+  showGas();
+  document.body.classList.toggle('tilt', save.touchSteer === 'tilt');
+  audio.setMuted(save.muted);
+  audio.setMusic(save.music);
+  if (!save.owned.includes(garageCar)) garageCar = save.car;
+  if (mode === 'menu' && current && current !== 'screen-loading') openScreen(current, false);
+});
 // The first click or key press starts audio (and whichever tune is due).
 const firstGesture = () => { audio.unlock(); if (audio.ctx) { audio.setCar(CAR_BY_ID[save.car]); removeEventListener('pointerdown', firstGesture); removeEventListener('keydown', firstGesture); } };
 addEventListener('pointerdown', firstGesture);
@@ -629,8 +661,14 @@ function menuNav() {
   const dir = (input.consume('ArrowDown') || input.consume('ArrowRight')) ? 1 : (input.consume('ArrowUp') || input.consume('ArrowLeft')) ? -1 : 0;
   if (dir) items[(i + dir + items.length) % items.length].focus();
   if (input.consume('PadA') && document.activeElement?.click) document.activeElement.click();
-  if ((input.consume('PadB') || input.consume('Escape')) && !['screen-title', 'screen-loading', 'screen-results', 'screen-pause'].includes(current)) back();
+  if (current === 'screen-pause') { if (input.consume('PadB')) resume(); return; }
+  if ((input.consume('PadB') || input.consume('Escape')) && !['screen-title', 'screen-loading', 'screen-results'].includes(current)) back();
 }
+
+// A held Enter or Space auto-repeats; only a fresh press works a button.
+window.addEventListener('keydown', (e) => {
+  if (e.repeat && (e.key === 'Enter' || e.key === ' ') && e.target.closest?.('button, a')) e.preventDefault();
+}, true);
 
 // ------------------------------------------------------------ loop
 
@@ -705,6 +743,7 @@ function frame(now) {
     if (input.consume('Escape') || input.consume('KeyP')) pause();
   } else if (mode === 'paused') {
     if (input.consume('Escape') || input.consume('KeyP')) resume();
+    else menuNav();
   } else menuNav();
   if (input.consume('KeyM')) toggleSound();
 
