@@ -57,7 +57,7 @@ export class Hud {
         this.el.combo.classList.add('show');
         this.comboTimer = 1.2;
       } else if (e.type === 'pickup' && e.kind !== 'coin') {
-        this.toast({ nitro: '🔥 Nitro!', repair: '🔧 Repaired!', shield: '🛡️ Shield! Smash everything!', gun: '🔫 Roof gun! It aims itself', rockets: '🚀 Rockets! Press Space' }[e.kind]);
+        this.toast({ nitro: '🔥 Nitro!', repair: '🔧 Repaired!', shield: '🛡️ Shield! Smash everything!', gun: '🔫 Roof gun! It aims itself', rockets: this.touch ? '🚀 Rockets! Tap 🚀 to fire' : '🚀 Rockets! Press Space' }[e.kind]);
       } else if (e.type === 'land' && e.air > 1.1) {
         this.toast(`✈️ Big air! ${e.air.toFixed(1)}s`, 1.2);
       } else if (e.type === 'boundary') {

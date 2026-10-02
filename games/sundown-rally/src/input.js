@@ -59,6 +59,8 @@ export class Input {
       btn.addEventListener('pointerup', off);
       btn.addEventListener('pointercancel', off);
       btn.addEventListener('pointerleave', off);
+      // The lift may never arrive if the window loses focus mid-press.
+      window.addEventListener('blur', () => { this.touch.delete(key); btn.classList.remove('active'); });
     }
     window.addEventListener('touchstart', () => { this.touchMode = true; }, { once: true, passive: true });
   }

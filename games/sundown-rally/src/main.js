@@ -189,6 +189,7 @@ function startRace(index) {
   endTimer = 0;
   accumulator = 0;
   hud.reset(world);
+  hud.touch = input.touchMode;
   input.clearPressed();
   showScreen(null);
   log.event('race.start', { track: index + 1, 'track.id': TRACKS[index].id });
@@ -282,6 +283,9 @@ $('btn-mute').addEventListener('click', () => {
   $('btn-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+// Nothing is drawn while the GPU context is gone, so don't race blind.
+// Three.js restores the scene when the context comes back.
+renderer.domElement.addEventListener('webglcontextlost', () => pause());
 
 // ------------------------------------------------------------ loop
 
