@@ -116,7 +116,10 @@ export function buildDiff({ room = 'library', seed = 1, box, count = null, avoid
         const cx = region.x + region.w / 2;
         const cy = region.y + region.h / 2;
         if (conflicts(changes, region, cx, cy, margin, gap) || underHud(avoid, region)) {
-          // Undo: an ambiguous click is worse than one difference fewer.
+          // Undo: an ambiguous click is worse than one difference fewer. The
+          // flags a change sets are not on the original, so clear them too.
+          delete copy.gone;
+          delete copy.recolored;
           Object.assign(copy, { ...cand.p });
           if (made.type === 'add') props.pop();
           continue;

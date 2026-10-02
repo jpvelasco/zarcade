@@ -155,3 +155,29 @@ test('no difference is put under the HUD', () => {
     }
   }
 });
+
+// A change that is tried and then rejected (too close to another one, or under
+// the HUD) must be undone completely, or the second picture differs in places
+// that are not on the list and tapping them only makes fog.
+test('the second picture changes nowhere except the listed differences', () => {
+  const avoid = [{ x: 0, y: 0, w: 450, h: 340 }, { x: 0, y: 700, w: 380, h: 300 }];
+  for (const room of ROOM_IDS) {
+    for (const box of BOXES) {
+      for (const seed of SEEDS) {
+        for (const hud of [[], avoid]) {
+          const diff = buildDiff({ room, seed, box, count: wanted(room, box), avoid: hud });
+          const changed = new Set(diff.changes.map((c) => c.z));
+          const right = new Map(diff.right.map((p) => [p.z, p]));
+          for (const p of diff.left) {
+            if (changed.has(p.z)) continue;
+            const q = right.get(p.z);
+            assert.ok(q && !q.gone && !q.recolored, `${room} seed ${seed}: ${p.def} is quietly gone`);
+            for (const k of ['x', 'y', 'w', 'h', 'tone']) assert.equal(q[k], p[k], `${room} seed ${seed}: ${p.def}.${k} quietly changed`);
+          }
+          const added = diff.right.filter((q) => q.added).length;
+          assert.equal(added, diff.changes.filter((c) => c.type === 'add').length, `${room} seed ${seed}: an unlisted extra prop`);
+        }
+      }
+    }
+  }
+});
