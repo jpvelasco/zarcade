@@ -4,7 +4,7 @@ import {
   DROP_RADIUS, MAX_STARS, REGIONS, ROUTES, TOTAL_LETTERS, TOTAL_RINGS, routeById, routesInRegion,
 } from '../src/routes.js';
 import { highestPoint, makeTerrain } from '../src/terrain.js';
-import { GREEN_AFTER, PAD_BEFORE } from '../src/world.js';
+import { GREEN_AFTER, LINE_THICK, PAD_BEFORE, PLANE_R } from '../src/world.js';
 
 const prepared = ROUTES.map((route) => route.prepare());
 
@@ -106,6 +106,25 @@ test('every hazard leaves a fair gap and stands on something', () => {
       assert.ok(gap >= 8, `${route.id} ${hazard.kind} at ${hazard.x} leaves only ${gap.toFixed(1)} m`);
       assert.ok(hazard.y < ground - size, `${route.id} ${hazard.kind} at ${hazard.x} is buried`);
       assert.ok(hazard.x < route.mailbox.x - PAD_BEFORE, `${route.id} hazard over the green`);
+    }
+  }
+});
+
+test('flying through the middle of a ring never gets you caught (#61)', () => {
+  // A ring marks the safe line, so its centre must be clear of every hazard's
+  // catch zone, with a metre to spare.
+  for (const route of prepared) {
+    for (const ring of route.rings) {
+      for (const hazard of route.hazards) {
+        let clear;
+        if (hazard.kind === 'line') {
+          if (Math.abs(ring.x - hazard.x) > hazard.w) continue;
+          clear = Math.abs(ring.y - hazard.y) - LINE_THICK;
+        } else {
+          clear = Math.hypot(ring.x - hazard.x, ring.y - hazard.y) - hazard.r - PLANE_R;
+        }
+        assert.ok(clear >= 1, `${route.id} ring at ${ring.x} is ${clear.toFixed(1)} m from a ${hazard.kind}`);
+      }
     }
   }
 });
