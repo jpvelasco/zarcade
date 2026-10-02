@@ -375,7 +375,7 @@ function frame(now) {
     } else if (world.status === 'cleared' || world.status === 'gameover') attract();
   }
   if (mode !== 'paused') renderer.update(dt, world);
-  renderer.draw(world, { attract: isAttract && mode !== 'play', launchHint: launchHint() });
+  renderer.draw(world, { attract: isAttract && mode !== 'play', launchHint: launchHint(), touch: input.mode === 'touch' });
   requestAnimationFrame(loop);
 }
 

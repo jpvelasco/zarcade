@@ -86,7 +86,13 @@ export class Renderer {
     const margin = Math.min(w, h) > 600 ? 16 : 0;
     this.scale = Math.min((w - margin * 2) / FIELD.w, (h - margin * 2) / FIELD.h);
     this.ox = (w - FIELD.w * this.scale) / 2;
-    this.oy = (h - FIELD.h * this.scale) / 2;
+    const fh = FIELD.h * this.scale, spare = h - fh;
+    // Tall portrait phones: rather than float the field between two empty
+    // bands, sit it just under the HUD buttons and turn the space below into
+    // a thumb pad, so a dragging finger never covers the play.
+    this.oy = h > w && spare > 140 ? Math.min(spare / 2, 64) : spare / 2;
+    const below = h - this.oy - fh;
+    this.pad = below >= 100 ? { x: 14, y: this.oy + fh + 12, w: w - 28, h: Math.min(150, below - 40) } : null;
     this.sprites.clear();
     this.sky = null;
   }
@@ -400,6 +406,7 @@ export class Renderer {
     this.drawConstellation(ctx);
     this.drawStars(ctx, world && world.effects.slow > 0 ? 0.4 : 1);
     if (!world) return;
+    if (this.pad && opts.touch && !opts.attract) this.drawPad(ctx, world);
 
     const sx = this.shake ? (Math.random() - 0.5) * this.shake * 2 : 0;
     const sy = this.shake ? (Math.random() - 0.5) * this.shake * 2 : 0;
@@ -430,6 +437,31 @@ export class Renderer {
       ctx.fillRect(0, 0, this.cw, this.ch);
       ctx.globalAlpha = 1;
     }
+  }
+
+  // The thumb pad under the field on tall phones (screen coordinates).
+  drawPad(ctx, world) {
+    const { x, y, w, h } = this.pad;
+    const pal = this.constellation.palette;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    ctx.strokeStyle = rgba(pal[0], 0.28);
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, x, y, w, h, 22);
+    ctx.fill();
+    ctx.stroke();
+    // A little ship marker that tracks the real one.
+    const mx = this.ox + world.paddle.x * this.scale, my = y + h / 2 - 12;
+    const mw = world.paddle.w * this.scale;
+    ctx.fillStyle = rgba(pal[0], 0.5);
+    roundRect(ctx, mx - mw / 2, my - 4, mw, 8, 4);
+    ctx.fill();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(230,225,255,0.6)';
+    ctx.font = `800 15px ${FONT}`;
+    ctx.fillText('‹  drag here to steer  ›', x + w / 2, my + 26);
+    ctx.restore();
   }
 
   drawField(ctx, world) {
