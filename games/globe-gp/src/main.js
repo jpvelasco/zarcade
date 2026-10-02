@@ -66,7 +66,7 @@ const menu = new MenuScene(renderer, { reduced });
 let race = null, view = null, loader = null;
 let mode = 'menu'; // menu | loading | race | paused | results
 let setup = null;  // { loc, kind, cupId }
-let accumulator = 0, endTimer = 0;
+let accumulator = 0, endTimer = 0, pendingReset = false;
 let medals = null;
 let menuReady = false;
 let lastTimings = [];
@@ -469,6 +469,7 @@ function beginRace() {
   mode = 'race';
   accumulator = 0;
   endTimer = 0;
+  pendingReset = false;
   hud.reset(race, view);
   input.clearPressed();
   audio.setCar(CAR_BY_ID[save.car]);
@@ -754,9 +755,12 @@ function frame(now) {
     if (mode === 'race') {
       accumulator += dt;
       let steps = 0;
+      // A reset pressed on a frame with no simulation step waits for the next one.
+      pendingReset = pendingReset || controls.reset;
       while (accumulator >= DT && steps < 5) {
+        controls.reset = pendingReset;
+        pendingReset = false;
         race.step(DT, controls);
-        controls.reset = false;
         accumulator -= DT;
         steps++;
       }

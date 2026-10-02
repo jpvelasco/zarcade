@@ -84,7 +84,7 @@ export class Input {
   pollPad() {
     const pad = this.pad();
     if (!pad) return;
-    const map = { 9: 'Escape', 0: 'PadA', 1: 'PadB', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
+    const map = { 9: 'Escape', 8: 'PadBack', 0: 'PadA', 1: 'PadB', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
     for (const [i, code] of Object.entries(map)) {
       const down = !!pad.buttons[i]?.pressed;
       if (down && !this.padPrev[i]) { this.pressed.add(code); this.padUsed = true; }
@@ -100,7 +100,8 @@ export class Input {
     let steer = (k('ArrowRight', 'KeyD') ? 1 : 0) - (k('ArrowLeft', 'KeyA') ? 1 : 0);
     let drift = k('Space', 'ShiftLeft', 'ShiftRight');
     let boost = k('KeyX', 'Enter', 'NumpadEnter');
-    let reset = this.consume('KeyR');
+    // One reset per fresh press of R or the gamepad's Back button.
+    let reset = this.consume('KeyR') || this.consume('PadBack');
 
     if (this.touchMode) {
       if (this.touch.has('brake')) brake = 1;
@@ -120,7 +121,6 @@ export class Input {
       brake = Math.max(brake, pad.buttons[6]?.value || 0);
       drift = drift || !!pad.buttons[5]?.pressed || !!pad.buttons[4]?.pressed || !!pad.buttons[1]?.pressed;
       boost = boost || !!pad.buttons[2]?.pressed || !!pad.buttons[3]?.pressed;
-      if (pad.buttons[8]?.pressed) reset = true;
     }
     return { throttle, brake, steer: Math.max(-1, Math.min(1, steer)), drift, boost, reset };
   }
