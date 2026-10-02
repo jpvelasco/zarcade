@@ -51,7 +51,12 @@ bakePaperGrain();
 
 // ------------------------------------------------------------ helpers
 
-const wait = (ms) => new Promise((r) => setTimeout(r, ms * pace));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Animation pacing. The monster turn holds still while the game is paused.
+const wait = async (ms) => {
+  await sleep(ms * pace);
+  while (paused) await sleep(100);
+};
 const icon = (name, color) => iconSVG(name, color);
 const KIND_COLOR = { attack: '#e53958', skill: '#3d8bfd', magic: '#8e5cf0' };
 const KIND_NAME = { attack: 'Attack', skill: 'Skill', magic: 'Magic' };
