@@ -8,7 +8,7 @@ import { STAGE_TRACK } from './music.js';
 import { STAGES, buildStage } from './levels.js';
 import { frameMonitor } from './perf.js';
 import {
-  addHighScore, cleanInitials, loadSave, recordStage, tableRank, treasureTotals, writeSave,
+  SAVE_KEY, addHighScore, cleanInitials, loadSave, recordStage, tableRank, treasureTotals, writeSave,
 } from './progress.js';
 import { Renderer } from './render.js';
 import { World, createRun, MODES } from './world.js';
@@ -60,6 +60,7 @@ const state = {
   last: performance.now(),
   pendingClear: -1,
   pendingOver: -1,
+  cleared: null,
   overCount: 0,
   pointerIdle: 0,
   pointerHidden: false,
@@ -115,7 +116,17 @@ for (const button of document.querySelectorAll('[data-setting]')) {
 
 const SCREENS = [...document.querySelectorAll('.overlay')];
 
+// Result cards ignore presses for a moment after they appear, so a player
+// still mashing jump, fire or the screen doesn't skip straight past them.
+const RESULT_SCREENS = new Set(['screen-clear', 'screen-over', 'screen-victory', 'screen-name']);
+const RESULT_GUARD_MS = 700;
+let shownAt = 0;
+let shownId = null;
+const guarded = () => RESULT_SCREENS.has(shownId) && performance.now() - shownAt < RESULT_GUARD_MS;
+
 function showScreen(id) {
+  shownAt = performance.now();
+  shownId = id;
   for (const screen of SCREENS) screen.classList.toggle('hidden', screen.id !== id);
   $('arcade-link').classList.toggle('hidden', !(id === 'screen-title' || id === 'screen-stages' || id === 'screen-scores' || id === 'screen-options'));
   input.enabled = state.mode === 'play';
@@ -239,6 +250,7 @@ function startStage(index) {
   state.attract = false;
   state.pendingClear = -1;
   state.pendingOver = -1;
+  state.cleared = null;
   state.accumulator = 0;
   renderer.setWorld(world);
   renderer.showBanner(`STAGE ${index + 1}`, world.level.title.toUpperCase(), 2.8);
@@ -267,6 +279,9 @@ function jumpToBoss(world) {
 
 function pause() {
   if (state.mode !== 'play') return;
+  // The boss is beaten: bank the clear now, so quitting from the pause menu
+  // (or closing a hidden tab) during the celebration keeps the win.
+  if (state.world.boss && state.world.boss.hp <= 0) bankStage();
   state.mode = 'paused';
   $('pause-stage').textContent = `Stage ${state.world.stageIndex + 1} · ${state.world.level.name}`;
   applySettings();
@@ -296,6 +311,7 @@ function onWorldEvents(world) {
     } else if (e.type === 'bossDown') {
       log.event('boss.defeat', { stage: world.stageIndex + 1, boss: e.boss, 'time.s': Math.round(world.stats.time) });
     } else if (e.type === 'stageClear') {
+      bankStage();
       state.pendingClear = 1.6;
     } else if (e.type === 'gameOver') {
       state.pendingOver = 1.4;
@@ -307,7 +323,9 @@ function onWorldEvents(world) {
   }
 }
 
-function showClear() {
+/** Bank the clear bonus and save the clear, once per stage. */
+function bankStage() {
+  if (state.cleared) return state.cleared;
   const world = state.world;
   const res = world.bankClear();
   const record = recordStage(save, world.stageIndex, { treasures: res.treasures, score: state.run.score, time: res.time });
@@ -316,6 +334,13 @@ function showClear() {
     stage: world.stageIndex + 1, score: state.run.score, 'time.s': Math.round(res.time), treasures: res.treasures,
     'treasures.total': res.treasureTotal, hits: res.hits, deaths: res.deaths, mode: state.run.mode, 'best.new': record,
   });
+  state.cleared = res;
+  return res;
+}
+
+function showClear() {
+  const world = state.world;
+  const res = bankStage();
   state.mode = 'clear';
   const last = world.stageIndex >= STAGES.length - 1;
   $('clear-stage').textContent = `Stage ${world.stageIndex + 1} · ${world.level.name}`;
@@ -351,6 +376,7 @@ function showOver() {
   log.event('level.fail', { stage: state.world.stageIndex + 1, score: run.score, mode: run.mode, 'continues.left': Number.isFinite(left) ? left : -1 });
   $('btn-continue').disabled = left <= 0;
   if (left <= 0) {
+    state.overCount = 0;
     $('over-note').textContent = 'No continues left. What a run!';
     $('over-count').textContent = run.score.toLocaleString('en-US');
   } else if (Number.isFinite(left)) {
@@ -487,6 +513,7 @@ window.addEventListener('keydown', (event) => {
   if (state.mode === 'play') return;
   if (event.metaKey || event.ctrlKey || event.altKey) return;
   if (state.mode === 'name') {
+    if (guarded()) { event.preventDefault(); return; }
     if (/^Key[A-Z]$/.test(event.code) || /^Digit\d$/.test(event.code)) {
       state.initials[state.slot] = event.code.slice(-1);
       state.slot = Math.min(2, state.slot + 1);
@@ -508,6 +535,7 @@ window.addEventListener('keydown', (event) => {
 });
 
 function handlePadMenu(command) {
+  if (guarded()) return;
   if (state.mode === 'name') {
     if (command === 'navUp') nudgeLetter(state.slot, -1);
     else if (command === 'navDown') nudgeLetter(state.slot, 1);
@@ -638,6 +666,9 @@ on('btn-giveup', giveUp);
 on('btn-name-ok', saveName);
 on('btn-victory', maybeName);
 $('touch-pause').addEventListener('click', pause);
+window.addEventListener('click', (event) => {
+  if (guarded()) { event.preventDefault(); event.stopPropagation(); }
+}, { capture: true });
 for (const nudge of document.querySelectorAll('.nudge')) {
   nudge.addEventListener('click', () => nudgeLetter(Number(nudge.dataset.slot), Number(nudge.dataset.dir)));
 }
@@ -645,6 +676,19 @@ input.bindTouch($('touch-stick'), $('touch-knob'), [...document.querySelectorAll
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) pause();
+});
+
+// Another tab saved: take its copy, so this tab never writes a stale save
+// over newer unlocks, best scores or high scores.
+window.addEventListener('storage', (event) => {
+  if (event.key !== SAVE_KEY && event.key !== null) return;
+  const fresh = loadSave(storage);
+  for (const key of Object.keys(save)) delete save[key];
+  Object.assign(save, fresh);
+  applySettings();
+  if (state.mode === 'title') updateTitle();
+  else if (state.mode === 'stages') buildStageList();
+  else if (state.mode === 'scores') buildScores();
 });
 
 function layout() {

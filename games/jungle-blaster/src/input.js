@@ -27,7 +27,8 @@ export class Input {
   constructor() {
     this.keys = new Set();
     this.players = 1;
-    this.enabled = false;
+    this.active = false;
+    this.settle = [false, false];
     this.commands = [];
     this.prev = [blank(), blank()];
     this.pressQueue = [{ jump: false, bomb: false }, { jump: false, bomb: false }];
@@ -43,7 +44,7 @@ export class Input {
       this.keys.add(code);
       if (code === 'Escape' || code === 'KeyP') this.commands.push('pause');
       if (code === 'KeyM') this.commands.push('mute');
-      this.queuePresses();
+      if (this.enabled) this.queuePresses();
     });
     window.addEventListener('keyup', (event) => {
       this.keys.delete(event.code);
@@ -52,6 +53,23 @@ export class Input {
       this.keys.clear();
       Object.assign(this.touch, blank());
     });
+  }
+
+  get enabled() {
+    return this.active;
+  }
+
+  /**
+   * Turning play input back on forgets presses made in menus: a bomb key
+   * typed into the initials, or the A/Space that clicked Resume, must not
+   * fire or jump as play starts.
+   */
+  set enabled(on) {
+    if (on && !this.active) {
+      for (const q of this.pressQueue) { q.jump = false; q.bomb = false; }
+      this.settle = [true, true];
+    }
+    this.active = !!on;
   }
 
   setPlayers(n) {
@@ -136,6 +154,11 @@ export class Input {
     if (i === 0) {
       const t = this.touch;
       for (const key of Object.keys(out)) out[key] = out[key] || !!t[key];
+    }
+    if (this.settle[i]) {
+      // Buttons still held from the menu count as held, not freshly pressed.
+      this.settle[i] = false;
+      this.prev[i] = out;
     }
     const prev = this.prev[i];
     const queued = this.pressQueue[i];
