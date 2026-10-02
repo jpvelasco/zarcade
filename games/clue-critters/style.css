@@ -383,6 +383,14 @@ button:focus-visible, a:focus-visible { outline: 4px solid var(--sky); outline-o
 @keyframes stamp { from { transform: translate(-50%, -50%) rotate(-12deg) scale(2.4); opacity: 0; } to { transform: translate(-50%, -50%) rotate(-12deg) scale(1); opacity: 1; } }
 @keyframes toast { 0% { transform: translateY(-14px); opacity: 0; } 12%, 80% { transform: none; opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
 
+/* The notebook only sits beside the grid when gridLayout() leaves it room
+   (980 px and up); narrower than that it goes under the grid. */
+@media (max-width: 979px) {
+  .board-body { flex-direction: column; }
+  .notes-wrap { overflow: visible; }
+  .sheet { overflow: auto; }
+}
+
 /* ------------------------------------------------------------- phones */
 
 @media (max-width: 760px) {
