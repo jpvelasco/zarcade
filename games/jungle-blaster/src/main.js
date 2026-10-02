@@ -665,6 +665,9 @@ on('btn-continue', continueGame);
 on('btn-giveup', giveUp);
 on('btn-name-ok', saveName);
 on('btn-victory', maybeName);
+// pointerdown, not click: browsers send no click for a second finger, and
+// the other thumb is usually on the stick.
+$('touch-pause').addEventListener('pointerdown', (event) => { event.preventDefault(); pause(); });
 $('touch-pause').addEventListener('click', pause);
 window.addEventListener('click', (event) => {
   if (guarded()) { event.preventDefault(); event.stopPropagation(); }
