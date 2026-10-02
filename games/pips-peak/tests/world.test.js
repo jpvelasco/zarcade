@@ -219,6 +219,72 @@ test('a moving platform carries Pip along with it', () => {
   assert.equal(world.player.onGround, true);
 });
 
+test('the duck button drops Pip through a drifting leaf', () => {
+  const world = stage([
+    '            ',
+    '            ',
+    '            ',
+    '            ',
+    '            ',
+    '############',
+  ], { movers: [{ x: 1, y: 3, dx: 0, dy: 0, speed: 0.25, kind: 'leaf', w: 3 }] });
+  place(world, 2, 2);
+  tick(world, 10);
+  assert.ok(world.player.carrier, 'standing on the leaf');
+  tick(world, 1, { dropPressed: true });
+  tick(world, 20);
+  assert.equal(world.player.carrier, null, 'no longer on the leaf');
+  assert.equal(world.player.y + world.player.h, 5 * TILE, 'landed on the ground below');
+});
+
+test('a sliding stone pushes Pip aside instead of snapping him under it', () => {
+  const world = stage([
+    '                ',
+    '                ',
+    '                ',
+    '                ',
+    '                ',
+    '                ',
+  ], { movers: [{ x: 1, y: 3, dx: 8, dy: 0, speed: 0.25, kind: 'stone', w: 2 }] });
+  // Pip hangs in the air level with the stone, just ahead of it.
+  const stone = world.movers[0];
+  const p = world.player;
+  let lowest = 0;
+  p.x = stone.x + stone.w + 1;
+  p.y = stone.y + 1;
+  for (let i = 0; i < 30; i += 1) {
+    p.vy = -40; // keep him hovering beside the stone while it slides
+    world.step(DT, {});
+    world.events.length = 0;
+    lowest = Math.max(lowest, p.y);
+    assert.ok(p.x >= stone.x + stone.w - 0.01, `step ${i}: Pip was left inside the stone`);
+  }
+  assert.ok(lowest < stone.y + stone.h, 'never yanked below the stone');
+});
+
+test('running onto a rising stone lands on it instead of flinging Pip to its far edge', () => {
+  const world = stage([
+    '                ',
+    '                ',
+    '                ',
+    '                ',
+    '                ',
+    '                ',
+  ], { movers: [{ x: 2, y: 4, dx: 0, dy: -2, speed: 0.25, kind: 'stone', w: 3, phase: 0.1 }] });
+  const stone = world.movers[0];
+  const p = world.player;
+  world.step(DT, {});
+  // Falling and running right, feet a hair inside the top of the stone's right half.
+  p.x = stone.x + stone.w - p.w - 4;
+  p.y = stone.y - p.h + 0.2;
+  p.vx = 128;
+  p.vy = 300;
+  const startX = p.x;
+  world.step(DT, { right: true });
+  assert.ok(p.x >= startX, `Pip moved from ${startX} to ${p.x}`);
+  assert.equal(p.onGround, true, 'standing on the stone');
+});
+
 test('wind pushes Pip sideways while he is in the air inside the gust', () => {
   const tiles = ['      ', '      ', '      ', '      ', '######'];
   const calm = stage(tiles);

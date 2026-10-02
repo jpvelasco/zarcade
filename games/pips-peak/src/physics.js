@@ -105,6 +105,7 @@ export function boxHitsSolid(terrain, box) {
 }
 
 function moveX(p, terrain, rects, dx) {
+  const prevX = p.x;
   p.x += dx;
   let hit = 0;
   const [c0, c1] = span(p.x, p.w);
@@ -123,10 +124,12 @@ function moveX(p, terrain, rects, dx) {
   }
   for (const rect of rects) {
     if (!rect.solid || !overlaps(p, rect)) continue;
-    if (dx > 0) {
+    // Only a side Pip ran into counts. An overlap he was already in (a stone
+    // that rose into his feet) is left for the vertical move to settle.
+    if (dx > 0 && prevX + p.w <= rect.x + 0.5) {
       p.x = rect.x - p.w;
       hit = 1;
-    } else if (dx < 0) {
+    } else if (dx < 0 && prevX >= rect.x + rect.w - 0.5) {
       p.x = rect.x + rect.w;
       hit = -1;
     }
@@ -167,7 +170,8 @@ function moveY(p, terrain, rects, dy, dropThrough) {
   }
   for (const rect of rects) {
     if (!overlaps(p, rect)) continue;
-    if (dy > 0 && (rect.solid || prevBottom <= rect.y + 1)) {
+    // Leaves are one-way like planks, so dropping through skips them too.
+    if (dy > 0 && (rect.solid || (!dropThrough && prevBottom <= rect.y + 1))) {
       p.y = rect.y - p.h;
       out.land = 1;
       out.landedOn = rect.tile || '-';
@@ -330,6 +334,14 @@ export function stepPlayer(p, input, terrain, dt, opts = {}) {
   p.y += p.rideDy;
   p.rideDx = 0;
   p.rideDy = 0;
+
+  // A stone that slid into Pip this step pushes him along, rather than
+  // leaving him inside it for the vertical move to snap to its top or bottom.
+  for (const rect of rects) {
+    if (!rect.solid || !rect.dx || rect === p.carrier || !overlaps(p, rect)) continue;
+    const depth = rect.dx > 0 ? rect.x + rect.w - p.x : p.x + p.w - rect.x;
+    if (depth <= Math.abs(rect.dx) + 0.5) p.x = rect.dx > 0 ? rect.x + rect.w : rect.x - p.w;
+  }
 
   moveX(p, terrain, rects, p.vx * dt);
   const wasGround = p.onGround;

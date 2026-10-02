@@ -15,10 +15,43 @@ export function loadSave(storage) {
     if (!raw) return emptySave();
     const parsed = JSON.parse(raw);
     if (!parsed || parsed.v !== 1 || typeof parsed.levels !== 'object') return emptySave();
-    return { ...emptySave(), ...parsed, levels: { ...parsed.levels } };
+    // Repair field by field: one damaged value should never cost the rest.
+    const save = emptySave();
+    save.muted = parsed.muted === true;
+    for (const level of LEVELS) {
+      const entry = cleanEntry(parsed.levels?.[level.id]);
+      if (entry) save.levels[level.id] = entry;
+    }
+    return save;
   } catch {
     return emptySave();
   }
+}
+
+const count = (value, max) => (Number.isFinite(value) ? Math.max(0, Math.min(max, Math.floor(value))) : 0);
+
+/** A saved level entry with every field checked, or null when it is unusable. */
+function cleanEntry(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const best = Number.isFinite(raw.best) && raw.best > 0 ? raw.best : 0;
+  const done = raw.done === true && best > 0;
+  return {
+    done,
+    stars: done ? Math.max(1, count(raw.stars, 3)) : 0,
+    best: done ? best : 0,
+    seeds: count(raw.seeds, 999),
+    acorns: count(raw.acorns, 3),
+  };
+}
+
+/**
+ * Take another tab's newer save into this tab's save object in place, so a
+ * stale copy here is never written back over it.
+ */
+export function adoptSave(save, fresh) {
+  for (const key of Object.keys(save)) delete save[key];
+  Object.assign(save, fresh);
+  return save;
 }
 
 export function writeSave(storage, save) {

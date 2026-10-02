@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { LEVELS } from '../src/levels.js';
 import {
-  SAVE_KEY, emptySave, entryFor, formatTime, isUnlocked, loadSave, nextLevelIndex,
+  SAVE_KEY, adoptSave, emptySave, entryFor, formatTime, isUnlocked, loadSave, nextLevelIndex,
   recordRun, totals, unlockedCount, writeSave,
 } from '../src/progress.js';
 
@@ -25,6 +25,39 @@ test('a missing or broken save reads as a fresh one', () => {
   assert.deepEqual(loadSave(fakeStorage({ [SAVE_KEY]: 'not json' })), emptySave());
   assert.deepEqual(loadSave(fakeStorage({ [SAVE_KEY]: '{"v":99}' })), emptySave());
   assert.deepEqual(loadSave(null), emptySave());
+});
+
+test('a damaged save is repaired field by field', () => {
+  const [a, b, c] = LEVELS.map((level) => level.id);
+  const raw = {
+    v: 1,
+    muted: 'no',
+    levels: {
+      [a]: { done: true, stars: '3', best: 'abc', seeds: 'x', acorns: null },
+      [b]: { done: true, stars: 99, best: 41.5, seeds: 12, acorns: 7 },
+      [c]: 7,
+      'not-a-level': { done: true, stars: 3, best: 10 },
+    },
+  };
+  const save = loadSave(fakeStorage({ [SAVE_KEY]: JSON.stringify(raw) }));
+  assert.equal(save.muted, false, 'only a real true mutes');
+  assert.equal(entryFor(save, a).done, false, 'a clear with no usable time is dropped');
+  assert.deepEqual(entryFor(save, b), { done: true, stars: 3, best: 41.5, seeds: 12, acorns: 3 });
+  assert.equal(entryFor(save, c).done, false);
+  assert.equal(save.levels['not-a-level'], undefined);
+  const sums = totals(save);
+  assert.equal(sums.stars, 3);
+  assert.ok(Number.isFinite(sums.seeds) && Number.isFinite(sums.acorns));
+  assert.equal(formatTime(entryFor(save, b).best), '0:41.50');
+});
+
+test('adopting another tab\'s save replaces this tab\'s copy in place', () => {
+  const mine = emptySave();
+  const fresh = emptySave();
+  recordRun(fresh, run(LEVELS[0].id, { stars: 2 }));
+  const same = adoptSave(mine, fresh);
+  assert.equal(same, mine);
+  assert.equal(entryFor(mine, LEVELS[0].id).stars, 2);
 });
 
 test('a save round-trips through storage', () => {

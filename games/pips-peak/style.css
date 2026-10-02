@@ -305,7 +305,8 @@ h2 { margin: 2px 0 0; font-size: clamp(20px, 3.2vw, 30px); }
   box-shadow: 0 10px 26px rgba(255, 176, 70, 0.4);
 }
 .button.quiet { background: transparent; }
-.button:focus-visible, .icon-button:focus-visible, .map-level:focus-visible {
+.button:focus-visible, .icon-button:focus-visible, .map-level:focus-visible,
+body.pad-nav .button:focus, body.pad-nav .map-level:focus, body.pad-nav .arcade-link:focus {
   outline: 3px solid var(--sky);
   outline-offset: 2px;
 }
@@ -481,13 +482,16 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 @keyframes fade { from { opacity: 0; } }
 @keyframes pop { from { transform: scale(0) rotate(-25deg); } to { transform: scale(1) rotate(0); } }
 
-/* Portrait phones: a taller window on the world, sitting above the controls. */
+/* Portrait phones: a tall window on the world filling the phone down to the
+   hint above the controls. The renderer zooms in to fit the level's height. */
 @media (orientation: portrait) and (pointer: coarse) {
+  :root { --stage-h: min(170vw, calc(98vh - 190px)); }
   body { align-items: start; padding-top: 2vh; }
   #stage {
     width: 100vw;
-    aspect-ratio: 4 / 3;
-    max-height: 72vh;
+    height: var(--stage-h);
+    aspect-ratio: auto;
+    max-height: none;
     border-radius: 0;
   }
   /* Menus are taller than the little window, so they cover the whole phone. */
@@ -532,7 +536,7 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
   .touch:not(.hidden) ~ .rotate-hint {
     position: fixed;
     left: 50%;
-    top: calc(2vh + 75vw + 18px);
+    top: calc(2vh + var(--stage-h) + 14px);
     z-index: 4;
     display: flex;
     align-items: center;

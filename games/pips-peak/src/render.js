@@ -15,6 +15,9 @@ export const VIEW_H = 198;
 const PLANK = { meadow: '#c08a4e', caves: '#6f97ab', cliffs: '#b9744f', summit: '#dbe9ff' };
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+// Always-positive remainder: scenery that scrolls off one side comes back on
+// the other, however far the camera has travelled.
+const wrap = (v, m) => ((v % m) + m) % m;
 const lerp = (a, b, t) => a + (b - a) * t;
 
 /** Stable pseudo-random in 0..1 from two integers: used for texture. */
@@ -106,6 +109,17 @@ export class Renderer {
     }
     this.scale = width / VIEW_W;
     this.viewH = height / this.scale;
+    if (this.world && !this.peek) this.camera.zoom = this.fitZoom();
+  }
+
+  /**
+   * Zoom for normal play. A tall portrait view would show more than the
+   * level's whole height, so it zooms in instead: a bigger Pip and a
+   * narrower window, never less than about 13 tiles across.
+   */
+  fitZoom() {
+    if (!this.world) return 1;
+    return clamp(this.viewH / (this.world.pixelHeight + 16), 1, 1.7);
   }
 
   setWorld(world) {
@@ -164,8 +178,9 @@ export class Renderer {
     cam.x = world.pixelWidth <= viewW
       ? world.pixelWidth / 2
       : clamp(cam.x, viewW / 2, world.pixelWidth - viewW / 2);
+    // A level shorter than the view sits on the bottom edge, sky above it.
     cam.y = world.pixelHeight <= viewH
-      ? world.pixelHeight / 2
+      ? world.pixelHeight - viewH / 2
       : clamp(cam.y, viewH / 2, world.pixelHeight - viewH / 2);
     cam.shake = Math.max(0, cam.shake - dt * 26);
   }
@@ -179,7 +194,7 @@ export class Renderer {
       this.camera.zoom = Math.min(zx, zy);
       this.camera.ready = false;
     } else {
-      this.camera.zoom = 1;
+      this.camera.zoom = this.fitZoom();
       this.camera.ready = false;
     }
   }
@@ -390,7 +405,7 @@ export class Renderer {
   drawClouds(ctx, left, top) {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
     for (const cloud of this.clouds) {
-      const x = ((cloud.x - left * 0.18 + this.time * cloud.speed) % (this.world.pixelWidth + 400)) - 60;
+      const x = wrap(cloud.x - left * 0.18 + this.time * cloud.speed, this.world.pixelWidth + 400) - 60;
       const y = cloud.y - top * 0.1;
       const s = cloud.s;
       fillCircle(ctx, x, y, 9 * s);
@@ -419,7 +434,7 @@ export class Renderer {
       ctx.fill();
       // stalactites hanging off the band
       for (let i = 0; i < 9; i += 1) {
-        const x = ((i * 47 - left * band.par) % (VIEW_W + 60)) - 20;
+        const x = wrap(i * 47 - left * band.par, VIEW_W + 60) - 20;
         const wx = (x + left * band.par) * band.freq;
         const y = this.viewH * band.base + Math.sin(wx) * band.amp + Math.sin(wx * 3.1) * band.amp * 0.4;
         const h = 10 + hash(i, 5) * 22;
@@ -433,7 +448,7 @@ export class Renderer {
     }
     // Distant waterfalls in front of the rock.
     for (let i = 0; i < 5; i += 1) {
-      const x = ((i * 137 - left * 0.3) % (VIEW_W + 120)) - 40;
+      const x = wrap(i * 137 - left * 0.3, VIEW_W + 120) - 40;
       const w = 16 + hash(i, 3) * 20;
       const grad = ctx.createLinearGradient(x, 0, x + w, 0);
       grad.addColorStop(0, 'rgba(120, 220, 240, 0)');
@@ -472,7 +487,7 @@ export class Renderer {
     }
     // Little floating islands, kept up in the sky where they read as scenery.
     for (let i = 0; i < 4; i += 1) {
-      const x = ((i * 213 + 60 - left * 0.55) % (VIEW_W + 260)) - 80;
+      const x = wrap(i * 213 + 60 - left * 0.55, VIEW_W + 260) - 80;
       const y = 26 + hash(i, 61) * 52 - top * 0.22;
       if (y > this.viewH * 0.5) continue;
       const w = 26 + hash(i, 67) * 30;
@@ -501,8 +516,8 @@ export class Renderer {
     for (const mote of this.motes) {
       const speed = zone.id === 'summit' ? 26 : 14;
       const sway = Math.sin(this.time * mote.drift * 2 + mote.x) * (zone.id === 'cliffs' ? 14 : 5);
-      const x = ((mote.x - left * 0.9 + this.time * (zone.id === 'cliffs' ? 60 : 8) * mote.drift) % (VIEW_W + 40)) - 20 + sway;
-      const y = ((mote.y - top * 0.9 + this.time * speed * mote.drift) % (this.viewH + 40)) - 20;
+      const x = wrap(mote.x - left * 0.9 + this.time * (zone.id === 'cliffs' ? 60 : 8) * mote.drift, VIEW_W + 40) - 20 + sway;
+      const y = wrap(mote.y - top * 0.9 + this.time * speed * mote.drift, this.viewH + 40) - 20;
       ctx.globalAlpha = 0.55;
       if (zone.id === 'cliffs') {
         ctx.fillRect(x, y, mote.s * 5, 0.8);

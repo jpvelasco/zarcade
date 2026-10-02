@@ -5,7 +5,7 @@ import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { LEVELS, ZONES, findLevel } from './levels.js';
 import {
-  entryFor, formatTime, isUnlocked, loadSave, nextLevelIndex, recordRun, totals, writeSave,
+  SAVE_KEY, adoptSave, entryFor, formatTime, isUnlocked, loadSave, nextLevelIndex, recordRun, totals, writeSave,
 } from './progress.js';
 import { Renderer } from './render.js';
 import { PETALS, World } from './world.js';
@@ -39,6 +39,7 @@ const state = {
   accumulator: 0,
   last: performance.now(),
   endTimer: 0,
+  cleared: null,       // the finished run, saved the moment Pip reaches the sunrise
   bannerTimer: 0,
   pointerIdle: 0,
   pointerHidden: false,
@@ -95,8 +96,11 @@ function showTitle() {
   backdrop.step(STEP, {});
   state.world = backdrop;
   renderer.setWorld(backdrop);
-  renderer.camera.zoom = 1;
-  renderer.camera.ready = false;
+  renderer.setPeek(false);
+  refreshTitle();
+}
+
+function refreshTitle() {
   const sums = totals(save);
   $('title-progress').textContent = sums.done
     ? `${sums.done}/${sums.levels} levels · ${sums.stars}/${sums.maxStars} stars · ${sums.acorns} golden acorns`
@@ -173,6 +177,7 @@ function startLevel(index) {
   state.mode = 'play';
   state.accumulator = 0;
   state.endTimer = 0;
+  state.cleared = null;
   state.wilts = 0;
   showScreen(null);
   setPlayUi(true);
@@ -203,15 +208,22 @@ function resume() {
   setPlayUi(true);
 }
 
-function finishLevel() {
-  const world = state.world;
-  const result = world.result();
+// Save the clear as soon as Pip reaches the sunrise, so pausing, restarting
+// or leaving during the celebration never loses it.
+function recordClear() {
+  const result = state.world.result();
   const { entry, record } = recordRun(save, result);
   writeSave(storage, save);
+  state.cleared = { result, entry, record };
   log.event('level.complete', {
     level: state.index + 1, 'level.id': result.levelId, stars: result.stars, 'time.s': Math.round(result.time * 10) / 10,
     seeds: result.seeds, 'seeds.total': result.seedTotal, acorns: result.acorns, wilts: state.wilts, 'best.new': !!record,
   });
+}
+
+function finishLevel() {
+  if (!state.cleared) recordClear();
+  const { result, entry, record } = state.cleared;
   state.mode = 'complete';
   const level = LEVELS[state.index];
   $('result-zone').textContent = ZONES[level.zone].name.toUpperCase();
@@ -275,6 +287,7 @@ function revealPointer() {
 }
 window.addEventListener('mousemove', revealPointer);
 window.addEventListener('pointerdown', revealPointer);
+window.addEventListener('pointerdown', () => document.body.classList.remove('pad-nav'));
 
 function updatePointer(dt) {
   if (state.mode !== 'play') {
@@ -348,6 +361,7 @@ function frame(now) {
     if (steps >= MAX_STEPS) state.accumulator = 0;
     updateHud();
     if (world.status === 'complete') {
+      if (!state.cleared) recordClear();
       state.endTimer += dt;
       if (state.endTimer > 1) finishLevel();
     }
@@ -357,11 +371,54 @@ function frame(now) {
     cam.ready = true;
     // Drift around the sunrise at the end of the first meadow.
     cam.x = world.pixelWidth * 0.74 + Math.sin(performance.now() / 11000) * world.pixelWidth * 0.16;
-    cam.y = world.pixelHeight * 0.58;
+    cam.y = Math.min(world.pixelHeight * 0.58, world.pixelHeight - renderer.viewH / cam.zoom / 2);
   }
 
+  padMenus();
   if (world) renderer.frame(world, dt, { follow: state.mode === 'play' || state.mode === 'paused' });
   requestAnimationFrame(loop);
+}
+
+// Gamepad on the menus. During play `input` reads the pad; everywhere else
+// the d-pad moves between buttons, A presses one (the main one if none has
+// focus), B or Start resumes from pause and Start presses the main button.
+const padPrev = {};
+function padMenus() {
+  const pads = navigator.getGamepads ? [...navigator.getGamepads()] : [];
+  const pad = pads.find(Boolean);
+  if (!pad) return;
+  const held = (i) => !!pad.buttons[i]?.pressed;
+  const now = {
+    up: held(12) || pad.axes[1] < -0.5,
+    down: held(13) || pad.axes[1] > 0.5,
+    left: held(14) || pad.axes[0] < -0.5,
+    right: held(15) || pad.axes[0] > 0.5,
+    a: held(0),
+    b: held(1),
+    start: held(9),
+  };
+  const edges = {};
+  for (const key of Object.keys(now)) edges[key] = now[key] && !padPrev[key];
+  const hit = (key) => edges[key];
+  Object.assign(padPrev, now);
+  if (state.mode === 'play') return;
+  const screen = screens.find((el) => !el.classList.contains('hidden'));
+  if (!screen) return;
+  if (state.mode === 'paused' && (hit('b') || hit('start'))) {
+    resume();
+  } else if (hit('up') || hit('left') || hit('down') || hit('right')) {
+    const list = [...screen.querySelectorAll('button:not(:disabled), a[href]')];
+    const at = list.indexOf(document.activeElement);
+    const step = hit('up') || hit('left') ? -1 : 1;
+    document.body.classList.add('pad-nav');
+    list[at < 0 ? 0 : (at + step + list.length) % list.length]?.focus({ focusVisible: true });
+  } else if (hit('a') || hit('start')) {
+    const focused = screen.contains(document.activeElement) && hit('a') ? document.activeElement : null;
+    (focused || screen.querySelector('.button.primary'))?.click();
+  }
+  // A held over into play is not a jump.
+  input.padJump = now.a || now.b;
+  input.padStart = now.start;
 }
 
 // A crash inside a frame shows the crash screen instead of a frozen picture;
@@ -391,6 +448,17 @@ $('btn-next').addEventListener('click', () => {
 });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) pause();
+});
+
+// Another tab saved: take its progress, so this tab never writes a stale copy
+// over it. A level in progress records into the fresh copy when it is done.
+window.addEventListener('storage', (event) => {
+  if (event.key !== SAVE_KEY && event.key !== null) return;
+  adoptSave(save, loadSave(storage));
+  audio.setMuted(save.muted);
+  muteLabel();
+  if (state.mode === 'title') refreshTitle();
+  else if (state.mode === 'map') buildMap();
 });
 window.addEventListener('resize', () => {
   renderer.resize();
