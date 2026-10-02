@@ -14,7 +14,7 @@ import { PROPS, coverRects } from './props.js';
 import { propBox } from './scene.js';
 import { ITEM } from './items.js';
 import { ghostsOf } from './ghosts.js';
-import { sceneBox } from './rooms.js';
+import { sceneBox, sideBySide } from './rooms.js';
 
 const MAX_PARTICLES = 140;
 const MAX_ZOOM = 2.7;
@@ -86,10 +86,17 @@ export class Renderer {
   // The two pictures sit one above the other. Stacking rather than placing them
   // side by side keeps each panel wider than it is tall, which is the shape a
   // room is built for, and means neither picture ever needs panning.
+  // A very wide, short canvas (a phone on its side) would make stacked panels
+  // thin slices, so there the pictures sit side by side instead.
   panels() {
     if (!this.split && !this.diff) return [{ x: 0, y: 0, w: this.view.w, h: this.view.h }];
-    const h = (this.view.h - 6) / 2;
-    return [{ x: 0, y: 0, w: this.view.w, h }, { x: 0, y: h + 6, w: this.view.w, h }];
+    const { w: vw, h: vh } = this.view;
+    if (sideBySide(vw, vh)) {
+      const w = (vw - 6) / 2;
+      return [{ x: 0, y: 0, w, h: vh }, { x: w + 6, y: 0, w, h: vh }];
+    }
+    const h = (vh - 6) / 2;
+    return [{ x: 0, y: 0, w: vw, h }, { x: 0, y: h + 6, w: vw, h }];
   }
 
   recomputeCover() {
@@ -563,10 +570,11 @@ export class Renderer {
     }
     // the dividing line between the two pictures
     const c = this.ctx;
-    const [a] = this.panels();
+    const [a, b] = this.panels();
     c.save();
     c.fillStyle = '#1b1526';
-    c.fillRect(0, a.h, this.view.w, 6);
+    if (b.x > 0) c.fillRect(a.w, 0, 6, this.view.h);
+    else c.fillRect(0, a.h, this.view.w, 6);
     c.restore();
   }
 

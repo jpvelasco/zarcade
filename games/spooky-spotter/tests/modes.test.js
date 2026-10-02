@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildDiff, diffHitTest, diffRemaining, diffHintArea, distanceToBox, CHANGE_TYPES, visibleProps } from '../src/modes.js';
-import { ROOM_IDS, sceneBox, targetCount } from '../src/rooms.js';
+import { ROOM_IDS, sceneBox, targetCount, sideBySide } from '../src/rooms.js';
 import { autoplayDiff } from '../src/solver.js';
 
 // Spot the Difference stacks two pictures, so a panel is half the height of
@@ -125,4 +125,11 @@ test('a difference round carries no hidden things to collect', () => {
   const diff = buildDiff({ room: 'library', seed: 2, box: BOXES[0], count: 5 });
   assert.equal(diff.base.targets.length, 0);
   assert.equal(diff.base.mouse, null);
+});
+
+test('the two pictures stack on wide screens and sit side by side on a phone on its side', () => {
+  assert.equal(sideBySide(1066, 860), false, 'desktop beside the list');
+  assert.equal(sideBySide(390, 676), false, 'portrait phone');
+  assert.equal(sideBySide(624, 390), true, '844x390 phone with the list on the right');
+  assert.equal(sideBySide(844, 208), true, 'a short strip never gets two slices');
 });

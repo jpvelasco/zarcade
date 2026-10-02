@@ -284,6 +284,16 @@ export function sceneBox(viewW, viewH) {
   return { w, h: WORLD_H };
 }
 
+// Which way to lay out the two Difference pictures: whichever gives panels
+// closer to the shapes a room can be built in (sceneBox: 0.9 to 2.6 wide). A phone on its
+// side gets them next to each other rather than as two thin slices..
+export function sideBySide(vw, vh) {
+  const off = (a) => Math.abs(Math.log(Math.min(2.6, Math.max(0.9, a)) / a));
+  const stacked = vw / Math.max(1, (vh - 6) / 2);
+  const side = Math.max(1, (vw - 6) / 2) / Math.max(1, vh);
+  return off(side) < off(stacked);
+}
+
 // Wide rooms need more things in them, or they read as empty stages.
 export function clutterScale(boxW) {
   return Math.min(1.9, Math.max(0.95, boxW / 1200));

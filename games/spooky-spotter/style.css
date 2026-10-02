@@ -267,6 +267,29 @@ h3 { margin: 14px 0 4px; font-size: 17px; font-weight: 900; }
   .item .tick { font-size: 30px; justify-content: flex-end; padding-right: 14px; }
 }
 
+/* A phone on its side: the list goes down the right, two to a row, so the
+   room keeps the full height of the screen. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 879px) {
+  :root { --tray: 220px; }
+  #game { inset: 0 var(--tray) 0 0; width: calc(100% - var(--tray)); height: 100%; }
+  body.titling #game { width: 100%; }
+  #hud { inset: 0 var(--tray) 0 0; }
+  #tray {
+    left: auto; top: 0; width: var(--tray); height: 100%;
+    border-top: 0; border-left: 2px solid rgba(169, 122, 224, 0.4);
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) 8px;
+  }
+  .items { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; overflow-x: hidden; overflow-y: auto; height: auto; }
+  .item-btn { width: 100%; min-height: 0; padding: 4px 3px; }
+  .item-btn .icon { width: 32px !important; height: 32px !important; }
+  .item-text small { display: none; }
+  body .toasts { bottom: 14px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .logo { font-size: 44px; }
+  .tagline { margin: 8px auto 4px; font-size: 14px; }
+}
+
 /* --------------------------------------------------------------- toasts */
 
 .toasts {
