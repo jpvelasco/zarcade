@@ -364,6 +364,11 @@ code { background: rgba(0, 0, 0, 0.06); padding: 1px 5px; border-radius: 6px; }
   .results-card h2 { font-size: 1.3rem; }
   .results-card .stars { font-size: 2rem; margin: 0; }
   .results-card p { margin: 2px 0 8px; }
+  /* The pause menu in two columns so it fits the short screen. */
+  #screen-pause .card { max-width: min(560px, 70vw); padding: 14px 20px; }
+  #screen-pause .card h2 { font-size: 1.35rem; margin: 0; }
+  #screen-pause .card p { margin: 2px 0 10px; }
+  #screen-pause .col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
