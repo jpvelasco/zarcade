@@ -547,7 +547,7 @@ function puzzleMove(m) {
   if (res.solved) {
     sound.play('right');
     match.over = { reason: 'solved' };
-    setTimeout(finishPuzzle, reduced ? 200 : 650);
+    setTimeout(() => finishPuzzle(run), reduced ? 200 : 650);
     return;
   }
   sound.play('right');
@@ -563,9 +563,10 @@ function puzzleMove(m) {
   }, reduced ? 250 : 700);
 }
 
-function finishPuzzle() {
-  if (!match || match.kind !== 'puzzle') return;
-  const run = match.run, p = match.puzzle;
+function finishPuzzle(run) {
+  // A Retry or a new puzzle since the solve: that attempt is not this one.
+  if (!match || match.kind !== 'puzzle' || match.run !== run) return;
+  const p = match.puzzle;
   const stars = run.stars();
   const rec = recordPuzzle(save, p.id, stars);
   persist();
@@ -673,6 +674,7 @@ function playAgain() {
 function undo() {
   if (!match) return;
   if (match.kind === 'puzzle') {
+    if (match.run.solved) return; // the result card is on its way
     startPuzzle(match.puzzleIndex);
     return;
   }
