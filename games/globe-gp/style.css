@@ -295,4 +295,13 @@ body.touch .standings { display: none; }
   body.touch .pause-btn { bottom: auto; top: 84px; }
   .results-card { padding-top: 12px; padding-bottom: 0; }
   #res-buttons { position: sticky; bottom: 0; padding: 10px 0 12px; margin-top: 8px; background: linear-gradient(0deg, rgba(16, 22, 58, 0.97) 75%, rgba(16, 22, 58, 0)); }
+  /* Two columns of pause buttons, so Back to arcade is on screen too. */
+  #screen-pause .menu { grid-template-columns: 1fr 1fr; gap: 8px; }
+  #screen-pause .menu .primary { grid-column: 1 / -1; }
+  #screen-pause .card { padding-top: 12px; padding-bottom: 14px; }
+  #screen-pause h2 { margin: 0 0 8px; }
+  /* A lower podium leaves room for the times and prizes. */
+  .podium { height: 104px; margin: 6px 0; }
+  .podium .p1 .block { height: 54px; } .podium .p2 .block { height: 40px; } .podium .p3 .block { height: 30px; }
+  .podium .step .block { font-size: 22px; }
 }
