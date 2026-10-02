@@ -279,6 +279,8 @@ function restart() {
 
 function pause() {
   if (mode !== 'play') return;
+  // Already won or lost: skip to the results so the run is recorded.
+  if (game.phase === 'won' || game.phase === 'lost') { finished(); return; }
   mode = 'paused';
   updateSoundButtons();
   showScreen('screen-pause');
