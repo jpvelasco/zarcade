@@ -168,6 +168,19 @@ test('a dead board asks for a shuffle and gets its moves back', () => {
   assert.ok(game.bestMove(), 'there is something to play again');
 });
 
+test('taking the free continue on a dead board shuffles it', () => {
+  const game = gameOf(DEAD, [{ type: 'score', amount: 1e9 }], { colors: 4, moves: 0 });
+  game.phase = 'resolving';
+  game.resolveMode = 'check';
+  game.step();
+  assert.equal(game.phase, 'outOfMoves');
+  assert.equal(game.useContinue(), true);
+  assert.equal(game.phase, 'input');
+  assert.equal(game.pendingShuffle, true, 'the dead board is shuffled before play');
+  game.doShuffle();
+  assert.ok(game.bestMove(), 'there is something to play again');
+});
+
 test('a pearl swapped onto a plain jelly clears that whole color', () => {
   const game = gameOf(['1234', '2341', '3412', '4123']);
   game.board.at(0).special = RAINBOW;

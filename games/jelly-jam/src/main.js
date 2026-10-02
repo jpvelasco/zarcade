@@ -407,7 +407,11 @@ function showHint(force = false) {
   if (!game || game.phase !== 'input') return;
   const move = game.bestMove();
   if (move) view.hint = move;
-  if (force && !move) toast('No moves left — shuffling!');
+  if (!move) {
+    // Never leave a dead board waiting: the pump shuffles it next frame.
+    game.pendingShuffle = true;
+    if (force) toast('No moves left — shuffling!');
+  }
 }
 
 function showContinue() {

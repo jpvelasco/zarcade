@@ -145,6 +145,8 @@ export class Game {
     this.usedContinue = true;
     this.moves += CONTINUE_MOVES;
     this.phase = 'input';
+    // The last move may have left a dead board; shuffle it like any turn.
+    if (!hasMoves(this.board)) this.pendingShuffle = true;
     return true;
   }
 
