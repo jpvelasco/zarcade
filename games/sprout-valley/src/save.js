@@ -56,6 +56,7 @@ export function deserialize(data) {
   w.upgrades = { field: !!data.upgrades?.field, greenhouse: !!data.upgrades?.greenhouse };
   w.soil.fill(0); w.wet.fill(0); w.tuft.fill(0); w.crop.fill(null); w.obj.fill(null);
   for (const t of Array.isArray(data.tiles) ? data.tiles : []) {
+    if (!Array.isArray(t)) continue;
     const [i, soil, wet, tuft, c, o] = t;
     if (!Number.isInteger(i) || i < 0 || i >= W * H) continue;
     w.soil[i] = soil ? 1 : 0; w.wet[i] = wet ? 1 : 0; w.tuft[i] = tuft ? 1 : 0;
@@ -83,7 +84,9 @@ export function deserialize(data) {
   for (const id of FESTIVAL_IDS) if (data.festivalsWon?.[id]) w.festivalsWon[id] = true;
   for (const book of ['crops', 'fish', 'critters', 'goods']) {
     w.collection[book] = {};
-    for (const [id, n] of Object.entries(data.collection?.[book] || {})) if (ITEMS[id] || book === 'critters') w.collection[book][id] = int(n, 1, 1e6, 1);
+    const saved = data.collection?.[book];
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) continue;
+    for (const [id, n] of Object.entries(saved)) if (ITEMS[id] || book === 'critters') w.collection[book][id] = int(n, 1, 1e6, 1);
   }
   for (const k of Object.keys(w.stats)) w.stats[k] = int(data.stats?.[k], -1e6, 1e9, 0);
   w.goalsDone = {};
@@ -95,13 +98,26 @@ export function deserialize(data) {
   w.water = int(data.water, 0, w.canInfo.capacity, w.canInfo.capacity);
   w.bin = {};
   for (const [id, n] of Object.entries(data.bin || {})) if (ITEMS[id] && n > 0) w.bin[id] = int(n, 1, 99999, 1);
-  w.setupDay(data.fest && typeof data.fest === 'object' ? data.fest : null);
+  w.setupDay(cleanFest(data.fest));
   const pl = data.player;
   if (pl && Number.isFinite(pl.x) && Number.isFinite(pl.y) && !w.blocked(pl.x, pl.y)) { w.player.x = pl.x; w.player.y = pl.y; }
   if (['up', 'down', 'left', 'right'].includes(pl?.dir)) w.player.dir = pl.dir;
   if (requests && requests.length) w.requests = requests;
   w.events.length = 0;
   return w;
+}
+
+// Festival progress with every field checked, so a damaged one can't make
+// the festival unwinnable or break the fair stall.
+function cleanFest(f) {
+  if (!f || typeof f !== 'object') return null;
+  const out = { done: !!f.done, started: !!f.started, ended: !!f.ended, eggs: int(f.eggs, 0, 99, 0), fish: int(f.fish, 0, 99, 0) };
+  if (Array.isArray(f.lit)) out.lit = f.lit;
+  const r = f.result;
+  if (r && typeof r === 'object' && ['gold', 'silver', 'bronze'].includes(r.ribbon)) {
+    out.result = { score: int(r.score, 0, 1e6, 0), ribbon: r.ribbon, gold: int(r.gold, 0, 1e6, 0) };
+  }
+  return out;
 }
 
 export function loadWorld(storage) {

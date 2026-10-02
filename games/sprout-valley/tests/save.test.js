@@ -85,3 +85,35 @@ test('an egg hunt in progress resumes with the eggs still to find', () => {
   assert.equal(back.fest.eggs, 1);
   assert.equal(back.pickups.filter((p) => p.festival).length, 11);
 });
+
+test('a damaged tile or festival field is dropped instead of losing the farm (#214)', () => {
+  const w = freshWorld(4);
+  runBot(w, 3);
+  w.minute = 10 * 60;
+  w.step(0.01, {});
+  assert.equal(w.festival, 'egghunt');
+  const data = JSON.parse(JSON.stringify(serialize(w)));
+  const tiles = data.tiles.length;
+  data.tiles[0] = null;
+  data.tiles[1] = 5;
+  data.fest.eggs = 'abc';
+  data.fest.result = 'abc';
+  data.collection.critters = 'xyz';
+  const back = deserialize(data);
+  assert.ok(back, 'the farm still loads');
+  assert.equal(serialize(back).tiles.length, tiles - 2);
+  assert.equal(back.fest.eggs, 0);
+  assert.equal(back.fest.result, null);
+  assert.equal(back.pickups.filter((p) => p.festival).length, 12, 'every egg is back to find');
+  assert.deepEqual(back.collection.critters, {});
+  for (const bad of [null, -5, 'x', {}]) {
+    const d = JSON.parse(JSON.stringify(serialize(w)));
+    d.fest.eggs = bad; d.fest.fish = bad;
+    const b = deserialize(d);
+    assert.ok(Number.isInteger(b.fest.eggs) && b.fest.eggs >= 0);
+    assert.ok(Number.isInteger(b.fest.fish) && b.fest.fish >= 0);
+  }
+  const fair = JSON.parse(JSON.stringify(serialize(w)));
+  fair.fest.result = { score: 700, ribbon: 'silver', gold: 300 };
+  assert.deepEqual(deserialize(fair).fest.result, { score: 700, ribbon: 'silver', gold: 300 });
+});
