@@ -55,7 +55,8 @@ button, .btn { font: inherit; }
   gap: 10px;
   pointer-events: none;
 }
-.hud > * { pointer-events: auto; }
+/* Only the buttons take touches, so a drag can start on the HUD cards. */
+.hud-buttons > * { pointer-events: auto; }
 
 .hud-card {
   display: flex;
