@@ -51,6 +51,20 @@
     log.warn('save.failed', { 'storage.available': !!safeStorage() });
   }
 
+  // Another tab saved: take its progress, so this tab never writes a stale
+  // copy over it (whichever tab saved last used to win). A hole in progress
+  // keeps going and records into the fresh copy.
+  window.addEventListener('storage', (e) => {
+    if (e.key !== Rules.SAVE_KEY && e.key !== null) return;
+    const fresh = Rules.loadSave(safeStorage());
+    for (const k of Object.keys(save)) delete save[k];
+    Object.assign(save, fresh);
+    audio.setMuted(save.muted);
+    drawMuteIcon();
+    if (mode === 'title') toTitle();
+    else if (mode === 'worlds') toWorlds();
+  });
+
   // ------------------------------------------------------------ layout
 
   function layout() {
