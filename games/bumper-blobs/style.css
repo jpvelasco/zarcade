@@ -392,3 +392,16 @@ table.keys th { color: var(--ink-soft); font-size: 13px; text-transform: upperca
   .podium-card .board .line .sc { font-size: 15px; white-space: nowrap; min-width: 0; }
   .podium-card .reward { margin: 6px 0; padding: 6px 10px; font-size: 13px; }
 }
+
+/* Landscape phones: a wide, short podium card with the board in two columns,
+   so the rewards and buttons fit without scrolling. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .podium-card { width: min(780px, 100%); max-height: 64%; padding: 8px 14px 10px; }
+  .podium-card h2 { font-size: 20px; margin: 0 0 4px; }
+  .podium-card .board { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 4px 0; }
+  .podium-card .board .line { gap: 6px; padding: 2px 8px; }
+  .podium-card .board .line canvas { width: 26px; height: 26px; }
+  .podium-card .board .line .st { font-size: 11px; white-space: nowrap; }
+  .podium-card .board .line .sc { font-size: 15px; white-space: nowrap; min-width: 0; }
+  .podium-card .reward { margin: 4px 0; padding: 4px 10px; font-size: 13px; }
+}
