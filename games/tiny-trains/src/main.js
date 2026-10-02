@@ -578,6 +578,11 @@ function changed(kind, cell) {
 
 let sandboxTimer = 0;
 function storeSandboxSoon() { sandboxTimer = 0.8; }
+// The timer only ticks in the frame loop, so write now if the page goes away.
+function flushSandbox() {
+  if (sandboxTimer > 0) { sandboxTimer = 0; storeSandbox(); }
+}
+addEventListener('pagehide', flushSandbox);
 function storeSandbox() {
   if (!play || play.kind !== 'sandbox') return;
   save.sandbox = packSandbox(play.board, play.editor.layout);
@@ -1136,6 +1141,7 @@ const monitor = frameMonitor({
 setInterval(() => monitor.check(performance.now()), 1000);
 document.addEventListener('visibilitychange', () => {
   monitor.reset(performance.now());
+  if (document.hidden) flushSandbox();
   if (document.hidden && mode === 'play' && play && play.phase === 'run') pause();
 });
 
