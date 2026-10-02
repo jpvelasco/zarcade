@@ -40,10 +40,10 @@
       if (!d || d.v !== 1) return freshSave();
       return {
         v: 1,
-        muted: !!d.muted,
-        best: obj(d.best),
-        rounds: obj(d.rounds),
-        completed: obj(d.completed),
+        muted: d.muted === true,
+        best: counts(d.best),
+        rounds: counts(d.rounds),
+        completed: flags(d.completed),
       };
     } catch {
       return freshSave();
@@ -51,7 +51,20 @@
   }
 
   function obj(x) {
-    return x && typeof x === 'object' && !Array.isArray(x) ? { ...x } : {};
+    return x && typeof x === 'object' && !Array.isArray(x) ? x : {};
+  }
+
+  // Keep only whole stroke counts, so a damaged field never shows as NaN or
+  // blocks a new best. Finished worlds must be exactly `true`.
+  function counts(x) {
+    const out = {};
+    for (const [k, v] of Object.entries(obj(x))) if (Number.isInteger(v) && v >= 1 && v < 1000) out[k] = v;
+    return out;
+  }
+  function flags(x) {
+    const out = {};
+    for (const [k, v] of Object.entries(obj(x))) if (v === true) out[k] = true;
+    return out;
   }
 
   // Returns false when nothing was saved (storage full, disabled or blocked).

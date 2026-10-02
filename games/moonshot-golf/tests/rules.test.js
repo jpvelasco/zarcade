@@ -43,6 +43,23 @@ test('save round-trips under the namespaced key and survives junk', () => {
   assert.deepEqual(R.loadSave(null), R.freshSave());
 });
 
+test('damaged save fields are dropped instead of blocking bests or unlocking worlds', () => {
+  const raw = JSON.stringify({
+    v: 1, muted: 'yes',
+    best: { 'moon-1': null, 'moon-2': 'x', 'moon-3': 2.5, 'moon-4': -1, 'moon-5': 3 },
+    rounds: { moon: 'abc', mars: 20 },
+    completed: { moon: 'no', mars: true },
+  });
+  const s = R.loadSave(memoryStorage({ 'moonshot-golf.v1': raw }));
+  assert.deepEqual(s, { v: 1, muted: false, best: { 'moon-5': 3 }, rounds: { mars: 20 }, completed: { mars: true } });
+  assert.equal(R.recordHole(s, HOLES[0], 4).newBest, true, 'a junk best no longer blocks a real one');
+  assert.equal(R.isWorldUnlocked(s, WORLDS, 1), false, '"no" does not count as finished');
+  for (const bad of ['[]', '{"v":1,"best":[3],"rounds":"x","completed":7}']) {
+    const t = R.loadSave(memoryStorage({ 'moonshot-golf.v1': bad }));
+    assert.deepEqual([t.best, t.rounds, t.completed], [{}, {}, {}]);
+  }
+});
+
 test('best scores only improve and pick-ups are never a best', () => {
   const s = R.freshSave();
   const h = HOLES[3];
