@@ -35,6 +35,13 @@ test('every manifest entry is complete and unique', () => {
   }
 });
 
+test('Pinball Planet lists the mouse, which works its flippers (issue #200)', () => {
+  const g = GAMES.find((x) => x.slug === 'pinball-planet');
+  assert.ok(g.controls.includes('mouse'));
+  const input = fs.readFileSync(path.join(ROOT, 'games', 'pinball-planet', 'src', 'input.js'), 'utf8');
+  assert.match(input, /pointerType === 'mouse'/);
+});
+
 test('manifest and games folder list the same games', () => {
   const folders = fs.readdirSync(path.join(ROOT, 'games'), { withFileTypes: true })
     .filter((d) => d.isDirectory())

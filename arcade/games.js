@@ -144,7 +144,7 @@
       tagline: 'Flip, orbit and nudge across the galaxy.',
       description: 'A space pinball table with real flipper feel: visit five planets, smash the asteroid field and lock balls in the Black Hole for multiball.',
       genre: 'Arcade',
-      controls: ['keyboard', 'touch', 'gamepad'],
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
       accent: '#ffb347',
       needsServer: true,
       isNew: true,
