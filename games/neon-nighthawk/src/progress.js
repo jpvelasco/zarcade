@@ -48,19 +48,50 @@ export function defaultSave() {
     musicMuted: false,
     // Story progress: stars per job (0–3) for each chapter, and the highest
     // chapter the player may start.
-    story: { unlocked: 0, stars: [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]], finished: false },
+    // `goals` records which star goals that best run earned, as bits:
+    // GOAL_FINISH, GOAL_SPARKS, GOAL_BIKE. 0 means "not known" (older saves).
+    story: {
+      unlocked: 0,
+      stars: [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+      goals: [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+      finished: false,
+    },
   };
 }
+
+export const GOAL_FINISH = 1;
+export const GOAL_SPARKS = 2;
+export const GOAL_BIKE = 4;
+
+// The star goals one finished job earned, as GOAL_* bits.
+export function goalsFor(result) {
+  return GOAL_FINISH | (result.sparks >= result.sparkGoal ? GOAL_SPARKS : 0) | (result.integrity >= 70 ? GOAL_BIKE : 0);
+}
+
+const bitCount = (mask) => (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1);
+
+// A stored count is kept only when it is a sane, non-negative number.
+const count = (value) => (Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0);
 
 export function loadSave(storage) {
   try {
     const raw = JSON.parse(storage.getItem(SAVE_KEY));
     const base = defaultSave();
-    if (!raw) return base;
+    if (!raw || typeof raw !== 'object') return base;
+    // Every field is checked, so a damaged save falls back to defaults
+    // instead of breaking the title screen or the bike's stats.
+    const upgrades = {};
+    for (const [key, upgrade] of Object.entries(UPGRADES)) {
+      const level = raw.upgrades?.[key];
+      upgrades[key] = Number.isInteger(level) ? Math.max(0, Math.min(upgrade.costs.length, level)) : 0;
+    }
     return {
       ...base,
-      ...raw,
-      upgrades: { ...base.upgrades, ...(raw.upgrades || {}) },
+      credits: count(raw.credits),
+      bestScore: count(raw.bestScore),
+      bestContracts: count(raw.bestContracts),
+      upgrades,
+      paint: PAINTS.some((paint) => paint.id === raw.paint) ? raw.paint : base.paint,
       story: cleanStory(raw.story, base.story),
       muted: raw.muted === true,
       // Saves from before the soundtrack had one switch for everything.
@@ -77,8 +108,19 @@ function cleanStory(raw, base) {
     const value = raw.stars?.[chapter]?.[job];
     return Number.isInteger(value) ? Math.max(0, Math.min(3, value)) : 0;
   }));
-  const unlocked = Number.isInteger(raw.unlocked) ? Math.max(0, Math.min(base.stars.length - 1, raw.unlocked)) : 0;
-  return { unlocked, stars, finished: raw.finished === true };
+  // A goal record is kept only when it agrees with the star count.
+  const goals = stars.map((row, chapter) => row.map((value, job) => {
+    const mask = raw.goals?.[chapter]?.[job];
+    return Number.isInteger(mask) && mask >= 0 && mask <= 7 && bitCount(mask) === value ? mask : 0;
+  }));
+  let unlocked = Number.isInteger(raw.unlocked) ? Math.max(0, Math.min(base.stars.length - 1, raw.unlocked)) : 0;
+  // A district with every job starred has been finished, even if the player
+  // left before the chapter-complete screen, so the next one is open.
+  const lit = (row) => row.every((value) => value > 0);
+  let done = 0;
+  while (done < stars.length && lit(stars[done])) done++;
+  unlocked = Math.max(unlocked, Math.min(base.stars.length - 1, done));
+  return { unlocked, stars, goals, finished: raw.finished === true || done === stars.length };
 }
 
 export function writeSave(storage, save) {
@@ -136,10 +178,21 @@ export function recordDelivery(save, result) {
   save.bestContracts = Math.max(save.bestContracts, result.contractsDone);
 }
 
-export function recordJob(save, chapter, job, stars) {
+// Keeps the best stars for a job (and which goals that run earned). Starring
+// every job in a district finishes its chapter, so the next one unlocks as
+// soon as the last job's result is saved.
+export function recordJob(save, chapter, job, stars, goals = 0) {
   const row = save.story.stars[chapter];
   if (!row) return;
-  row[job] = Math.max(row[job] || 0, stars);
+  const known = bitCount(goals) === stars ? goals : 0;
+  const goalRow = save.story.goals?.[chapter];
+  if (stars > (row[job] || 0)) {
+    row[job] = stars;
+    if (goalRow) goalRow[job] = known;
+  } else if (goalRow && stars === row[job] && !goalRow[job]) {
+    goalRow[job] = known; // an older save learns which goals a tying run earned
+  }
+  if (row.every((value) => value > 0)) recordChapter(save, chapter);
 }
 
 // Finishing a chapter unlocks the next one; the last one finishes the story.

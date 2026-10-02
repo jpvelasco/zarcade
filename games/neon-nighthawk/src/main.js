@@ -8,6 +8,7 @@ import {
   UPGRADES,
   buyUpgrade,
   chapterStars,
+  goalsFor,
   loadSave,
   paintFor,
   recordChapter,
@@ -43,6 +44,9 @@ const renderer = new Renderer(scene, {
     document.body.classList.toggle('lite', renderer.levelIndex >= 2);
   },
 });
+
+// A pinned low level gets the same lighter styles as one the scaler picks.
+document.body.classList.toggle('lite', renderer.levelIndex >= 2);
 
 // Reading `localStorage` throws when the browser blocks site storage; the
 // save helpers treat a null store as "nothing saved".
@@ -224,7 +228,7 @@ function formatTime(seconds) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-function goalsFor(contract) {
+function goalLines(contract) {
   const sparkGoal = Math.ceil(contract.sparks.length * 0.7);
   return [
     contract.kind === 'chase' ? `Catch ${contract.def.runnerName} and bring it home` : 'Finish the job',
@@ -243,9 +247,11 @@ function showBriefing() {
   $('#briefing-time').textContent = `${formatTime(contract.timeLimit)} WINDOW`;
   fillDialogue($('#briefing-lines'), contract.def.brief);
   const best = state.save.story.stars[contract.chapter][contract.job];
-  $('#briefing-goals').replaceChildren(...goalsFor(contract).map((goal, index) => {
+  // Tick the goals the best run earned; older saves only know how many.
+  const earned = state.save.story.goals[contract.chapter][contract.job];
+  $('#briefing-goals').replaceChildren(...goalLines(contract).map((goal, index) => {
     const item = document.createElement('li');
-    item.className = index < best ? 'earned' : '';
+    item.className = (earned ? earned & (1 << index) : index < best) ? 'earned' : '';
     item.textContent = goal;
     return item;
   }));
@@ -358,7 +364,7 @@ function recordResult() {
   const result = state.world.currentResult;
   if (!result || result.recorded) return;
   recordDelivery(state.save, result);
-  recordJob(state.save, result.chapter, result.job, result.stars);
+  recordJob(state.save, result.chapter, result.job, result.stars, goalsFor(result));
   result.recorded = true;
   writeSave(storage, state.save);
   updateTitle();
@@ -892,6 +898,7 @@ const stick = $('#touch-stick');
 const stickKnob = $('#touch-stick i');
 let stickPointer = null;
 let stickOrigin = null;
+let stickBase = { x: 0, y: 0 }; // where the thumb landed, from the pad's centre
 function updateStick(event) {
   const dx = event.clientX - stickOrigin.x;
   const dy = event.clientY - stickOrigin.y;
@@ -900,7 +907,17 @@ function updateStick(event) {
   const scale = span > limit ? limit / span : 1;
   state.touch.x = span > 8 ? clamp(dx / limit, -1, 1) : 0;
   state.touch.y = span > 8 ? clamp(dy / limit, -1, 1) : 0;
-  stickKnob.style.transform = `translate(${dx * scale}px, ${dy * scale}px)`;
+  // The knob sits under the thumb: the landing point plus the (capped) slide,
+  // kept within the pad's ring.
+  let kx = stickBase.x + dx * scale;
+  let ky = stickBase.y + dy * scale;
+  const reach = Math.hypot(kx, ky);
+  const ring = stick.clientWidth / 2;
+  if (reach > ring) {
+    kx *= ring / reach;
+    ky *= ring / reach;
+  }
+  stickKnob.style.transform = `translate(${kx}px, ${ky}px)`;
 }
 stick.addEventListener('pointerdown', (event) => {
   stickPointer = event.pointerId;
@@ -908,6 +925,8 @@ stick.addEventListener('pointerdown', (event) => {
   // Measure from where the thumb lands, not the pad's centre, so a touch
   // anywhere on the pad starts at rest and a small slide steers.
   stickOrigin = { x: event.clientX, y: event.clientY };
+  const pad = stick.getBoundingClientRect();
+  stickBase = { x: event.clientX - (pad.left + pad.width / 2), y: event.clientY - (pad.top + pad.height / 2) };
   updateStick(event);
   event.preventDefault();
 });
