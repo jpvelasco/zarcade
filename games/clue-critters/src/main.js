@@ -471,6 +471,8 @@ function startDaily() {
 
 function beginCase(kase, m) {
   meta = { ...m, key: caseKey(m) };
+  // A new case starts with an empty accusation, never the last case's answer.
+  picks.who = -1; picks.where = -1; picks.what = -1;
   const resume = save.active && save.active.key === meta.key ? save.active.session : null;
   session = new Session(kase, resume);
   place = resume && save.active.place < kase.n ? save.active.place | 0 : 0;
