@@ -367,6 +367,27 @@ code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 6px; }
   .grade { font-size: 72px; }
 }
 
+/* Landscape phones: grade on the left, details and buttons on the right, so
+   Play again, Next and Song list fit without scrolling. */
+@media (max-height: 480px) and (min-width: 600px) {
+  .results-card {
+    width: min(760px, 100%);
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    grid-template-areas: "song lines" "grade lines" "title unlocks" "score buttons";
+    column-gap: 20px;
+    align-items: center;
+    padding: 14px 20px;
+  }
+  #res-song { grid-area: song; margin: 0; }
+  #res-grade { grid-area: grade; font-size: 64px; }
+  #res-title { grid-area: title; margin: 0; font-size: 22px; }
+  #res-score { grid-area: score; margin: 0; }
+  .results-card .res-lines { grid-area: lines; margin: 0; }
+  .results-card .unlocks { grid-area: unlocks; }
+  .results-card .col { grid-area: buttons; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card, .grade, .unlock { animation: none; }
   .logo-notes i { animation: none; }
