@@ -177,7 +177,9 @@ function renderMaps() {
 }
 
 function pause() {
-  if (mode !== 'play') return;
+  // Not once the garden is won or lost: the results card is about to show
+  // and saves the result, and leaving from a pause menu would lose it.
+  if (mode !== 'play' || game.over) return;
   mode = 'paused';
   $('pause-info').textContent = `${game.map.name} · wave ${game.wave}/${game.waves.length}`;
   updateSoundButtons();
