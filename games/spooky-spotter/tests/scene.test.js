@@ -217,3 +217,21 @@ test('building every room in every mode is quick enough for one frame', () => {
   const ms = Number(process.hrtime.bigint() - t0) / 1e6;
   assert.ok(ms / built < 8, `${(ms / built).toFixed(2)} ms per scene`);
 });
+
+// Rotating a phone mid-round re-lays the room for the new shape. It must be the
+// same list of things in the new layout, or found things drop off the list.
+test('a room re-laid for a new shape keeps the same list', () => {
+  for (const room of ROOM_IDS) {
+    for (const mode of ['find', 'hunt']) {
+      for (const seed of [5, 77, 301]) {
+        const wide = buildScene({ room, mode, seed, box: sceneBox(1066, 860) });
+        const narrow = buildScene({ room, mode, seed, box: sceneBox(390, 676), items: wide.wanted.slice() });
+        assert.deepEqual(narrow.wanted, wide.wanted, `${room} ${mode} seed ${seed}`);
+        for (const t of narrow.targets) {
+          if (t.secret) continue;
+          assert.ok(t.mask.hit.r >= 13, `${room} ${mode} seed ${seed}: ${t.id} is still findable`);
+        }
+      }
+    }
+  }
+});

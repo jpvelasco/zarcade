@@ -98,7 +98,10 @@ function relayout() {
   const box = measure();
   if (round && !round.done) {
     const change = Math.abs(box.w - round.box.w) / Math.max(1, round.box.w);
-    if (change > 0.08) rebuildRound();
+    // Differences have no identity across layouts, so once one is found the
+    // pictures stay as they are and only the camera adapts to the new shape.
+    const keepDiff = round.diff && round.diff.changes.some((c) => c.found);
+    if (change > 0.08 && !keepDiff) rebuildRound();
   } else if (!round && attract) {
     startAttract(attract.room);
   }
@@ -206,7 +209,7 @@ function startRound(roomId, modeId, daily, plan = null) {
   if (params.has('solve')) queueMicrotask(solveNow);
 }
 
-function buildRound() {
+function buildRound(items = null) {
   // A room that has never been cleared is dusty but still readable; clearing
   // its three modes brings it all the way up.
   const light = 0.26 + game.roomLight(round.room) * 0.74;
@@ -215,7 +218,7 @@ function buildRound() {
     round.total = round.diff.changes.length;
     renderer.setDiff(round.diff, { light });
   } else {
-    round.scene = buildScene({ room: round.room, mode: round.mode, seed: round.seed, box: round.box });
+    round.scene = buildScene({ room: round.room, mode: round.mode, seed: round.seed, box: round.box, items });
     round.total = round.scene.wanted.length;
     renderer.setScene(round.scene, { light });
     // The thank-you noise waits for the thing to reach its ghost; the album
@@ -225,44 +228,27 @@ function buildRound() {
   renderer.setProgress(round.found, round.total);
 }
 
-// A real change of shape re-lays the room. Whatever was already found stays
-// found, matched by what it was rather than by position: the new layout may not
-// hold the same things in the same order.
+// A real change of shape re-lays the room around the same list of things.
+// Whatever was already found stays found, matched by what it was rather than by
+// position. Difference rounds only get here before anything is found.
 function rebuildRound() {
   const foundIds = new Set(round.scene ? round.scene.targets.filter((t) => t.found).map((t) => t.id) : []);
-  const foundChanges = round.diff ? round.diff.changes.filter((c) => c.found).length : 0;
   renderer.setSplit(round.mode === 'diff');
   round.box = measure();
-  buildRound();
+  buildRound(round.scene ? round.scene.wanted.slice() : null);
 
   if (round.scene) {
     for (const t of round.scene.targets) if (foundIds.has(t.id)) t.found = true;
     if (round.scene.mouse?.found) round.mouse = true;
     round.found = round.scene.targets.filter((t) => t.found && !t.secret).length;
-  } else if (round.diff) {
-    // Differences have no identity across layouts, so keep the count: mark that
-    // many, from the start of the new list.
-    const keep = Math.min(foundChanges, round.diff.changes.length);
-    for (let i = 0; i < keep; i++) round.diff.changes[i].found = true;
-    round.found = keep;
   }
 
   list.build(round);
   if (round.scene) {
     for (const t of round.scene.targets) if (t.found && !t.secret) list.markFound(t.id);
-  } else if (round.diff) {
-    for (const ch of round.diff.changes) {
-      if (!ch.found) continue;
-      list.markDiff(ch.index, round.total);
-      renderer.addDiffMark(ch);
-    }
   }
   renderer.setProgress(round.found, round.total);
   updateHud();
-  // A narrower room asks for fewer differences, so the rebuild can leave
-  // nothing to find. Don't strand the player in a finished round.
-  const left = round.scene ? remaining(round.scene) : diffRemaining(round.diff);
-  if (!round.done && left === 0) finish();
 }
 
 function updateHud() {
