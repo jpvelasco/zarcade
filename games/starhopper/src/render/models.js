@@ -319,6 +319,7 @@ export function makeBurgerJoint() {
   diner.add(burger);
   // Neon sign.
   const sign = part(new THREE.PlaneGeometry(16, 4), new THREE.MeshBasicMaterial({ map: signTexture('SPACE BURGER', '#2a0a2a', '#ff7ad8'), side: THREE.DoubleSide }), 0, 21, 0);
+  sign.rotation.y = Math.PI; // the lane frame's +z points away from the jet; face it
   diner.add(sign);
   g.add(diner);
   g.userData = { diner, burger, sign };
@@ -332,6 +333,7 @@ export function makeDriveThru(radius) {
   const inner = part(new THREE.TorusGeometry(radius - 0.9, 0.12, 8, 48), glow('#ff5aa8'));
   g.add(inner);
   const label = part(new THREE.PlaneGeometry(9, 2.2), new THREE.MeshBasicMaterial({ map: signTexture('DRIVE-THRU', '#1a0a20', '#ffd23a'), side: THREE.DoubleSide, transparent: true }), 0, radius + 2.2, 0);
+  label.rotation.y = Math.PI; // read the right way round from the approaching jet
   g.add(label);
   g.userData = { ring, inner };
   return g;

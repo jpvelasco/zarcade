@@ -105,7 +105,8 @@ function showScreen(id) {
 function toMenu(screen = 'screen-title') {
   mode = 'menu';
   if (!world || !world.player.autopilot) load(selected, { attract: true });
-  $('title-dust').textContent = save.stardust ? `✨ ${save.stardust} stardust · ${Object.keys(save.cleared).length} planets visited` : '';
+  const visited = Object.keys(save.cleared).length;
+  $('title-dust').textContent = save.stardust ? `✨ ${save.stardust} stardust · ${visited} planet${visited === 1 ? '' : 's'} visited` : '';
   if (screen === 'screen-galaxy') renderGalaxy();
   if (screen === 'screen-hangar') renderHangar();
   showScreen(screen);
