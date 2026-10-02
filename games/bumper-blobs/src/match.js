@@ -77,7 +77,7 @@ export class Match {
     if (this.mode !== 'lbs') {
       this.winner = res.winner;
       this.ranking = res.ranking;
-      this.scores = world.blobs.map((b) => Math.floor(b.score));
+      this.scores = res.scores || world.blobs.map((b) => Math.floor(b.score));
       return { roundWinner: res.winner, matchWinner: this.winner };
     }
     if (res.winner >= 0) this.wins[res.winner]++;

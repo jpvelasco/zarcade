@@ -321,7 +321,8 @@ export class World {
     b.mass = BLOB.mass;
     this.outOrder.push(b.i);
     this.emit('out', { i: b.i });
-    this.rules.onOut(this, b);
+    // A fall after the round is decided (during the celebration) costs nothing.
+    if (this.phase !== 'done') this.rules.onOut(this, b);
     if (this.rules.respawns && this.phase !== 'done') b.respawnT = ROUND.respawn;
     else b.eliminated = true;
   }
@@ -490,7 +491,8 @@ export class World {
 
   finish(res) {
     this.phase = 'done';
-    this.result = res;
+    // Scores as they stood when the round was decided, for the results.
+    this.result = { ...res, scores: this.blobs.map((b) => Math.floor(b.score)) };
     for (const b of this.blobs) b.charging = false;
     this.emit('roundOver', { winner: res.winner });
   }

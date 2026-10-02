@@ -4,6 +4,7 @@ import { World } from '../src/world.js';
 import { STEP, ROUND, KOTH, COINS } from '../src/config.js';
 import { rankByScore } from '../src/modes.js';
 import { run, playWorld, place } from './helpers.js';
+import { Match } from '../src/match.js';
 
 test('Last Blob Standing: the last blob on the floor wins and the ranking follows fall order', () => {
   const w = playWorld({ players: [{}, {}, {}] });
@@ -78,6 +79,27 @@ test('Coin Grab: coins appear, touching one scores it, falling off spills some',
   run(w, 1.4);
   assert.equal(a.score, 10 - COINS.lose);
   assert.ok(w.coins.length >= Math.min(COINS.max, count + COINS.lose) - 1);
+});
+
+test('Coin Grab: a fall during the winning celebration keeps the winning score', () => {
+  const m = new Match({ mode: 'coins', target: { coins: 15 } }, [{}, {}], 3);
+  const w = m.nextRound();
+  while (w.phase === 'countdown') w.step(STEP, []);
+  const [a, b] = w.blobs;
+  a.score = 14; b.score = 10;
+  w.coins.length = 0;
+  // The winning coin is right at the edge, and the blob slides off with it.
+  place(a, 280, 0); a.vx = 500;
+  w.coins.push({ x: 290, y: 0, value: 1, t: 1, spin: 0 });
+  for (let i = 0; i < 5 && w.phase !== 'done'; i++) w.step(STEP, []);
+  assert.equal(w.phase, 'done');
+  assert.equal(w.result.winner, 0);
+  run(w, ROUND.outro);
+  assert.ok(a.out || a.falling, 'fell off during the celebration');
+  m.endRound(w);
+  assert.equal(m.winner, 0);
+  assert.deepEqual(m.scores, [15, 10]);
+  assert.equal(a.score, 15, 'no coins spilled after the win');
 });
 
 test('timed modes go to overtime on a tie and still always finish', () => {
