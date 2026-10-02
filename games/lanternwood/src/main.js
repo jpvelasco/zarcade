@@ -59,7 +59,19 @@ function layout() {
   document.body.classList.toggle('landscape', !L.portrait);
 }
 
+// The ending and fainted cards ignore clicks for a moment after they appear,
+// so a player still mashing through dialogue or swinging doesn't skip them.
+const GUARDED = ['screen-ending', 'screen-down'];
+const GUARD_MS = 800;
+let shownId = null;
+let shownAt = 0;
+addEventListener('click', (e) => {
+  if (GUARDED.includes(shownId) && performance.now() - shownAt < GUARD_MS) { e.preventDefault(); e.stopPropagation(); }
+}, { capture: true });
+
 function showScreen(id) {
+  shownId = id;
+  shownAt = performance.now();
   // Presses made during play (sword, talk, walking) must not replay as menu
   // input: a menu only reacts to presses made while it is open.
   if (id) input.clear();
@@ -68,7 +80,7 @@ function showScreen(id) {
   $('hud-buttons').classList.toggle('hidden', !playing);
   $('touch').classList.toggle('hidden', !(playing && touchOn()));
   if (id) {
-    const first = $(id).querySelector('.btn.primary:not([disabled]), .slot .btn:not([disabled]), .btn:not([disabled]), .item-slot:not(.locked)');
+    const first = $(id).querySelector('.btn.primary:not([disabled]):not(.hidden), .slot .btn:not([disabled]), .btn:not([disabled]):not(.hidden), .item-slot:not(.locked)');
     first?.focus({ preventScroll: true });
   } else if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   sound.setMusicLevel(playing ? 1 : mode === 'title' || mode === 'slots' ? 0.8 : 0.4);
