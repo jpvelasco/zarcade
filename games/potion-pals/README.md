@@ -95,7 +95,7 @@ tests/            node:test files
 | `?play` | Skip the title screen |
 | `?found=N` | Let the demo alchemist pre-discover N things |
 | `?scrolls=N` | Add hint scrolls |
-| `?autopilot` | The demo alchemist plays for you |
+| `?autopilot` | The demo alchemist plays for you (nothing is saved) |
 | `?reduced` | Force reduced motion |
 
 ## Tests

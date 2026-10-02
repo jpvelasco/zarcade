@@ -30,7 +30,9 @@ alchemy.rollRequests();
 alchemy.ensureDaily(dayKey());
 
 let saveWarned = false;
+const demoOnly = params.has('autopilot'); // the demo alchemist never saves over a real workshop
 function persist() {
+  if (demoOnly) return;
   if (writeSave(storage, alchemy.state) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
