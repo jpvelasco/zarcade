@@ -2,6 +2,7 @@
 // progress, puzzle stars and results per bot.
 import { PUZZLES } from './puzzles.js';
 import { BOTS } from './bots.js';
+import { MODES } from './game.js';
 
 export const SAVE_KEY = 'knight-shift.v1';
 export const THEMES = ['wood', 'candy', 'space'];
@@ -40,7 +41,7 @@ export function loadSave(storage) {
       }
     }
     save.friendGames = count(raw.friendGames);
-    if (raw.current && typeof raw.current === 'object' && raw.current.setup && Array.isArray(raw.current.moves)) save.current = raw.current;
+    if (validCurrent(raw.current)) save.current = raw.current;
     if (raw.lastSetup && typeof raw.lastSetup === 'object') {
       const l = raw.lastSetup;
       if (['classic', 'fog', 'powers', '960'].includes(l.mode)) save.lastSetup.mode = l.mode;
@@ -51,6 +52,14 @@ export function loadSave(storage) {
     /* corrupt or unavailable storage: start fresh */
   }
   return save;
+}
+
+// The game in progress needs a known mode and a list of moves; anything
+// else (a damaged save) is dropped instead of breaking the game later.
+function validCurrent(c) {
+  if (!c || typeof c !== 'object' || !Array.isArray(c.moves) || !c.moves.every((m) => typeof m === 'string')) return false;
+  const s = c.setup;
+  return !!s && typeof s === 'object' && !Array.isArray(s) && MODES.includes(s.mode);
 }
 
 // Returns false in private mode or when storage is full or blocked.

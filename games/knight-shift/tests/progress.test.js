@@ -37,6 +37,24 @@ test('saves round-trip and junk values are dropped', () => {
   assert.equal(clean.current, null);
 });
 
+test('a damaged game in progress is dropped, a good one kept', () => {
+  const load = (current) => loadSave(memory({ [SAVE_KEY]: JSON.stringify({ current, puzzles: { 'back-rank': 2 } }) }));
+  const good = { setup: { mode: 'classic', fen: '6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1' }, moves: [], opponent: 0, human: 0 };
+  assert.deepEqual(load(good).current, good);
+  for (const bad of [
+    { ...good, setup: { ...good.setup, mode: 'zzz' } },
+    { ...good, setup: 'classic' },
+    { ...good, setup: [] },
+    { ...good, setup: null },
+    { ...good, moves: [5] },
+    { ...good, moves: 'e2e4' },
+  ]) {
+    const s = load(bad);
+    assert.equal(s.current, null, JSON.stringify(bad));
+    assert.equal(s.puzzles['back-rank'], 2, 'the rest of the save survives');
+  }
+});
+
 test('results and puzzle progress', () => {
   const save = defaultSave();
   assert.equal(recordResult(save, 'pip', 'w'), true, 'first win');
