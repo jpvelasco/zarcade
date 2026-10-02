@@ -425,7 +425,8 @@ function frame(now) {
     else if (mode === 'paused') resume();
     else if (esc) back();
   }
-  if (input.consume('KeyN')) toggleMute();
+  // N is a letter on the initials screen, not the mute key.
+  if (input.consume('KeyN') && mode !== 'initials') toggleMute();
   if (mode !== 'play') {
     if (mode === 'initials') {
       if (input.consumePad('up')) cycleLetter(iniSlot, -1);
