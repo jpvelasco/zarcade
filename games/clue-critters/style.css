@@ -93,7 +93,12 @@ button:focus-visible, a:focus-visible { outline: 4px solid var(--sky); outline-o
 .card h2 { margin: 0 0 12px; font-size: 28px; text-align: center; }
 .card h3 { margin: 12px 0 8px; font-size: 18px; }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-.sheet-head h2 { margin: 0; flex: 1; }
+.sheet-head h2 { margin: 0; flex: 1; text-align: left; }
+/* Keep the top-centre strip clear for the Full screen pill, which slides in
+   whenever a finger lands near the top (the Hint and close buttons live there). */
+@media (pointer: coarse) and (min-height: 561px) {
+  .sheet-layer { padding-top: max(56px, env(safe-area-inset-top)); }
+}
 
 .arcade-link {
   position: fixed; top: max(12px, env(safe-area-inset-top)); left: 12px; z-index: 30;
