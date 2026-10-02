@@ -130,7 +130,11 @@ export class Input {
     return !!(navigator.getGamepads && [...navigator.getGamepads()].some(Boolean));
   }
 
+  // Called once per frame, before anything consumes pad edges. An edge lives
+  // for that one frame only, so an unused press (a nudge in play, A while
+  // plunging) can't fire again later.
   pollPad() {
+    this.padEdges.clear();
     const pad = navigator.getGamepads ? [...navigator.getGamepads()].find(Boolean) : null;
     if (!pad) { this.pad.left = this.pad.right = this.pad.plunge = false; return; }
     const b = (i) => !!pad.buttons[i]?.pressed || (pad.buttons[i]?.value || 0) > 0.4;
