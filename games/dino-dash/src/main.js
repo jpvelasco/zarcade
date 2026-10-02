@@ -25,8 +25,11 @@ const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, erro
 const canvas = $('game');
 const storage = (() => { try { return localStorage; } catch { return null; } })();
 const save = loadSave(storage);
+// ?autopilot is a demo: it plays with your dino but never writes the save.
+const demo = params.has('autopilot');
 let saveWarned = false;
 function persist() {
+  if (demo) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });

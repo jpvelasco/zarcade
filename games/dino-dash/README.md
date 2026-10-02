@@ -76,7 +76,7 @@ Progress saves in `localStorage` under `dino-dash.v1`.
 
 ## Debug parameters
 
-- `?autopilot`: the autopilot plays a run.
+- `?autopilot`: the autopilot plays a run. Nothing it earns is saved.
 - `?play`: skip the title and start a run.
 - `?daily`: with `?play` or `?autopilot`, start today's Daily Dash.
 - `?seed=N`: fixed track seed.
