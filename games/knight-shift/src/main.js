@@ -13,7 +13,7 @@ import { PuzzleRun } from './puzzle-run.js';
 import { explainMove } from './explain.js';
 import { POWERS } from './powers.js';
 import { THEMES } from './pieces.js';
-import { loadSave, writeSave, recordResult, unrecordResult, recordPuzzle, puzzleUnlocked, nextPuzzle, puzzleStarsTotal, botsBeaten, THEMES as THEME_IDS } from './progress.js';
+import { SAVE_KEY, loadSave, writeSave, recordResult, unrecordResult, recordPuzzle, puzzleUnlocked, nextPuzzle, puzzleStarsTotal, botsBeaten, THEMES as THEME_IDS } from './progress.js';
 import { frameMonitor } from './perf.js';
 
 const $ = (id) => document.getElementById(id);
@@ -409,10 +409,12 @@ function defaultCursor() {
 
 // ------------------------------------------------------------ turns
 
+const savedGame = () => ({ ...match.game.toSave(), opponent: match.opponent, human: match.human, seed: match.seed, hints: match.hints });
+
 function persistGame() {
   if (!match || match.kind !== 'game') return;
   if (match.over) save.current = null;
-  else save.current = { ...match.game.toSave(), opponent: match.opponent, human: match.human, seed: match.seed, hints: match.hints };
+  else save.current = savedGame();
   persist();
 }
 
@@ -1225,6 +1227,23 @@ $('bottom-powers').addEventListener('click', (e) => {
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 addEventListener('keydown', () => sound.unlock(), { once: true });
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+
+// Another tab saved: take its copy, so this tab never writes stale stars,
+// records or settings over it (whichever tab saved last used to win). A game
+// being played here stays this tab's saved game.
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  const fresh = loadSave(storage);
+  for (const k of Object.keys(save)) delete save[k];
+  Object.assign(save, fresh);
+  if (match && match.kind === 'game' && !match.over) save.current = savedGame();
+  sound.setMuted(!save.settings.sound);
+  applyTheme();
+  updateSettingButtons();
+  if (screen === 'title') toTitle();
+  else if (screen === 'trail') renderTrail();
+  else if (screen === 'setup') renderSetup();
+});
 
 function back() {
   if (screen === 'paused') resume();
