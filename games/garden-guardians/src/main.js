@@ -115,8 +115,25 @@ function showScreen(id) {
   const inGame = mode === 'play' || mode === 'paused' || mode === 'results';
   $('hud').classList.toggle('hidden', !inGame);
   $('panel').classList.toggle('hidden', !inGame);
-  if (id) requestAnimationFrame(() => $(id).querySelector('.btn.primary:not(:disabled), .map-card:not(:disabled), .btn')?.focus({ preventScroll: true }));
+  if (id) requestAnimationFrame(() => firstFocus($(id))?.focus({ preventScroll: true }));
   else document.activeElement?.blur?.();
+}
+
+// Where keyboard focus lands on a screen: its main button, else the furthest
+// garden you can play (not the Back button that comes first in the page).
+function firstFocus(screen) {
+  const cards = screen.querySelectorAll('.map-card:not(:disabled)');
+  return screen.querySelector('.btn.primary:not(:disabled)') || cards[cards.length - 1] || screen.querySelector('.btn');
+}
+
+// Arrow keys step through a screen's buttons (garden cards included).
+function moveFocus(screen, dir) {
+  const items = [...screen.querySelectorAll('button:not(:disabled), a[href]')].filter((el) => el.offsetParent !== null);
+  if (!items.length) return;
+  const i = items.indexOf(document.activeElement);
+  const next = items[i < 0 ? 0 : (i + dir + items.length) % items.length];
+  next.focus();
+  next.scrollIntoView?.({ block: 'nearest' });
 }
 
 function toTitle() {
@@ -650,6 +667,9 @@ addEventListener('keydown', (e) => {
     else if (k === 'm' || k === 'M') toggleMute();
   } else if (mode === 'maps' && k === 'Escape') {
     toTitle();
+  } else if (mode === 'maps' && ARROWS[k]) {
+    e.preventDefault();
+    moveFocus($('screen-maps'), k === 'ArrowLeft' || k === 'ArrowUp' ? -1 : 1);
   } else if (mode === 'title' && (k === 'Enter' || k === ' ') && document.activeElement === document.body) {
     e.preventDefault();
     $('btn-play').click();
