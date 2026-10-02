@@ -405,7 +405,8 @@ function startDay({ special = false } = {}) {
   $('hud-chapter').textContent = special ? "Today's special" : chapterOf(plan.id).name;
   updateHud(true);
   toast(special ? `Today's special: ${plan.name}` : `Day ${plan.id} · ${plan.name}`, 2.2);
-  if (plan.tip) showTip(plan.tip, 7);
+  if (plan.assist) showTip(`${plan.tip ? `${plan.tip} ` : ''}Flour is lending a hand today: more time, and everybody waits longer.`, 8);
+  else if (plan.tip) showTip(plan.tip, 7);
   log.event('level.start', {
     day: special ? 0 : plan.id, chapter: plan.chapter, kind: plan.kind,
     assist: !!plan.assist, customers: plan.customers.length, upgrades: save.owned.length,
@@ -491,8 +492,7 @@ function endDay() {
   if (streak && streak.first) lines.push([`Streak: ${streak.streak} day${streak.streak === 1 ? '' : 's'} in a row`]);
   if (out.stars === 0) {
     lines.push(['Every coin is in the tin. Buy something for the kitchen and try again.']);
-  } else if (out.assistNext) {
-    lines.push(['Flour will lend a hand next time.']);
+    if (out.assistNext) lines.push(['Flour will lend a hand next time: more time, and everybody waits longer.']);
   }
   if (special) {
     buttons.push(['Bake it again', true, () => startDay({ special: true })]);
