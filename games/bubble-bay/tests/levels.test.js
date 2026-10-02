@@ -96,3 +96,11 @@ test('the daily tide is the same all day and different the next', () => {
     if (level.goal.type === 'otters') assert.ok(level.goal.need >= 2);
   }
 });
+
+test('every daily tide traps different otters', () => {
+  for (let d = 1; d <= 120; d++) {
+    const date = new Date(2026, 9, d);
+    const ids = dailyLevel(dateKeyOf(date)).cells.filter((c) => c?.k === 'otter').map((c) => c.o);
+    assert.equal(new Set(ids).size, ids.length, dateKeyOf(date));
+  }
+});

@@ -323,7 +323,14 @@ export function dailyLevel(key) {
   const goal = DAILY_GOALS[rng.int(DAILY_GOALS.length)];
   const level = buildLevel({ id: 0, area, within, seed, goal, name: 'Daily Tide', daily: true });
   level.dateKey = key;
-  for (const i of level.otters) level.cells[i] = { k: 'otter', o: rng.int(OTTER_COUNT) };
+  // a different otter in every bubble (re-roll a repeat)
+  const used = new Set();
+  for (const i of level.otters) {
+    let o = rng.int(OTTER_COUNT);
+    while (used.has(o)) o = rng.int(OTTER_COUNT);
+    used.add(o);
+    level.cells[i] = { k: 'otter', o };
+  }
   return level;
 }
 
