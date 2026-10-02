@@ -13,7 +13,7 @@ import { ROWS, COLS } from './map.js';
 import { bestPlay, botStep } from './bot.js';
 import { DEFS, crossOutSVG, frameSVG, heroSVG, iconSVG, letterSpans, monsterSVG, crayonShape, ellipsePts, sceneSVG } from './art.js';
 import { dateKey, dailySeed, hashString, makeRng } from './rng.js';
-import { liveStreak, loadProfile, mergeAlbum, noteBossDefeated, noteDailyStart, recordRun, saveProfile, checkUnlocks } from './progress.js';
+import { SAVE_KEY, liveStreak, loadProfile, mergeAlbum, noteBossDefeated, noteDailyStart, recordRun, saveProfile, checkUnlocks } from './progress.js';
 import { Sound } from './audio.js';
 import { Fx } from './fx.js';
 import { frameMonitor } from './perf.js';
@@ -1623,6 +1623,39 @@ setInterval(() => monitor.check(performance.now()), 1000);
 document.addEventListener('visibilitychange', () => {
   monitor.reset(performance.now());
   if (document.hidden) persist();
+});
+
+// Another tab saved. Catch up with its save instead of later writing this
+// tab's stale copy over it (whichever tab saved last used to win).
+// Two copies of the same run that differ only in play time are the same.
+const runKey = (r) => (r && r.phase !== 'over' ? JSON.stringify({ ...r, stats: { ...r.stats, ms: 0 }, battle: r.battle && { ...r.battle, events: [] } }) : '');
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  const next = loadProfile(storage);
+  const sameRun = runKey(next.current) === runKey(run);
+  profile = next;
+  sound.setSound(profile.settings.sound);
+  sound.setMusic(profile.settings.music);
+  if (!profile.unlocked.includes(heroChoice)) heroChoice = 'kid';
+  if (sameRun) {
+    // Only the profile changed (settings, a run recorded): keep playing.
+    if (run && run.phase !== 'over') profile.current = run;
+    if (screen === 'title') renderTitle();
+    return;
+  }
+  const wasPlaying = screen === 'battle' || screen === 'map';
+  run = profile.current;
+  if (run && run.battle) run.battle.events = [];
+  sel = -1;
+  aimUid = 0;
+  pendingReplace = null;
+  closeModal2();
+  paused = false;
+  closeModal();
+  if (screen === 'heroes') show('heroes');
+  else show('title');
+  if (wasPlaying) toast('You played in another tab, so this page caught up with it.', 3200);
+  log.info('save.synced', { 'run.active': !!run });
 });
 
 let crashOnce = params.has('crash');
