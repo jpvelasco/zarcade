@@ -7,7 +7,7 @@ import {
   applyOrders, assistFor, bankSpecial, buyUpgrade, daysCleared, highestChapter, loadSave,
   meetCustomer, owns, recordDay, refreshDaily, streakAlive, tasteSpecial, totalStars, writeSave,
 } from './progress.js';
-import { buildSpecialDay, dateKey } from './daily.js';
+import { applySpecial, buildSpecialDay, dateKey, specialFor, stationsForChapter } from './daily.js';
 import { ShopView, paintCustomer, paintDish, paintSilhouette, paintStation } from './render.js';
 import { Sfx } from './audio.js';
 import { Pad, PAUSE_KEYS, MUTE_KEYS, SERVE_KEYS, LEFT_KEYS, RIGHT_KEYS, stationFromKey } from './input.js';
@@ -52,6 +52,9 @@ let warnedClosing = false;
 
 refreshDaily(save, today, highestChapter(save));
 persist();
+// The recipe book and the menus show today's special, not the placeholder.
+applySpecial(specialFor(today, stationsForChapter(highestChapter(save))));
+view.sprites.bakeDish('special');
 
 // ------------------------------------------------------------------ screens
 
