@@ -87,3 +87,17 @@ test('the daily streak grows on consecutive days and restarts gently', () => {
   assert.equal(shiftDate('2026-12-31', 1), '2027-01-01');
   assert.ok(dailyReward(8) > dailyReward(1));
 });
+
+test('a damaged saved pod is dropped or repaired, never crashes a session (#111)', () => {
+  assert.equal(normalize({ v: 1, pod: { x: 'a', y: null, cargo: 'abc', relics: 5 } }).pod, null);
+  assert.equal(normalize({ v: 1, pod: { x: 400, y: 3 } }).pod, null);
+  const s = normalize({ v: 1, pod: { x: 12.5, y: 4.5, fuel: 'lots', hull: 7, cargo: [0, 1, 'x', 99], relics: 'r', maxDepth: 5 } });
+  assert.deepEqual(s.pod.cargo, [0, 1]);
+  assert.deepEqual(s.pod.relics, []);
+  const session = new Session(s);
+  assert.equal(session.pod.fuel, session.stats.tank);
+  assert.equal(session.pod.hull, 7);
+  session.step(1 / 60, { ax: 0, ay: 0 });
+  session.store();
+  assert.ok(Number.isFinite(s.pod.x) && Array.isArray(s.pod.relics));
+});

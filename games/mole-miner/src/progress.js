@@ -1,5 +1,5 @@
 // Saves, dates and streaks. DOM-free: storage is passed in (null = blocked).
-import { SAVE_KEY, UPGRADE_ORDER } from './data.js';
+import { SAVE_KEY, UPGRADE_ORDER, ORES, MAIN_WORLD } from './data.js';
 
 export function newSave(seed = 'meadow-1') {
   return {
@@ -40,7 +40,25 @@ export function normalize(raw) {
   s.seen = { ...base.seen, ...(raw.seen || {}) };
   s.coins = Math.max(0, Math.floor(Number(s.coins) || 0));
   s.diff = typeof s.diff === 'string' ? s.diff : '';
+  s.pod = normalizePod(raw.pod);
   return s;
+}
+
+// A saved pod with a bad position is dropped (the pod starts on the pad);
+// other bad fields fall back to safe values.
+function normalizePod(p) {
+  if (!p || typeof p !== 'object') return null;
+  const num = (v) => typeof v === 'number' && Number.isFinite(v);
+  if (!num(p.x) || !num(p.y) || p.x < 0.5 || p.x > MAIN_WORLD.w - 0.5 || p.y < -14 || p.y > MAIN_WORLD.h) return null;
+  const ids = (a, n) => (Array.isArray(a) ? a.filter((i) => Number.isInteger(i) && i >= 0 && i < n) : []);
+  return {
+    x: p.x, y: p.y,
+    fuel: num(p.fuel) ? Math.max(0, p.fuel) : Infinity,
+    hull: num(p.hull) ? Math.max(0, p.hull) : Infinity,
+    cargo: ids(p.cargo, ORES.length), relics: ids(p.relics, 24),
+    maxDepth: num(p.maxDepth) ? Math.max(0, p.maxDepth) : 0,
+    docked: !!p.docked, facing: p.facing === -1 ? -1 : 1,
+  };
 }
 
 export function loadSave(storage) {
