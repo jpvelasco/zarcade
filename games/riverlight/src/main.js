@@ -3,7 +3,7 @@ import { LEVEL_COUNT, SEASONS, TWISTS, getLevel, seasonLevels, zenLevel } from '
 import { Game, autoplay, starTargets } from './game.js';
 import { View, THEME_ORDER } from './render.js';
 import { Audio } from './audio.js';
-import { loadSave, writeSave, totalStars, recordWin, isUnlocked } from './save.js';
+import { loadSave, writeSave, totalStars, recordWin, isUnlocked, SAVE_KEY } from './save.js';
 import { stepCursor } from './topology.js';
 import { frameMonitor } from './perf.js';
 
@@ -23,6 +23,20 @@ function persist() {
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
 }
+
+// Another tab saved: take its progress, so this tab never writes a stale copy
+// over it. A garden in progress keeps going and records into the fresh copy.
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  const fresh = loadSave(storage);
+  for (const key of Object.keys(save)) delete save[key];
+  Object.assign(save, fresh);
+  audio.setSound(save.sound);
+  audio.setMusic(save.music);
+  syncToggles();
+  if (mode === 'title') refreshTitle();
+  else if (mode === 'map') renderMap();
+});
 
 const audio = new Audio({ sound: save.sound, music: save.music });
 const canvas = $('garden');
@@ -105,6 +119,10 @@ function toTitle() {
   setSeason('spring');
   show('title');
   newAttract();
+  refreshTitle();
+}
+
+function refreshTitle() {
   const stars = totalStars(save);
   const cleared = Object.keys(save.stars).length;
   const next = Math.min(save.unlocked, LEVEL_COUNT);
