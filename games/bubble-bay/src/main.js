@@ -822,15 +822,17 @@ function frame(now) {
   last = now;
   updatePointer(dt);
   pollGamepad(dt);
-  if (toastTimer > 0) { toastTimer -= dt; if (toastTimer <= 0) $('toast').classList.add('hidden'); }
-  if (bannerTimer > 0) {
+  // the level banner, tips and toasts wait while the game is paused
+  const held = mode === 'pause';
+  if (toastTimer > 0 && !held) { toastTimer -= dt; if (toastTimer <= 0) $('toast').classList.add('hidden'); }
+  if (bannerTimer > 0 && !held) {
     bannerTimer -= dt;
     if (bannerTimer <= 0) {
       $('banner').classList.add('out');
       setTimeout(() => $('banner').classList.add('hidden'), 360);
     }
   }
-  if (tipTimer > 0) { tipTimer -= dt; if (tipTimer <= 0) $('tip').classList.add('hidden'); }
+  if (tipTimer > 0 && !held) { tipTimer -= dt; if (tipTimer <= 0) $('tip').classList.add('hidden'); }
   if (mode === 'title') pumpDailyTuning(5);
   if (mode === 'play') {
     keyAim(dt);
