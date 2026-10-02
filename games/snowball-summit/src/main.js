@@ -55,13 +55,31 @@ function dailyCalibration(key) {
 
 const SCREENS = ['screen-title', 'screen-map', 'screen-wardrobe', 'screen-museum', 'screen-pause', 'screen-results', 'screen-caught', 'screen-victory'];
 
-function showScreen(id) {
+// End cards ignore menu presses for a moment, so jump mashing at the finish
+// line (Space, pad A or B) can't skip them or jump back to the title.
+const END_LOCK_MS = 700;
+let menuLockUntil = 0;
+const menuLocked = () => performance.now() < menuLockUntil;
+// Still mashing? Keep the card locked until the presses stop for a moment.
+const extendLock = () => { menuLockUntil = Math.max(menuLockUntil, performance.now() + 400); };
+
+function showScreen(id, { lock = false } = {}) {
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   $('hud-buttons').classList.toggle('hidden', mode !== 'play');
   input.enabled = mode === 'play';
+  menuLockUntil = lock ? performance.now() + END_LOCK_MS : 0;
   if (id) {
-    const first = $(id).querySelector('.btn.primary:not([disabled]), .slope-btn.next, .btn:not([disabled])');
-    first?.focus({ preventScroll: true });
+    const first = $(id).querySelector('.btn.primary:not([disabled]):not(.hidden), .slope-btn.next, .btn:not([disabled]):not(.hidden)');
+    if (!lock) first?.focus({ preventScroll: true });
+    else {
+      document.activeElement?.blur?.();
+      const focusLater = () => {
+        if ($(id).classList.contains('hidden') || (document.activeElement && document.activeElement !== document.body)) return;
+        if (menuLocked()) setTimeout(focusLater, menuLockUntil - performance.now() + 10);
+        else first?.focus({ preventScroll: true });
+      };
+      setTimeout(focusLater, END_LOCK_MS);
+    }
   } else if (document.activeElement && document.activeElement !== document.body) {
     document.activeElement.blur();
   }
@@ -176,7 +194,8 @@ function restart() {
 }
 
 function pause() {
-  if (mode !== 'play') return;
+  // Not during the finish or hug wrap-up: its results must not be thrown away.
+  if (mode !== 'play' || world?.status !== 'play') return;
   mode = 'paused';
   hideToast();
   $('pause-sub').textContent = current ? (current.kind === 'slope' ? `${current.level.id} · ${current.level.name}` : current.level.name) : '';
@@ -247,8 +266,7 @@ function onFinished() {
     const n = SLOPES[current.index + 1];
     $('btn-next').textContent = `Next · ${n.id} ${n.name} →`;
   }
-  showScreen('screen-results');
-  if (!hasNext) $('btn-again').focus({ preventScroll: true });
+  showScreen('screen-results', { lock: true });
   checks.forEach((on, i) => { if (on) setTimeout(() => sound.star(i), 250 + i * 250); });
 }
 
@@ -265,7 +283,7 @@ function onCaught() {
   $('caught-lines').innerHTML = [['Snowball size', formatSize(sum.size)], ['Things collected', sum.items], ['Rolled', `${Math.round(w.progress() * 100)}% of the slope`]]
     .map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join('');
   $('caught-extra').innerHTML = extras(out);
-  showScreen('screen-caught');
+  showScreen('screen-caught', { lock: true });
 }
 
 function onEndlessOver() {
@@ -281,14 +299,14 @@ function onEndlessOver() {
     ['Snowball size', formatSize(w.ball.D)], ['Things collected', w.collected], ['Best distance', `${save.endless.dist} m`],
   ].map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join('');
   $('caught-extra').innerHTML = extras(out);
-  showScreen('screen-caught');
+  showScreen('screen-caught', { lock: true });
 }
 
 function showVictory(out) {
   mode = 'victory';
   log.event('game.complete', { stars: totalStars(save) });
   $('victory-lines').innerHTML = `<div><span>Stars</span><b>★ ${totalStars(save)} / ${SLOPES.length * 3}</b></div><div><span>Museum</span><b>${museumCount(save)} / ${ITEMS.length}</b></div>` + extras(out);
-  showScreen('screen-victory');
+  showScreen('screen-victory', { lock: true });
 }
 
 // ------------------------------------------------------------ map
@@ -453,6 +471,9 @@ function toggleMusic() { save.music = !save.music; sound.unlock(); sound.setMusi
 
 // ------------------------------------------------------------ wiring
 
+for (const id of ['screen-results', 'screen-caught', 'screen-victory']) {
+  $(id).addEventListener('click', (e) => { if (menuLocked()) { e.preventDefault(); e.stopPropagation(); extendLock(); } }, true);
+}
 $('btn-play').addEventListener('click', () => startSlope(nextSlopeIndex()));
 $('btn-map').addEventListener('click', toMap);
 $('btn-daily').addEventListener('click', startDaily);
@@ -491,6 +512,7 @@ function moveFocus(dir) {
 }
 addEventListener('keydown', (e) => {
   if (mode === 'play') return;
+  if (menuLocked() && (e.code.startsWith('Arrow') || e.code === 'Space' || e.code === 'Enter')) { e.preventDefault(); extendLock(); return; }
   if (e.code === 'ArrowRight' || e.code === 'ArrowDown') { e.preventDefault(); moveFocus(1); }
   if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') { e.preventDefault(); moveFocus(-1); }
   if (e.code === 'KeyR' && (mode === 'results' || mode === 'caught')) restart();
@@ -541,9 +563,10 @@ function frame(now) {
     else if (esc) back();
   }
   if (input.consume('KeyM')) toggleMute();
-  if (mode === 'play' && (input.consume('KeyR') || input.consumePad('select'))) restart();
+  if (mode === 'play' && world?.status === 'play' && (input.consume('KeyR') || input.consumePad('select'))) restart();
   if (mode !== 'play') {
     input.consume('KeyR');
+    if (menuLocked()) { if (input.padEdges.size) extendLock(); input.padEdges.clear(); }
     if (input.consumePad('up') || input.consumePad('left')) moveFocus(-1);
     if (input.consumePad('down') || input.consumePad('right')) moveFocus(1);
     if (input.consumePad('a')) document.activeElement?.click?.();
