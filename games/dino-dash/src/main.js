@@ -115,7 +115,8 @@ function tutorial() {
   const tips = touch
     ? ['Swipe ← → to change lanes', 'Swipe ↑ to jump over logs', 'Swipe ↓ to roll under pterodactyls']
     : ['← → to change lanes', '↑ or Space to jump over logs', '↓ to roll under pterodactyls'];
-  tips.forEach((t, i) => setTimeout(() => { if (mode === 'play') toast(t, 'hint', 2.6); }, 300 + i * 3200));
+  const run = world;
+  tips.forEach((t, i) => setTimeout(() => { if (mode === 'play' && world === run) toast(t, 'hint', 2.6); }, 300 + i * 3200));
   save.tutorial = true;
   persist();
 }
@@ -146,6 +147,7 @@ function toTitle() {
 // The run is over: fold it into the save and show the results.
 function endRun() {
   const w = world;
+  clearToasts(); // run tips and milestones don't belong on the results card
   w.finish();
   const final = missions.check(w.stats);
   announceMissions(final);
