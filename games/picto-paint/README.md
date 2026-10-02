@@ -84,7 +84,7 @@ that are already closed off from either end dim one at a time.
 | `?daily` | Start today's Daily Critter |
 | `?gallery`, `?studio` | Open those screens |
 | `?unlock` | Open every album and cosmetic (not saved) |
-| `?autoplay` | Solve with hints, one step at a time, and move on |
+| `?autoplay` | Solve with hints, one step at a time, and move on (nothing is saved) |
 
 `window.PP` exposes the board, save and helpers (`PP.hint()`,
 `PP.solveNow()`, `PP.crash()` to test the crash screen).
