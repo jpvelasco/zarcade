@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { AHEAD, CRUISE, THEMES, makeEndless, pressure, themeById } from '../src/endless.js';
+import { AHEAD, CRUISE, THEMES, WINDOW_MAX, makeEndless, pressure, themeById } from '../src/endless.js';
 import { World } from '../src/world.js';
 import { dailyInfo, dateKey, previousKey } from '../src/daily.js';
 import { hashString, makeRng } from '../src/rng.js';
@@ -68,6 +68,22 @@ test('terrain stays in a sane band and the rings follow it', () => {
     assert.ok(ground - ring.y > 18, `ring at ${ring.x} is only ${(ground - ring.y).toFixed(0)} m up`);
     assert.ok(ground - ring.y < CRUISE + 24);
   }
+});
+
+test('every window sits on a building the renderer can draw (#60)', () => {
+  // Routes cap a window at 34 m; Endless used to string letters up to 48 m,
+  // so they floated above their roof.
+  let checked = 0;
+  for (const seed of [1, 5, 9, 77, 1234, 99999]) {
+    const scene = makeEndless({ seed });
+    scene.ensure(4000);
+    for (const drop of scene.drops) {
+      const up = drop.ground - drop.y;
+      assert.ok(up >= 8 && up <= WINDOW_MAX, `seed ${seed}: window at ${drop.x} is ${up.toFixed(1)} m up`);
+      checked += 1;
+    }
+  }
+  assert.ok(checked > 40);
 });
 
 test('hazards and clouds only arrive once the run is going', () => {

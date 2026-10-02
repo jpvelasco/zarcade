@@ -13,6 +13,9 @@ export const CRUISE = 40;          // the height the rings are strung at
 const SEGMENT = 170;               // metres of valley built at a time
 export const AHEAD = 620;          // how far ahead the generator keeps working
 const START_H = 62;
+// The tallest building a window can sit on, the same cap the routes use: any
+// higher and the letter would float above the roof the renderer can draw.
+export const WINDOW_MAX = 34;
 
 /** 0 at the start, 1 by 4 km: how hard the breeze is working against you. */
 export function pressure(x) {
@@ -102,11 +105,12 @@ export function makeEndless({ seed = 1, theme = 'soft', goal = 0 } = {}) {
       scene.rings.push({ id: `e-r${scene.ringNo++}`, x: midX, y: Math.round(terrain.heightAt(midX) - CRUISE - 4), r: 9 });
       if (rng.chance(0.55)) {
         const dx = Math.round(cx + spacing * (0.2 + rng.next() * 0.5));
+        const ground = terrain.heightAt(dx);
         scene.drops.push({
           id: `e-d${scene.dropNo++}`,
           x: dx,
-          y: Math.round(terrain.heightAt(dx) - CRUISE + (rng.next() - 0.5) * 16),
-          ground: terrain.heightAt(dx),
+          y: Math.max(Math.round(ground - CRUISE + (rng.next() - 0.5) * 16), Math.ceil(ground - WINDOW_MAX)),
+          ground,
         });
       }
     }
