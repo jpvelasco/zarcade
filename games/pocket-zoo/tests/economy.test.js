@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { animalRate, joyMult, totalRate, eggPrice, offlineEarnings, niceRound, fmt, fmtDuration } from '../src/economy.js';
-import { newState } from '../src/zoo.js';
-import { OFFLINE_CAP_S, EGG_MAX_MULT, BIOMES } from '../src/data.js';
+import { newState, Zoo } from '../src/zoo.js';
+import { simulate } from '../src/bot.js';
+import { OFFLINE_CAP_S, OFFLINE_PURSE_S, EGG_MAX_MULT, BIOMES } from '../src/data.js';
 
 test('animal rates follow rarity, tier and stars', () => {
   assert.equal(animalRate('bunny'), 1);
@@ -48,10 +49,33 @@ test('offline earnings: base rate, capped, nothing for short or backwards gaps',
   s.lastSeen = 1_000_000;
   assert.equal(offlineEarnings(s, 1_000_000 + 30_000).coins, 0);
   assert.equal(offlineEarnings(s, 1_000_000 - 999_000).coins, 0);
-  assert.equal(offlineEarnings(s, 1_000_000 + 3_600_000).coins, 3600);
+  assert.equal(offlineEarnings(s, 1_000_000 + 1_800_000).coins, 1800);
+  assert.equal(offlineEarnings(s, 1_000_000 + 1_800_000).capped, false);
+  // the purse holds the next biome's price when that beats 10 minutes of income
   const long = offlineEarnings(s, 1_000_000 + 48 * 3_600_000);
-  assert.equal(long.coins, OFFLINE_CAP_S);
+  assert.equal(long.coins, BIOMES[1].unlock);
+  assert.equal(long.seconds, OFFLINE_CAP_S);
   assert.equal(long.capped, true);
+  // with every biome open the purse is 10 minutes of base income
+  s.unlocked = BIOMES.length;
+  assert.equal(offlineEarnings(s, 1_000_000 + 48 * 3_600_000).coins, OFFLINE_PURSE_S);
+});
+
+test('a night away after a few minutes of play opens at most one more biome', () => {
+  for (const seed of [1, 2, 3]) {
+    for (const minutes of [2, 5, 10, 20]) {
+      const zoo = new Zoo(newState(seed));
+      simulate(zoo, minutes * 60);
+      const s = zoo.state;
+      s.lastSeen = 1_000_000;
+      const { coins } = offlineEarnings(s, 1_000_000 + 8 * 3_600_000);
+      let b = s.unlocked;
+      let left = coins + s.coins;
+      while (b < BIOMES.length && left >= BIOMES[b].unlock) left -= BIOMES[b].unlock, b++;
+      assert.ok(b - s.unlocked <= 1, `seed ${seed} after ${minutes} min: ${coins} coins opens ${b - s.unlocked} biomes`);
+      assert.ok(coins > 0);
+    }
+  }
 });
 
 test('number formatting stays short and friendly', () => {

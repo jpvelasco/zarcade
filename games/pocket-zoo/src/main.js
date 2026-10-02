@@ -379,7 +379,7 @@ function bumpCoins() {
 function openWelcome(res) {
   modal = 'welcome';
   input.enabled = false;
-  $('welcome-text').textContent = `You were away for ${fmtDuration(res.seconds)}. Your keepers kept the zoo running${res.capped ? ' (up to 6 hours)' : ''}, and visitors kept coming!`;
+  $('welcome-text').textContent = `You were away for ${fmtDuration(res.away ?? res.seconds)}. ${res.capped ? 'Your keepers filled their piggy bank while you were gone!' : 'Your keepers kept the zoo running, and visitors kept coming!'}`;
   $('welcome-coins').innerHTML = `<span class="coin" aria-hidden="true"></span> +${fmt(res.coins)}`;
   const art = $('welcome-art');
   art.innerHTML = '';

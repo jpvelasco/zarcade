@@ -2,7 +2,7 @@
 // the save state, so offline earnings and tests agree with play.
 import {
   BIOMES, RARITY, HABITAT_LEVELS, ANIMAL_INDEX, ANIMALS, DECOS, DECO_INDEX, JOY,
-  STAR_BONUS, EGG_GROWTH, EGG_MAX_MULT, BUILD_MULT, SNACK_MULT, OFFLINE_CAP_S, OFFLINE_MIN_S,
+  STAR_BONUS, EGG_GROWTH, EGG_MAX_MULT, BUILD_MULT, SNACK_MULT, OFFLINE_CAP_S, OFFLINE_MIN_S, OFFLINE_PURSE_S,
 } from './data.js';
 
 export function animalRate(id, stars = 1) {
@@ -42,12 +42,18 @@ export const upgradeCost = (b, level) => Math.round(BIOMES[b].egg * 2 * 2.2 ** (
 export const snackCost = (b) => Math.max(3, Math.round(BIOMES[b].egg * SNACK_MULT));
 export const unlockCost = (b) => BIOMES[b]?.unlock ?? Infinity;
 
-// Coins earned while away: the base rate (no Joy bonus) for up to the cap.
+// Coins earned while away: the base rate (no Joy bonus) for up to the time
+// cap, and never more than the keepers' purse: OFFLINE_PURSE_S of base income
+// or the next biome's price, whichever is bigger.
 export function offlineEarnings(state, nowMs) {
   const away = (nowMs - (state.lastSeen || nowMs)) / 1000;
   if (!(away >= OFFLINE_MIN_S)) return { seconds: 0, coins: 0, capped: false };
   const seconds = Math.min(away, OFFLINE_CAP_S);
-  return { seconds, coins: Math.floor(totalRate(state, { joy: false }) * seconds), capped: away > OFFLINE_CAP_S };
+  const rate = totalRate(state, { joy: false });
+  const next = state.unlocked < BIOMES.length ? BIOMES[state.unlocked].unlock : 0;
+  const purse = Math.max(rate * OFFLINE_PURSE_S, next);
+  const coins = Math.floor(Math.min(rate * seconds, purse));
+  return { seconds, away, coins, capped: away > OFFLINE_CAP_S || rate * seconds > purse };
 }
 
 // Two significant figures, for task goals and rewards.

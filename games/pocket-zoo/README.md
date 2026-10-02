@@ -50,7 +50,8 @@ and keyboard (arrow keys move between buttons).
 - **Keeper tasks**: three at a time; claim for coins or gift eggs.
 - **Zoo ranks**: eight ranks from Tiny Zoo to Legendary Zoo; each gives a gift egg.
 - **Decorations**: twelve, shown on the map, each adds to all coins.
-- **Away earnings**: the base rate (no Joy) for up to 6 hours.
+- **Away earnings**: the base rate (no Joy) for up to 6 hours, up to a purse of
+  10 minutes of income or the next biome's price, whichever is bigger.
 
 Saves live in `localStorage` under `pocket-zoo.v1` every few seconds and
 whenever you leave.

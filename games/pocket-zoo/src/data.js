@@ -221,6 +221,9 @@ export const RANKS = [
 export const JOY = { pet: 8, snack: 40, max: 100, fadePerSec: 100 / 300, bonus: 0.5, petCooldown: 1.2 };
 export const OFFLINE_CAP_S = 6 * 3600;
 export const OFFLINE_MIN_S = 60;
+// Away coins never exceed this many seconds of base income, or the price of
+// the next biome when that is more, so a night away cannot skip biomes.
+export const OFFLINE_PURSE_S = 10 * 60;
 export const STAR_BONUS = 0.2;
 export const EGG_GROWTH = 1.15;
 export const EGG_MAX_MULT = 8;
