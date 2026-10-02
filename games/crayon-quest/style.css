@@ -550,8 +550,10 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   .chip svg { width: 18px; height: 18px; }
   .caption { font-size: 14px; top: 0; padding: 4px 10px; width: 94%; }
   .hand-area { flex-wrap: wrap; justify-content: space-between; min-height: 0; gap: 0; }
-  .hand-side { flex-direction: row; width: auto; padding: 0; gap: 6px; order: 1; align-items: center; }
+  /* above a raised card, so End turn is always tappable */
+  .hand-side { flex-direction: row; width: auto; padding: 0; gap: 6px; order: 1; align-items: center; position: relative; z-index: 12; }
   .hand { order: 2; flex-basis: 100%; height: calc(var(--card-h) + 16px); padding-top: 12px; }
+  .hand .card.sel { --lift: -20px; }
   .energy { width: 56px; height: 56px; font-size: 22px; }
   .end-turn { width: auto; min-height: 46px; padding: 4px 14px; }
   .pile { min-height: 36px; font-size: 14px; }
