@@ -393,6 +393,21 @@ body.touch .warn { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 150px);
 @media (max-height: 560px) {
   .logo-art { display: none; }
   .tagline { display: none; }
+  /* Sideways phones: two columns of tips so "Let's dig!" stays on screen. */
+  #screen-help .card { width: min(760px, 100%); padding: 14px 18px; }
+  #screen-help h2 { margin: 0; }
+  #screen-help .tips { grid-template-columns: 1fr 1fr; margin: 8px 0; }
+  #screen-help .controls { margin: 4px 0 8px; }
+  /* ...and the Daily Dig card keeps "Start digging" on screen too. */
+  #screen-daily .card { width: min(760px, 100%); padding: 14px 18px; }
+  #screen-daily h2 { margin: 0; }
+  #screen-daily #daily-date { margin: 2px 0; }
+  #screen-daily .daily-goal { margin: 6px 0; padding: 8px 12px; font-size: 18px; }
+  #screen-daily .card > p.muted:not(#daily-date) { margin: 4px 0; font-size: 13px; }
+  #screen-daily .res-lines { grid-template-columns: repeat(3, 1fr); margin: 6px 0; }
+  #screen-daily .res-lines div { flex-direction: column; align-items: center; gap: 0; padding: 6px 8px; }
+  #screen-daily .col { flex-direction: row; }
+  #screen-daily .col .btn { flex: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition: none !important; }
