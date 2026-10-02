@@ -8,7 +8,7 @@ import { renderMap, scrollToLevel } from './map.js';
 import { paintBubbleIcon, paintOtter, drawCrabBody, drawLauncher, Sprites } from './sprites.js';
 import { OTTER_COUNT, OTTER_NAMES, otterLook } from './otters.js';
 import {
-  loadSave, writeSave, totalStars, recordWin, recordDaily, currentStreak, dailyDone, addOtters, useBooster, addBooster,
+  loadSave, writeSave, totalStars, recordWin, recordDaily, currentStreak, dailyDone, addOtters, useBooster,
 } from './save.js';
 import { frameMonitor } from './perf.js';
 
@@ -331,7 +331,8 @@ function updateHud(force = false) {
   for (let k = 0; k < 3; k++) starEls[k].classList.toggle('on', k < stars);
   for (const button of document.querySelectorAll('.booster')) {
     const kind = button.dataset.booster;
-    const n = save.boosters[kind] | 0;
+    // a loaded booster is shown as taken, though it is only spent on firing
+    const n = (save.boosters[kind] | 0) - (game.current?.booster && game.current.kind === kind ? 1 : 0);
     const b = button.querySelector('b');
     if (b.textContent !== String(n)) b.textContent = n;
     button.classList.toggle('empty', n === 0 && game.current?.kind !== kind);
@@ -402,6 +403,10 @@ function fire() {
   if (!result) return;
   sfx.shoot();
   if (shot.booster) {
+    // A booster is only spent when it is fired, so retry, leaving the level
+    // or a reload with one loaded keeps it.
+    useBooster(save, shot.kind);
+    persist();
     log.event('booster.used', { level: levelId, kind: shot.kind });
   }
   view.playShot(result, before);
@@ -440,8 +445,6 @@ function toggleBooster(kind) {
   const button = document.querySelector(`.booster[data-booster="${kind}"]`);
   if (game.current?.booster) {
     const had = game.unloadBooster();
-    addBooster(save, had);
-    persist();
     if (had === kind) { updateHud(); updateGuide(); return; }
   }
   if ((save.boosters[kind] | 0) <= 0) {
@@ -452,8 +455,6 @@ function toggleBooster(kind) {
     return;
   }
   if (game.loadBooster(kind)) {
-    useBooster(save, kind);
-    persist();
     sfx.booster();
     view.loadPop = 0;
     toast({ rainbow: 'Rainbow: pops every color it touches!', bomb: 'Bomb: a big splash where it lands!', zap: 'Lightning: zaps straight through!' }[kind], 1.6);
