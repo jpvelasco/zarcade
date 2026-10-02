@@ -351,3 +351,16 @@ test('a new world is deterministic from its seed', () => {
   assert.deepEqual(a.player, b.player);
   assert.deepEqual(a.critters, b.critters);
 });
+
+test('an animal with a decoration put down on it walks off instead of freezing (#218)', () => {
+  const w = freshWorld(2);
+  const a = w.animals[0];
+  const x = Math.floor(a.x), y = Math.floor(a.y);
+  w.add('flowerpot');
+  standAt(w, x, y - 1);
+  w.placeObj(x, y, { type: 'decor', id: 'flowerpot' }, 'flowerpot');
+  assert.equal(w.obj[y * 60 + x]?.id, 'flowerpot');
+  const stuckAt = [a.x, a.y];
+  for (let i = 0; i < 2000 && w.blocked(a.x, a.y, 0.3, 0.2); i++) w.step(0.05, {});
+  assert.ok(!w.blocked(a.x, a.y, 0.3, 0.2), `still stuck at ${stuckAt}`);
+});

@@ -72,7 +72,9 @@ export function wander(a, dt, rand, blocked) {
   const d = Math.hypot(dx, dy);
   if (d < 0.1) { a.tx = null; a.wait = 1.5 + rand() * 4; return; }
   const nx = a.x + (dx / d) * speed * dt, ny = a.y + (dy / d) * speed * dt;
-  if (blocked(nx, ny)) { a.tx = null; a.wait = 0.5 + rand(); return; }
+  // An animal already overlapping something (a decoration put down on it, or
+  // a new one dropped on one) may walk until it is clear, instead of freezing.
+  if (blocked(nx, ny) && !blocked(a.x, a.y)) { a.tx = null; a.wait = 0.5 + rand(); return; }
   if (Math.abs(dx) > 0.05) a.dir = dx > 0 ? 1 : -1;
   a.x = nx; a.y = ny;
 }
