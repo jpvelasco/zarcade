@@ -100,6 +100,9 @@ export class Renderer {
     this.canvas.style.width = `${this.w}px`;
     this.canvas.style.height = `${this.h}px`;
     this.cam.zoom = Math.max(0.58, Math.min(1.3, Math.sqrt(this.w * this.h) / 1000));
+    // Sky the camera may show above the sea. On a phone the HUD covers the top
+    // of the screen, so more sky keeps Bubbles below it at the surface.
+    this.skyMargin = 60 + (this.w < 720 || this.h < 520 ? 130 / this.cam.zoom : 0);
     this.overlay.width = Math.ceil(this.w / 3);
     this.overlay.height = Math.ceil(this.h / 3);
     const res = Math.min(1.25, this.cam.zoom * dpr);
@@ -533,7 +536,7 @@ export class Renderer {
   clampCamera(map) {
     const hw = this.w / 2 / this.cam.zoom, hh = this.h / 2 / this.cam.zoom;
     this.cam.x = hw * 2 >= map.width ? map.width / 2 : Math.max(hw, Math.min(map.width - hw, this.cam.x));
-    this.cam.y = Math.max(hh - 60, Math.min(map.height - hh, this.cam.y));
+    this.cam.y = Math.max(hh - (this.skyMargin || 60), Math.min(map.height - hh, this.cam.y));
   }
 
   update(dt, world) {
@@ -610,6 +613,10 @@ export class Renderer {
     // Water: the low-res color map, stretched and smoothed.
     const vw = view.x1 - view.x0, vh = view.y1 - view.y0;
     ctx.drawImage(this.waterMap, view.x0 / CELL - 0.5, view.y0 / CELL - 0.5, vw / CELL, vh / CELL, view.x0, view.y0, vw, vh);
+    if (view.y0 < 0) {
+      ctx.fillStyle = '#7fd4ff';
+      ctx.fillRect(view.x0, view.y0, vw, -view.y0 + 1);
+    }
     if (view.y0 < SURFACE_Y) {
       ctx.drawImage(this.sky, view.x0 / 4, view.y0 / 4, vw / 4, (SURFACE_Y - view.y0) / 4, view.x0, view.y0, vw, SURFACE_Y - view.y0);
     }
