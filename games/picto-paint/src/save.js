@@ -70,6 +70,13 @@ export function loadSave(storage) {
   return out;
 }
 
+// Store a board in progress as the most recent one, so pruning in
+// writeSave drops the boards played longest ago.
+export function storeProgress(save, id, entry) {
+  delete save.progress[id];
+  save.progress[id] = entry;
+}
+
 export function writeSave(storage, save) {
   if (!storage) return false;
   try {

@@ -3,7 +3,7 @@ import { Board, UNKNOWN, CROSS } from './board.js';
 import { nextHint, applyHint } from './hints.js';
 import { Renderer, shade, bakeTile } from './render.js';
 import { Sound } from './audio.js';
-import { loadSave, writeSave } from './save.js';
+import { loadSave, writeSave, storeProgress } from './save.js';
 import { frameMonitor } from './perf.js';
 import { dailyCritter, dateKey, recordDaily, liveStreak, mulberry32 } from './daily.js';
 import {
@@ -416,7 +416,7 @@ function saveProgress() {
   if (!board || !puzzle || board.solved) return;
   if (!board.filledCount() && !board.undoStack.length) return;
   // The Daily Critter keeps its board too (its id carries the date).
-  save.progress[puzzle.id] = { cells: board.serialize(), time: Math.round(board.time), hints: board.hints };
+  storeProgress(save, puzzle.id, { cells: board.serialize(), time: Math.round(board.time), hints: board.hints });
   if (!daily) save.lastPlayed = puzzle.id;
   persist();
   progressDirty = false;

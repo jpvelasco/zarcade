@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadSave, writeSave, defaultSave, SAVE_KEY } from '../src/save.js';
+import { loadSave, writeSave, defaultSave, storeProgress, SAVE_KEY } from '../src/save.js';
 
 const memory = () => {
   const m = new Map();
@@ -42,4 +42,18 @@ test('only a dozen unfinished boards are kept', () => {
   for (let i = 0; i < 20; i++) s.progress[`p${i}`] = { cells: '..', time: i, hints: 0 };
   writeSave(st, s);
   assert.equal(Object.keys(loadSave(st).progress).length, 12);
+});
+
+test('pruning keeps the board played most recently, even if it was started first', () => {
+  const st = memory();
+  const s = defaultSave();
+  const entry = (t) => ({ cells: '..', time: t, hints: 0 });
+  for (let k = 0; k < 12; k++) storeProgress(s, `p${k}`, entry(k));
+  storeProgress(s, 'p0', entry(99)); // back to the oldest board, still playing it
+  storeProgress(s, 'p12', entry(1)); // and a 13th picture
+  writeSave(st, s);
+  const saved = JSON.parse(st.m.get(SAVE_KEY)).progress;
+  assert.equal(Object.keys(saved).length, 12);
+  assert.equal(saved.p0.time, 99);
+  assert.equal(saved.p1, undefined, 'the board played longest ago goes');
 });
