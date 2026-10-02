@@ -5,7 +5,7 @@ import { Renderer, VIEW_W, VIEW_H } from './render.js';
 import { Input } from './input.js';
 import { Sound } from './audio.js';
 import { Autopilot } from './ai.js';
-import { loadAll, writeAll, newGame, slotSummary, SLOTS } from './save.js';
+import { loadAll, writeAll, newGame, slotSummary, SLOTS, SAVE_KEY } from './save.js';
 import { allAreas, dungeonDef, roomKey } from './areas.js';
 import { questLog } from './quests.js';
 import { NAMES } from './dialogue.js';
@@ -548,6 +548,21 @@ for (const b of document.querySelectorAll('[data-sound]')) b.addEventListener('c
 for (const b of document.querySelectorAll('[data-music]')) b.addEventListener('click', toggleMusic);
 for (const b of document.querySelectorAll('[data-title]')) b.addEventListener('click', toTitle);
 for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', back);
+// Another tab saved: take its slots, so this tab never writes a stale copy over
+// them. The adventure being played here keeps its live state.
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  const fresh = loadAll(storage);
+  for (let i = 0; i < SLOTS; i++) if (!(game && !temp && i === slot)) all.slots[i] = fresh.slots[i];
+  all.last = fresh.last;
+  all.muted = fresh.muted;
+  all.music = fresh.music;
+  sound.setMuted(all.muted);
+  sound.setMusic(all.music);
+  updateSoundButtons();
+  if (mode === 'title') toTitle();
+  else if (mode === 'slots') toSlots();
+});
 addEventListener('resize', layout);
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 addEventListener('keydown', () => sound.unlock(), { once: true });
