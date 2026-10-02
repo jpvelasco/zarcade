@@ -857,7 +857,10 @@ export class Renderer {
       const tLeft = world.time <= goals.time;
       line(safeTop + 94 * u, clock(world.finishTime ?? world.time), clock(goals.time), tLeft);
     } else if (world.endless) {
-      line(safeTop + 60 * u, `${Math.floor(world.distance / 100)} m rolled`, opts.best ? `best ${opts.best} m` : null, world.distance / 100 > (opts.best || 0));
+      // Drop "rolled" when it would run into the best distance on the right.
+      const dist = `${Math.floor(world.distance / 100)} m`, best = opts.best ? `best ${opts.best} m` : null;
+      const room = pw - 26 * u - (best ? g.measureText(`★ ${best}`).width + 12 * u : 0);
+      line(safeTop + 60 * u, g.measureText(`${dist} rolled`).width <= room ? `${dist} rolled` : dist, best, world.distance / 100 > (opts.best || 0));
       line(safeTop + 80 * u, things(world.collected), null);
     } else {
       line(safeTop + 62 * u, things(world.collected), null);
