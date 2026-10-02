@@ -9,6 +9,8 @@ import { wpm, accuracy } from './stats.js';
 export const SPAWN_X = 104; // monsters appear just off the right edge
 export const VIEW_X = 100; // visible (typeable) from here leftwards
 export const REACH_X = 12; // the knight's guard line
+export const BOSS_X = VIEW_X - 8; // a boss strides in quickly to here, fully on screen
+const BOSS_ENTRY_TIME = 1.2;
 export const METER_MAX = 10;
 export const HEARTS = 3;
 export const LANES = 3;
@@ -127,9 +129,9 @@ export class Battle {
     const phrases = pick(this.rng, this.stage.passages);
     const b = {
       id: this.nextId++, type: this.stage.boss, phrases, phrase: 0, word: phrases[0], typed: 0,
-      x: SPAWN_X + 6, lane: 1, speed: 0, state: 'walk', boss: true, age: 0, hp: phrases.length,
+      x: SPAWN_X + 6, lane: 1, speed: 0, state: 'walk', boss: true, age: 0, hp: phrases.length, entering: true,
     };
-    b.speed = this.bossSpeed(b);
+    b.speed = (b.x - BOSS_X) / BOSS_ENTRY_TIME;
     this.boss = b;
     this.monsters.push(b);
     this.events.push({ type: 'boss', id: b.id, monster: b.type });
@@ -161,6 +163,7 @@ export class Battle {
       m.age += dt;
       if (m.state === 'wait') continue;
       m.x -= m.speed * dt;
+      if (m.entering && m.x <= BOSS_X) { m.entering = false; m.speed = this.bossSpeed(m); }
       if (m.x <= REACH_X) {
         m.x = REACH_X;
         if (this.gentle) {
@@ -210,7 +213,8 @@ export class Battle {
   findTarget(ch) {
     let best = null;
     for (const m of this.monsters) {
-      if (m.x > VIEW_X + 2 || m.typed !== 0) continue;
+      // A boss's phrase shows as it strides in, so it can be typed straight away.
+      if ((m.x > VIEW_X + 2 && !m.boss) || m.typed !== 0) continue;
       if (!this.equal(m.word[0], ch)) continue;
       if (!best || m.x < best.x) best = m;
     }
@@ -306,6 +310,8 @@ export class Battle {
   // Star Spin: poof every minion, knock the boss's current phrase off.
   special() {
     if (this.status !== 'play' || this.meter < METER_MAX) return false;
+    // Nothing to hit yet: keep the charge.
+    if (!this.monsters.some((m) => m.boss || m.x <= VIEW_X)) return false;
     this.meter = 0;
     this.stats.specials += 1;
     this.target = null;
@@ -320,7 +326,7 @@ export class Battle {
     }
     this.events.push({ type: 'special', count: poofs.length });
     for (const p of poofs) this.events.push({ type: 'poof', ...p, special: true });
-    if (this.boss && this.boss.x <= VIEW_X) this.bossPhraseDone(this.boss, true);
+    if (this.boss) this.bossPhraseDone(this.boss, true);
     return true;
   }
 

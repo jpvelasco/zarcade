@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Battle, multiplier, starsFor, paceFor, METER_MAX, REACH_X, VIEW_X } from '../src/battle.js';
+import { Battle, multiplier, starsFor, paceFor, METER_MAX, REACH_X, VIEW_X, BOSS_X } from '../src/battle.js';
 import { STAGES } from '../src/stages.js';
 import { mulberry32 } from '../src/rng.js';
 
@@ -145,6 +145,37 @@ test('bosses take a phrase at a time, spaces and all', () => {
   assert.ok(b.events.some((e) => e.type === 'bossDefeated'));
   b.step(0.01);
   assert.equal(b.status, 'cleared');
+});
+
+test('a boss strides fully on screen and its phrase can be typed at once (#101)', () => {
+  const st = stage({ count: 1, boss: 'kingSlime', passages: [['a big hug', 'for my pal']] });
+  const b = new Battle(st, { picker: fixedPicker(['cat']) });
+  b.step(0.01);
+  walkIn(b);
+  typeAll(b, 'cat');
+  b.step(0.01);
+  assert.ok(b.boss && b.boss.x > VIEW_X, 'it starts at the edge');
+  assert.deepEqual(typeAll(b, 'a b'), ['hit', 'hit', 'hit'], 'typing the visible phrase is never a typo');
+  assert.equal(b.stats.typos, 0);
+  for (let i = 0; i < 90; i++) b.step(1 / 60);
+  assert.ok(b.boss.x <= BOSS_X && !b.boss.entering, `in place after 1.5 s (x ${b.boss.x})`);
+  const slow = b.bossSpeed(b.boss);
+  assert.equal(b.boss.speed, slow, 'then walks at its normal pace');
+});
+
+test('Star Spin keeps its charge when nothing is on screen to hit (#102)', () => {
+  const b = new Battle(stage({ count: 5, maxActive: 5 }), { picker: fixedPicker(['ant', 'bee']) });
+  b.step(0.01);
+  for (const m of b.monsters) m.x = VIEW_X + 3;
+  b.meter = METER_MAX;
+  assert.equal(b.special(), false);
+  assert.equal(b.meter, METER_MAX);
+  const st = stage({ count: 1, boss: 'kingSlime', passages: [['a big hug', 'for my pal']] });
+  const bb = new Battle(st, { picker: fixedPicker(['cat']) });
+  bb.step(0.01); walkIn(bb); typeAll(bb, 'cat'); bb.step(0.01);
+  bb.meter = METER_MAX;
+  assert.equal(bb.special(), true, 'a boss walking in can be spun');
+  assert.equal(bb.boss.word, 'for my pal');
 });
 
 test('capitals count unless caseless', () => {
