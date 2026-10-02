@@ -4,7 +4,7 @@ import { Round, HINT_COST } from './game.js';
 import { cellsOf } from './crossword.js';
 import { Narrator } from './narrator.js';
 import { CRITTERS, CRITTER_IDS, aquariumRoster } from './critters.js';
-import { loadSave, writeSave, recordLevel, recordDaily, totalStars, totalCritters } from './save.js';
+import { SAVE_KEY, loadSave, writeSave, adoptSave, liveStreak, recordLevel, recordDaily, totalStars, totalCritters } from './save.js';
 import { nextGuess } from './solver.js';
 import { Sea, Fx, drawCritterIcon } from './render.js';
 import { Sfx } from './audio.js';
@@ -47,6 +47,7 @@ let bubbleRadius = 30;
 let tiles = new Map();    // "row,col" -> tile element
 let traps = [];
 let resultTimer = 0;
+let cleared = null;       // the finished round, saved before the results show
 let previewTimer = 0;
 let glossTimer = 0;
 let idleTalk = 0;
@@ -94,7 +95,8 @@ function toTitle() {
   const cleared = Object.keys(save.best).length;
   $('btn-play').textContent = cleared ? `Play level ${next}` : 'Play';
   const doneToday = save.daily.done.includes(todayKey());
-  $('btn-daily').textContent = doneToday ? `Daily puzzle ✓${save.daily.streak > 1 ? ` · ${save.daily.streak} day streak` : ''}` : `Daily puzzle${save.daily.streak > 0 ? ` · streak ${save.daily.streak}` : ''}`;
+  const streak = liveStreak(save, todayKey());
+  $('btn-daily').textContent = doneToday ? `Daily puzzle ✓${streak > 1 ? ` · ${streak} day streak` : ''}` : `Daily puzzle${streak > 0 ? ` · streak ${streak}` : ''}`;
   const critters = totalCritters(save);
   $('title-progress').textContent = cleared
     ? `★ ${totalStars(save)} stars · ${critters} critter${critters === 1 ? '' : 's'} rescued · ${save.coins} coins`
@@ -215,6 +217,7 @@ function begin(next) {
   round = new Round(level, { relax: save.relax, coins: save.coins, seed: Date.now() % 100000 });
   playSeconds = 0;
   resultTimer = 0;
+  cleared = null;
   idleTalk = 0;
   selection = [];
   tapMode = false;
@@ -646,6 +649,7 @@ function useShuffle() {
 }
 
 function finishSoon(finish) {
+  recordClear();
   resultTimer = 1.9;
   updateHud();
   setTimeout(() => {
@@ -658,11 +662,12 @@ function finishSoon(finish) {
   }
 }
 
-function endLevel() {
+// Saves the cleared level the moment the last word lands, so pausing,
+// restarting, leaving or reloading during the celebration never loses it.
+function recordClear() {
+  if (cleared) return cleared;
   const stars = round.stars();
   const rescued = round.rescued();
-  let lines = [];
-  const buttons = [];
   let streak = null;
   if (level.daily) {
     const res = recordDaily(save, level, { rescued });
@@ -679,6 +684,14 @@ function endLevel() {
     level: level.id, daily: !!level.daily, stars, score: round.score, 'time.s': Math.round(playSeconds),
     hints: round.hints, bonus: round.bonusFound.size, misses: round.misses, relax: save.relax, autoplay: !!autoplay,
   });
+  cleared = { stars, rescued, streak };
+  return cleared;
+}
+
+function endLevel() {
+  const { stars, rescued, streak } = recordClear();
+  let lines = [];
+  const buttons = [];
 
   $('res-title').textContent = level.daily ? 'Daily puzzle done!' : 'All critters rescued!';
   const starEls = $('res-stars').children;
@@ -771,6 +784,8 @@ wheelEl.addEventListener('pointerdown', (event) => {
   if (mode !== 'play' || !round || round.finished) return;
   sfx.unlock();
   event.preventDefault();
+  // A second finger (or a resting palm) never takes over a swipe in progress.
+  if (gesture && gesture.id !== event.pointerId) return;
   const p = localPoint(event);
   const i = hit(p, 1.15);
   if (i < 0) return;
@@ -927,6 +942,23 @@ function autoplayStep(dt) {
   submit();
   autoplay.wait = 1.1;
 }
+
+// Another tab saved: take its progress, so this tab never writes a stale copy
+// over it. A level in progress records into the fresh copy when it is done.
+addEventListener('storage', (event) => {
+  if (event.key !== SAVE_KEY && event.key !== null) return;
+  const coinsBefore = save.coins;
+  adoptSave(save, loadSave(storage));
+  // Coins the other tab earned or spent carry into a round in progress here.
+  if (round && !cleared) {
+    round.coins = Math.max(0, round.coins + save.coins - coinsBefore);
+    updateHud();
+  }
+  sfx.setMuted(save.muted);
+  syncToggles();
+  if (mode === 'title') toTitle();
+  else if (mode === 'map') toMap();
+});
 
 // Frame telemetry.
 const monitor = frameMonitor({

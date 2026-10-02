@@ -71,3 +71,9 @@ test('spelling from a wheel respects letter counts', () => {
   assert.ok(words.every((w) => canSpell(w, 'stop')));
   for (let i = 1; i < words.length; i++) assert.ok(words[i - 1].length >= words[i].length, 'longest first');
 });
+
+test('everyday words a child might spell are accepted', () => {
+  for (const word of ['man', 'men', 'she', 'bar', 'cost', 'think', 'steak', 'trash', 'chart', 'grade', 'parent', 'planes', 'rains']) {
+    assert.ok(isWord(word), `${word} should count`);
+  }
+});

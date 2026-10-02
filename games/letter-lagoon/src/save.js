@@ -24,6 +24,21 @@ export function defaultSave() {
 }
 
 const isObject = (v) => v && typeof v === 'object' && !Array.isArray(v);
+// A whole number in [0, max], or 0 for anything else.
+const count = (v, max = 1e9) => (Number.isFinite(v) ? Math.max(0, Math.min(max, Math.floor(v))) : 0);
+
+// Keeps only level ids 1..LEVEL_COUNT with usable numbers, so one damaged
+// entry never garbles totals or counts as a cleared level.
+function levelMap(raw, max) {
+  const out = {};
+  if (!isObject(raw)) return out;
+  for (const [key, value] of Object.entries(raw)) {
+    const id = Number(key);
+    if (!Number.isInteger(id) || id < 1 || id > LEVEL_COUNT || !Number.isFinite(value)) continue;
+    out[id] = count(value, max);
+  }
+  return out;
+}
 
 export function loadSave(storage) {
   try {
@@ -32,24 +47,42 @@ export function loadSave(storage) {
     const data = JSON.parse(raw);
     if (!isObject(data)) return defaultSave();
     const save = { ...defaultSave(), ...data };
-    save.stars = isObject(save.stars) ? save.stars : {};
-    save.best = isObject(save.best) ? save.best : {};
-    save.critters = isObject(save.critters) ? save.critters : {};
-    for (const id of Object.keys(save.critters)) if (!CRITTER_IDS.includes(id)) delete save.critters[id];
-    save.unlocked = Math.max(1, Math.min(LEVEL_COUNT, save.unlocked | 0 || 1));
-    save.coins = Math.max(0, save.coins | 0);
+    save.stars = levelMap(save.stars, 3);
+    save.best = levelMap(save.best);
+    const critters = isObject(save.critters) ? save.critters : {};
+    save.critters = {};
+    for (const id of CRITTER_IDS) if (count(critters[id]) > 0) save.critters[id] = count(critters[id], 1e6);
+    save.unlocked = Math.max(1, Math.min(LEVEL_COUNT, count(save.unlocked) || 1));
+    save.coins = count(save.coins);
+    save.words = count(save.words);
+    save.bonus = count(save.bonus);
+    save.plays = count(save.plays);
     save.relax = !!save.relax;
     save.muted = !!save.muted;
     const daily = isObject(save.daily) ? save.daily : {};
     save.daily = {
       last: typeof daily.last === 'string' ? daily.last : null,
-      streak: Math.max(0, daily.streak | 0),
+      streak: count(daily.streak),
       done: Array.isArray(daily.done) ? daily.done.filter((d) => typeof d === 'string').slice(-DAILY_HISTORY) : [],
     };
     return save;
   } catch {
     return defaultSave();
   }
+}
+
+// Takes another tab's newer save into this tab's save object in place, so a
+// stale copy here is never written back over it.
+export function adoptSave(save, fresh) {
+  for (const key of Object.keys(save)) delete save[key];
+  Object.assign(save, fresh);
+  return save;
+}
+
+// The streak still alive on `todayKey`: finished today or yesterday.
+export function liveStreak(save, todayKey) {
+  const last = save.daily.last;
+  return last === todayKey || last === dayBefore(todayKey) ? save.daily.streak : 0;
 }
 
 // Returns false when storage is blocked or full: play on without saving.

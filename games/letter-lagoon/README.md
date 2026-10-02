@@ -58,7 +58,7 @@ The dictionary is bundled; nothing is fetched.
 
 - `src/data/glosses.js` — about 830 curated, kid-safe target words, each with
   a short definition. A `+` marks nouns whose plain plural is a target too.
-- `src/data/bonus.js` — about 1,300 extra everyday words accepted as bonus
+- `src/data/bonus.js` — about 1,800 extra everyday words accepted as bonus
   finds.
 - `tests/blocklist.js` — words a kids' game must never accept, stored ROT13
   encoded. The tests check every dictionary word, gloss and narrator line

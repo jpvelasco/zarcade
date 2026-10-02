@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SAVE_KEY, defaultSave, loadSave, writeSave, recordLevel, recordDaily, dayBefore, totalStars, totalCritters } from '../src/save.js';
+import { SAVE_KEY, defaultSave, loadSave, writeSave, recordLevel, recordDaily, dayBefore, totalStars, totalCritters, adoptSave, liveStreak } from '../src/save.js';
 import { getLevel, dailyLevel, LEVEL_COUNT } from '../src/levels.js';
 
 function memory() {
@@ -61,4 +61,48 @@ test('daily streaks count consecutive days', () => {
   assert.equal(recordDaily(save, dailyLevel('2026-10-02'), { rescued: 5 }).streak, 2);
   assert.equal(recordDaily(save, dailyLevel('2026-10-05'), { rescued: 5 }).streak, 1);
   assert.equal(totalCritters(save), 15);
+});
+
+test('damaged fields are repaired one by one', () => {
+  const store = memory();
+  store.setItem(SAVE_KEY, JSON.stringify({
+    unlocked: 5, coins: 'rich', plays: 'many', words: 'lots', bonus: null,
+    stars: { 1: 3, 2: 'x', 3: 99, 999: 3, foo: 2 },
+    best: { 1: 140, foo: 2, 2: 'x' },
+    critters: { clownfish: 'x', turtle: 2.7, whale: -4, dolphin: 1e12 },
+  }));
+  const save = loadSave(store);
+  assert.equal(save.unlocked, 5);
+  assert.equal(save.coins, 0);
+  assert.equal(save.plays, 0);
+  assert.equal(save.words, 0);
+  assert.equal(save.bonus, 0);
+  assert.deepEqual(save.stars, { 1: 3, 3: 3 });
+  assert.deepEqual(save.best, { 1: 140 });
+  assert.deepEqual(save.critters, { turtle: 2, dolphin: 1e6 });
+  assert.equal(totalCritters(save), 1e6 + 2);
+  assert.equal(totalStars(save), 6);
+  save.plays++;
+  save.words += 3;
+  assert.equal(save.plays, 1);
+  assert.equal(save.words, 3);
+});
+
+test('another tab\'s save replaces this tab\'s copy in place', () => {
+  const mine = defaultSave();
+  const fresh = defaultSave();
+  recordLevel(fresh, getLevel(1), { score: 100, stars: 3, rescued: 3, relax: false });
+  assert.equal(adoptSave(mine, fresh), mine);
+  assert.equal(mine.unlocked, 2);
+  assert.equal(mine.stars[1], 3);
+});
+
+test('a streak only shows while it is still alive', () => {
+  const save = defaultSave();
+  recordDaily(save, dailyLevel('2026-10-01'), { rescued: 1 });
+  recordDaily(save, dailyLevel('2026-10-02'), { rescued: 1 });
+  assert.equal(save.daily.streak, 2);
+  assert.equal(liveStreak(save, '2026-10-02'), 2, 'done today');
+  assert.equal(liveStreak(save, '2026-10-03'), 2, 'still alive tomorrow');
+  assert.equal(liveStreak(save, '2026-10-05'), 0, 'broken after a missed day');
 });

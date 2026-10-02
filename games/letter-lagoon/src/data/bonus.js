@@ -146,4 +146,19 @@ worst wove wow wren write wrong wrote
 yap yard yarn yawn yell yelp yen yes yet yew yip you young your yours yum
 
 zany zap zest zinc zing zip zoo zoom
+
+bar man men she ark ego peg spa mid ode pro ache aloe alto amen arid atop
+balm bask cask char cite cost dale dame dean drew earl etch gape jack kale
+lisp lode mart mead mesa mire nape opal peso perk rage rasp rein rite roe
+slat snag spar spat stag stow talc tamp taro teak tern tram toil
+adopt agent alert amber anger aspen asset aster bleak blame bleat chart
+cleat delta depot erect grade inert irate organ panel pager saint satin
+sitar slant smear snare sonar spoil split steak strap strew swore tamer
+taper tapir trash think lapse laser media admire anklet antler castor
+create danger gander heater learnt parent pastel pastor pirate ramble
+ranged reason repaint retain stable staple strain tanner tassel wreath
+sarong beats cases casts gears gnats hares lasts means panes planes plots
+poets rains ranges tapes tarps tows twos terms pleats salts pelts oils tins
+mares peals reaps reams realms rants elks elms eras fates feats laces larks
+nags ores pales pares tames tans teals totes groans
 `;
