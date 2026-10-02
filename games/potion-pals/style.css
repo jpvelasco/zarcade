@@ -415,6 +415,29 @@ h3 { margin: 0 0 4px; font-size: 18px; font-weight: 900; }
   .tile b { font-size: 9.5px; }
   .brew { min-height: 46px; }
 }
+/* Short landscape screens: the reveal card goes two columns and the pause
+   menu tightens up, so every button stays on screen. */
+@media (max-height: 500px) and (min-width: 561px) {
+  .result-card {
+    width: min(760px, 100%); padding: 12px 18px 14px;
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; align-items: center;
+    grid-template-areas: "art intro" "tags intro" "name intro" "blurb extra" "mix buttons";
+  }
+  .result-art { grid-area: art; }
+  .result-art canvas { width: 76px !important; height: 76px !important; }
+  #result-tags { grid-area: tags; }
+  .result-card h2 { grid-area: name; font-size: 24px; margin: 4px 0 0; }
+  #result-blurb { grid-area: blurb; margin: 2px 0 4px; }
+  #result-mix { grid-area: mix; }
+  #pal-intro { grid-area: intro; margin: 0; }
+  #result-extra { grid-area: extra; margin: 4px 0; }
+  .result-card > .row { grid-area: buttons; margin: 0; }
+  #screen-pause .card { padding: 12px 18px 14px; }
+  #screen-pause h2 { margin: 0; }
+  #screen-pause .muted { margin: 2px 0 8px; }
+  #screen-pause .col { gap: 6px; }
+  #screen-pause .btn { min-height: 44px; padding: 6px 16px; }
+}
 @media (pointer: coarse) and (orientation: portrait) and (min-height: 700px) {
   :root { --tray: 300px; }
 }
