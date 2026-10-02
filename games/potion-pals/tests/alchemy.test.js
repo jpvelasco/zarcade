@@ -145,8 +145,8 @@ test('pals spread evenly across the rooms they have', () => {
 
 test('requests appear once there is a pal, and are always brewable now', () => {
   const a = fresh();
-  simulate(a, 30);
-  assert.ok(a.palCount > 0, 'the demo should have found a potion');
+  simulate(a, 50); // enough for three or more pals
+  assert.ok(a.palCount >= 3, 'the demo should have found three potions');
   a.rollRequests();
   assert.equal(a.state.requests.length, 3);
   const front = new Set(frontier(a.knownSet));
@@ -158,9 +158,25 @@ test('requests appear once there is a pal, and are always brewable now', () => {
   }
 });
 
+test('no pal asks for two things at once', () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    const one = new Alchemy(newState(seed));
+    one.state.pals = { mossy: 1 };
+    one.rollRequests();
+    assert.equal(one.state.requests.length, 1, 'one pal, one request');
+    const two = new Alchemy(newState(seed));
+    two.state.pals = { mossy: 1, cinder: 2 };
+    two.rollRequests();
+    assert.equal(two.state.requests.length, 2, 'two pals, two requests');
+    assert.equal(new Set(two.state.requests.map((r) => r.pal)).size, 2, `seed ${seed}: a pal asked twice`);
+  }
+  const loaded = normalize({ pals: { mossy: 1, cinder: 2 }, requests: [{ pal: 'mossy', target: 'steam' }, { pal: 'mossy', target: 'bonfire' }] }, 1);
+  assert.deepEqual(loaded.requests.map((r) => r.pal), ['mossy'], 'old saves drop the repeat');
+});
+
 test('finishing a request pays a scroll and a new one rolls in', () => {
   const a = fresh();
-  simulate(a, 30);
+  simulate(a, 50); // enough for three or more pals
   a.rollRequests();
   const req = a.state.requests[0];
   const target = ITEM[req.target];
@@ -178,7 +194,7 @@ test('finishing a request pays a scroll and a new one rolls in', () => {
 
 test('a scroll buys the exact answer to a request, once', () => {
   const a = fresh();
-  simulate(a, 30);
+  simulate(a, 50); // enough for three or more pals
   a.rollRequests();
   a.state.scrolls = 1;
   assert.equal(a.state.requests[0].told, false);

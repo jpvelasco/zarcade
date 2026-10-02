@@ -88,8 +88,9 @@ export function normalize(raw, seed = 1) {
   }
   s.scrolls = Math.max(0, Math.round(num(raw.scrolls, START_SCROLLS)));
   if (Array.isArray(raw.requests)) {
+    const asking = new Set();
     s.requests = raw.requests
-      .filter((r) => r && PAL[r.pal] && ITEM[r.target] && s.pals[r.pal])
+      .filter((r) => r && PAL[r.pal] && ITEM[r.target] && s.pals[r.pal] && !asking.has(r.pal) && asking.add(r.pal))
       .slice(0, REQUEST_SLOTS)
       .map((r) => ({
         pal: r.pal,
@@ -309,8 +310,9 @@ export class Alchemy {
 
   // ------------------------------------------------------------- requests
 
-  // Keep three requests alive. Targets come from the frontier so a request is
-  // always something the player could brew today.
+  // Keep up to three requests alive, one per pal, so no pal asks twice.
+  // Targets come from the frontier so a request is always something the
+  // player could brew today.
   rollRequests() {
     const owned = Object.keys(this.state.pals);
     if (!owned.length) { this.state.requests.length = 0; return; }
@@ -322,12 +324,14 @@ export class Alchemy {
     if (!pool.length) { this.state.requests.length = 0; return; }
     const taken = new Set(this.state.requests.map((r) => r.target));
     const usedPals = new Set(this.state.requests.map((r) => r.pal));
+    const slots = Math.min(REQUEST_SLOTS, owned.length);
     let guard = 0;
-    while (this.state.requests.length < REQUEST_SLOTS && guard++ < 200) {
+    while (this.state.requests.length < slots && guard++ < 200) {
       const target = pool[this.rng.int(pool.length)];
       if (taken.has(target) && taken.size < pool.length) continue;
       const free = owned.filter((p) => !usedPals.has(p));
-      const pal = (free.length ? free : owned)[this.rng.int(free.length || owned.length)];
+      if (!free.length) break;
+      const pal = free[this.rng.int(free.length)];
       this.state.requests.push({ pal, target, tags: askTags(target, this.state.requests), told: false });
       taken.add(target);
       usedPals.add(pal);

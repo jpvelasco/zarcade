@@ -247,7 +247,7 @@ export class UI {
       body.appendChild(el('p', 'sub', 'Brew your first potion and a pal will move in. Pals are the ones who ask for things!'));
       return;
     }
-    body.appendChild(el('p', 'sub', `Your pals always want three things. Bring one and they hand over a 📜 hint scroll. You have ${a.state.scrolls}.`));
+    body.appendChild(el('p', 'sub', `Each pal wants one thing (up to three at a time). Bring it and they hand over a 📜 hint scroll. You have ${a.state.scrolls}.`));
     a.state.requests.forEach((req, i) => {
       const item = el('div', 'item');
       item.appendChild(palArt(req.pal, 56, true));
