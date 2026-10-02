@@ -435,6 +435,16 @@ export class Renderer {
 
   canZoom() { return this.board && Math.max(this.board.w, this.board.h) >= 10; }
 
+  // Squares small enough on this screen that a zoom button helps.
+  smallSquares() { return !!(this.canZoom() && this.lay && this.lay.s < 32); }
+
+  // Zoom button: toggle between the whole board and finger-sized squares
+  // around (x, y).
+  toggleZoom(x, y) {
+    if (this.view.z > 1) { this.resetView(); return; }
+    this.zoomAt(Math.min(this.maxZoom(), 42 / this.lay.s), x, y);
+  }
+
   zoomAt(factor, x, y) {
     if (!this.canZoom()) return;
     const v = this.view;

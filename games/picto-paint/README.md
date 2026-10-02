@@ -63,7 +63,7 @@ Switch in the Studio or the pause menu.
 | Right-click / long-press | Use the other tool (✕ when filling) |
 | ✕ button / T | Toggle between fill and ✕ |
 | Paint buttons / 1–6 / C | Pick a paint in colour puzzles |
-| Pinch / Ctrl + wheel / + − | Zoom 10×10 and bigger boards (two fingers or wheel pan) |
+| Pinch / Ctrl + wheel / + − / 🔍 | Zoom 10×10 and bigger boards (two fingers, wheel, or a drag on the clues pans). The 🔍 button shows when squares are small |
 | Arrow keys / WASD | Move the cursor |
 | Space / Enter (hold + arrows) | Fill and drag-fill from the cursor |
 | X (hold + arrows) | Cross and drag-cross |

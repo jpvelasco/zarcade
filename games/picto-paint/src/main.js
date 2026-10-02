@@ -410,6 +410,7 @@ function updateInsets() {
   }
   const card = mode === 'results' ? $('screen-results').querySelector('.card') : mode === 'viewer' ? $('screen-viewer').querySelector('.card') : null;
   const rect = card ? card.getBoundingClientRect() : null;
+  $('btn-zoom').classList.toggle('hidden', !renderer.smallSquares());
   renderer.cardTop = rect ? rect.top : 0;
   renderer.cardRect = rect ? { top: rect.top, left: rect.left } : null;
   renderer.dirty = true;
@@ -982,6 +983,7 @@ document.addEventListener('visibilitychange', () => {
 
 let last = performance.now();
 let saveClock = 0;
+let zoomShown = false;
 function frame(now) {
   if (crashNext) { crashNext = false; throw new Error('picto-paint forced crash'); }
   monitor.frame(now);
@@ -1003,6 +1005,12 @@ function frame(now) {
   saveClock += dt;
   if (progressDirty && saveClock > 3) { saveClock = 0; saveProgress(); }
   stepAuto(dt);
+  const zoomed = renderer.view.z > 1;
+  if (zoomed !== zoomShown) {
+    zoomShown = zoomed;
+    $('btn-zoom').setAttribute('aria-pressed', String(zoomed));
+    $('btn-zoom').setAttribute('aria-label', zoomed ? 'Zoom out' : 'Zoom in');
+  }
   renderer.update(dt);
   renderer.draw();
   requestAnimationFrame(loop);
@@ -1023,6 +1031,15 @@ for (const el of document.querySelectorAll('[data-music]')) el.addEventListener(
 for (const el of document.querySelectorAll('.mode-btn')) el.addEventListener('click', () => { setMode(el.dataset.mode); sound.click(); });
 $('btn-mode').addEventListener('click', () => setMode(save.settings.mode === 'helper' ? 'expert' : 'helper'));
 $('btn-sound').addEventListener('click', toggleSound);
+$('btn-zoom').addEventListener('click', (e) => {
+  if (!board || mode !== 'play') return;
+  // Zoom in around the last square touched, so it stays under the finger.
+  const S = renderer.S;
+  const c = renderer.cursor;
+  renderer.toggleZoom(renderer.sx(renderer.lay.gx) + ((c % board.w) + 0.5) * S, renderer.sy(renderer.lay.gy) + (((c / board.w) | 0) + 0.5) * S);
+  sound.click();
+  if (e.detail > 0) e.currentTarget.blur();
+});
 $('btn-pause').addEventListener('click', pause);
 $('btn-undo').addEventListener('click', undo);
 $('btn-cross').addEventListener('click', () => { tool = tool === 'cross' ? 'fill' : 'cross'; syncTools(); sound.click(); });

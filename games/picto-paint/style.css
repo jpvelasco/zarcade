@@ -186,6 +186,7 @@ body.dark .overlay.scroll { background: rgba(10, 14, 30, 0.35); }
 .hud-right { display: flex; gap: 8px; align-items: center; }
 .time { font-variant-numeric: tabular-nums; min-width: 66px; text-align: center; box-shadow: var(--shadow); }
 .time.beat { color: #2f8a4a; }
+#btn-zoom[aria-pressed="true"] { background: #ffe1a6; border-color: #e0a64a; }
 .icon-btn {
   width: 46px;
   height: 46px;
