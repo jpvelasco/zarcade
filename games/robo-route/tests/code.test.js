@@ -38,3 +38,16 @@ test('names are cleaned and kept short', () => {
   const def = { ...LEVELS[0], name: 'Zig & Zag' };
   assert.equal(decodeLevel(encodeLevel(def)).def.name, 'Zig Zag');
 });
+
+test('an untested level stays untested through a code', async () => {
+  const { blankDraft, applyTool, draftToDef, draftFromDef, draftProblem } = await import('../src/editor.js');
+  const d = blankDraft();
+  for (let y = 0; y < 5; y++) applyTool(d, 'erase', 2, y);
+  const def = draftToDef(d);
+  assert.equal(def.par, 99, 'never solved');
+  const back = decodeLevel(encodeLevel(def)).def;
+  assert.equal(back.par, 99);
+  const again = draftFromDef(back, 0);
+  assert.equal(again.par, null, 'reopening it in the editor must not make it shareable');
+  assert.equal(draftProblem(again), '');
+});

@@ -31,7 +31,9 @@ export function encodeLevel(def) {
   const lv = def.cells ? def : parseLevel(def);
   const mask = opsMask(lv.ops);
   let body = ch(lv.w) + ch(lv.h) + ch(lv.start.x) + ch(lv.start.y) + ch(lv.start.d)
-    + ch(lv.limits.main) + ch(lv.limits.p1) + ch(mask & 63) + ch(mask >> 6) + ch(Math.min(63, lv.par || 0));
+    + ch(lv.limits.main) + ch(lv.limits.p1) + ch(mask & 63) + ch(mask >> 6)
+    // 0 means nobody has solved it yet (an untested draft has par 99).
+    + ch(lv.par && lv.par < 99 ? Math.min(63, lv.par) : 0);
   for (const c of lv.cells) {
     body += c ? ch(1 + c.h * 9 + COLS.indexOf(c.c) * 3 + ITEMS.indexOf(c.item)) : ch(0);
   }
@@ -78,7 +80,7 @@ export function decodeLevel(code) {
     start: [x, y, DIRS[d]],
     ops: maskOps(m1 | (m2 << 6)),
     limits: { main: Math.max(1, main), p1: p1 },
-    par: Math.max(1, par),
+    par: par || 99,
     custom: true,
   };
   let lv;
