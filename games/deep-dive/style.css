@@ -427,11 +427,12 @@ p { line-height: 1.4; }
   .card { padding: 18px 14px 14px; border-radius: 22px; }
   .tagline { font-size: 15px; margin-bottom: 12px; }
   #minimap { width: 120px; height: 80px; }
-  .icon-btn { width: 40px; height: 40px; font-size: 17px; border-radius: 12px; }
-  .hud-tl { max-width: calc(100vw - 210px); }
+  .icon-btn { width: 44px; height: 44px; font-size: 17px; border-radius: 12px; }
+  .hud-tl { max-width: calc(100vw - 214px); }
   .daily-chip .goal { display: none; }
   .o2-bar { width: clamp(80px, 26vw, 140px); }
-  .fact { top: auto; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 118px); right: 50%; transform: translateX(50%); width: min(340px, 92vw); display: flex; gap: 8px; align-items: center; animation: none; }
+  /* Under the HUD buttons, clear of the toasts at the bottom. */
+  .fact { top: calc(env(safe-area-inset-top) + 152px); bottom: auto; right: 50%; transform: translateX(50%); width: min(340px, 92vw); display: flex; gap: 8px; align-items: center; animation: none; }
   #fact-art { width: 96px; flex: 0 0 auto; }
   .fact-body { text-align: left; }
   .fact p { font-size: 14px; }
