@@ -13,6 +13,8 @@ import { frameMonitor } from './perf.js';
 const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
 const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
+// Same test as the stylesheet's .touch-only rules: no Space or Esc to mention.
+const touchQuery = matchMedia('(hover: none) and (pointer: coarse)');
 
 // Telemetry is optional: the game still runs if telemetry.js is missing.
 const telemetry = window.Telemetry || null;
@@ -441,7 +443,7 @@ function hint(type) {
     return;
   }
   if (ui.site) el.textContent = 'Pick a plant for the glowing tile.';
-  else if (ui.placing) el.textContent = `Tap grass to plant a ${DEFENDERS[ui.placing].name}. Esc to cancel.`;
+  else if (ui.placing) el.textContent = `Tap grass to plant a ${DEFENDERS[ui.placing].name}. ${touchQuery.matches ? 'Tap its button again' : 'Esc'} to cancel.`;
   else el.textContent = 'Tap grass beside the path, then pick a plant. Tap a plant to upgrade it.';
 }
 
@@ -551,7 +553,7 @@ function plant(type, cell) {
   if (!d) { sound.play('nope'); return false; }
   ui.site = null;
   if (!(ui.shift && game.coins >= cost)) ui.placing = null;
-  if (game.status === 'ready' && game.defenders.length === 1 && game.mapIndex === 0) toast('Nice! Press <b>Start wave</b> (Space) when ready.', 'Plant more while you wait: coins come from shooed bugs.', 4);
+  if (game.status === 'ready' && game.defenders.length === 1 && game.mapIndex === 0) toast(`Nice! Press <b>Start wave</b>${touchQuery.matches ? '' : ' (Space)'} when ready.`, 'Plant more while you wait: coins come from shooed bugs.', 4);
   renderPanel();
   return true;
 }
