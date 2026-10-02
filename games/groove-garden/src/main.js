@@ -8,7 +8,7 @@ import { Autoplayer } from './autoplay.js';
 import { Garden } from './garden.js';
 import { heardSongTime, judgedTime, displayTime, estimateOffset, clampOffset } from './timing.js';
 import { finalScore } from './score.js';
-import { loadSave, writeSave, recordResult, checkUnlocks, isSongUnlocked, DECORATIONS, SKINS } from './progress.js';
+import { loadSave, writeSave, recordResult, checkUnlocks, isSongUnlocked, DECORATIONS, SKINS, SAVE_KEY } from './progress.js';
 import { Renderer, laneStyle } from './render.js';
 import { Input } from './input.js';
 import { Audio } from './audio.js';
@@ -24,7 +24,8 @@ const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, erro
 // Reading `localStorage` throws when the browser blocks site storage.
 const storage = (() => { try { return localStorage; } catch { return null; } })();
 const save = loadSave(storage);
-if (params.get('lanes') === '3' || params.get('lanes') === '4') save.lanes = Number(params.get('lanes'));
+const lanesParam = params.get('lanes') === '3' || params.get('lanes') === '4' ? Number(params.get('lanes')) : null;
+if (lanesParam) save.lanes = lanesParam;
 let saveWarned = false;
 function persist() {
   if (writeSave(storage, save) || saveWarned) return;
@@ -262,10 +263,14 @@ function toTitle() {
   leaveRun();
   mode = 'title';
   if (!run) attract();
-  const done = Object.keys(save.best).length;
-  $('title-info').textContent = save.stats.clears ? `${save.songs.length} of ${SONGS.length} songs open · ${save.decor.length} decorations · ${done} songs grown` : 'Twelve songs to grow. Start with any of the first four!';
+  updateTitleInfo();
   updateSoundButtons();
   showScreen('screen-title');
+}
+
+function updateTitleInfo() {
+  const done = Object.keys(save.best).length;
+  $('title-info').textContent = save.stats.clears ? `${save.songs.length} of ${SONGS.length} songs open · ${save.decor.length} decorations · ${done} songs grown` : 'Twelve songs to grow. Start with any of the first four!';
 }
 
 function setChecked(groupId, attr, value) {
@@ -314,12 +319,16 @@ function renderSongs() {
 
 function toOptions() {
   mode = 'options';
+  syncOptions();
+  showScreen('screen-options');
+}
+
+function syncOptions() {
   setChecked('seg-lanes', 'lanes', save.lanes);
   setChecked('seg-nofail', 'nofail', save.noFail ? 'on' : 'off');
   setChecked('seg-speed', 'speed', save.speed);
   setChecked('seg-motion', 'motion', save.motion);
   updateSoundButtons();
-  showScreen('screen-options');
 }
 
 function toGarden() {
@@ -555,6 +564,24 @@ for (const b of $('seg-nofail').querySelectorAll('button')) b.addEventListener('
 for (const b of $('seg-speed').querySelectorAll('button')) b.addEventListener('click', () => { save.speed = Number(b.dataset.speed); persist(); setChecked('seg-speed', 'speed', save.speed); configureRenderer(); audio.blip('move'); });
 for (const b of $('seg-motion').querySelectorAll('button')) b.addEventListener('click', () => { save.motion = b.dataset.motion; persist(); setChecked('seg-motion', 'motion', save.motion); configureRenderer(); audio.blip('move'); });
 motionQuery.addEventListener?.('change', configureRenderer);
+// Another tab saved: take its progress, so this tab never writes a stale copy
+// over it. A song in progress keeps going and records into the fresh copy.
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  const fresh = loadSave(storage);
+  if (lanesParam) fresh.lanes = lanesParam;
+  if (run && !run.attract) fresh.lanes = save.lanes; // keep the lanes of the song being played
+  for (const key of Object.keys(save)) delete save[key];
+  Object.assign(save, fresh);
+  audio.setMuted(save.muted);
+  updateSoundButtons();
+  if (!run || run.attract) { configureRenderer(); input.setLanes(save.lanes); }
+  if (mode === 'title') updateTitleInfo();
+  else if (mode === 'songs') renderSongs();
+  else if (mode === 'garden') renderCollection();
+  else if (mode === 'options') syncOptions();
+  else if (mode === 'calibrate') updateCalText(!cal.active);
+});
 addEventListener('resize', () => renderer.resize());
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 
