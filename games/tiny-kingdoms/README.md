@@ -86,7 +86,7 @@ Saved under `localStorage["tiny-kingdoms.v1"]`.
 ## Debug parameters
 
 - `?map=N` start campaign map N; `?daily`; `?skirmish`
-- `?autoplay` the reference bot plays for you (results are recorded)
+- `?autoplay` the reference bot plays for you (its results are not saved)
 - `?unlock` every map, hero, colour and emblem
 - `?speed=4` run the simulation faster
 

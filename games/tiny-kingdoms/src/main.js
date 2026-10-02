@@ -399,11 +399,13 @@ function finish(won) {
   const st = w.stats[ME];
   const result = { won, time: w.time, sends: st.sends, lost: st.lost };
   const spec = match.spec;
+  // ?autoplay is the bot playing: show its results, but keep them out of the save.
+  const book = debugAutoplay ? structuredClone(save) : save;
   let rec = null;
-  if (spec.kind === 'campaign') rec = recordCampaign(save, spec.index, result);
-  else if (spec.kind === 'daily') rec = recordDaily(save, spec.key, result);
-  else rec = recordSkirmish(save, spec.key, result);
-  persist();
+  if (spec.kind === 'campaign') rec = recordCampaign(book, spec.index, result);
+  else if (spec.kind === 'daily') rec = recordDaily(book, spec.key, result);
+  else rec = recordSkirmish(book, spec.key, result);
+  if (!debugAutoplay) persist();
   const attrs = { mode: spec.kind, map: spec.index != null ? spec.index + 1 : 0, time: Math.round(w.time), sends: st.sends, lost: st.lost };
   if (won) log.event('level.complete', { ...attrs, stars: rec.stars ?? 0, 'best.new': !!rec.newBest, streak: rec.streak ?? 0 });
   else log.event('level.fail', { ...attrs, reason: 'conquered' });
