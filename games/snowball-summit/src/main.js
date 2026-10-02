@@ -274,7 +274,8 @@ function onCaught() {
   const w = world;
   const sum = runSummary(w);
   if (current.kind === 'endless') return onEndlessOver();
-  const out = recordAttempt(save, sum);
+  // A hug on the Daily Slope still counts as playing it today (streak, Party Hat).
+  const out = current.kind === 'daily' ? recordDaily(save, current.level.daily, { ...sum, stars: 0 }) : recordAttempt(save, sum);
   persist();
   log.event('level.fail', { mode: current.kind, slope: current.kind === 'slope' ? current.level.id : 'daily', reason: 'caught', progress: Math.round(w.progress() * 100), size: sum.size });
   mode = 'caught';

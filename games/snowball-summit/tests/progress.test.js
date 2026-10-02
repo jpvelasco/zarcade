@@ -93,3 +93,15 @@ test('the daily streak counts consecutive days and restarts after a gap', () => 
   assert.equal(dayDiff('2026-12-31', '2027-01-01'), 1);
   assert.match(localDateKey(new Date(2026, 0, 5)), /^2026-01-05$/);
 });
+
+test('a caught daily run (no stars) still counts as playing today (#77)', () => {
+  const s = freshSave();
+  const out = recordDaily(s, '2026-10-01', { stars: 0, size: 40, byType: { pinecone: 2 } });
+  assert.equal(s.daily.played, 1);
+  assert.equal(out.streak, 1);
+  assert.ok(out.unlocks.some((u) => u.id === 'party'));
+  recordDaily(s, '2026-10-02', { stars: 2, size: 60, byType: {} });
+  recordDaily(s, '2026-10-02', { stars: 0, size: 30, byType: {} });
+  assert.equal(currentStreak(s, '2026-10-02'), 2);
+  assert.deepEqual(s.daily.days['2026-10-02'], { stars: 2, size: 60 }, 'a later hug keeps the better run');
+});
