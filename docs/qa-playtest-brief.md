@@ -35,6 +35,32 @@ real, through its menus, several levels, wins and losses.
    DOM-free, telemetry stays wired, `prefers-reduced-motion` respected,
    determinism kept.
 
+## Filing bugs
+
+Every real bug you find goes on the tracker before you fix it, so there is a
+record even if a fix fails. Repo: `jpvelasco/zarcade` (private). Labels
+already exist; don't create new ones.
+
+```sh
+gh issue create -R jpvelasco/zarcade \
+  --title "<Title>: <what goes wrong, in a few words>" \
+  --label bug --label game:<slug> --label sev:<high|medium|low> \
+  --body-file /tmp/<your-dir>/issue.md
+```
+
+- Body: steps to reproduce, expected vs actual, viewport/input used, and
+  console output if any. Attach evidence as text (no uploads). No personal
+  data, no local file paths beyond the repo.
+- `sev:high`: crash, stuck, unwinnable, lost save. `sev:medium`: broken
+  control or wrong rule with a workaround. `sev:low`: cosmetic.
+- Bugs only. Polish ideas you don't act on go in your report, not the tracker.
+- Before filing, search for a duplicate:
+  `gh issue list -R jpvelasco/zarcade --label game:<slug> --state all`.
+- Fix commits reference the issue so the push closes it:
+  `git commit -m "<Title>: <fix> (fixes #N)" -- games/<slug>`. If you can't
+  fix it, leave it open and comment why with `gh issue comment`.
+- Never close, edit or comment on other agents' issues.
+
 ## Git
 
 Commit per game, only that game's folder:
@@ -44,5 +70,6 @@ copies, or root files. If `.git/index.lock` exists, wait and retry.
 
 ## Report
 
-Per game: what you played, findings (fixed and not fixed), what changed, test
-counts, commit hashes. Kill your Chrome and server at the end.
+Per game: what you played, issues filed (number, severity, fixed or open),
+other findings, what changed, test counts, commit hashes. Kill your Chrome and
+server at the end by their PIDs, never by name pattern.
