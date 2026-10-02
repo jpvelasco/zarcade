@@ -154,3 +154,28 @@ test('releaseLoop ignores open strokes, tiny loops and wide gaps', () => {
   assert.ok(G.pendingLoop(u, 48, 6), 'the ends are within reach');
   assert.equal(G.releaseLoop(u, 48, 6, 250), null);
 });
+
+test('the HUD streak multiplier matches the score and caps at 3', () => {
+  assert.equal(G.streakMultiplier(0), 1);
+  assert.equal(G.streakMultiplier(1), 1);
+  assert.equal(G.streakMultiplier(2), 1.25);
+  assert.equal(G.streakMultiplier(5), 2);
+  assert.equal(G.streakMultiplier(40), 3);
+  const two = [{ color: 'a', kind: 'normal' }, { color: 'a', kind: 'normal' }];
+  for (let streak = 0; streak < 12; streak++) {
+    const r = G.scoreLoop(two, streak);
+    assert.equal(r.multiplier, G.streakMultiplier(r.streak));
+  }
+});
+
+test('cleanSave keeps sane values and drops damaged ones', () => {
+  assert.deepEqual(G.cleanSave({ bestNight: 4, bestTotal: 1230, muted: true }), { bestNight: 4, bestTotal: 1230, muted: true });
+  for (const raw of [null, 5, 'x', [1, 2], {}]) {
+    assert.deepEqual(G.cleanSave(raw), { bestNight: 0, bestTotal: 0, muted: false });
+  }
+  for (const bestNight of ['3', -4, 2.5, Infinity, NaN, null, 1e9]) {
+    assert.equal(G.cleanSave({ bestNight }).bestNight, 0, String(bestNight));
+  }
+  assert.equal(G.cleanSave({ bestTotal: 'x' }).bestTotal, 0);
+  assert.equal(G.cleanSave({ muted: 'yes' }).muted, false);
+});

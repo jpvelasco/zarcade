@@ -41,9 +41,9 @@
 
   // ---------- persistence ----------
   const SAVE_KEY = 'glowloop.v1';
-  const save = Object.assign({ bestNight: 0, bestTotal: 0, muted: false }, readSave());
+  const save = G.cleanSave(readSave());
   function readSave() {
-    try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { return {}; }
+    try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch { return null; }
   }
   let saveWarned = false;
   function writeSave() {
@@ -531,6 +531,8 @@
   canvas.addEventListener('pointerdown', (e) => {
     audio.unlock();
     if (state.mode !== 'playing') return;
+    // A second finger (or a resting palm) must not take over a loop in progress.
+    if (state.drawing && e.pointerId !== state.pointerId) return;
     try { canvas.setPointerCapture(e.pointerId); } catch { /* capture is a nicety, not required */ }
     state.drawing = true;
     state.pointerId = e.pointerId;
@@ -543,6 +545,9 @@
   });
   canvas.addEventListener('pointerup', endStroke);
   canvas.addEventListener('pointercancel', endStroke);
+  // If the browser takes the drawing pointer away, end that stroke so the next
+  // touch can start a new one.
+  canvas.addEventListener('lostpointercapture', endStroke);
 
   // ---------- loop resolution ----------
   function addText(x, y, text, color, size = 22, life = 1.2) {
@@ -1197,7 +1202,7 @@
     if (state.streak > 1) {
       ctx.font = '700 13px ui-rounded, system-ui, sans-serif';
       ctx.fillStyle = COLORS[1].hex;
-      ctx.fillText(`Harmony streak ×${state.streak}`, tx, y + 64);
+      ctx.fillText(`Harmony streak ×${G.streakMultiplier(state.streak)}`, tx, y + 64);
     }
 
     // Timer ring: centered on wide screens, tucked beside the buttons on narrow ones.

@@ -107,6 +107,12 @@
     return WEIGHTS[kind] || 1;
   }
 
+  // The Harmony multiplier for a streak of `streak` back-to-back Harmonies:
+  // ×1, ×1.25, ×1.5 … capped at ×3.
+  function streakMultiplier(streak) {
+    return streak > 1 ? Math.min(3, 1 + 0.25 * (streak - 1)) : 1;
+  }
+
   // Scores one closed loop. `catches` is [{ color, kind }]. Gold and rainbow
   // fireflies are wildcards; every other kind contributes its color.
   function scoreLoop(catches, streak) {
@@ -116,7 +122,7 @@
     const bonusTime = 5 * catches.filter((c) => c.kind === 'gold').length;
     const harmony = n >= 2 && colors.size <= 1;
     const nextStreak = harmony ? streak + 1 : 0;
-    const multiplier = harmony ? Math.min(3, 1 + 0.25 * (nextStreak - 1)) : 1;
+    const multiplier = harmony ? streakMultiplier(nextStreak) : 1;
     const base = harmony ? 10 * n * n : 10 * n;
     return { points: Math.round(base * multiplier), harmony, streak: nextStreak, multiplier, bonusTime };
   }
@@ -158,9 +164,22 @@
     return 0;
   }
 
+  // Keeps only sane values from a stored save; anything damaged falls back to
+  // the default, so the title never offers a night that can't be played.
+  function cleanSave(raw) {
+    const save = { bestNight: 0, bestTotal: 0, muted: false };
+    if (!raw || typeof raw !== 'object') return save;
+    const count = (v) => Number.isSafeInteger(v) && v >= 0;
+    if (count(raw.bestNight) && raw.bestNight < 10000) save.bestNight = raw.bestNight;
+    if (count(raw.bestTotal)) save.bestTotal = raw.bestTotal;
+    save.muted = raw.muted === true;
+    return save;
+  }
+
   const Glow = {
     dist, segmentIntersection, pointInPolygon, polygonArea, centroid,
-    findLoop, pendingLoop, releaseLoop, trimToLength, weightOf, scoreLoop, twistFor, nightConfig, starsFor,
+    findLoop, pendingLoop, releaseLoop, trimToLength, weightOf, streakMultiplier, scoreLoop, twistFor, nightConfig, starsFor,
+    cleanSave,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Glow;
