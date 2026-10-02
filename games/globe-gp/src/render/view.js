@@ -147,6 +147,8 @@ export class RaceView {
           break;
         case 'respawn': {
           const v = this.race.racers[ev.racer].vehicle;
+          // Cut straight to the new spot instead of gliding through scenery.
+          if (ev.racer === p.id) this.cam.snap = true;
           for (let i = 0; i < 20; i++) this.glow.emit(v.x + (Math.random() - 0.5) * 3, v.y + Math.random() * 2, v.z + (Math.random() - 0.5) * 3, 0, 2, 0, 0.6, 0.5, TIER_COLORS[1], 0.8);
           break;
         }
@@ -377,8 +379,10 @@ export class RaceView {
       const ch = v.heading + swing;
       pos = v3.set(v.x - Math.sin(ch) * back, v.y + height, v.z - Math.cos(ch) * back);
       look = v3b.set(v.x + fx * 6, v.y + 1.35, v.z + fz * 6);
-      const k = 1 - Math.exp(-dt * 7);
+      const k = cam.snap ? 1 : 1 - Math.exp(-dt * 7);
       cam.pos.lerp(pos, k);
+      if (cam.snap) cam.look.copy(look);
+      cam.snap = false;
       // Keep the camera above the ground behind the car.
       cam.pos.y = Math.max(cam.pos.y, v.y + 1.6);
       cam.look.lerp(look, 1 - Math.exp(-dt * 12));

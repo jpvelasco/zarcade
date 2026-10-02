@@ -242,13 +242,14 @@ export function encodeGhost(frames, lap) {
 export function decodeGhost(text) {
   try {
     const { lap, data } = JSON.parse(text);
-    if (!Number.isFinite(lap) || typeof data !== 'string') return null;
+    if (!Number.isFinite(lap) || lap <= 0 || typeof data !== 'string') return null;
     const bin = atob(data);
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     const ints = new Int16Array(bytes.buffer, 0, Math.floor(bytes.length / 2));
     const frames = new Float32Array(ints.length - (ints.length % 4));
     for (let i = 0; i < frames.length; i++) frames[i] = ints[i] / SCALE[i % 4];
+    if (frames.length < 8) return null;
     return { lap, frames };
   } catch {
     return null;

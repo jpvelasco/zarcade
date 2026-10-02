@@ -159,6 +159,10 @@ test('ghost frames survive encoding within a few centimetres', () => {
     assert.ok(diff < 0.1, `frame value ${i}`);
   }
   assert.equal(decodeGhost('garbage'), null);
+  // A damaged lap time or an empty ghost can't become the time to beat.
+  assert.equal(decodeGhost(encodeGhost(frames, 0)), null);
+  assert.equal(decodeGhost(encodeGhost(frames, -3)), null);
+  assert.equal(decodeGhost(JSON.stringify({ lap: 40, data: '' })), null);
   const store = memory();
   assert.ok(saveGhost(store, 'tokyo-circuit', { frames, lap: 40 }));
   assert.ok([...store.data.keys()][0].startsWith('globe-gp.v1.'));
