@@ -510,6 +510,13 @@ body:not(.touch) .kb-key { cursor: default; }
   .kb-space, .kb-spin { font-size: 14px; }
   .hand { display: none; }
   .kb-finger { font-size: 14px; text-align: center; }
+  /* Two-column pause menu so Back to arcade fits without scrolling. */
+  #screen-pause .card { width: min(560px, 100%); padding: 14px 18px 14px; }
+  #screen-pause .col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  #screen-pause .col .row { display: contents; }
+  #screen-pause .btn.primary { grid-column: 1 / -1; }
+  #screen-pause .col > a.btn { grid-column: 1 / -1; }
+  #screen-pause p { margin: 2px 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -86,8 +86,6 @@ function updateKeyboardDock() {
   renderer.resize();
 }
 
-const onTouchKeyboard = () => keyboardWanted() && coarse;
-
 // ------------------------------------------------------------ attract
 
 function newAttract() {
@@ -571,7 +569,7 @@ function frame(now) {
   renderer.draw(shown, {
     attract: !battle,
     stageName: stage ? (stage.lesson ? `Lesson ${stage.index + 1}: ${stage.name}` : stage.name) : '',
-    touch: onTouchKeyboard(),
+    touch: coarse && (!!stage?.lesson || save.settings.keyboard !== 'off'),
     showMeter: true,
   });
   requestAnimationFrame(loop);
