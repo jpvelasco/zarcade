@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultSave, loadSave, writeSave, statsFor, buyUpgrade, starsFor, recordArrival, menuPrice, MENU, FREE_ITEM, SAVE_KEY } from '../src/progress.js';
+import { defaultSave, loadSave, cleanSave, writeSave, upgradeCost, statsFor, buyUpgrade, starsFor, recordArrival, menuPrice, MENU, FREE_ITEM, SAVE_KEY } from '../src/progress.js';
 import { planet, children } from '../src/galaxy.js';
 
 const memoryStorage = () => {
@@ -17,6 +17,22 @@ test('save round-trips and tolerates junk', () => {
   assert.equal(loadSave(s).stardust, 77);
   s.setItem(SAVE_KEY, 'nope');
   assert.deepEqual(loadSave(s), defaultSave());
+});
+
+test('blocked storage and damaged saves still load a usable save (#205)', () => {
+  assert.deepEqual(loadSave(null), defaultSave());
+  assert.equal(writeSave(null, defaultSave()), false);
+  for (const raw of [[1], 'text', 3, { cleared: null, upgrades: null }, { cleared: { foo: 2, 'H.9': 1, 'H.0.5': 2, 'H.1.0': 3 } }, { upgrades: { cannon: 9, hull: -1 } }]) {
+    const save = cleanSave(raw);
+    for (const id of Object.keys(save.cleared)) assert.ok(children(id.slice(0, id.lastIndexOf('.'))).includes(id), id);
+    for (const key of Object.keys(save.upgrades)) assert.ok(save.upgrades[key] >= 0 && upgradeCost(save, key) !== undefined);
+  }
+  // Orphans (parent never visited) and made-up ids are dropped.
+  assert.deepEqual(cleanSave({ cleared: { foo: 2, 'H.9': 1, 'H.1.0': 3 } }).cleared, {});
+  assert.equal(cleanSave({ upgrades: { cannon: 9 } }).upgrades.cannon, 3);
+  const kept = cleanSave({ cleared: { 'H.0': 3, 'H.0.1': 2 }, stardust: 55, paint: '#4fb4ff', view: 'chase', muted: true, selected: 'H.0.1' });
+  assert.deepEqual(kept.cleared, { 'H.0': 3, 'H.0.1': 2 });
+  assert.deepEqual([kept.stardust, kept.paint, kept.view, kept.muted, kept.selected], [55, '#4fb4ff', 'chase', true, 'H.0.1']);
 });
 
 test('upgrades cost stardust and improve the jet', () => {

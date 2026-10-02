@@ -43,13 +43,38 @@ export function defaultSave() {
 
 export function loadSave(storage) {
   try {
-    const raw = JSON.parse(storage.getItem(SAVE_KEY));
-    const base = defaultSave();
-    if (!raw) return base;
-    return { ...base, ...raw, upgrades: { ...base.upgrades, ...raw.upgrades } };
+    return cleanSave(JSON.parse(storage.getItem(SAVE_KEY)));
   } catch {
     return defaultSave();
   }
+}
+
+const isRecord = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+const count = (x, lo, hi) => (Number.isFinite(x) ? Math.min(hi, Math.max(lo, Math.floor(x))) : lo);
+
+// Keeps whatever is usable from a stored save and repairs the rest, so an
+// old or damaged save can never stop the game from starting. A visited
+// planet only counts if it is a real planet whose parent was visited too.
+export function cleanSave(raw) {
+  const save = defaultSave();
+  if (!isRecord(raw)) return save;
+  if (isRecord(raw.cleared)) {
+    const ids = Object.keys(raw.cleared).filter((id) => /^H(\.\d+)+$/.test(id) && Number.isFinite(raw.cleared[id]));
+    ids.sort((a, b) => a.split('.').length - b.split('.').length);
+    for (const id of ids) {
+      const parent = id.slice(0, id.lastIndexOf('.'));
+      if ((parent === 'H' || parent in save.cleared) && children(parent).includes(id)) save.cleared[id] = count(raw.cleared[id], 1, 3);
+    }
+  }
+  save.stardust = count(raw.stardust, 0, Number.MAX_SAFE_INTEGER);
+  for (const [key, u] of Object.entries(UPGRADES)) {
+    if (isRecord(raw.upgrades)) save.upgrades[key] = count(raw.upgrades[key], 0, u.costs.length);
+  }
+  if (PAINTS.includes(raw.paint)) save.paint = raw.paint;
+  if (raw.view === 'chase') save.view = 'chase';
+  save.muted = raw.muted === true;
+  if (typeof raw.selected === 'string') save.selected = raw.selected;
+  return save;
 }
 
 // Returns false when storage is unavailable (private mode, full quota).
