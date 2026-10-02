@@ -159,3 +159,12 @@ test('a real shift result carries everything the orders read', async () => {
   const perfect = ALL_ORDERS.find((o) => o.id === 'perfect10');
   assert.equal(orderProgress(perfect, result, 3), Math.min(perfect.need, shift.stats.perfectTips));
 });
+
+test('orders that count a shift say so, because they never add shifts together', () => {
+  for (const order of ALL_ORDERS) {
+    if (['served', 'happy', 'perfect', 'dish'].includes(order.type)) {
+      assert.match(order.text(order.need), /in one shift$/, order.id);
+    }
+    assert.doesNotMatch(order.text(order.need), /\btoday\b(?!'s special)/, order.id);
+  }
+});

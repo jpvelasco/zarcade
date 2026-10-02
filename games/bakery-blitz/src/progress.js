@@ -4,7 +4,7 @@
 import { DAY_COUNT, chapterOf, starsFor } from './levels.js';
 import { getUpgrade, isAvailable } from './upgrades.js';
 import { BOOK_ORDER, CUSTOMERS } from './recipes.js';
-import { dailyOrders, orderProgress, ALL_ORDERS_BONUS, dateKey } from './daily.js';
+import { dailyOrders, orderProgress, ALL_ORDERS, ALL_ORDERS_BONUS, dateKey } from './daily.js';
 
 export const SAVE_KEY = 'bakery-blitz.v1';
 // Two starless tries and the game quietly makes the day easier.
@@ -187,6 +187,11 @@ export function refreshDaily(save, key = dateKey(), chapter = highestChapter(sav
       bonusClaimed: false,
       specialDone: false,
     };
+  }
+  // Boards saved before a wording change pick up the current labels.
+  for (const order of save.daily.orders) {
+    const def = ALL_ORDERS.find((o) => o.id === order.id);
+    if (def) order.label = def.text(order.need);
   }
   return save.daily;
 }

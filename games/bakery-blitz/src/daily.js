@@ -134,24 +134,24 @@ function pickFrom(rng, pool) {
 
 // -------------------------------------------------------------- the orders
 
-// Three jobs from the notice board. Targets stay small so a kid clears them in
-// a couple of shifts, and the reward is coins, never a gate.
+// Three jobs from the notice board. Each one is met in a single shift, and the
+// labels say so. Targets stay small, and the reward is coins, never a gate.
 const ORDER_POOL = [
-  { id: 'serve18', type: 'served', need: 18, reward: 60, text: (n) => `Serve ${n} dishes today` },
-  { id: 'serve26', type: 'served', need: 26, reward: 90, text: (n) => `Serve ${n} dishes today` },
-  { id: 'happy12', type: 'happy', need: 12, reward: 70, text: (n) => `Send ${n} customers away happy` },
+  { id: 'serve18', type: 'served', need: 18, reward: 60, text: (n) => `Serve ${n} dishes in one shift` },
+  { id: 'serve26', type: 'served', need: 26, reward: 90, text: (n) => `Serve ${n} dishes in one shift` },
+  { id: 'happy12', type: 'happy', need: 12, reward: 70, text: (n) => `Send ${n} customers away happy in one shift` },
   { id: 'combo4', type: 'combo', need: 4, reward: 70, text: (n) => `Hit a ×${n} tip combo` },
   { id: 'combo5', type: 'combo', need: 5, reward: 110, text: (n) => `Hit a ×${n} tip combo` },
-  { id: 'perfect10', type: 'perfect', need: 10, reward: 80, text: (n) => `Serve ${n} people at three hearts` },
+  { id: 'perfect10', type: 'perfect', need: 10, reward: 80, text: (n) => `Serve ${n} people at three hearts in one shift` },
   { id: 'coins300', type: 'coins', need: 300, reward: 80, text: (n) => `Earn ${n} coins in one shift` },
   { id: 'stars3', type: 'stars', need: 3, reward: 100, text: (n) => `Finish a shift with ${n} stars` },
-  { id: 'cupcake8', type: 'dish', dish: 'cupcake', need: 8, reward: 70, text: (n) => `Serve ${n} cupcakes` },
-  { id: 'cocoa8', type: 'dish', dish: 'cocoa', need: 8, reward: 55, text: (n) => `Brew ${n} hot cocoas` },
-  { id: 'pretzel8', type: 'dish', dish: 'pretzel', need: 8, reward: 60, text: (n) => `Bake ${n} pretzels` },
-  { id: 'tart6', type: 'dish', dish: 'tart', need: 6, reward: 75, text: (n) => `Bake ${n} jam tarts` },
-  { id: 'cake4', type: 'dish', dish: 'cake', need: 4, reward: 95, text: (n) => `Finish ${n} layer cakes` },
-  { id: 'cookies5', type: 'dish', dish: 'cookies', need: 5, reward: 80, text: (n) => `Pack ${n} cookie boxes` },
-  { id: 'special3', type: 'dish', dish: 'special', need: 3, reward: 100, text: (n) => `Serve ${n} of today's special` },
+  { id: 'cupcake8', type: 'dish', dish: 'cupcake', need: 8, reward: 70, text: (n) => `Serve ${n} cupcakes in one shift` },
+  { id: 'cocoa8', type: 'dish', dish: 'cocoa', need: 8, reward: 55, text: (n) => `Brew ${n} hot cocoas in one shift` },
+  { id: 'pretzel8', type: 'dish', dish: 'pretzel', need: 8, reward: 60, text: (n) => `Bake ${n} pretzels in one shift` },
+  { id: 'tart6', type: 'dish', dish: 'tart', need: 6, reward: 75, text: (n) => `Bake ${n} jam tarts in one shift` },
+  { id: 'cake4', type: 'dish', dish: 'cake', need: 4, reward: 95, text: (n) => `Finish ${n} layer cakes in one shift` },
+  { id: 'cookies5', type: 'dish', dish: 'cookies', need: 5, reward: 80, text: (n) => `Pack ${n} cookie boxes in one shift` },
+  { id: 'special3', type: 'dish', dish: 'special', need: 3, reward: 100, text: (n) => `Serve ${n} of today's special in one shift` },
   { id: 'clean', type: 'nocrispy', need: 1, reward: 85, text: () => 'Finish a shift with nothing crispy' },
 ];
 
