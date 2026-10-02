@@ -507,6 +507,8 @@ function showResult(res) {
 }
 
 function closeResult() {
+  // Keyboard players go back to the shelf tile they were on.
+  const backToShelf = $('screen-result').contains(document.activeElement);
   $('screen-result').classList.add('hidden');
   modal = null;
   if (pendingPal) {
@@ -518,6 +520,7 @@ function closeResult() {
   }
   bump('pill-found');
   buildShelf();
+  if (backToShelf) setCursor(cursor, true);
   refreshHud();
 }
 
