@@ -5,7 +5,7 @@ import { Input } from './input.js';
 import { Sound } from './audio.js';
 import { UI } from './ui.js';
 import { FarmerBot } from './bot.js';
-import { loadWorld, writeWorld, loadSettings, writeSettings, clearSave } from './save.js';
+import { loadWorld, loadSettings, writeSettings, clearSave, serialize, SAVE_KEY } from './save.js';
 import { frameMonitor } from './perf.js';
 import { FESTIVALS, SEASON_NAMES, CRITTERS, FISH, ITEMS, UPGRADES } from './data.js';
 import { SPEEDS } from './time.js';
@@ -24,9 +24,19 @@ const storage = (() => { try { return localStorage; } catch { return null; } })(
 const settings = loadSettings(storage);
 if (params.has('fresh')) clearSave(storage);
 let saveWarned = false;
+// The last farm this tab wrote or picked up. An unchanged farm is not written
+// again, so a paused tab closing can't undo another tab's newer save.
+let lastWritten = null;
 function persist() {
   if (!world || isDemo) return false;
-  const ok = !!storage && writeWorld(storage, world);
+  let ok = false;
+  try {
+    const json = JSON.stringify(serialize(world));
+    if (json === lastWritten) return true;
+    storage.setItem(SAVE_KEY, json);
+    lastWritten = json;
+    ok = true;
+  } catch { ok = false; }
   if (!ok && !saveWarned) { saveWarned = true; log.warn('save.failed', { 'storage.available': !!storage }); }
   return ok;
 }
@@ -80,6 +90,12 @@ function toTitle() {
   renderer.prepare(world);
   renderer.snapCam = true;
   queueMicrotask(() => monitor.mark(performance.now()));
+  refreshContinue();
+  updateSettingsButtons();
+  showScreen('screen-title');
+}
+
+function refreshContinue() {
   const saved = loadWorld(storage);
   const cont = $('btn-continue');
   if (saved) {
@@ -89,9 +105,32 @@ function toTitle() {
   } else cont.classList.add('hidden');
   $('btn-new').classList.toggle('primary', !saved);
   cont.classList.toggle('primary', !!saved);
-  updateSettingsButtons();
-  showScreen('screen-title');
 }
+
+// Another tab saved the farm: carry on from its copy instead of writing a
+// stale one over it later. If it started a new farm, go back to the title.
+function adoptOtherTab() {
+  if (!ui || mode === 'loading') return;
+  if (!world || isDemo) { if (mode === 'title') refreshContinue(); return; }
+  const fresh = loadWorld(storage);
+  if (ui.open) ui.close();
+  if (!fresh) { world = null; toTitle(); return; }
+  fresh.speed = settings.speed;
+  world = fresh;
+  lastWritten = JSON.stringify(serialize(world));
+  bot = autopilot ? new FarmerBot(world) : null;
+  renderer.prepare(world);
+  renderer.snapCam = true;
+  ui.world = world;
+  ui.beltKey = '';
+  ui.dayKey = '';
+  ui.updateHud(world);
+  ui.toast('Your farm was saved in another tab, so this tab picked it up.');
+  log.event('save.adopted', { day: world.day + 1 });
+}
+addEventListener('storage', (e) => {
+  if (e.key === SAVE_KEY || e.key === null) adoptOtherTab();
+});
 
 function startGame(fresh) {
   sound.unlock();
@@ -103,6 +142,7 @@ function startGame(fresh) {
   }
   w.speed = settings.speed;
   world = w;
+  lastWritten = null;
   isDemo = false;
   bot = autopilot ? new FarmerBot(world) : null;
   renderer.prepare(world);
