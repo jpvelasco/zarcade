@@ -144,11 +144,10 @@ function playSong(song, diff = difficulty, tempoScale = tempo) {
   showScreen(null);
 }
 
-function finishRun() {
-  const r = run;
-  r.finished = true;
-  if (r.attract) { attract(); return; }
-  audio.stopSong(1.5);
+// Record a play once. The frame loop calls this as soon as the last note is
+// judged, so pausing during the outro and leaving still keeps the song.
+function commitRun(r) {
+  if (r.record) return r.record;
   const results = r.session.results();
   const seconds = Math.round((performance.now() - r.started) / 1000);
   const rec = recordResult(save, { songId: r.song.id, difficulty: r.difficulty, practice: r.practice, results });
@@ -157,7 +156,18 @@ function finishRun() {
   if (results.failed) log.event('level.fail', { song: r.song.id, difficulty: r.difficulty, accuracy: attrs.accuracy, time: seconds });
   else log.event('level.complete', attrs);
   for (const u of rec.unlocks) log.event('unlock', { type: u.type, id: u.id });
-  if (rec.unlocks.length) { configureRenderer(); audio.blip('unlock'); }
+  if (rec.unlocks.length) configureRenderer();
+  r.record = { results, rec };
+  return r.record;
+}
+
+function finishRun() {
+  const r = run;
+  r.finished = true;
+  if (r.attract) { attract(); return; }
+  audio.stopSong(1.5);
+  const { results, rec } = commitRun(r);
+  if (rec.unlocks.length) audio.blip('unlock');
   lastResult = { results, rec, run: r };
   showResults();
 }
@@ -242,7 +252,7 @@ function finishResume() {
 function leaveRun() {
   if (run && !run.attract) {
     if (run.clock.kind === 'audio') audio.resume();
-    if (!run.finished) log.event('level.quit', { song: run.song.id, difficulty: run.difficulty, judged: run.session.judged });
+    if (!run.finished && !run.record) log.event('level.quit', { song: run.song.id, difficulty: run.difficulty, judged: run.session.judged });
     audio.stopSong(0.3);
     run = null;
   }
@@ -706,6 +716,7 @@ function frame(now) {
         events.length = 0;
       }
       if (s.judged !== run.judged) { run.judged = s.judged; updateHudText(); }
+      if (!run.attract && !run.record && !s.failed && s.judged >= s.total) commitRun(run);
       hud.combo = s.combo;
       if (hud.health !== null) hud.health = s.health;
       const done = (s.finished && heard > run.chart.length + 0.4) || heard > run.chart.length + 3 || (s.failed && (run.endedAt ??= now) && now - run.endedAt > 1200);
