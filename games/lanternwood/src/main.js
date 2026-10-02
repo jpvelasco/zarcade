@@ -8,7 +8,7 @@ import { Autopilot } from './ai.js';
 import { loadAll, writeAll, newGame, slotSummary, SLOTS, SAVE_KEY } from './save.js';
 import { allAreas, dungeonDef, roomKey } from './areas.js';
 import { questLog } from './quests.js';
-import { NAMES } from './dialogue.js';
+import { NAMES, defaultChoice } from './dialogue.js';
 import { drawPortrait, drawItem, makeCanvas } from './sprites.js';
 import { frameMonitor } from './perf.js';
 import { OVERWORLD } from './data/overworld.js';
@@ -418,7 +418,7 @@ function updateDialogue(dt) {
     dlg.node = n;
     dlg.full = n.text;
     dlg.shown = reduced ? n.text.length : 0;
-    dlg.sel = 0;
+    dlg.sel = defaultChoice(n);
     $('dlg-name').textContent = NAMES[n.who] || '';
     if (dlg.portrait !== n.who) { drawPortrait($('dlg-portrait'), n.who); dlg.portrait = n.who; }
     $('dlg-choices').innerHTML = '';
@@ -455,7 +455,7 @@ function choose(i) {
 
 function advanceDialogue() {
   const n = game.talkNode;
-  if (!n) return;
+  if (!n || dlg.node !== n) return; // not on screen yet
   if (dlg.shown < dlg.full.length) { dlg.shown = dlg.full.length; return; }
   if (n.choices) { choose(dlg.sel); return; }
   game.talkNext();

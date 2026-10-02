@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { scriptFor, brokenLinks, NPC_IDS, NAMES, hintScript, signScript } from '../src/dialogue.js';
+import { scriptFor, brokenLinks, NPC_IDS, NAMES, hintScript, signScript, defaultChoice } from '../src/dialogue.js';
 import { newQuestState, QUESTS } from '../src/quests.js';
 
 function view(stages = {}, extra = {}) {
@@ -60,4 +60,13 @@ test('the shop offers the pouch only until you own it', () => {
 test('Tumble always has a hint and signs read their text', () => {
   for (let m = 0; m <= 5; m++) assert.match(hintScript(view({ main: m })).nodes.a0.text, /sniff/);
   assert.equal(signScript('Hello').nodes.a0.text, 'Hello');
+});
+
+test('the shop starts on "Just looking", so mashing through Pell never spends berries', () => {
+  const shop = scriptFor('pell', view({}, { berries: 200 }));
+  const n = shop.nodes[shop.start];
+  assert.equal(n.choices[defaultChoice(n)].label, 'Just looking');
+  const ask = Object.values(scriptFor('mira', view()).nodes).find((x) => x.choices);
+  assert.ok(ask);
+  assert.equal(defaultChoice(ask), 0, 'quest questions still start on the first answer');
 });

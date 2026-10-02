@@ -283,6 +283,16 @@ function lampOffer() {
   };
 }
 
+/**
+ * The choice highlighted when a choice appears. Shops start on the free
+ * option, so mashing through a greeting never spends berries.
+ */
+export function defaultChoice(node) {
+  const list = node?.choices || [];
+  const free = list.findIndex((c) => !(c.effects || []).some((e) => e.startsWith('buy:')));
+  return free > 0 && list.some((c) => (c.effects || []).some((e) => e.startsWith('buy:'))) ? free : 0;
+}
+
 /** Every node id a script can reach must exist; used by tests. */
 export function brokenLinks(s) {
   const bad = [];
