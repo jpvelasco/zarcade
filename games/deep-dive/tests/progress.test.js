@@ -45,6 +45,22 @@ test('broken or hostile saves load as fresh, and blocked storage is fine', () =>
   assert.equal(writeSave(throwing, freshSave()), false);
 });
 
+test('a daily dive naming unknown creatures is rebuilt for the day', () => {
+  const st = memory();
+  st.setItem(SAVE_KEY, JSON.stringify({ daily: { date: '2026-10-02', goals: ['not-a-fish', 'clownfish', 'x'], done: ['clownfish'], complete: true } }));
+  const s = loadSave(st);
+  assert.deepEqual(s.daily.goals, []);
+  assert.equal(s.daily.complete, false);
+  assert.equal(ensureDaily(s, '2026-10-02'), true);
+  assert.equal(s.daily.goals.length, 3);
+  for (const id of s.daily.goals) assert.ok(SPECIES.some((sp) => sp.id === id), id);
+  const good = freshSave();
+  ensureDaily(good, '2026-10-02');
+  good.daily.done = [good.daily.goals[0]];
+  st.setItem(SAVE_KEY, JSON.stringify(good));
+  assert.deepEqual(loadSave(st).daily, good.daily, 'a healthy daily dive is kept');
+});
+
 test('the revealed map packs into a short string and back', () => {
   const bits = new Uint8Array(16500);
   for (let i = 0; i < bits.length; i += 7) bits[i] = 1;

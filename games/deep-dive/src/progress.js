@@ -70,7 +70,12 @@ export function loadSave(storage) {
     s.bests.dailyTime = asNum(d.bests.dailyTime);
   }
   if (d.daily && typeof d.daily.date === 'string') {
-    s.daily = { date: d.daily.date, goals: asArray(d.daily.goals), done: asArray(d.daily.done), time: asNum(d.daily.time), complete: !!d.daily.complete };
+    // Unknown species (a damaged save, or an id that changed) are dropped; a
+    // short list is rebuilt by ensureDaily.
+    const known = (list) => asArray(list).filter((id) => SPECIES.some((sp) => sp.id === id));
+    let goals = known(d.daily.goals);
+    if (goals.length !== asArray(d.daily.goals).length) goals = [];
+    s.daily = { date: d.daily.date, goals, done: known(d.daily.done).filter((id) => goals.includes(id)), time: asNum(d.daily.time), complete: !!d.daily.complete && goals.length > 0 };
   }
   if (d.streak) s.streak = { count: asNum(d.streak.count), last: typeof d.streak.last === 'string' ? d.streak.last : '', best: asNum(d.streak.best) };
   if (d.stats) for (const k of Object.keys(s.stats)) s.stats[k] = asNum(d.stats[k]);
