@@ -16,7 +16,9 @@ const $ = (id) => document.getElementById(id);
 const telemetry = window.Telemetry || null;
 const log = telemetry ? telemetry.log : { event() {}, info() {}, warn() {}, error() {}, exception() {} };
 
-const save = loadSave(localStorage);
+// Reading localStorage itself throws when site storage is blocked.
+const storage = (() => { try { return window.localStorage; } catch { return null; } })();
+const save = loadSave(storage);
 const input = new Input();
 const audio = new Audio(save.muted);
 const hud = new Hud();
@@ -38,7 +40,7 @@ let accumulator = 0;
 // Saving can fail (private mode, full storage); play on and report it once.
 let saveWarned = false;
 function persist() {
-  if (writeSave(localStorage, save) || saveWarned) return;
+  if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { mode });
 }

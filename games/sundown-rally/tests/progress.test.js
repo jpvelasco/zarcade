@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultSave, loadSave, writeSave, statsFor, buyUpgrade, upgradeCost, starsFor, recordFinish, SAVE_KEY } from '../src/progress.js';
+import { defaultSave, loadSave, cleanSave, writeSave, statsFor, buyUpgrade, upgradeCost, starsFor, recordFinish, SAVE_KEY } from '../src/progress.js';
 import { BASE_STATS } from '../src/vehicle.js';
 import { TRACKS } from '../src/tracks.js';
 
@@ -18,6 +18,23 @@ test('save round-trips and tolerates junk', () => {
   assert.equal(writeSave({ setItem() { throw new Error('quota'); } }, save), false);
   s.setItem(SAVE_KEY, '{not json');
   assert.deepEqual(loadSave(s), defaultSave());
+});
+
+test('blocked storage and damaged saves still load a usable save (#147)', () => {
+  assert.deepEqual(loadSave(null), defaultSave());
+  assert.equal(writeSave(null, defaultSave()), false);
+  for (const raw of [[1, 2], 'text', 7, { unlocked: 0 }, { stars: null, best: null, upgrades: null }, { upgrades: { engine: 9, armor: -2 } }]) {
+    const save = cleanSave(raw);
+    assert.ok(save.unlocked >= 1 && save.unlocked <= TRACKS.length);
+    assert.equal(typeof save.stars, 'object');
+    assert.equal(typeof save.best, 'object');
+    for (const [key, level] of Object.entries(save.upgrades)) {
+      assert.ok(level >= 0 && upgradeCost(save, key) !== undefined, `${key} level ${level}`);
+    }
+  }
+  assert.equal(cleanSave({ upgrades: { engine: 9 } }).upgrades.engine, 3);
+  const kept = cleanSave({ unlocked: 3, coins: 120, stars: { 'dusk-dunes': 2 }, best: { 'dusk-dunes': 80.5 }, paint: '#3f8fd6', muted: true });
+  assert.deepEqual([kept.unlocked, kept.coins, kept.stars['dusk-dunes'], kept.best['dusk-dunes'], kept.paint, kept.muted], [3, 120, 2, 80.5, '#3f8fd6', true]);
 });
 
 test('upgrades cost coins and max out', () => {

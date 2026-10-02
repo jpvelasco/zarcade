@@ -26,13 +26,32 @@ export function defaultSave() {
 
 export function loadSave(storage) {
   try {
-    const raw = JSON.parse(storage.getItem(SAVE_KEY));
-    const base = defaultSave();
-    if (!raw) return base;
-    return { ...base, ...raw, upgrades: { ...base.upgrades, ...raw.upgrades } };
+    return cleanSave(JSON.parse(storage.getItem(SAVE_KEY)));
   } catch {
     return defaultSave();
   }
+}
+
+const isRecord = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+const count = (x, lo, hi) => (Number.isFinite(x) ? Math.min(hi, Math.max(lo, Math.floor(x))) : lo);
+
+// Keeps whatever is usable from a stored save and repairs the rest, so an
+// old or damaged save can never stop the game from starting.
+export function cleanSave(raw) {
+  const save = defaultSave();
+  if (!isRecord(raw)) return save;
+  save.unlocked = count(raw.unlocked, 1, TRACKS.length);
+  save.coins = count(raw.coins, 0, Number.MAX_SAFE_INTEGER);
+  for (const t of TRACKS) {
+    if (isRecord(raw.stars) && Number.isFinite(raw.stars[t.id])) save.stars[t.id] = count(raw.stars[t.id], 0, 3);
+    if (isRecord(raw.best) && Number.isFinite(raw.best[t.id]) && raw.best[t.id] > 0) save.best[t.id] = raw.best[t.id];
+  }
+  for (const [key, u] of Object.entries(UPGRADES)) {
+    if (isRecord(raw.upgrades)) save.upgrades[key] = count(raw.upgrades[key], 0, u.costs.length);
+  }
+  if (PAINTS.includes(raw.paint)) save.paint = raw.paint;
+  save.muted = raw.muted === true;
+  return save;
 }
 
 // Returns false when storage is unavailable (private mode, full quota).
