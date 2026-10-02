@@ -322,7 +322,7 @@ function wireTile(node, id) {
   node.addEventListener('keydown', (e) => {
     // Handled here, so the window's Space handler must not see it too (it
     // would close the result card this brew just opened).
-    if (e.code === 'Space') { e.preventDefault(); e.stopPropagation(); brew(); }
+    if (e.code === 'Space') { e.preventDefault(); e.stopPropagation(); if (!e.repeat) brew(); }
   });
   node.addEventListener('click', (e) => {
     // Clicks from the keyboard (Enter) have no pointer behind them.
@@ -578,6 +578,8 @@ function sayHello(id) {
 addEventListener('keydown', (e) => {
   const tag = document.activeElement?.tagName;
   const typing = tag === 'INPUT';
+  // A held key is one press: only the shelf arrows keep moving.
+  if (e.repeat && !typing && !e.code.startsWith('Arrow')) { e.preventDefault(); return; }
   if (e.code === 'KeyM' && !typing) { toggleMute(); return; }
   if (modal === 'result') {
     if (e.code === 'Escape' || e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); closeResult(); }
