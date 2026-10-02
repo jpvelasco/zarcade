@@ -735,6 +735,7 @@ function frame(now) {
     hintClock -= dt;
     if (hintClock <= 0) {
       hintClock = 0.4;
+      if (dayKey() !== alchemy.state.daily.key) refreshHud(); // midnight: a new mystery
       $('hint').textContent = modal ? '' : hintText();
     }
     saveClock += dt;
