@@ -62,7 +62,7 @@ export function normalize(raw, seed = 1) {
   }
   if (Array.isArray(raw.curios)) {
     const known = new Set(CURIOS.map((c) => c.id));
-    out.curios = raw.curios.filter((id) => known.has(id));
+    out.curios = [...new Set(raw.curios.filter((id) => known.has(id)))];
   }
   out.mice = clampInt(raw.mice, 0, 9999);
   if (Array.isArray(raw.mouseRooms)) out.mouseRooms = raw.mouseRooms.filter((r) => ROOM_IDS.includes(r));

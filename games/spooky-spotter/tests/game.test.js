@@ -335,3 +335,9 @@ test('day keys and gaps behave', () => {
   assert.equal(dayGap('2026-10-01', '2026-10-01'), 0);
   assert.equal(dayGap('bad', '2026-10-01'), Infinity);
 });
+
+test('a save with the same curio twice counts it once', () => {
+  const state = normalize({ curios: ['bookmark', 'bookmark', 'nope', 'whisk'] });
+  assert.deepEqual(state.curios, ['bookmark', 'whisk']);
+  assert.equal(new Game(state).curioCount(), 2);
+});
