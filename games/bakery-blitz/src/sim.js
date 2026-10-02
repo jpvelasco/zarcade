@@ -276,6 +276,7 @@ export class Shift {
 
   handOver(dish, customer, ticket) {
     this.counter.splice(this.counter.indexOf(dish), 1);
+    if (ticket.id !== dish.ticket) this.passClaim(dish, ticket);
     ticket.state = 'served';
     const kind = getCustomer(customer.kind);
     const hearts = this.hearts(customer);
@@ -300,6 +301,34 @@ export class Shift {
     });
     if (customer.tickets.every((t) => t.state === 'served')) this.finish(customer);
     return { ok: true, coins, combo: this.combo, recipe: dish.recipe, seat: customer.seat };
+  }
+
+  // A dish made for one order is going to fill another. The order it was made
+  // for must not stay marked as cooking with nothing in the kitchen: it takes
+  // over whatever was being made for the order being filled, or goes back to
+  // waiting so a station can start it again.
+  passClaim(dish, ticket) {
+    const own = this.findTicket(dish.ticket);
+    if (!own || own.state !== 'cooking') return;
+    const work = ticket.state === 'cooking' ? this.itemFor(ticket.id) : null;
+    if (work) {
+      work.ticket = own.id;
+      work.customer = own.customer;
+    } else {
+      const owner = this.active.find((c) => c.id === own.customer);
+      own.state = owner && owner.state === 'seated' ? 'waiting' : 'dropped';
+    }
+  }
+
+  findTicket(id) {
+    for (const c of this.active) for (const t of c.tickets) if (t.id === id) return t;
+    return null;
+  }
+
+  // The dish or station item currently being made for a ticket, if any.
+  itemFor(ticketId) {
+    for (const s of this.stations) if (s.item && s.item.ticket === ticketId) return s.item;
+    return this.counter.find((d) => d.ticket === ticketId) || null;
   }
 
   finish(customer) {

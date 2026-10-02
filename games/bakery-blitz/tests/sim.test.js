@@ -121,6 +121,53 @@ test('a dish whose customer had to go is passed to whoever else wants it', () =>
   assert.equal(shift.stats.happy, 1);
 });
 
+test('a dish handed to a hurrier customer frees the order it was made for', () => {
+  // The bunny is patient, Nutmeg is not; both want a pretzel.
+  const shift = new Shift(plan({
+    burn: false, seconds: 200, patience: 60,
+    customers: [{ at: 0, kind: 'bunny', order: ['pretzel'] }, { at: 0, kind: 'squirrel', order: ['pretzel'] }],
+  }));
+  run(shift, 0.1);
+  const [bunny, squirrel] = shift.active;
+  shift.select(bunny.tickets[0].id);
+  shift.tapStation(1);
+  run(shift, 2.3);
+  shift.tapStation(1);
+  run(shift, 3.3);
+  shift.tapStation(2);
+  assert.equal(shift.serve().seat, squirrel.seat, 'the hurried customer gets it');
+  assert.equal(bunny.tickets[0].state, 'waiting', 'the bunny can still be baked for');
+  assert.equal(shift.tapStation(1).ok, true);
+  assert.equal(station(shift, 'mixer').item.ticket, bunny.tickets[0].id);
+});
+
+test('a dish handed to an order already in the oven swaps the work over', () => {
+  const shift = new Shift(plan({
+    burn: false, seconds: 200, patience: 60,
+    customers: [{ at: 0, kind: 'bunny', order: ['pretzel'] }, { at: 0, kind: 'squirrel', order: ['pretzel'] }],
+  }), { effects: effects(['mix1', 'bowl2']) });
+  run(shift, 0.1);
+  const [bunny, squirrel] = shift.active;
+  const mixers = shift.stations.filter((s) => s.kind === 'mixer');
+  shift.select(bunny.tickets[0].id);
+  shift.tapStation(mixers[0].index);
+  run(shift, 1.5);
+  shift.tapStation(mixers[1].index); // the squirrel's, started later
+  run(shift, 0.6);
+  shift.tapStation(mixers[0].index); // the bunny's pretzel into the oven
+  run(shift, 3.4);
+  shift.tapStation(station(shift, 'oven').index);
+  assert.equal(shift.serve().seat, squirrel.seat);
+  // The squirrel's pretzel, still in the bowl, now belongs to the bunny.
+  assert.equal(bunny.tickets[0].state, 'cooking');
+  assert.equal(mixers[1].item.ticket, bunny.tickets[0].id);
+  shift.tapStation(mixers[1].index);
+  run(shift, 3.4);
+  shift.tapStation(station(shift, 'oven').index);
+  assert.equal(shift.serve().seat, bunny.seat);
+  assert.equal(shift.stats.happy, 2);
+});
+
 test('nothing can be started that nobody has ordered', () => {
   const shift = new Shift(plan({ customers: [{ at: 0, kind: 'bunny', order: ['pretzel'] }] }));
   run(shift, 0.1);
