@@ -986,6 +986,8 @@ function moveFocus(dir) {
 addEventListener('keydown', (e) => {
   sound.unlock();
   if (e.key === 'Shift') ui.shift = true;
+  // A held key is one press: only the arrow keys keep moving the cursor.
+  if (e.repeat && !e.code.startsWith('Arrow')) { e.preventDefault(); return; }
   if (mode === 'play' && match && !match.attract) {
     const c = match.commander;
     let handled = true;
