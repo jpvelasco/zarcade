@@ -435,6 +435,8 @@ canvas.addEventListener('pointerdown', (e) => {
   audio.unlock();
   if (mode === 'photo') return;
   if (mode !== 'play' || !game) return;
+  // One finger at a time: a second finger can't take over the first one's press.
+  if (press && e.pointerType !== 'mouse') return;
   view.showCursor = false;
   const i = view.cellAtClient(e.clientX, e.clientY);
   if (i < 0) return;
@@ -458,7 +460,7 @@ canvas.addEventListener('pointerdown', (e) => {
 canvas.addEventListener('pointermove', (e) => {
   pointerIdle = 0;
   if (e.pointerType === 'mouse') view.hover = mode === 'play' ? view.cellAtClient(e.clientX, e.clientY) : -1;
-  if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 18) {
+  if (press && press.id === e.pointerId && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 18) {
     clearTimeout(press.timer);
     press = null;
   }
@@ -469,8 +471,9 @@ canvas.addEventListener('pointerup', (e) => {
   if (!press.long) rotateAt(press.i, 1);
   press = null;
 });
-canvas.addEventListener('pointercancel', () => {
-  if (press) clearTimeout(press.timer);
+canvas.addEventListener('pointercancel', (e) => {
+  if (!press || press.id !== e.pointerId) return;
+  clearTimeout(press.timer);
   press = null;
 });
 canvas.addEventListener('pointerleave', () => { view.hover = -1; });
