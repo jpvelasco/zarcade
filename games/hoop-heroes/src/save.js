@@ -54,7 +54,9 @@ export function loadSave(storage) {
     merge(save, data);
     for (const k of ['losses', 'rivalBest', 'trick']) if (data[k] && typeof data[k] === 'object') save[k] = { ...data[k] };
     if (data.daily?.scores) save.daily.scores = { ...data.daily.scores };
-    if (!Array.isArray(save.missions.active) || save.missions.active.length !== 3) save.missions = freshMissions();
+    const active = save.missions.active;
+    if (!Array.isArray(active) || active.length !== 3 || !active.every((a) => a && typeof a === 'object' && typeof a.id === 'string')) save.missions = freshMissions();
+    else for (const a of active) if (!Number.isFinite(a.progress)) a.progress = 0;
   } catch {
     return defaultSave();
   }

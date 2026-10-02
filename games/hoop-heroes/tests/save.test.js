@@ -26,6 +26,18 @@ test('saves round-trip and survive junk or blocked storage', () => {
   assert.equal(writeSave({ setItem() { throw new Error('full'); } }, s), false);
 });
 
+test('a broken challenge list is replaced instead of crashing the title', () => {
+  const st = memory();
+  st.setItem(SAVE_KEY, JSON.stringify({ v: 1, tickets: 12, missions: { active: [null, null, null] } }));
+  const a = loadSave(st);
+  assert.equal(a.tickets, 12);
+  assert.ok(a.missions.active.every((m) => m && typeof m.id === 'string' && m.progress === 0));
+  st.setItem(SAVE_KEY, JSON.stringify({ v: 1, missions: { active: [{ id: 'make10' }, { id: 'swish5', progress: 2 }, { id: 'fire1', progress: 0 }], cursor: 3, done: 0 } }));
+  const b = loadSave(st);
+  assert.equal(b.missions.active[0].progress, 0);
+  assert.equal(b.missions.active[1].progress, 2);
+});
+
 test('beating the three rivals of a court wins its trophy and opens the next court', () => {
   const s = defaultSave();
   for (const r of RIVALS.slice(0, 3)) {
