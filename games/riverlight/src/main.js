@@ -273,11 +273,17 @@ let progressTimer = 0;
 function saveProgress() {
   if (!game || level.zen || game.solved) return;
   clearTimeout(progressTimer);
-  progressTimer = setTimeout(() => {
-    if (!game || game.solved || level.zen) return;
-    save.current = { id: level.id, ...game.serialize() };
-    persist();
-  }, 300);
+  progressTimer = setTimeout(flushProgress, 300);
+}
+
+// Write a pending turn now (the tab is closing or going to the background).
+function flushProgress() {
+  if (!progressTimer) return;
+  clearTimeout(progressTimer);
+  progressTimer = 0;
+  if (!game || game.solved || level.zen) return;
+  save.current = { id: level.id, ...game.serialize() };
+  persist();
 }
 
 function afterAction(res, sound = true) {
@@ -613,8 +619,10 @@ const monitor = frameMonitor({
 setInterval(() => monitor.check(performance.now()), 1000);
 document.addEventListener('visibilitychange', () => {
   monitor.reset(performance.now());
+  if (document.hidden) flushProgress();
   if (document.hidden && mode === 'play') pause();
 });
+addEventListener('pagehide', flushProgress);
 
 function stepAttract(dt) {
   if (!attract) return;
