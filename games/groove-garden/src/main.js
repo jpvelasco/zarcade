@@ -229,6 +229,7 @@ function nextSong(song) {
 }
 
 function pause() {
+  if (mode === 'resuming') { mode = 'paused'; showScreen('screen-pause'); return; } // clock is still frozen
   if (mode !== 'play' || !run || run.attract) return;
   mode = 'paused';
   log.event('song.pause', { song: run.song.id, at: Math.round(heardAt() * 10) / 10 });
@@ -423,6 +424,9 @@ function toCalibrate() {
   leaveRun();
   mode = 'calibrate';
   cal.active = false;
+  // A test left half-way must not leave Start stuck on "Listening…".
+  $('cal-start').disabled = false;
+  $('cal-start').textContent = 'Start';
   cal.kind = audio.running ? 'audio' : 'perf';
   cal.origin = calNow();
   cal.previewFrom = cal.origin;
