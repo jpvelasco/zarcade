@@ -35,6 +35,7 @@ export class Mine {
     if (pod) Object.assign(this.pod, pod, { drill: null, flying: false, stranded: null });
     this.pod.fuel = Math.min(this.pod.fuel, stats.tank);
     this.pod.hull = Math.min(this.pod.hull, stats.hull);
+    this.pod.depth = Math.max(0, this.pod.y + HH);
     this.wakeLoose();
   }
 

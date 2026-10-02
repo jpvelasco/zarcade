@@ -1,6 +1,6 @@
 // Browser entry: screens, the fixed-step loop, input, sound, saves.
 import {
-  LAYERS, ORES, UPGRADES, UPGRADE_ORDER, MUSEUM, PIECES, PIECE_NAMES, PAINTS, MILESTONES, METERS_PER_TILE,
+  SAVE_KEY, LAYERS, ORES, UPGRADES, UPGRADE_ORDER, MUSEUM, PIECES, PIECE_NAMES, PAINTS, MILESTONES, METERS_PER_TILE,
 } from './data.js';
 import { Session, upgradeInfo, buyUpgrade, towFee, dailyConfig, paintById, totalPieces } from './game.js';
 import { loadSave, writeSave, localDate, currentStreak, newSave } from './progress.js';
@@ -617,6 +617,30 @@ for (const b of document.querySelectorAll('[data-title]')) b.addEventListener('c
 addEventListener('resize', () => { renderer.resize(); if (renderer.session) renderer.setSession(renderer.session); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { pause(); if (active === main) persist(); } });
 addEventListener('pagehide', () => { if (active === main) persist(); });
+
+// Another tab saved: take its progress (and its mine), so this tab never
+// writes a stale copy over it (whichever tab saved last used to win).
+addEventListener('storage', (e) => {
+  if (e.key !== SAVE_KEY && e.key !== null) return;
+  const fresh = loadSave(storage);
+  for (const k of Object.keys(save)) delete save[k];
+  Object.assign(save, fresh);
+  sound.setMuted(save.muted);
+  sound.setMusic(save.music);
+  updateSoundButtons();
+  const wasMain = active === main;
+  main = new Session(save);
+  if (wasMain) {
+    active = main;
+    tow = null;
+    if (renderer.session !== demo) renderer.setSession(main);
+    if (mode === 'paused') $('pause-info').textContent = `${LAYERS[layerOfPod()].name} · ${depthM()} m`;
+    else if (mode !== 'shop') { mode = 'play'; pause(); }
+  }
+  if (mode === 'title') toTitle();
+  else if (mode === 'daily') openDaily();
+  else if (mode === 'shop') renderShop();
+});
 addEventListener('pointerdown', () => sound.unlock(), { once: true });
 addEventListener('keydown', () => sound.unlock(), { once: true });
 
