@@ -395,6 +395,15 @@ export class Mine {
       const by = Math.floor(ny + 1);
       if (this.solid(b.x, by)) {
         const row = by - 1;
+        if (this.podIn(b.x, row)) {
+          // The pod pokes into the landing tile: crumble on it rather than
+          // settle around it (that would trap the pod inside rock).
+          p.hull -= PHYS.boulderDamage;
+          p.hitT = 0.5;
+          this.events.push({ type: 'bonk', x: b.x + 0.5, y: row + 0.5 });
+          this.boulders.splice(i, 1);
+          continue;
+        }
         if (this.tile(b.x, row) === T.EMPTY) this.setTile(b.x, row, T.BOULDER);
         this.events.push({ type: 'thud', x: b.x + 0.5, y: row + 1 });
         this.boulders.splice(i, 1);

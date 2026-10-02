@@ -199,3 +199,17 @@ test('a boulder left hanging by a reload or a tow still falls (#106)', () => {
   assert.equal(m.tile(4, 2), T.EMPTY);
   assert.equal(m.tile(4, 3), T.BOULDER);
 });
+
+test('a boulder landing on the edge of the pod bonks it instead of pinning it (#115)', () => {
+  const w = makeWorld(['B.....B', 'BPP.O.B', 'B.....B', 'B.....B', 'B######', 'BBBBBBB']);
+  const m = new Mine(w, STATS);
+  // The pod pokes 0.05 of a tile into the boulder's column.
+  m.pod.x = 4 - 0.4 + 0.05; m.pod.y = 3.6 - 1e-4; m.pod.docked = false; m.pod.grounded = true;
+  const ev = run(m, 3);
+  assert.ok(ev.some((e) => e.type === 'bonk'));
+  assert.equal(m.tile(4, 3), T.EMPTY);
+  assert.equal(m.overlaps(m.pod.x, m.pod.y), false);
+  const x0 = m.pod.x;
+  run(m, 0.5, { ax: -1, ay: 0 });
+  assert.ok(m.pod.x < x0 - 0.5, 'the pod drives away');
+});
