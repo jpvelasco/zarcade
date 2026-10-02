@@ -13,13 +13,28 @@ export function loadSave(storage) {
     if (!raw) return defaultSave();
     const data = JSON.parse(raw);
     const save = { ...defaultSave(), ...data };
-    save.stars = typeof save.stars === 'object' && save.stars ? save.stars : {};
-    save.best = typeof save.best === 'object' && save.best ? save.best : {};
+    // Keep only real levels with sane values, so a damaged field never shows
+    // impossible stars or counts a level as cleared.
+    save.stars = levelMap(save.stars, (v) => (Number.isInteger(v) && v >= 1 && v <= 3 ? v : 0));
+    save.best = levelMap(save.best, (v) => (Number.isFinite(v) && v > 0 ? Math.round(v) : 0));
     save.unlocked = Math.max(1, Math.min(LEVEL_COUNT, save.unlocked | 0 || 1));
+    save.muted = save.muted === true;
+    save.plays = Math.max(0, save.plays | 0);
     return save;
   } catch {
     return defaultSave();
   }
+}
+
+function levelMap(x, clean) {
+  const out = {};
+  if (!x || typeof x !== 'object' || Array.isArray(x)) return out;
+  for (const [k, v] of Object.entries(x)) {
+    const id = Number(k);
+    const value = clean(v);
+    if (Number.isInteger(id) && id >= 1 && id <= LEVEL_COUNT && value) out[id] = value;
+  }
+  return out;
 }
 
 // Returns false in private browsing or when storage is blocked: play on
