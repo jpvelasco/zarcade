@@ -89,3 +89,11 @@ test('stars from older saves are clamped', () => {
   assert.equal(s.theme, 'sunny');
   assert.ok(LEVELS.length > 0);
 });
+
+test('unknown animal ids in a damaged save are dropped (#90)', () => {
+  const st = memory();
+  st.setItem(SAVE_KEY, JSON.stringify({ animals: ['dragon', 'toString', 'penguin'], newAnimals: ['dragon', 'penguin'] }));
+  const s = loadSave(st);
+  assert.deepEqual(s.animals, [...freshSave().animals, 'penguin']);
+  assert.deepEqual(s.newAnimals, ['penguin']);
+});

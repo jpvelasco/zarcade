@@ -1,7 +1,7 @@
 // Progress, unlocks and bests, saved under `tumble-tower.v1`. DOM-free: the
 // page passes in `localStorage` (or null when storage is blocked).
 import { LEVELS, ISLANDS, islandLevels } from './levels.js';
-import { STARTERS } from './animals.js';
+import { STARTERS, ANIMAL_BY_ID } from './animals.js';
 import { THEMES } from './themes.js';
 
 export const SAVE_KEY = 'tumble-tower.v1';
@@ -33,7 +33,7 @@ export function loadSave(storage) {
     const d = JSON.parse(raw);
     if (!d || typeof d !== 'object') return s;
     if (Array.isArray(d.stars)) s.stars = d.stars.map((n) => Math.max(0, Math.min(3, n | 0))).slice(0, LEVELS.length);
-    if (Array.isArray(d.animals)) s.animals = [...new Set([...STARTERS, ...d.animals.filter((a) => typeof a === 'string')])];
+    if (Array.isArray(d.animals)) s.animals = [...new Set([...STARTERS, ...d.animals.filter((a) => typeof a === 'string' && Object.hasOwn(ANIMAL_BY_ID, a))])];
     if (Array.isArray(d.newAnimals)) s.newAnimals = d.newAnimals.filter((a) => s.animals.includes(a));
     if (Array.isArray(d.themes)) s.themes = [...new Set(['sunny', ...d.themes.filter((t) => THEMES.some((x) => x.id === t))])];
     if (typeof d.theme === 'string' && s.themes.includes(d.theme)) s.theme = d.theme;
