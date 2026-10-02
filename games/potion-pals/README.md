@@ -35,7 +35,8 @@ npm run serve      # then open http://localhost:8000/games/potion-pals/
 | **Esc / P** | Pause (*Back to arcade* lives here); Esc closes menus |
 | **M** | Mute |
 
-Touch gets the same drag-and-drop with bigger tiles, and the whole game fits a
+Touch gets the same drag-and-drop; swipe the shelf sideways to see more of it,
+and drag a tile upwards into the cauldron. The whole game fits a
 390 × 844 phone without scrolling.
 
 ## How it works

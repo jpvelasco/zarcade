@@ -400,6 +400,24 @@ h3 { margin: 0 0 4px; font-size: 18px; font-weight: 900; }
   .logo-pals { display: none; }
   .tagline { margin: 6px auto 10px; }
 }
+/* Touch: the shelf scrolls sideways, so a sideways swipe scrolls it and an
+   upward drag still carries an ingredient to the cauldron. */
+@media (pointer: coarse) {
+  .shelf {
+    flex-direction: column; overflow-x: auto; overflow-y: hidden; padding-top: 6px;
+    scroll-snap-type: x proximity; overscroll-behavior-x: contain;
+  }
+  .tile { touch-action: pan-x; scroll-snap-align: start; }
+}
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 500px) {
+  .tile { width: 62px; height: 60px; padding-top: 2px; }
+  .tile canvas { width: 32px !important; height: 32px !important; }
+  .tile b { font-size: 9.5px; }
+  .brew { min-height: 46px; }
+}
+@media (pointer: coarse) and (orientation: portrait) and (min-height: 700px) {
+  :root { --tray: 300px; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

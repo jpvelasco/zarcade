@@ -258,7 +258,7 @@ function setCursor(i, focus = false) {
   list[cursor].tabIndex = 0;
   if (focus) {
     list[cursor].focus({ preventScroll: true });
-    list[cursor].scrollIntoView({ block: 'nearest' });
+    list[cursor].scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
 }
 
@@ -267,11 +267,17 @@ function moveCursor(d) {
   sound.play('click');
 }
 
-function perRow() {
+// How far an arrow key moves the shelf cursor. The shelf fills rows on a
+// desktop and columns on touch screens (it scrolls sideways there).
+function shelfStep(vertical) {
   const list = visibleTiles();
   if (!list.length) return 1;
-  const w = list[0].offsetWidth + 6;
-  return Math.max(1, Math.floor($('shelf').clientWidth / w));
+  const shelf = $('shelf');
+  const columns = getComputedStyle(shelf).flexDirection === 'column';
+  const across = columns
+    ? Math.floor(shelf.clientHeight / (list[0].offsetHeight + 6))
+    : Math.floor(shelf.clientWidth / (list[0].offsetWidth + 6));
+  return vertical !== columns ? Math.max(1, across) : 1;
 }
 
 // --------------------------------------------------------- drag and drop
@@ -282,7 +288,10 @@ function wireTile(node, id) {
   node.addEventListener('pointerdown', (e) => {
     if (mode !== 'play' || modal) return;
     sound.unlock();
-    drag = { id, node, x: e.clientX, y: e.clientY, moved: false, pointerId: e.pointerId };
+    if (drag) endGhost(); // a second finger takes over; tidy up the first
+    // Fingers wobble: a touch has to travel further before a tap becomes a drag.
+    const slop = e.pointerType === 'mouse' ? 6 : 14;
+    drag = { id, node, x: e.clientX, y: e.clientY, moved: false, pointerId: e.pointerId, slop };
     node.setPointerCapture?.(e.pointerId);
     setCursor(visibleTiles().indexOf(node));
   });
@@ -290,7 +299,7 @@ function wireTile(node, id) {
     if (!drag || drag.node !== node) return;
     const dx = e.clientX - drag.x;
     const dy = e.clientY - drag.y;
-    if (!drag.moved && dx * dx + dy * dy < 36) return;
+    if (!drag.moved && dx * dx + dy * dy < drag.slop * drag.slop) return;
     if (!drag.moved) startGhost(drag);
     drag.moved = true;
     moveGhost(e.clientX, e.clientY);
@@ -592,10 +601,10 @@ addEventListener('keydown', (e) => {
     case 'Escape': case 'KeyP': e.preventDefault(); pause(); break;
     case 'Space': e.preventDefault(); brew(); break;
     case 'Backspace': e.preventDefault(); if (alchemy.pot.length) takeFromPot(alchemy.pot.length - 1); break;
-    case 'ArrowLeft': e.preventDefault(); moveCursor(-1); break;
-    case 'ArrowRight': e.preventDefault(); moveCursor(1); break;
-    case 'ArrowUp': e.preventDefault(); moveCursor(-perRow()); break;
-    case 'ArrowDown': e.preventDefault(); moveCursor(perRow()); break;
+    case 'ArrowLeft': e.preventDefault(); moveCursor(-shelfStep(false)); break;
+    case 'ArrowRight': e.preventDefault(); moveCursor(shelfStep(false)); break;
+    case 'ArrowUp': e.preventDefault(); moveCursor(-shelfStep(true)); break;
+    case 'ArrowDown': e.preventDefault(); moveCursor(shelfStep(true)); break;
     case 'KeyB': openSheet('book'); break;
     case 'KeyQ': openSheet('quests'); break;
     case 'KeyD': openSheet('daily'); break;
