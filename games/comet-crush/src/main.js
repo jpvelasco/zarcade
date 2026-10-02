@@ -364,6 +364,10 @@ function frame(now) {
     if (input.consumePad('down') || input.consumePad('right')) moveFocus(1);
     if (input.consumePad('a')) document.activeElement?.click?.();
     if (input.consumePad('b')) back();
+  } else {
+    // In play the pad steers and launches without these edges; left queued,
+    // the A that launched a comet would click Resume the moment you pause.
+    input.padEdges.clear();
   }
 
   const stepping = mode === 'play' || (isAttract && (mode === 'title' || mode === 'levels'));
