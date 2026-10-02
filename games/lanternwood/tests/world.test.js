@@ -322,3 +322,19 @@ test('Tumble points a new player at Grandma Wick, and gives a tip in each boss r
   for (let t = 0; t < 6 && !tip; t += STEP) { b.step(STEP, {}); if (b.toast && /Tumble/.test(b.toast.text)) tip = b.toast.text; }
   assert.match(tip, /wobbles/);
 });
+
+test('leaving during the Shade King\'s speech still leaves the last Flame Shard to collect', () => {
+  const ent = areas.peak.entities.find((e) => e.type === 'boss');
+  const g = game('peak', ent.x, ent.y + 3, (s) => { Object.assign(s.items, { boomerang: true, grapple: true, dash: true }); s.shards = ['burrow', 'temple']; });
+  const boss = g.enemies.find((e) => e.boss);
+  boss.hp = 1; boss.revealed = true; boss.state = 'rest';
+  g.damageEnemy(boss, 5, boss.x, boss.y + 20, 'sword');
+  assert.equal(g.mode, 'talk');
+  const saved = JSON.parse(JSON.stringify(g.syncSave()));
+  const g2 = new Game(saved, { seed: 6 });
+  g2.enterRoom(ent.room);
+  assert.equal(g2.enemies.length, 0, 'the Shade King stays beaten');
+  assert.deepEqual(g2.pickups.map((k) => k.kind), ['shard'], 'only the shard waits; his heart was already given');
+  g2.collect(g2.pickups[0]);
+  assert.deepEqual(g2.save.shards, ['burrow', 'temple', 'peak']);
+});

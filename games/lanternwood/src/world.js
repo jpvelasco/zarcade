@@ -206,10 +206,10 @@ export class Game {
     // A boss's prize waits for you if you walked away from it.
     if (this.room.cond === 'boss' && solved && !this.save.shards.includes(this.area.id)) {
       const b = this.area.entities.find((e) => e.type === 'boss' && e.room === key);
-      if (b && b.kind !== 'shade') {
-        if (!this.flag(`bossheart:${this.area.id}`)) this.spawnPickup('container', b.x * TILE - 6, b.y * TILE + 8);
-        this.spawnPickup('shard', b.x * TILE + 22, b.y * TILE + 8);
-      }
+      // The Shade King's heart is given the moment he falls, so only his
+      // shard can still be waiting (if the game was left during his speech).
+      if (b && b.kind !== 'shade' && !this.flag(`bossheart:${this.area.id}`)) this.spawnPickup('container', b.x * TILE - 6, b.y * TILE + 8);
+      if (b) this.spawnPickup('shard', b.x * TILE + 22, b.y * TILE + 8);
     }
     if (this.area.kind === 'overworld' && this.room.region !== 'village' && nightAmount(this.save.time) > 0.55) {
       for (let i = 0; i < 2; i++) {
