@@ -49,6 +49,7 @@ let game = null;
 let level = null;
 let levelStartedAt = 0;
 let resultsTimer = 0;
+let resultsShownAt = 0;
 let attract = null;
 let attractWait = 0;
 let attractSeed = 1 + (Date.now() % 9973);
@@ -367,6 +368,7 @@ function showResults() {
   $('btn-next').textContent = zen ? 'Another garden →' : last ? 'Garden map' : seasonEnd ? `On to ${SEASONS[level.season + 1].name} →` : 'Next garden →';
   $('btn-res-map').textContent = zen ? 'Title' : 'Map';
   show('results');
+  resultsShownAt = performance.now();
 }
 
 function next() {
@@ -522,6 +524,14 @@ addEventListener('keydown', (e) => {
   }
   if (e.code === 'KeyM') { toggleSound(); return; }
   if (mode === 'intro' && (e.code === 'Enter' || e.code === 'Space')) { e.preventDefault(); dismissIntro(); return; }
+  // Results: Enter / Space mean "Next garden", unless a button has focus (then
+  // the browser presses that one). A short guard stops mashing from skipping it.
+  if (mode === 'results' && (e.code === 'Enter' || e.code === 'Space')) {
+    if (document.activeElement?.closest?.('button, a')) return;
+    e.preventDefault();
+    if (!e.repeat && performance.now() - resultsShownAt > 700) next();
+    return;
+  }
   if (mode !== 'play' || !game) return;
   const dir = DIRS[e.code];
   if (dir) { e.preventDefault(); moveCursor(dir[0], dir[1]); return; }
