@@ -54,6 +54,16 @@ test('the hole is picked up at the stroke cap', () => {
   assert.equal(p.strokes, p.maxStrokes);
 });
 
+test('a penalty on the last allowed stroke still stops at the cap', () => {
+  const p = Play.createPlay(strip);
+  while (p.status !== 'holed') {
+    Play.putt(p, Math.PI / 2, 0.5); // straight off the side every time
+    settle(p);
+  }
+  assert.equal(p.pickedUp, true);
+  assert.equal(p.strokes, p.maxStrokes, 'par + 5, not par + 6');
+});
+
 test('balls resting on a drifting platform ride along and reset onto it', () => {
   const def = {
     id: 'raft', par: 3, surface: 'stardust', tee: [120, 300], cup: [900, 300],

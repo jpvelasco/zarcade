@@ -90,7 +90,8 @@
       if (play.status === 'sinking' && play.timer >= SINK_TIME) {
         play.status = 'holed';
       } else if (play.status === 'falling' && play.timer >= FALL_TIME) {
-        play.strokes += play.fx.penalty;
+        // The cap is par + 5 even when the capped stroke fell off.
+        play.strokes = Math.min(play.strokes + play.fx.penalty, Math.max(play.strokes, play.maxStrokes));
         placeAtSpot(play);
         play.status = 'ready';
         play.events.push({ type: 'respawn', x: sim.x, y: sim.y });
