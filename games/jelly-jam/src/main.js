@@ -391,8 +391,28 @@ function pollGamepad() {
     if (hit('up')) moveCursor(0, -1);
     if (hit('down')) moveCursor(0, 1);
     if (hit('action')) { if (view.cursor < 0) view.cursor = firstPlayable(); else pick(view.cursor); }
-  }
+  } else padMenu(hit);
   padPrev = pressed;
+}
+
+// Menus on a gamepad: the d-pad moves between buttons (and map levels), A
+// presses the focused one, or the main button when nothing has focus yet.
+function padMenu(hit) {
+  const screen = document.querySelector('.screen.overlay:not(.hidden)') || document.querySelector('.screen:not(.hidden)');
+  if (!screen) return;
+  const items = [...screen.querySelectorAll('.btn, .node[tabindex="0"]')].filter((el) => el.getClientRects().length);
+  if (!items.length) return;
+  let at = items.indexOf(document.activeElement);
+  const step = (hit('right') || hit('down') ? 1 : 0) - (hit('left') || hit('up') ? 1 : 0);
+  if (step) {
+    at = at < 0 ? 0 : (at + step + items.length) % items.length;
+    items[at].focus();
+  }
+  if (!hit('action')) return;
+  const target = at >= 0 ? items[at]
+    : screen.querySelector('.btn.primary') || screen.querySelector(`.node[data-id="${save.unlocked}"]`) || items[0];
+  if (target instanceof HTMLElement) target.click();
+  else target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 }
 
 // ------------------------------------------------------------------ states

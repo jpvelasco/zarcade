@@ -300,6 +300,8 @@ body.no-cursor, body.no-cursor * { cursor: none !important; }
 #map-holder .node .pip { fill: var(--sun); }
 #map-holder .node .pip.off { fill: rgba(255, 255, 255, 0.2); }
 #map-holder .node:hover .bubble { stroke: #fff; }
+#map-holder .node:focus { outline: none; }
+#map-holder .node:focus .bubble { stroke: var(--mint); stroke-width: 5; }
 #map-holder .node.locked { cursor: not-allowed; }
 #map-holder .pulse { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 2; animation: ping 1.9s ease-out infinite; }
 #map-holder .area-label { fill: rgba(255, 255, 255, 0.85); font-weight: 800; font-size: 15px; letter-spacing: 0.08em; }
