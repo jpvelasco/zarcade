@@ -13,8 +13,17 @@ export function loadSave(storage) {
     const raw = storage && storage.getItem(SAVE_KEY);
     if (!raw) return defaultSave();
     const data = JSON.parse(raw);
-    const save = { ...defaultSave(), ...data };
-    save.stars = typeof data.stars === 'object' && data.stars ? { ...data.stars } : {};
+    const save = defaultSave();
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return save;
+    // Keep only what we understand: known gardens with 1-3 stars (a bigger
+    // number still counts as cleared) and boolean settings. A damaged save
+    // must never break the garden list.
+    for (const k of ['muted', 'music', 'fast']) if (typeof data[k] === 'boolean') save[k] = data[k];
+    const stars = data.stars && typeof data.stars === 'object' ? data.stars : {};
+    for (const m of MAPS) {
+      const v = stars[m.id];
+      if (typeof v === 'number' && v >= 1) save.stars[m.id] = Math.min(3, Math.floor(v));
+    }
     return save;
   } catch {
     return defaultSave();

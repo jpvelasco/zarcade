@@ -4,7 +4,7 @@ import { Game } from '../src/game.js';
 import { DEFENDERS, DEFENDER_ORDER, SELL_REFUND } from '../src/data.js';
 import { buildCost, upgradeCost, investedIn, sellValue } from '../src/combat.js';
 import { mapInfo } from '../src/maps.js';
-import { loadSave, writeSave, recordResult, unlockedDefenders, isMapUnlocked, SAVE_KEY } from '../src/progress.js';
+import { loadSave, writeSave, recordResult, unlockedDefenders, isMapUnlocked, SAVE_KEY, defaultSave } from '../src/progress.js';
 
 const grass = (g, n = 0) => mapInfo(g.mapIndex).buildable[n];
 
@@ -118,3 +118,17 @@ test('save data round-trips under the namespaced key and unlocks progress', () =
   assert.equal(isMapUnlocked(again, 1), true);
   assert.deepEqual(loadSave({ getItem: () => '{bad json' }).stars, {});
 });
+
+test('a damaged save is sanitized on load (issue #145)', () => {
+  const from = (v) => loadSave({ getItem: () => JSON.stringify(v) });
+  const save = from({ stars: { 'sunny-lawn': 5, 'birdbath-bend': 'x', 'gnome-crossing': 2, nope: 3 }, muted: 'yes', music: false, fast: true });
+  assert.deepEqual(save.stars, { 'sunny-lawn': 3, 'gnome-crossing': 2 });
+  assert.equal(save.muted, false);
+  assert.equal(save.music, false);
+  assert.equal(save.fast, true);
+  assert.deepEqual(from('hello'), defaultSave());
+  assert.deepEqual(from([1, 2]), defaultSave());
+  assert.deepEqual(from(null), defaultSave());
+  assert.deepEqual(from({ stars: 'lots' }).stars, {});
+});
+
