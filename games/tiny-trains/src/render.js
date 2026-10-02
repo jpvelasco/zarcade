@@ -271,18 +271,25 @@ export class View {
     let s = seg.kind === 'wait' ? 0 : easedS(seg, u);
     let wrappedF = r.outcome === 'loop' && r.period > 0 && f >= r.loopFrom + r.period ? r.loopFrom + ((f - r.loopFrom) % r.period) : Math.min(f, r.frames.length - 1);
     let guard = 4;
+    // How far a trailing carriage is still back inside its depot shed.
+    let inShed = 0;
     while (s < d && guard--) {
       d -= s;
       const pf = this.prevIndex(wrappedF);
       const prev = pf >= 0 ? r.frames[pf] && r.frames[pf].trains[id] : null;
-      if (!prev || prev.kind === 'wait') { s = 0; d = 0; break; }
+      if (!prev || prev.kind === 'wait') { inShed = seg.kind === 'depart' ? d : 0; s = 0; d = 0; break; }
       seg = prev;
       wrappedF = pf;
       s = segLength(seg);
     }
     const p = pointAt(seg, Math.max(0, s - d));
+    if (inShed) {
+      // Slide out of the shed behind the engine instead of piling up on it.
+      p.x -= Math.cos(p.a) * inShed;
+      p.y -= Math.sin(p.a) * inShed;
+    }
     const { w } = this.board;
-    let alpha = 1;
+    let alpha = inShed ? Math.max(0, 1 - inShed / 0.3) : 1;
     const sl = Math.max(0, s - d);
     if (seg.kind === 'in') alpha = Math.max(0, Math.min(1, (0.46 - sl) / 0.22));
     if (seg.kind === 'out') alpha = Math.max(0, Math.min(1, (sl - 0.04) / 0.22));
@@ -526,20 +533,25 @@ export class View {
     if (!frame) return;
     const ended = this.time >= this.run.endTime && this.run.outcome !== 'loop' && this.run.outcome !== 'win';
     const shownWait = new Set();
+    // A depot is busy while a leaving train (engine or carriage) is still on it.
+    const cars = frame.trains.map((seg, id) => (seg && seg.kind !== 'wait' ? this.trainPoint(id, T, 0.7) : null));
+    const busy = new Set();
+    frame.trains.forEach((seg, id) => {
+      if (seg && seg.kind === 'depart') busy.add(seg.cell);
+      if (cars[id] && cars[id].seg.kind === 'depart') busy.add(cars[id].seg.cell);
+    });
     for (let id = 0; id < frame.trains.length; id++) {
       const seg = frame.trains[id];
       if (!seg) continue;
       if (seg.kind === 'wait') {
-        if (shownWait.has(seg.cell)) continue;
-        // Only the next train in a queue peeks out, unless the shed is busy.
-        const busy = frame.trains.some((o) => o && o.kind === 'depart' && o.cell === seg.cell);
-        if (busy) continue;
+        // Only the next train in a queue peeks out, once the shed is clear.
+        if (shownWait.has(seg.cell) || busy.has(seg.cell)) continue;
         shownWait.add(seg.cell);
       }
       const wob = ended && this.failMarks.some((m) => m.trains && m.trains.includes(id)) ? Math.sin(this.clock * 30) * 0.12 : 0;
-      const car = this.trainPoint(id, T, 0.7);
+      const car = cars[id];
       const head = this.trainPoint(id, T, 0);
-      if (car && seg.kind !== 'wait' && car.alpha > 0.02) this.drawTrainSprite(ctx, 'car', car.color, car.x, car.y, car.a, car.alpha, wob * 0.5);
+      if (car && car.alpha > 0.02) this.drawTrainSprite(ctx, 'car', car.color, car.x, car.y, car.a, car.alpha, wob * 0.5);
       if (head && head.alpha > 0.02) this.drawTrainSprite(ctx, 'loco', head.color, head.x, head.y, head.a, head.alpha, wob);
     }
   }
