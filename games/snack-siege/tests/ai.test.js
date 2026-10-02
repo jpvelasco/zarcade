@@ -25,6 +25,12 @@ test('autoplayer clears nearly every daily fort across a month', () => {
   assert.ok(won >= days - 1, `${won}/${days} daily forts cleared`);
 });
 
+test('the 2026-12-04 daily fort can be cleared', () => {
+  // It used to put a bear beyond any full-power shot.
+  const g = playLevel(new Game(dailyLevel('2026-12-04')));
+  assert.equal(g.state, 'won', `${g.bearsLeft} bears left`);
+});
+
 test('candidate shots exist for every bean type', () => {
   for (const lv of LEVELS) assert.ok(candidates(new Game(lv)).length > 4, lv.id);
 });

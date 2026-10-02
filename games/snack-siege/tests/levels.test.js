@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LEVELS, LEVELS_PER_WORLD, dailyLevel, levelLabel } from '../src/levels.js';
+import { LEVELS, LEVELS_PER_WORLD, dailyLevel, levelLabel, inReach, DAILY_REACH } from '../src/levels.js';
 import { Game } from '../src/game.js';
 import { MATERIALS, BEANS, BEARS, SLING } from '../src/config.js';
 import { wake } from '../src/physics.js';
@@ -99,4 +99,24 @@ test('daily forts are valid and stable across a month of dates', () => {
     assert.ok(worstMove < 0.12, `${key} moved ${worstMove}`);
     assert.equal(g.broken, 0, `${key} broke by itself`);
   }
+});
+
+test('every daily bear is in reach of a near-full shot for two years of dates', () => {
+  const day = new Date(2026, 0, 1, 12);
+  for (let i = 0; i < 731; i++) {
+    const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+    const lv = dailyLevel(key);
+    for (const br of lv.bears) assert.ok(inReach(br.x, br.y, DAILY_REACH), `${key} bear at ${br.x.toFixed(1)}, ${br.y.toFixed(1)}`);
+    for (const p of lv.pieces) assert.ok(p.x - p.w / 2 > 12, `${key} piece too close to the slingshot`);
+    assert.ok(lv.bears.length >= 1 && lv.beans.length >= 3, key);
+    day.setDate(day.getDate() + 1);
+  }
+});
+
+test('a daily fort that fits is left exactly as it was', () => {
+  // 2026-10-01 always fitted; changing the generator must not move it.
+  const lv = dailyLevel('2026-10-01');
+  assert.equal(lv.name, 'Candy Corner');
+  assert.deepEqual([lv.pieces.length, lv.bears.length, lv.beans.join()], [19, 4, 'cherry,blue,cherry,blue,grape']);
+  assert.ok(Math.abs(lv.pieces[0].x - 20.2164) < 1e-3);
 });

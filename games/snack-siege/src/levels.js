@@ -1,7 +1,7 @@
 // Level data: a tiny fort-building kit, the 36 campaign levels (three
 // worlds of twelve) and the seeded daily fort. All y values passed to the
 // builder are the bottom edge of a piece; ground level is y = 0.
-import { MATERIALS, BEARS, BEAR_SCORE, BEAN_BONUS, WORLDS } from './config.js';
+import { MATERIALS, BEARS, BEAR_SCORE, BEAN_BONUS, WORLDS, SLING, GRAVITY, MAX_SPEED } from './config.js';
 import { mulberry32, hashString } from './rng.js';
 
 export const LEVELS_PER_WORLD = 12;
@@ -509,7 +509,43 @@ export function worldOf(i) {
 const DAILY_PARTS = ['tower', 'frames', 'pyramid', 'bunker', 'spire', 'crates'];
 const DAILY_NAMES = ['Sugar Rush', 'Crunch Time', 'Sprinkle Fort', 'Gummy Gulch', 'Candy Corner', 'Toffee Towers', 'Jelly Junction', 'Fudge Fort', 'Lolly Lookout', 'Caramel Keep'];
 
+// Can a bean launched at `power` (0..1 of a full pull) pass through (x, y)?
+export function inReach(x, y, power = 1) {
+  const dx = x - SLING.x;
+  const dy = y - SLING.y;
+  const g = -GRAVITY;
+  const v2 = (MAX_SPEED * power) ** 2;
+  return dx > 0 && v2 * v2 >= g * (g * dx * dx + 2 * dy * v2);
+}
+
+// Daily bears must be in reach of a slightly-less-than-full shot, whatever
+// beans the day hands out; the campaign only goes further with Mint Rockets.
+export const DAILY_REACH = 0.95;
+const DAILY_MIN_X = 14; // a fort shifted in for reach starts no closer than this
+
 export function dailyLevel(key) {
+  // Same fort as ever when it fits; otherwise slide it closer, and if that is
+  // not enough, build it with fewer parts.
+  for (let cap = 3; ; cap--) {
+    const { def, b, meta } = buildDaily(key, cap);
+    if (cap === 1 || fitDaily(b)) return finish(def, b, meta);
+  }
+}
+
+function fitDaily(lv) {
+  const out = (dx) => lv.bears.some((br) => !inReach(br.x - dx, br.y, DAILY_REACH));
+  if (!out(0)) return true;
+  const minX = Math.min(...lv.pieces.map((p) => p.x - p.w / 2), ...lv.bears.map((br) => br.x - 1));
+  const room = minX - DAILY_MIN_X;
+  let dx = 0;
+  while (dx < room && out(dx)) dx = Math.min(room, dx + 0.25);
+  if (out(dx)) return false;
+  for (const p of lv.pieces) p.x -= dx;
+  for (const br of lv.bears) br.x -= dx;
+  return true;
+}
+
+function buildDaily(key, cap) {
   const rnd = mulberry32(hashString(`snack-siege:${key}`));
   const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
   const world = Math.floor(rnd() * 3);
@@ -517,7 +553,7 @@ export function dailyLevel(key) {
   const b = new Builder();
   let x = 18 + rnd() * 2;
   let bears = 0;
-  const parts = 2 + Math.floor(rnd() * 2);
+  const parts = Math.min(cap, 2 + Math.floor(rnd() * 2));
   for (let i = 0; i < parts; i++) {
     const kind = pick(DAILY_PARTS);
     const m = pick(mats);
@@ -560,5 +596,5 @@ export function dailyLevel(key) {
     while (beans.filter((x) => x === bean).length >= 2) bean = pick(pool);
     beans.push(bean);
   }
-  return finish({ name: pick(DAILY_NAMES), beans }, b, { world, index: -1, id: `daily-${key}`, daily: true, date: key });
+  return { def: { name: pick(DAILY_NAMES), beans }, b, meta: { world, index: -1, id: `daily-${key}`, daily: true, date: key } };
 }
