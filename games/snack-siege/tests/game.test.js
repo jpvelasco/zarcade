@@ -227,3 +227,15 @@ test('beans stop flying after the turn ends', () => {
   assert.ok(ticks * TICK < 12, 'turn ends in time');
   assert.ok(SLING.x < 5);
 });
+
+test('a landed bean stops rolling soon, so the next turn comes quickly', () => {
+  for (const bean of ['cherry', 'blue', 'grape', 'honey', 'mint']) {
+    // A low skimming shot that lands on open ground and would roll for ages.
+    const g = new Game(tinyLevel((b) => b.bear(33, 0, 's'), [bean, 'cherry', 'cherry']));
+    g.launch(9, 3);
+    let t = 0;
+    while (g.state === 'flying' && t < 1200) { g.update(); t++; }
+    assert.equal(g.state, 'aim', bean);
+    assert.ok(t * TICK < 5, `${bean} turn took ${(t * TICK).toFixed(1)} s`);
+  }
+});

@@ -3,7 +3,7 @@
 import { Physics, setDensity, wake, CIRCLE } from './physics.js';
 import {
   TICK, SUBSTEPS, GRAVITY, SLING, MAX_SPEED, KILL_Y, BEAN_BONUS, BEAR_SCORE, COMBO_WINDOW,
-  DMG_SPEED, DMG_K, BEAR_FRAGILITY, BEAN_HIT, HEAVY_HIT, MATERIALS, BEARS, BEANS, POWERS,
+  DMG_SPEED, DMG_K, BEAR_FRAGILITY, BEAN_HIT, HEAVY_HIT, BEAN_ROLL, MATERIALS, BEARS, BEANS, POWERS,
 } from './config.js';
 
 const CAT_WORLD = 1;
@@ -207,7 +207,31 @@ export class Game {
       if (b) this.destroy(b, 'explode');
     }
     this.cullOutside();
+    this.settleBeans();
     if (this.state === 'flying') this.checkTurn();
+  }
+
+  // Rolling resistance for beans that have landed.
+  settleBeans() {
+    const k = Math.exp(-BEAN_ROLL.damp * TICK);
+    const kFast = Math.exp(-BEAN_ROLL.dampFast * TICK);
+    for (const list of [this.active, this.spent]) {
+      for (const id of list) {
+        const b = this.phys.byId(id);
+        if (!b || b.sleeping || b.ghost || !b.data.hits || (b.data.boost && this.boostTime > 0)) continue;
+        if (Math.abs(b.vy) > BEAN_ROLL.below) continue; // still bouncing or falling
+        const f = b.vx * b.vx > BEAN_ROLL.below * BEAN_ROLL.below ? kFast : k;
+        b.vx *= f;
+        b.w *= f;
+      }
+    }
+    // Bears and gumballs stop rolling once they are nearly still.
+    for (const b of this.phys.bodies) {
+      if (b.sleeping || b.removed || b.shape !== CIRCLE || !b.data || b.data.kind === 'bean') continue;
+      if (b.vx * b.vx + b.vy * b.vy > BEAN_ROLL.bear * BEAN_ROLL.bear) continue;
+      b.vx *= k;
+      b.w *= k;
+    }
   }
 
   followHoney() {

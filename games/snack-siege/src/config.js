@@ -19,6 +19,9 @@ export const DMG_SPEED = 2.2;
 export const DMG_K = 0.36;
 export const BEAR_FRAGILITY = 2;
 export const BEAN_HIT = 1.4;
+// Jelly beans are squishy: once a bean has landed and slowed down it stops
+// rolling quickly instead of creeping along the ground for seconds.
+export const BEAN_ROLL = { below: 2, bear: 0.8, damp: 3.5, dampFast: 1.2 };
 export const HEAVY_HIT = 2.2;
 
 export const MATERIALS = {
