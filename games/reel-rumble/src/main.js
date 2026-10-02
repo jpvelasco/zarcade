@@ -164,6 +164,14 @@ function startFishing(waterId = save.water, { force = false } = {}) {
     save.clock = advanceClock(save.clock, h < 20 ? 20 - h : 0);
     toast('🌙 The Star Ferry sails at nightfall…');
   }
+  if (tourney && waterId !== tourney.t.water) {
+    // A tournament only counts fish from its own water.
+    const { t } = tourney;
+    log.event('tournament.leave', { tournament: t.id, water: waterId });
+    setTimeout(() => toast(`🏆 You left ${WATER[t.water].name}, so the ${t.name} is over. Enter again with Gill any time!`), 300);
+    tourney = null;
+    tourneyFinished = false;
+  }
   save.water = waterId;
   persist();
   buildTrip();
