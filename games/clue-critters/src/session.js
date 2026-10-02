@@ -3,6 +3,8 @@
 import { DIFFICULTY, gridClues, namesFor, stepLines } from './cases.js';
 import { emptyGrid, cycleCell, autoFill, nextHint, applyFacts, deduce, gridComplete, wrongMarks, BLANK, NO, YES } from './logic.js';
 
+const cellKey = (cat, s, v) => `${cat}:${s}:${v}`;
+
 export class Session {
   constructor(kase, saved = null) {
     this.kase = kase;
@@ -12,6 +14,7 @@ export class Session {
     this.talked = new Set();
     this.visited = new Set([0]);
     this.grid = emptyGrid(n);
+    this.auto = new Set();   // boxes the helpers filled, as "cat:s:v"
     this.wrong = 0;
     this.hints = 0;
     this.helper = DIFFICULTY[kase.difficulty].helper;
@@ -89,12 +92,33 @@ export class Session {
   }
 
   set(cat, s, v, value) {
+    const was = this.grid[cat][s][v];
     this.grid[cat][s][v] = value;
-    const auto = value === YES ? autoFill(this.grid, this.n, this.helper) : [];
+    this.auto.delete(cellKey(cat, s, v));   // the player owns this box now
+    // Taking a ✓ back takes back what the helpers filled because of it.
+    if (was === YES && value !== YES && this.auto.size) this.retract();
+    const auto = value === YES ? this.helpFill() : [];
     return { value, auto };
   }
 
-  clearGrid() { this.grid = emptyGrid(this.n); }
+  /** Run the helpers and remember which boxes they filled. */
+  helpFill() {
+    const auto = autoFill(this.grid, this.n, this.helper);
+    for (const a of auto) this.auto.add(cellKey(a.cat, a.s, a.v));
+    return auto;
+  }
+
+  /** Rub out every helper mark, then let the helpers redo what still follows. */
+  retract() {
+    for (const key of this.auto) {
+      const [cat, s, v] = key.split(':');
+      this.grid[cat][Number(s)][Number(v)] = BLANK;
+    }
+    this.auto.clear();
+    this.helpFill();
+  }
+
+  clearGrid() { this.grid = emptyGrid(this.n); this.auto.clear(); }
 
   get gridDone() { return gridComplete(this.grid, this.n, this.kase.solution); }
 
@@ -110,7 +134,7 @@ export class Session {
       // with it), but name the first one.
       const { s, cat, v } = h.cell;
       const cells = wrongMarks(this.grid, this.n, k.solution);
-      for (const c of cells) this.grid[c.cat][c.s][c.v] = BLANK;
+      for (const c of cells) { this.grid[c.cat][c.s][c.v] = BLANK; this.auto.delete(cellKey(c.cat, c.s, c.v)); }
       this.hints++;
       const V = cat === 'place' ? `the ${N.where[v]}` : `the ${N.what[v]}`;
       const rubbed = cells.length > 1 ? `Pip rubbed out ${cells.length} boxes.` : 'Pip rubbed that box out.';
@@ -118,9 +142,10 @@ export class Session {
     }
     if (h.kind === 'step') {
       applyFacts(this.grid, h.missing);
+      for (const f of h.missing) this.auto.delete(cellKey(f.cat, f.s, f.v));
       this.hints++;
       // Re-run the helpers so a hinted ✓ still crosses out its row.
-      autoFill(this.grid, this.n, this.helper);
+      this.helpFill();
       return { kind: 'step', cells: h.missing, lines: stepLines(k, h.step, clues), counted: true };
     }
     if (h.kind === 'done') return { kind: 'done', cells: [], lines: ['Your grid is all filled in!', 'Tap “Solve it!” to catch the culprit.'], counted: false };
@@ -163,6 +188,7 @@ export class Session {
       talked: [...this.talked],
       visited: [...this.visited],
       grid: this.grid,
+      auto: [...this.auto],
       wrong: this.wrong,
       hints: this.hints,
     };
@@ -177,7 +203,13 @@ export class Session {
     for (const p of saved.visited || []) if (okIdx(p, n)) this.visited.add(p);
     const g = saved.grid;
     const valid = (rows) => Array.isArray(rows) && rows.length === n && rows.every((r) => Array.isArray(r) && r.length === n && r.every((x) => x === BLANK || x === NO || x === YES));
-    if (g && valid(g.place) && valid(g.thing)) this.grid = { place: g.place.map((r) => r.slice()), thing: g.thing.map((r) => r.slice()) };
+    if (g && valid(g.place) && valid(g.thing)) {
+      this.grid = { place: g.place.map((r) => r.slice()), thing: g.thing.map((r) => r.slice()) };
+      for (const key of Array.isArray(saved.auto) ? saved.auto : []) {
+        const m = /^(place|thing):(\d+):(\d+)$/.exec(key);
+        if (m && okIdx(+m[2], n) && okIdx(+m[3], n) && this.grid[m[1]][+m[2]][+m[3]] !== BLANK) this.auto.add(key);
+      }
+    }
     this.wrong = Math.max(0, saved.wrong | 0);
     this.hints = Math.max(0, saved.hints | 0);
   }

@@ -71,6 +71,42 @@ test('cells cycle and helpers fill on easy', () => {
   assert.equal(s.cycle('place', 0, 0).value, BLANK);
 });
 
+test('taking a ✓ back takes the helper marks with it (#93)', () => {
+  const k = STORY_CASES[0];
+  const s = new Session(k);
+  const empty = JSON.stringify(s.grid);
+  // The keyboard path from the bug: two ✗ in row 0, then a ✓ in the middle.
+  s.set('place', 0, 0, NO);
+  s.set('place', 0, 1, NO);
+  s.set('place', 1, 1, YES);
+  assert.equal(s.grid.place[2][0], YES, 'Easy fills the obvious ✓');
+  s.set('place', 1, 1, BLANK);
+  // The stale ✓s at (0,2) and (2,0) go; Pip only redoes what the player's own
+  // two ✗ still say: row 0's last box, and the column it crosses.
+  assert.deepEqual(s.grid.place, [[NO, NO, YES], [BLANK, BLANK, NO], [BLANK, BLANK, NO]]);
+  // Cycling a box all the way round leaves the grid as it was.
+  const t = new Session(k);
+  t.cycle('thing', 1, 2); t.cycle('thing', 1, 2); t.cycle('thing', 1, 2);
+  assert.equal(JSON.stringify(t.grid), empty);
+});
+
+test('a helper mark still backed by another ✓ survives the retraction (#93)', () => {
+  const k = STORY_CASES.find((x) => x.difficulty === 2);
+  const s = new Session(k);
+  assert.equal(s.helper, 1);
+  s.set('place', 0, 0, YES);   // crosses row 0 and column 0
+  s.set('place', 1, 1, YES);   // crosses row 1 and column 1
+  assert.equal(s.grid.place[0][1], NO);
+  s.set('place', 1, 1, BLANK);
+  assert.equal(s.grid.place[0][1], NO, 'row 0 is still crossed by its own ✓');
+  assert.equal(s.grid.place[2][1], BLANK, 'column 1 is free again');
+  assert.equal(s.grid.place[1][0], NO, 'column 0 is still crossed');
+  // The helper's memory survives a save.
+  const back = new Session(k, JSON.parse(JSON.stringify(s.toJSON())));
+  back.set('place', 0, 0, BLANK);
+  assert.ok(back.grid.place.every((row) => row.every((x) => x === BLANK)));
+});
+
 test('hints count, fix wrong marks and walk to a full grid', () => {
   const k = STORY_CASES[5];
   const s = new Session(k);
