@@ -51,3 +51,29 @@ test('slot summary and berry pouch cap', () => {
   s.pouch = true;
   assert.equal(berryCap(s), 300);
 });
+
+test('damaged fields are repaired so the slot still loads and plays', async () => {
+  const { Game, STEP } = await import('../src/world.js');
+  const damaged = [
+    { respawn: { area: 'overworld', x: 9999, y: 9999 } },
+    { respawn: { area: 'burrow', x: 'a', y: null } },
+    { respawn: { area: 'nowhere', x: 3, y: 3 } },
+    { discovered: { overworld: 5 } },
+    { discovered: { overworld: 'abc' }, keys: { burrow: 'x' }, bigKeys: [] },
+    { berries: {}, playTime: 'x', time: 'noon', stats: { deaths: 'many' }, shards: [1, 'burrow', 'burrow', 'moon'] },
+    { items: 'abc', equipped: 'sword' },
+  ];
+  for (const bad of damaged) {
+    const s = normalize(JSON.parse(JSON.stringify({ ...newGame(), ...bad })));
+    const g = new Game(s, { seed: 1 });
+    for (let i = 0; i < 60; i++) g.step(STEP, { x: 1, y: 0 });
+    g.hurt(99, g.player.x, g.player.y - 10);
+    g.respawn();
+    assert.ok(Number.isFinite(s.berries) && Number.isFinite(s.playTime) && Number.isFinite(s.time), JSON.stringify(bad));
+    assert.ok(Number.isFinite(s.stats.deaths));
+    assert.ok(Array.isArray(s.discovered.overworld));
+  }
+  const s = normalize({ shards: [1, 'burrow', 'burrow', 'moon'], respawn: { area: 'burrow', x: 29, y: 32 } });
+  assert.deepEqual(s.shards, ['burrow']);
+  assert.deepEqual(s.respawn, { area: 'burrow', x: 29, y: 32 });
+});

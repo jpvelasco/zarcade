@@ -38,25 +38,45 @@ export function newGame(name = 'Wren') {
 
 export const berryCap = (save) => (save.pouch ? 300 : 99);
 
+const SHARD_AREAS = ['burrow', 'temple', 'peak'];
+const num = (v, fallback) => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
+const entries = (o) => (o && typeof o === 'object' && !Array.isArray(o) ? Object.entries(o) : []);
+
 /** Fill in anything missing from an older or damaged save. */
 export function normalize(raw) {
   const base = newGame();
   if (!raw || typeof raw !== 'object') return null;
   const s = { ...base, ...raw };
-  s.items = { ...base.items, ...(raw.items || {}) };
+  s.items = { ...base.items, ...Object.fromEntries(entries(raw.items)) };
   s.quests = { ...base.quests };
   for (const [id, q] of Object.entries(raw.quests || {})) {
     if (s.quests[id] && q && typeof q.stage === 'number') s.quests[id] = { stage: q.stage, count: q.count | 0 };
   }
   s.flags = Array.isArray(raw.flags) ? raw.flags.filter((f) => typeof f === 'string') : [];
-  s.shards = Array.isArray(raw.shards) ? raw.shards : [];
-  s.keys = { ...(raw.keys || {}) };
-  s.bigKeys = { ...(raw.bigKeys || {}) };
-  s.discovered = { ...(raw.discovered || {}) };
-  s.stats = { ...base.stats, ...(raw.stats || {}) };
-  s.maxHearts = Math.max(START_HEARTS, Math.min(MAX_HEARTS, s.maxHearts | 0));
-  s.hearts = Math.max(1, Math.min(s.maxHearts * 2, s.hearts | 0));
-  if (!s.items[s.equipped]) s.equipped = 'lantern';
+  s.shards = Array.isArray(raw.shards) ? [...new Set(raw.shards.filter((a) => SHARD_AREAS.includes(a)))] : [];
+  s.keys = {};
+  for (const [a, n] of entries(raw.keys)) s.keys[a] = Math.max(0, num(n, 0) | 0);
+  s.bigKeys = {};
+  for (const [a, v] of entries(raw.bigKeys)) if (v === true) s.bigKeys[a] = true;
+  s.discovered = {};
+  for (const [a, list] of entries(raw.discovered)) if (Array.isArray(list)) s.discovered[a] = list.filter((k) => typeof k === 'string');
+  s.stats = { ...base.stats };
+  for (const k of Object.keys(base.stats)) s.stats[k] = Math.max(0, num(raw.stats?.[k], 0) | 0);
+  for (const k of Object.keys(base.items)) s.items[k] = s.items[k] === true;
+  s.items.sword = s.items.lantern = true;
+  s.name = typeof raw.name === 'string' ? raw.name : base.name;
+  s.playTime = Math.max(0, num(raw.playTime, 0));
+  s.berries = Math.max(0, Math.min(berryCap(s), num(raw.berries, 0) | 0));
+  s.tea = raw.tea ? 1 : 0;
+  s.pouch = raw.pouch === true;
+  s.ended = raw.ended === true;
+  s.time = (((num(raw.time, base.time) % 1) + 1) % 1);
+  const r = raw.respawn;
+  s.respawn = r && typeof r === 'object' && typeof r.area === 'string' && Number.isInteger(r.x) && Number.isInteger(r.y) && r.x >= 0 && r.y >= 0
+    ? { area: r.area, x: r.x, y: r.y } : null;
+  s.maxHearts = Math.max(START_HEARTS, Math.min(MAX_HEARTS, num(raw.maxHearts, START_HEARTS) | 0));
+  s.hearts = Math.max(1, Math.min(s.maxHearts * 2, num(raw.hearts, s.maxHearts * 2) | 0));
+  if (!['lantern', 'boomerang', 'grapple', 'dash'].includes(s.equipped) || !s.items[s.equipped]) s.equipped = 'lantern';
   return s;
 }
 

@@ -101,7 +101,8 @@ export class Game {
     this.pendingEnding = false;
     this.dirty = false; // something worth saving happened
     const r = save.respawn;
-    if (r && areas[r.area]) this.enterArea(r.area, r.x, r.y);
+    if (r && !(areas[r.area] && openSpot(areas[r.area], r.x, r.y))) save.respawn = null; // damaged save
+    if (save.respawn) this.enterArea(r.area, r.x, r.y);
     else this.enterArea('overworld', areas.overworld.start.x, areas.overworld.start.y);
     // A brand-new adventure: Tumble says where to go and how to ask him.
     if (save.playTime === 0 && stageOf(save.quests, 'main') <= 0 && !this.isDungeon) {
@@ -1389,6 +1390,13 @@ export class Game {
     this.dirty = false;
     return this.save;
   }
+}
+
+/** A tile inside one of the area's rooms that Wren can stand on (damaged saves may point anywhere). */
+function openSpot(area, tx, ty) {
+  if (!(tx >= 0 && ty >= 0 && tx < area.w && ty < area.h)) return false;
+  if (!area.rooms.has(roomKey(Math.floor(tx / ROOM_W), Math.floor(ty / ROOM_H)))) return false;
+  return !isSolid(area.base[ty * area.w + tx]);
 }
 
 function boxHit(a, b, pad = 0) {
