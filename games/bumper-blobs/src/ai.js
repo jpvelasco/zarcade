@@ -229,7 +229,8 @@ export class Bot {
     const dx = gx - me.x, dy = gy - me.y, d = Math.hypot(dx, dy);
     if (d > 12) {
       const s = t.speed * Math.min(1, d / 60);
-      o.mx = (dx / d) * s; o.my = (dy / d) * s;
+      const [ux, uy] = detour(world.arena, me, dx / d, dy / d);
+      o.mx = ux * s; o.my = uy * s;
     }
     // Moving floors: lean against belts and the turntable a bit.
     if (world.arena.kind === 'seesaw') o.mx -= Math.sin(world.arena.tilt) * 1.4;
@@ -241,6 +242,20 @@ export class Bot {
     const travel = Math.min(speed * 0.33, foeD + 30);
     return onFloor(world.arena, me.x + ux * travel, me.y + uy * travel) || this.rng.next() < this.tune.reckless;
   }
+}
+
+// Walking toward a goal across a hole or gap: turn along its edge instead of
+// stepping in (or shuffling at the brink). Returns the direction to walk.
+const DETOUR_LOOK = 80;
+const DETOUR_TURNS = [0.5, -0.5, 1, -1, 1.5, -1.5];
+export function detour(arena, me, ux, uy) {
+  if (onFloor(arena, me.x + ux * DETOUR_LOOK, me.y + uy * DETOUR_LOOK)) return [ux, uy];
+  for (const a of DETOUR_TURNS) {
+    const c = Math.cos(a), s = Math.sin(a);
+    const vx = ux * c - uy * s, vy = ux * s + uy * c;
+    if (onFloor(arena, me.x + vx * DETOUR_LOOK, me.y + vy * DETOUR_LOOK)) return [vx, vy];
+  }
+  return [0, 0];
 }
 
 // Per-think cache of a foe's edge probe so steering stays cheap.

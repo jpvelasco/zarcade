@@ -67,6 +67,26 @@ test('bots head for the zone in King of the Hill and coins in Coin Grab', () => 
   assert.ok(c.blobs[0].score >= 2, `coins ${c.blobs[0].score}`);
 });
 
+test('bots walk around the Donut hole to a rival on the far side instead of into it', () => {
+  for (const level of ['easy', 'normal', 'hard']) {
+    for (let seed = 1; seed <= 6; seed++) {
+      const k = playWorld({ mode: 'koth', arena: 'donut', seed });
+      // A rival sits in the zone across the hole; the bot goes after it.
+      k.zone.x = 230; k.zone.y = 0;
+      place(k.blobs[0], -230, 0); place(k.blobs[1], 230, 0);
+      const bot = new Bot(0, level, seed);
+      let fell = false;
+      for (let s = 0; s < 8 / STEP && !fell; s++) {
+        k.zone.timer = 99;
+        k.step(STEP, [bot.controls(k, STEP)]);
+        fell = k.events.some((e) => e.type === 'fall' && e.i === 0 && e.cause === 'oops');
+        k.events.length = 0;
+      }
+      assert.equal(fell, false, `${level} bot ${seed} walked into the hole`);
+    }
+  }
+});
+
 test('harder bots win more often', () => {
   let hard = 0, easy = 0;
   for (let seed = 1; seed <= 8; seed++) {
