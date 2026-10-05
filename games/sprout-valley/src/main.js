@@ -320,7 +320,12 @@ $('btn-resume').addEventListener('click', resume);
 $('btn-pause-journal').addEventListener('click', () => { mode = 'play'; openMenu('journal'); });
 $('btn-quit').addEventListener('click', () => { persist(); log.event('farm.quit', dayAttrs()); toTitle(); });
 $('btn-pause').addEventListener('click', pause);
-$('btn-mute').addEventListener('click', toggleMute);
+$('btn-mute').addEventListener('click', (e) => {
+  toggleMute();
+  // A mouse or touch click leaves focus on the button, where Space (use tool)
+  // would press it again; hand focus back to the game.
+  if (e.detail) e.currentTarget.blur();
+});
 $('btn-bag').addEventListener('click', () => { if (mode === 'play') openMenu('bag'); });
 $('btn-journal').addEventListener('click', () => { if (mode === 'play') openMenu('journal'); });
 $('btn-morning').addEventListener('click', morning);
