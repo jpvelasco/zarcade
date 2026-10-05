@@ -5,7 +5,7 @@ import {
   THEMES, drawPiece, drawPoints, drawScenery, drawDepot, drawStation, drawPaintShed, drawPortal,
   bakeTrain, puffSprite, makeCanvas, roundRect, badge, hash, drawSymbol, piecePairs, drawPeek, drawPortalHood,
 } from './art.js';
-import { pointAt, segLength, easedS } from './geom.js';
+import { pointAt, segLength, easedS, hopLifts } from './geom.js';
 import { wrapTime } from './sim.js';
 import { COLOR_HEX, DX, DY } from './pieces.js';
 
@@ -499,13 +499,15 @@ export class View {
     ctx.restore();
   }
 
-  drawTrainSprite(ctx, kind, color, x, y, a, alpha = 1, wobble = 0) {
+  drawTrainSprite(ctx, kind, color, x, y, a, alpha = 1, wobble = 0, lift = 0) {
     const sp = this.sprite(kind, color);
     const d = this.dpr;
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.translate(x, y);
+    // A hop rises straight up the screen, whichever way the train faces.
+    ctx.translate(x, y - lift * this.cs * 0.3);
     ctx.rotate(a + wobble);
+    if (lift) ctx.scale(1 + lift * 0.12, 1 + lift * 0.12);
     ctx.drawImage(sp, -sp.width / d / 2, -sp.height / d / 2, sp.width / d, sp.height / d);
     ctx.restore();
   }
@@ -540,7 +542,13 @@ export class View {
       if (seg && seg.kind === 'depart') busy.add(seg.cell);
       if (cars[id] && cars[id].seg.kind === 'depart') busy.add(cars[id].seg.cell);
     });
-    for (let id = 0; id < frame.trains.length; id++) {
+    const heads = frame.trains.map((seg, id) => (seg && seg.kind !== 'wait' ? this.trainPoint(id, T, 0) : null));
+    const visible = (p) => (p && p.alpha > 0.02 ? p : null);
+    const bonked = this.failMarks.filter((m) => m.type === 'crash').map((m) => m.trains);
+    const lifts = hopLifts(heads.map((h, id) => (visible(h) ? { head: h, car: visible(cars[id]) } : null)), this.cs * 0.55, bonked);
+    // Hopping trains go on top, so the engine passes over the carriage.
+    const order = frame.trains.map((_, id) => id).sort((a, b) => lifts[a] - lifts[b]);
+    for (const id of order) {
       const seg = frame.trains[id];
       if (!seg) continue;
       if (seg.kind === 'wait') {
@@ -550,10 +558,24 @@ export class View {
       }
       const wob = ended && this.failMarks.some((m) => m.trains && m.trains.includes(id)) ? Math.sin(this.clock * 30) * 0.12 : 0;
       const car = cars[id];
-      const head = this.trainPoint(id, T, 0);
-      if (car && car.alpha > 0.02) this.drawTrainSprite(ctx, 'car', car.color, car.x, car.y, car.a, car.alpha, wob * 0.5);
-      if (head && head.alpha > 0.02) this.drawTrainSprite(ctx, 'loco', head.color, head.x, head.y, head.a, head.alpha, wob);
+      const head = heads[id] || this.trainPoint(id, T, 0);
+      const lift = lifts[id];
+      if (lift > 0) for (const p of [car, head]) if (p && p.alpha > 0.02) this.drawHopShadow(ctx, p, lift);
+      if (car && car.alpha > 0.02) this.drawTrainSprite(ctx, 'car', car.color, car.x, car.y, car.a, car.alpha, wob * 0.5, lift);
+      if (head && head.alpha > 0.02) this.drawTrainSprite(ctx, 'loco', head.color, head.x, head.y, head.a, head.alpha, wob, lift);
     }
+  }
+
+  // A soft shadow left on the track while a train hops over another.
+  drawHopShadow(ctx, p, lift) {
+    const { cs } = this;
+    ctx.save();
+    ctx.globalAlpha = p.alpha * 0.25 * lift;
+    ctx.fillStyle = '#141414';
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.a);
+    ctx.beginPath(); ctx.ellipse(0, 0, cs * 0.26, cs * 0.16, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   }
 
   drawFailMark(ctx, m) {

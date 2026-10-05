@@ -73,3 +73,27 @@ export function easedS(seg, u) {
   else if (seg.kind === 'arrive') t = 1 - (1 - u) * (1 - u);
   return t * len;
 }
+
+// How far each train hops (0..1) so an engine that crosses just behind
+// another train's carriage visibly goes over it instead of through it. The
+// rules only check whole cells per tick, so these near passes count as clean.
+// poses[id] = { head: {x, y, a}, car: {x, y, a} | null } or null, any units
+// with headings `a` in radians; reach is the centre distance, in the same
+// units, at which sprites touch. Only paths that cross hop: a train following
+// another along the same track does not. Engines close to each other are a
+// bonk, not a hop, as are pairs in `bonked`.
+export function hopLifts(poses, reach, bonked = []) {
+  const lifts = poses.map(() => 0);
+  const near = (p, q) => (p && q ? Math.max(0, 1 - Math.hypot(p.x - q.x, p.y - q.y) / reach) : 0);
+  const crashed = (i, j) => bonked.some(([a, b]) => (a === i && b === j) || (a === j && b === i));
+  for (let i = 0; i < poses.length; i++) {
+    for (let j = 0; j < poses.length; j++) {
+      const a = poses[i], b = poses[j];
+      if (i === j || !a || !b || crashed(i, j) || near(a.head, b.head) > 0) continue;
+      if (!b.car || Math.abs(Math.sin(a.head.a - b.car.a)) < 0.5) continue;
+      const k = near(a.head, b.car);
+      lifts[i] = Math.max(lifts[i], k * k * (3 - 2 * k));
+    }
+  }
+  return lifts;
+}
