@@ -56,7 +56,7 @@ npm run serve      # then open http://localhost:8000/games/riverlight/
 | Z (or U, Backspace) | Undo |
 | R | Reset the garden (undo brings it back) |
 | H | Hint: highlights the next stone along the stream and which way to turn |
-| M | Sound on/off |
+| M | Mute everything (🔊 button); the menus switch effects and music separately |
 | Esc / P | Pause |
 | Gamepad | D-pad or stick moves, **A** / RB turns, **B** / X turns back, **Y** hint, **LB** undo, **Start** pauses |
 

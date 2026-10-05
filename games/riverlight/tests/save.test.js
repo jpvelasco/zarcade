@@ -63,3 +63,15 @@ test('damaged fields are dropped on load instead of crashing Continue (#169)', (
   assert.equal(totalStars(odd), 2);
   assert.deepEqual(load({ stars: [3, 3] }).stars, {});
 });
+
+test('the master mute is saved apart from the effects and music switches', () => {
+  const st = memory();
+  assert.equal(defaultSave().muted, false);
+  writeSave(st, { ...defaultSave(), muted: true });
+  const back = loadSave(st);
+  assert.equal(back.muted, true);
+  assert.equal(back.sound, true);
+  assert.equal(back.music, true);
+  st.setItem(SAVE_KEY, JSON.stringify({ muted: 'yes' }));
+  assert.equal(loadSave(st).muted, false);
+});

@@ -31,6 +31,7 @@ addEventListener('storage', (e) => {
   const fresh = loadSave(storage);
   for (const key of Object.keys(save)) delete save[key];
   Object.assign(save, fresh);
+  audio.setMuted(save.muted);
   audio.setSound(save.sound);
   audio.setMusic(save.music);
   syncToggles();
@@ -38,7 +39,7 @@ addEventListener('storage', (e) => {
   else if (mode === 'map') renderMap();
 });
 
-const audio = new Audio({ sound: save.sound, music: save.music });
+const audio = new Audio({ muted: save.muted, sound: save.sound, music: save.music });
 const canvas = $('garden');
 const view = new View(canvas, { reduceMotion });
 const unlockAll = params.has('unlock');
@@ -106,9 +107,11 @@ function layout() {
 }
 
 function syncToggles() {
-  for (const el of document.querySelectorAll('[data-sound]')) el.textContent = `Sound: ${save.sound ? 'on' : 'off'}`;
+  for (const el of document.querySelectorAll('[data-sound]')) el.textContent = `Effects: ${save.sound ? 'on' : 'off'}`;
   for (const el of document.querySelectorAll('[data-music]')) el.textContent = `Music: ${save.music ? 'on' : 'off'}`;
-  $('btn-sound').textContent = save.sound ? '🔊' : '🔇';
+  $('btn-sound').textContent = save.muted ? '🔇' : '🔊';
+  $('btn-sound').setAttribute('aria-label', save.muted ? 'Unmute' : 'Mute');
+  $('btn-sound').setAttribute('aria-pressed', String(save.muted));
 }
 
 function toTitle() {
@@ -426,6 +429,13 @@ function toast(text, seconds = 1.4) {
   toastTimer = seconds;
 }
 
+function toggleMute() {
+  save.muted = !save.muted;
+  audio.unlock();
+  audio.setMuted(save.muted);
+  persist();
+  syncToggles();
+}
 function toggleSound() {
   save.sound = !save.sound;
   audio.setSound(save.sound);
@@ -533,7 +543,7 @@ addEventListener('keydown', (e) => {
     else if (mode === 'intro') { e.preventDefault(); dismissIntro(); }
     return;
   }
-  if (e.code === 'KeyM') { toggleSound(); return; }
+  if (e.code === 'KeyM') { toggleMute(); return; }
   if (mode === 'intro' && (e.code === 'Enter' || e.code === 'Space')) { e.preventDefault(); dismissIntro(); return; }
   // Results: Enter / Space mean "Next garden", unless a button has focus (then
   // the browser presses that one). A short guard stops mashing from skipping it.
@@ -691,7 +701,7 @@ $('btn-zen').addEventListener('click', startZen);
 for (const el of document.querySelectorAll('[data-title]')) el.addEventListener('click', toTitle);
 for (const el of document.querySelectorAll('[data-sound]')) el.addEventListener('click', toggleSound);
 for (const el of document.querySelectorAll('[data-music]')) el.addEventListener('click', toggleMusic);
-$('btn-sound').addEventListener('click', toggleSound);
+$('btn-sound').addEventListener('click', toggleMute);
 $('btn-pause').addEventListener('click', pause);
 $('btn-undo').addEventListener('click', undo);
 $('btn-reset').addEventListener('click', reset);

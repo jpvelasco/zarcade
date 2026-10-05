@@ -4,7 +4,7 @@ import { LEVEL_COUNT } from './levels.js';
 export const SAVE_KEY = 'riverlight.v1';
 
 export function defaultSave() {
-  return { stars: {}, best: {}, unlocked: 1, sound: true, music: true, zen: 0, current: null, seen: [] };
+  return { stars: {}, best: {}, unlocked: 1, muted: false, sound: true, music: true, zen: 0, current: null, seen: [] };
 }
 
 export function loadSave(storage) {
@@ -18,6 +18,7 @@ export function loadSave(storage) {
     save.best = cleanCounts(save.best, (v) => (Number.isInteger(v) && v >= 0 ? v : null));
     save.unlocked = Math.max(1, Math.min(LEVEL_COUNT, save.unlocked | 0 || 1));
     save.zen = Math.max(0, save.zen | 0);
+    save.muted = save.muted === true;
     save.sound = save.sound !== false;
     save.music = save.music !== false;
     save.seen = Array.isArray(save.seen) ? save.seen.filter((t) => typeof t === 'string') : [];

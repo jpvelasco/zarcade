@@ -22,7 +22,8 @@ const PENTA = [0, 2, 4, 7, 9];
 const semi = (root, s) => root * 2 ** (s / 12);
 
 export class Audio {
-  constructor({ sound = true, music = true } = {}) {
+  constructor({ muted = false, sound = true, music = true } = {}) {
+    this.muted = muted;
     this.sound = sound;
     this.music = music;
     this.ctx = null;
@@ -44,7 +45,7 @@ export class Audio {
       }
       const ctx = this.ctx;
       this.master = ctx.createGain();
-      this.master.gain.value = 0.8;
+      this.master.gain.value = this.muted ? 0 : 0.8;
       this.master.connect(ctx.destination);
       this.sfx = ctx.createGain();
       this.sfx.gain.value = this.sound ? 1 : 0;
@@ -82,6 +83,12 @@ export class Audio {
     }
     if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
     if (this.music && !this.voices) this.startMusic();
+  }
+
+  // Master mute: silences effects, chimes and the pad together.
+  setMuted(m) {
+    this.muted = m;
+    if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.8, this.ctx.currentTime, 0.02);
   }
 
   setSound(on) {
