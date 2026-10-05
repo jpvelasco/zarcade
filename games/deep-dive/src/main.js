@@ -27,7 +27,8 @@ const fresh = params.has('fresh');
 const save = loadSave(fresh ? null : storage);
 let saveWarned = false;
 function persist() {
-  if (fresh) return;
+  // ?fresh plays a throwaway dive, and ?autopilot's finds must not land in the real save.
+  if (fresh || params.has('autopilot')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
