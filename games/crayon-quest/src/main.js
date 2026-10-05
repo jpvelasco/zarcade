@@ -65,6 +65,8 @@ function persist(force = false) {
   // Mid enemy turn the battle is half resolved; the last save (before End
   // turn) is the one to come back to.
   if (busy && !force) return;
+  // ?autopilot is a browser check: the bot's runs must not land in the real save.
+  if (autopilot) return;
   if (run && run.phase !== 'over') profile.current = run;
   if (!saveProfile(storage, profile) && !persist.warned) {
     persist.warned = true;
