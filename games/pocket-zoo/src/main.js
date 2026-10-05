@@ -32,6 +32,8 @@ const state = () => zoo.state;
 if (params.has('coins')) zoo.state.coins += Number(params.get('coins')) || 0;
 let saveWarned = false;
 function persist() {
+  // ?autopilot is a browser check: the bot's zoo must not land in the real save.
+  if (params.has('autopilot')) return;
   if (writeSave(storage, zoo.state) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
