@@ -40,6 +40,8 @@ let saveWarned = false;
 let dirty = false;
 function persist() {
   dirty = false;
+  // ?autopilot is a browser check: its stars must not land in the real save.
+  if (params.has('autopilot')) return;
   if (writeSave(storage, state) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
