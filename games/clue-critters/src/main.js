@@ -248,7 +248,8 @@ function toast(text) {
 }
 
 function say(text, pitch = 1) {
-  if (!speechSupported) return;
+  // Mute silences the read-aloud voice too.
+  if (!speechSupported || save.settings.muted) return;
   speak(text, { pitch });
 }
 
@@ -457,6 +458,7 @@ function syncToggles() {
 function toggleMute() {
   save.settings.muted = !save.settings.muted;
   sound.setMuted(save.settings.muted);
+  if (save.settings.muted) stopSpeaking();
   persist(); syncToggles();
 }
 
