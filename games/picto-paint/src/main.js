@@ -36,7 +36,7 @@ const unlockAll = params.has('unlock');
 const isOpen = (ai) => unlockAll || albumUnlocked(save, ai);
 
 const renderer = new Renderer($('stage'), { reduced });
-const sound = new Sound({ sound: save.settings.sound, music: save.settings.music });
+const sound = new Sound({ muted: save.settings.muted, sound: save.settings.sound, music: save.settings.music });
 
 let mode = 'title';
 let puzzle = null;
@@ -853,7 +853,7 @@ const KEY_DIR = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], Arro
 addEventListener('keydown', (e) => {
   sound.unlock();
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-  if (k === 'm') { toggleSound(); return; }
+  if (k === 'm') { toggleMute(); return; }
   if (mode === 'intro' && (k === 'Enter' || k === ' ')) { e.preventDefault(); dismissIntro(); return; }
   if (mode === 'paused' && (k === 'Escape' || k === 'p')) { resume(); return; }
   if (mode === 'results' && k === 'Enter' && document.activeElement === document.body) { nextFromResults(); return; }
@@ -929,11 +929,21 @@ function updatePointer(dt) {
 // ------------------------------------------------------------ toggles
 
 function syncToggles() {
-  for (const el of document.querySelectorAll('[data-sound]')) el.textContent = `Sound: ${save.settings.sound ? 'on' : 'off'}`;
+  for (const el of document.querySelectorAll('[data-sound]')) el.textContent = `Effects: ${save.settings.sound ? 'on' : 'off'}`;
   for (const el of document.querySelectorAll('[data-music]')) el.textContent = `Music: ${save.settings.music ? 'on' : 'off'}`;
-  $('btn-sound').textContent = save.settings.sound ? '🔊' : '🔈';
+  $('btn-sound').textContent = save.settings.muted ? '🔇' : '🔊';
+  $('btn-sound').setAttribute('aria-label', save.settings.muted ? 'Unmute' : 'Mute');
+  $('btn-sound').setAttribute('aria-pressed', String(save.settings.muted));
   $('btn-mode').textContent = save.settings.mode === 'helper' ? 'Helper: on' : 'Expert mode';
   for (const b of document.querySelectorAll('.mode-btn')) b.setAttribute('aria-checked', String(b.dataset.mode === save.settings.mode));
+}
+
+function toggleMute() {
+  save.settings.muted = !save.settings.muted;
+  sound.unlock();
+  sound.setMuted(save.settings.muted);
+  persist();
+  syncToggles();
 }
 
 function toggleSound() {
@@ -1030,7 +1040,7 @@ for (const el of document.querySelectorAll('[data-sound]')) el.addEventListener(
 for (const el of document.querySelectorAll('[data-music]')) el.addEventListener('click', toggleMusic);
 for (const el of document.querySelectorAll('.mode-btn')) el.addEventListener('click', () => { setMode(el.dataset.mode); sound.click(); });
 $('btn-mode').addEventListener('click', () => setMode(save.settings.mode === 'helper' ? 'expert' : 'helper'));
-$('btn-sound').addEventListener('click', toggleSound);
+$('btn-sound').addEventListener('click', toggleMute);
 $('btn-zoom').addEventListener('click', (e) => {
   if (!board || mode !== 'play') return;
   // Zoom in around the last square touched, so it stays under the finger.

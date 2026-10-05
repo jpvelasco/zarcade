@@ -57,3 +57,17 @@ test('pruning keeps the board played most recently, even if it was started first
   assert.equal(saved.p0.time, 99);
   assert.equal(saved.p1, undefined, 'the board played longest ago goes');
 });
+
+test('the master mute is saved apart from the effects and music switches', () => {
+  const st = memory();
+  assert.equal(defaultSave().settings.muted, false);
+  const s = defaultSave();
+  s.settings.muted = true;
+  writeSave(st, s);
+  const back = loadSave(st);
+  assert.equal(back.settings.muted, true);
+  assert.equal(back.settings.sound, true);
+  assert.equal(back.settings.music, true);
+  st.setItem(SAVE_KEY, JSON.stringify({ settings: { muted: 'yes' } }));
+  assert.equal(loadSave(st).settings.muted, false);
+});

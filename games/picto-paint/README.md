@@ -70,7 +70,7 @@ Switch in the Studio or the pause menu.
 | Z / Ctrl+Z, Y / Ctrl+Shift+Z | Undo, redo |
 | H | Hint: one line-logic step, applied and explained |
 | Esc / P | Pause |
-| M | Sound on/off |
+| M | Mute everything (🔊 button); the menus switch effects and music separately |
 
 Finished lines get crossed off automatically and their clues dim. Clue blocks
 that are already closed off from either end dim one at a time.

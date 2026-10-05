@@ -7,7 +7,7 @@ export function defaultSave() {
     puzzles: {}, // id -> { solved, stars, best }
     progress: {}, // id -> { cells, time, hints }
     lastPlayed: null,
-    settings: { mode: 'helper', sound: true, music: true, palette: 'paper', pencil: 'graphite' },
+    settings: { mode: 'helper', muted: false, sound: true, music: true, palette: 'paper', pencil: 'graphite' },
     daily: { last: null, streak: 0, best: 0, done: {} },
     critters: [], // date keys of solved daily critters, newest first
     seenTutorial: false,
@@ -51,6 +51,7 @@ export function loadSave(storage) {
   if (typeof data.lastPlayed === 'string') out.lastPlayed = data.lastPlayed;
   const s = obj(data.settings) || {};
   if (s.mode === 'helper' || s.mode === 'expert') out.settings.mode = s.mode;
+  if (typeof s.muted === 'boolean') out.settings.muted = s.muted;
   if (typeof s.sound === 'boolean') out.settings.sound = s.sound;
   if (typeof s.music === 'boolean') out.settings.music = s.music;
   if (typeof s.palette === 'string') out.settings.palette = s.palette;

@@ -10,7 +10,8 @@ const TUNE = [0, 4, 7, 4, 5, 4, 2, -1, 0, 4, 7, 9, 7, 5, 4, -1, 2, 5, 9, 5, 7, 5
 const BASS = [0, 0, 5, 5, 3, 3, 4, 4];
 
 export class Sound {
-  constructor({ sound = true, music = true } = {}) {
+  constructor({ muted = false, sound = true, music = true } = {}) {
+    this.muted = muted;
     this.sound = sound;
     this.music = music;
     this.ctx = null;
@@ -34,7 +35,7 @@ export class Sound {
     }
     const ctx = this.ctx;
     this.master = ctx.createGain();
-    this.master.gain.value = 0.7;
+    this.master.gain.value = this.muted ? 0 : 0.7;
     this.master.connect(ctx.destination);
     this.sfx = ctx.createGain();
     this.sfx.gain.value = this.sound ? 1 : 0;
@@ -47,6 +48,12 @@ export class Sound {
     const d = this.noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     this.startMusic();
+  }
+
+  // Master mute: silences effects and music together.
+  setMuted(m) {
+    this.muted = m;
+    if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.7, this.ctx.currentTime, 0.02);
   }
 
   setSound(on) {
