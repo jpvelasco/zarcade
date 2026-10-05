@@ -5,6 +5,12 @@
 const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
 const KEYS = [60, 57, 62]; // one key per page
 
+// Bus volumes for the two toggles. "Sound: off" silences everything, music
+// included; "Music: off" only stops the music box.
+export function busLevels(soundOn, musicOn) {
+  return { master: soundOn ? 0.55 : 0, music: musicOn ? 0.16 : 0 };
+}
+
 export class Sound {
   constructor() {
     this.ctx = null;
@@ -30,10 +36,11 @@ export class Sound {
     if (!AC) return;
     this.ctx = new AC();
     this.master = this.ctx.createGain();
-    this.master.gain.value = 0.55;
+    const levels = busLevels(this.soundOn, this.musicOn);
+    this.master.gain.value = levels.master;
     this.master.connect(this.ctx.destination);
     this.musicGain = this.ctx.createGain();
-    this.musicGain.gain.value = this.musicOn ? 0.16 : 0;
+    this.musicGain.gain.value = levels.music;
     this.musicGain.connect(this.master);
     const len = this.ctx.sampleRate;
     this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
@@ -44,11 +51,12 @@ export class Sound {
 
   setSound(on) {
     this.soundOn = on;
+    if (this.master) this.master.gain.setTargetAtTime(busLevels(on, this.musicOn).master, this.ctx.currentTime, 0.02);
   }
 
   setMusic(on) {
     this.musicOn = on;
-    if (this.musicGain) this.musicGain.gain.setTargetAtTime(on ? 0.16 : 0, this.ctx.currentTime, 0.2);
+    if (this.musicGain) this.musicGain.gain.setTargetAtTime(busLevels(this.soundOn, on).music, this.ctx.currentTime, 0.2);
   }
 
   setScene(floor, mood) {
