@@ -27,6 +27,8 @@ const save = loadSave(storage);
 // report it once.
 let saveWarned = false;
 function persist() {
+  // ?autopilot is a browser check: its stars must not land in the real save.
+  if (params.has('autopilot')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
