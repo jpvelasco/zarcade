@@ -1226,6 +1226,8 @@ function updateSoundButtons() {
   for (const b of document.querySelectorAll('[data-sound]')) b.textContent = state.settings.muted ? '🔇 Sound off' : '🔊 Sound on';
   for (const b of document.querySelectorAll('[data-music]')) b.textContent = state.settings.music ? '🎵 Music on' : '🎵 Music off';
   $('btn-mute').textContent = state.settings.muted ? '🔇' : '🔊';
+  $('btn-mute').setAttribute('aria-label', state.settings.muted ? 'Unmute' : 'Mute');
+  $('btn-mute').setAttribute('aria-pressed', String(state.settings.muted));
 }
 function toggleMute() {
   state.settings.muted = !state.settings.muted;
