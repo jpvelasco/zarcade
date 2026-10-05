@@ -123,6 +123,7 @@ function setSoundLabels() {
   for (const b of document.querySelectorAll('[data-music]')) b.textContent = `Music: ${save.music ? 'on' : 'off'}`;
   $('btn-easy').textContent = `Easy aim: ${save.easy ? 'on' : 'off'}`;
   $('btn-mute').textContent = save.muted ? '🔇' : '🔊';
+  $('btn-mute').setAttribute('aria-label', save.muted ? 'Unmute' : 'Mute');
 }
 
 function toTitle() {
