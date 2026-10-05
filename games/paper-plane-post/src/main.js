@@ -102,6 +102,7 @@ function muteLabel() {
   $('btn-pause-mute').textContent = label;
   $('btn-mute').textContent = save.muted ? '✕' : '♪';
   $('btn-mute').classList.toggle('muted', save.muted);
+  $('btn-mute').setAttribute('aria-label', save.muted ? 'Turn sound on' : 'Turn sound off');
 }
 
 function toggleMute() {
