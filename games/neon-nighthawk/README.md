@@ -39,7 +39,7 @@ Traffic keeps to the curb lanes; the centre line is safe, and passing close to
 cars at speed builds charge.
 
 Each district has its own synthesized soundtrack. The pause menu has
-separate Sound and Music switches (saved with your progress), and M mutes
+separate Effects and Music switches (saved with your progress), and M mutes
 or unmutes both.
 
 ## Shift codes and development

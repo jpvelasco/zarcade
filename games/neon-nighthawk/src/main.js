@@ -822,7 +822,7 @@ $('#btn-restart').addEventListener('click', () => {
   showBriefing();
 });
 function updateSoundButtons() {
-  $('#btn-mute').textContent = `Sound: ${state.save.muted ? 'off' : 'on'}`;
+  $('#btn-mute').textContent = `Effects: ${state.save.muted ? 'off' : 'on'}`;
   $('#btn-music').textContent = `Music: ${state.save.musicMuted ? 'off' : 'on'}`;
 }
 function setSound({ muted = state.save.muted, musicMuted = state.save.musicMuted }) {
