@@ -24,6 +24,8 @@ const storage = (() => { try { return localStorage; } catch { return null; } })(
 const save = loadSave(storage);
 let saveWarned = false;
 function persist() {
+  // ?autopilot is a browser check: its games must not land in the real save.
+  if (params.has('autopilot')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
