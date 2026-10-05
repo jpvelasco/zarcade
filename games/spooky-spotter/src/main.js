@@ -36,6 +36,8 @@ game.ensureDaily(dayKey());
 
 let saveWarned = false;
 function persist() {
+  // ?autopilot is a browser check: its runs must not land in the real save.
+  if (params.has('autopilot')) return;
   if (writeSave(storage, game.state) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
@@ -703,6 +705,9 @@ $('btn-map-title').onclick = toTitle;
 $('sheet-close').onclick = closeSheet;
 $('btn-pause').onclick = pause;
 $('btn-mute').onclick = toggleSound;
+// A mouse or touch click leaves focus on the button, where Space (spot) would
+// press it again; hand focus back to the game.
+$('btn-mute').addEventListener('click', (e) => { if (e.detail) e.currentTarget.blur(); });
 $('btn-resume').onclick = resume;
 $('btn-pause-map').onclick = quitRound;
 $('btn-pause-help').onclick = () => openSheet('How to play', renderHelp(), 'paused');
