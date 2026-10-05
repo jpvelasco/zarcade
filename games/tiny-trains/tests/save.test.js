@@ -91,3 +91,20 @@ test('skins unlock once and are announced once', () => {
   assert.ok(fresh.includes('bullet'));
   assert.deepEqual(claimSkins(save, LEVELS), []);
 });
+
+test('the mute choice is saved, and damaged sound settings fall back to defaults', () => {
+  const store = memory();
+  const save = freshSave();
+  assert.equal(save.muted, false);
+  save.muted = true;
+  save.music = false;
+  writeSave(store, save);
+  const back = loadSave(store);
+  assert.equal(back.muted, true);
+  assert.equal(back.music, false);
+  store.setItem(SAVE_KEY, JSON.stringify({ ...freshSave(), muted: 'yes', sound: 0, music: null }));
+  const fixed = loadSave(store);
+  assert.equal(fixed.muted, false);
+  assert.equal(fixed.sound, true);
+  assert.equal(fixed.music, true);
+});

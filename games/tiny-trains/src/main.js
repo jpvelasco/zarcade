@@ -29,12 +29,14 @@ const save = loadSave(storage);
 if (params.has('unlock')) for (const l of LEVELS) save.levels[l.id] ||= { stars: 0, best: 99 };
 let saveWarned = false;
 function persist() {
+  // ?autoplay is a browser check: its stars must not land in the real save.
+  if (params.has('autoplay')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
 }
 
-const audio = new Audio({ sound: save.sound, music: save.music });
+const audio = new Audio({ sound: save.sound, music: save.music, muted: save.muted });
 const canvas = $('stage');
 const view = new View(canvas, { reduceMotion });
 view.setSkin(save.skin);
@@ -116,23 +118,38 @@ function toast(text, seconds = 2.2) {
 }
 
 function syncToggles() {
-  for (const el of document.querySelectorAll('[data-sound]')) el.textContent = `Sound: ${save.sound ? 'on' : 'off'}`;
-  for (const el of document.querySelectorAll('[data-music]')) el.textContent = `Music: ${save.music ? 'on' : 'off'}`;
-  $('btn-sound').textContent = save.sound ? '🔊' : '🔇';
+  for (const el of document.querySelectorAll('[data-sound]')) el.textContent = `Sound: ${save.sound && !save.muted ? 'on' : 'off'}`;
+  for (const el of document.querySelectorAll('[data-music]')) el.textContent = `Music: ${save.music && !save.muted ? 'on' : 'off'}`;
+  const silent = isSilent();
+  $('btn-sound').textContent = silent ? '🔇' : '🔊';
+  $('btn-sound').setAttribute('aria-pressed', String(silent));
   $('btn-fast').classList.toggle('on', speed > 1);
 }
 
+const isSilent = () => save.muted || (!save.sound && !save.music);
+
+// The HUD button and M silence everything; pressed again they bring sound
+// back, turning both kinds on if both had been switched off.
+function toggleMute() {
+  const silent = isSilent();
+  save.muted = !silent;
+  if (silent && !save.sound && !save.music) save.sound = save.music = true;
+  applyAudio();
+}
+// Menu toggles show what you hear, so switching one on while muted unmutes.
 function toggleSound() {
-  save.sound = !save.sound;
-  audio.unlock();
-  audio.setSound(save.sound);
-  persist();
-  syncToggles();
+  if (save.muted) { save.muted = false; save.sound = true; } else save.sound = !save.sound;
+  applyAudio();
 }
 function toggleMusic() {
-  save.music = !save.music;
+  if (save.muted) { save.muted = false; save.music = true; } else save.music = !save.music;
+  applyAudio();
+}
+function applyAudio() {
   audio.unlock();
+  audio.setSound(save.sound);
   audio.setMusic(save.music);
+  audio.setMuted(save.muted);
   persist();
   syncToggles();
 }
@@ -1070,7 +1087,7 @@ addEventListener('keydown', (e) => {
   const k = e.code;
   // A focused button handles its own Enter/Space.
   if ((k === 'Enter' || k === 'Space') && e.target && e.target.closest && e.target.closest('button, a')) return;
-  if (k === 'KeyM') { toggleSound(); return; }
+  if (k === 'KeyM') { toggleMute(); return; }
   if (mode === 'play') {
     if (k === 'Escape' || k === 'KeyP') { e.preventDefault(); pause(); return; }
     if (play.phase === 'fail' && ['Enter', 'Space', 'KeyG', 'KeyR'].includes(k)) { e.preventDefault(); backToEdit(); return; }
@@ -1229,7 +1246,7 @@ $('btn-daily-go').addEventListener('click', startDaily);
 for (const el of document.querySelectorAll('[data-title]')) el.addEventListener('click', toTitle);
 for (const el of document.querySelectorAll('[data-sound]')) el.addEventListener('click', toggleSound);
 for (const el of document.querySelectorAll('[data-music]')) el.addEventListener('click', toggleMusic);
-$('btn-sound').addEventListener('click', toggleSound);
+$('btn-sound').addEventListener('click', toggleMute);
 $('btn-pause').addEventListener('click', pause);
 $('btn-undo').addEventListener('click', undo);
 $('btn-hint').addEventListener('click', hint);

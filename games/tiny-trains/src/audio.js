@@ -3,9 +3,10 @@
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
 export class Audio {
-  constructor({ sound = true, music = true } = {}) {
+  constructor({ sound = true, music = true, muted = false } = {}) {
     this.sound = sound;
     this.music = music;
+    this.muted = muted;
     this.ctx = null;
     this.noise = null;
     this.musicTimer = 0;
@@ -21,7 +22,7 @@ export class Audio {
       if (!AC) return;
       this.ctx = new AC();
       this.master = this.ctx.createGain();
-      this.master.gain.value = 0.8;
+      this.master.gain.value = this.muted ? 0 : 0.8;
       this.master.connect(this.ctx.destination);
       this.sfx = this.ctx.createGain();
       this.sfx.gain.value = this.sound ? 0.9 : 0;
@@ -43,12 +44,19 @@ export class Audio {
     if (this.sfx) this.sfx.gain.setTargetAtTime(on ? 0.9 : 0, this.ctx.currentTime, 0.02);
   }
 
+  // Mute silences everything at the master gain and keeps the sound and
+  // music choices for when it is lifted.
+  setMuted(on) {
+    this.muted = on;
+    if (this.master) this.master.gain.setTargetAtTime(on ? 0 : 0.8, this.ctx.currentTime, 0.02);
+  }
+
   setMusic(on) {
     this.music = on;
     if (this.bgm) this.bgm.gain.setTargetAtTime(on ? 0.16 : 0, this.ctx.currentTime, 0.1);
   }
 
-  get ok() { return !!this.ctx && this.sound; }
+  get ok() { return !!this.ctx && this.sound && !this.muted; }
 
   tone(freq, dur, { type = 'sine', vol = 0.3, at = 0, slide = 0, out = null, attack = 0.005 } = {}) {
     const t = this.ctx.currentTime + at;

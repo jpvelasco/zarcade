@@ -18,6 +18,7 @@ export function freshSave() {
     sandboxRuns: 0,
     sound: true,
     music: true,
+    muted: false,        // the HUD mute: silences sound and music together
     fast: false,
   };
 }
@@ -42,6 +43,7 @@ export function loadSave(storage) {
     save.daily.days = save.daily.days && typeof save.daily.days === 'object' ? save.daily.days : {};
     if (!Array.isArray(save.skins)) save.skins = ['puffer'];
     if (!Array.isArray(save.intros)) save.intros = [];
+    for (const k of ['sound', 'music', 'muted', 'fast']) if (typeof save[k] !== 'boolean') save[k] = freshSave()[k];
   } catch {
     return freshSave();
   }
