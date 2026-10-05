@@ -28,6 +28,8 @@ const lanesParam = params.get('lanes') === '3' || params.get('lanes') === '4' ? 
 if (lanesParam) save.lanes = lanesParam;
 let saveWarned = false;
 function persist() {
+  // ?autoplay is a browser check: its runs must not land in the real save.
+  if (params.has('autoplay')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
