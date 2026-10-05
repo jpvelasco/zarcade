@@ -359,6 +359,7 @@ function toggleSound() {
   audio.setMuted(save.muted);
   persist();
   $('btn-sound').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
+  $('opt-sound').textContent = save.muted ? 'Off' : 'On';
 }
 function toggleMusic() {
   save.music = !save.music;
