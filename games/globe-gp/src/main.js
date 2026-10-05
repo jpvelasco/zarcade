@@ -29,6 +29,8 @@ try { storage = window.localStorage; } catch { storage = null; }
 const save = loadSave(storage);
 let saveWarned = false;
 function persist() {
+  // ?autopilot is a browser check: its races must not land in the real save.
+  if (params.has('autopilot')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', {});
@@ -521,7 +523,7 @@ function showResults() {
   if (race.kind === 'timetrial') {
     const medal = medalFor(p.bestLap, medals);
     const res = recordTimeTrial(save, race.track.id, p.bestLap, medal);
-    if (race.newGhost && (!race.ghost || race.newGhost.lap < race.ghost.lap)) saveGhost(storage, race.track.id, race.newGhost);
+    if (!params.has('autopilot') && race.newGhost && (!race.ghost || race.newGhost.lap < race.ghost.lap)) saveGhost(storage, race.track.id, race.newGhost);
     $('res-title').textContent = medal ? `${{ gold: '🥇 Gold', silver: '🥈 Silver', bronze: '🥉 Bronze' }[medal]} medal!` : 'Time trial done!';
     $('res-podium').innerHTML = '';
     $('res-table').innerHTML = p.lapTimes.map((t, i) => `<div class="tr${t === p.bestLap ? ' me' : ''}"><span>${i + 1}</span><span>Lap ${i + 1}</span><span class="num">${formatTime(t)}</span><span></span></div>`).join('');
