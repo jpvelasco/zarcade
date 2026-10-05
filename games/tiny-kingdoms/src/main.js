@@ -32,6 +32,8 @@ const storage = (() => { try { return localStorage; } catch { return null; } })(
 const save = loadSave(storage);
 let saveWarned = false;
 function persist() {
+  // ?autoplay is a browser check: its matches must not land in the real save.
+  if (params.has('autoplay')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
@@ -495,6 +497,7 @@ function showScreen(id) {
   const inGame = mode === 'play' || mode === 'paused' || mode === 'results';
   $('hud').classList.toggle('hidden', !inGame);
   $('hud-bottom').classList.toggle('hidden', !inGame);
+  $('btn-menu-sound').classList.toggle('hidden', inGame);
   if (!inGame || mode !== 'play') $('tip').classList.add('hidden');
   resize();
   if (id) {
@@ -853,6 +856,10 @@ function refreshPauseButtons() {
   $('btn-sound').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
   $('btn-music').textContent = `Music: ${save.music ? 'on' : 'off'}`;
   $('btn-letters').textContent = `Building letters: ${ui.showLetters ? 'on' : 'off'}`;
+  const menuSound = $('btn-menu-sound');
+  menuSound.textContent = save.muted ? '🔇' : '🔊';
+  menuSound.setAttribute('aria-label', save.muted ? 'Unmute' : 'Mute');
+  menuSound.setAttribute('aria-pressed', String(save.muted));
 }
 
 function toggleMute() {
@@ -892,6 +899,12 @@ $('btn-resume').addEventListener('click', resume);
 $('btn-restart').addEventListener('click', restart);
 $('btn-leave').addEventListener('click', leave);
 $('btn-sound').addEventListener('click', toggleMute);
+$('btn-menu-sound').addEventListener('click', (e) => {
+  sound.unlock();
+  toggleMute();
+  // A mouse or touch click hands focus back to the menu, not this button.
+  if (e.detail) e.currentTarget.blur();
+});
 $('btn-music').addEventListener('click', () => { save.music = !save.music; sound.setMusic(save.music); persist(); refreshPauseButtons(); });
 $('btn-letters').addEventListener('click', () => { ui.showLetters = !ui.showLetters; save.letters = ui.showLetters; persist(); refreshPauseButtons(); });
 $('btn-amount').addEventListener('click', toggleAmount);
@@ -1262,6 +1275,7 @@ window.TK = {
 if (location.protocol !== 'file:') {
   drawTitleCrown();
   resize();
+  refreshPauseButtons();
   log.event('game.ready', { stars: totalStars(save), wins: save.wins, cleared: mapsCleared(save), streak: save.daily.bestStreak });
   const mapParam = parseInt(params.get('map'), 10);
   if (mapParam >= 1 && mapParam <= CAMPAIGN.length) play(campaignSpec(mapParam - 1));
