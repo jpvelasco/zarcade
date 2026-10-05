@@ -28,7 +28,8 @@ let saveWarned = false;
 // again, so a paused tab closing can't undo another tab's newer save.
 let lastWritten = null;
 function persist() {
-  if (!world || isDemo) return false;
+  // ?autopilot is a browser check: the bot's farm must not land in the real save.
+  if (!world || isDemo || params.has('autopilot')) return false;
   let ok = false;
   try {
     const json = JSON.stringify(serialize(world));
