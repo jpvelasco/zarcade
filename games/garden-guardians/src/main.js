@@ -28,6 +28,8 @@ const save = loadSave(storage);
 // report it once.
 let saveWarned = false;
 function persist() {
+  // ?autoplay is a browser check: its stars must not land in the real save.
+  if (params.has('autoplay')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
@@ -218,6 +220,8 @@ function updateSoundButtons() {
   $('btn-music').textContent = `Music: ${save.music ? 'on' : 'off'}`;
   $('btn-sound').textContent = save.muted ? '🔇' : '♪';
   $('btn-sound').classList.toggle('on', !save.muted);
+  $('btn-sound').setAttribute('aria-label', save.muted ? 'Unmute' : 'Mute');
+  $('btn-sound').setAttribute('aria-pressed', String(save.muted));
 }
 
 function toggleMute() {
