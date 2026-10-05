@@ -77,6 +77,8 @@ function muteLabel() {
   $('btn-pause-mute').textContent = label;
   $('btn-mute').textContent = save.muted ? '✕' : '♪';
   $('btn-mute').classList.toggle('muted', save.muted);
+  $('btn-mute').setAttribute('aria-label', save.muted ? 'Unmute' : 'Mute');
+  $('btn-mute').setAttribute('aria-pressed', String(save.muted));
 }
 
 function toggleMute() {
