@@ -34,7 +34,11 @@ if (params.has('fresh')) clearSave(storage);
 const save = loadSave(storage);
 const unlockAll = params.has('unlock');
 let saveWarned = false;
+// Set once the autoplayer runs (?autoplay or CC.autoplay()): from then on its
+// solves must not land in the real save.
+let botPlayed = params.has('autoplay');
 function persist() {
+  if (botPlayed) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
@@ -1507,6 +1511,7 @@ const loop = telemetry ? telemetry.guard(frame, 'clue-critters.frame') : frame;
 // ?autoplay plays the current case like a (fast) child: visit, search,
 // talk, fill the grid from the clues, then accuse.
 function makeAutoplay() {
+  botPlayed = true;
   let plan = autoPlan(session);
   let wait = 0.6;
   return {
