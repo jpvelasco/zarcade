@@ -25,6 +25,8 @@ const storage = (() => { try { return localStorage; } catch { return null; } })(
 const save = loadSave(storage);
 let saveWarned = false;
 function persist() {
+  // ?demo and ?autopilot are bot matches: their results must not land in the real save.
+  if (params.has('demo') || params.has('autopilot')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
