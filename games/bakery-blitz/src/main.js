@@ -550,12 +550,17 @@ function resume() {
   layout();
 }
 
+function showMute() {
+  $('btn-mute').textContent = save.muted ? '🔇' : '🔊';
+  $('btn-mute').setAttribute('aria-label', save.muted ? 'Sound off' : 'Sound on');
+  $('btn-pause-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
+}
+
 function toggleMute() {
   save.muted = !save.muted;
   sfx.setMuted(save.muted);
   persist();
-  $('btn-mute').textContent = save.muted ? '🔇' : '🔊';
-  $('btn-pause-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
+  showMute();
 }
 
 // -------------------------------------------------------------------- input
@@ -799,7 +804,7 @@ for (const el of document.querySelectorAll('button, .btn')) {
   el.addEventListener('pointerdown', () => sfx.unlock(), { once: true });
 }
 
-$('btn-mute').textContent = save.muted ? '🔇' : '🔊';
+showMute();
 
 log.event('game.ready', {
   unlocked: save.unlocked, stars: totalStars(save), coins: save.coins,
