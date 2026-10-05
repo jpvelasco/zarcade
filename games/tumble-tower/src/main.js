@@ -484,6 +484,9 @@ click('btn-restart', restart);
 click('btn-pause-menu', () => (run?.kind === 'climb' ? toMap() : toTitle()));
 click('btn-pause', pause);
 click('btn-mute', toggleMute);
+// A mouse or touch click leaves focus on the button, where Space (drop) would
+// press it again; hand focus back to the game.
+$('btn-mute').addEventListener('click', (e) => { if (e.detail) e.currentTarget.blur(); });
 click('btn-next', () => startClimb(run.index + 1));
 click('btn-replay', restart);
 click('btn-win-map', () => (run.kind === 'climb' ? toMap() : toTitle()));
