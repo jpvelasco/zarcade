@@ -1028,6 +1028,8 @@ addEventListener('keydown', (e) => {
     if (handled) e.preventDefault();
     return;
   }
+  // M mutes on every screen, not just in battle.
+  if (e.code === 'KeyM') { e.preventDefault(); toggleMute(); return; }
   if (mode === 'paused') {
     if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); resume(); return; }
   }
