@@ -28,6 +28,8 @@ if (params.has('coins')) save.coins = Math.max(0, parseInt(params.get('coins'), 
 for (const k of UPGRADE_ORDER) if (params.has(k)) save.upgrades[k] = Math.max(0, Math.min(UPGRADES[k].tiers.length - 1, parseInt(params.get(k), 10) || 0));
 let saveWarned = false;
 function persist() {
+  // ?autopilot is a browser check: its runs must not land in the real save.
+  if (params.has('autopilot')) return;
   if (main) main.store();
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
