@@ -12,7 +12,7 @@ import {
   PERSONALITIES, DIFFICULTIES, HEROES, HERO_ORDER, HERO_COOLDOWN,
 } from './data.js';
 import { CAMPAIGN, REGIONS, INTROS, goalText } from './campaign.js';
-import { generateMap, dailySetup, skirmishSetup, dateKey, labelNodes, SIZES } from './mapgen.js';
+import { generateMap, dailySetup, skirmishSetup, dateKey, labelNodes, maxRivals, SIZES } from './mapgen.js';
 import { makeRng, hashString } from './rng.js';
 import {
   loadSave, writeSave, totalStars, isMapUnlocked, highestUnlocked, unlockedColors, unlockedEmblems, unlockedHeroes,
@@ -726,10 +726,11 @@ function openBrief(spec) {
   requestAnimationFrame(() => drawThumbnail($('brief-thumb'), spec.map, spec.theme, pals));
 }
 
-function buildSeg(box, options, current, onPick) {
+function buildSeg(box, options, current, onPick, disabled = () => false) {
   box.innerHTML = '';
   for (const [value, label] of options) {
     const b = el('button', value === current ? 'on' : '', label);
+    b.disabled = disabled(value);
     b.addEventListener('click', () => { sound.click(); onPick(value); });
     box.append(b);
   }
@@ -740,8 +741,10 @@ function openSkirmish() {
   ensureAttract();
   const sk = save.skirmish;
   const refresh = () => {
-    buildSeg($('sk-size'), [['small', 'Small'], ['medium', 'Medium'], ['large', 'Large']], sk.size, (v) => { sk.size = v; persist(); refresh(); });
-    buildSeg($('sk-rivals'), [[1, '1'], [2, '2'], [3, '3']], sk.rivals, (v) => { sk.rivals = v; persist(); refresh(); });
+    const most = maxRivals(sk.size);
+    buildSeg($('sk-size'), [['small', 'Small'], ['medium', 'Medium'], ['large', 'Large']], sk.size, (v) => { sk.size = v; sk.rivals = Math.min(sk.rivals, maxRivals(v)); persist(); refresh(); });
+    buildSeg($('sk-rivals'), [[1, '1'], [2, '2'], [3, '3']], sk.rivals, (v) => { sk.rivals = v; persist(); refresh(); }, (v) => v > most);
+    $('sk-fit').textContent = most < 3 ? `A ${SIZES[sk.size].name.toLowerCase()} island fits up to ${most} rivals.` : '';
     buildSeg($('sk-diff'), [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], sk.difficulty, (v) => { sk.difficulty = v; persist(); refresh(); });
     const spec = skirmishSpec();
     const pals = palettesFor(spec.rivals.length + 1);

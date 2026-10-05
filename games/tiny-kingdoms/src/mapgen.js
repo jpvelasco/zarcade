@@ -15,6 +15,17 @@ const GARRISON = {
   cottage: [6, 12], mill: [12, 20], tower: [12, 18], forge: [10, 16], shrine: [14, 22], castle: [22, 32],
 };
 const MAX_NODES = 22; // one letter each
+const perCap = (k) => Math.floor((MAX_NODES - k - 1) / k);
+
+// The most rivals a size can hold before the letter cap would shrink each
+// kingdom's neighbourhood (a Large island with 3 rivals would be no bigger
+// than a Medium one).
+export function maxRivals(size) {
+  const per = SIZES[size]?.perSector ?? 4;
+  let k = 4;
+  while (k > 2 && perCap(k) < per) k--;
+  return k - 1;
+}
 const MIN_GAP = 150;
 const CX = WORLD_W / 2, CY = WORLD_H / 2, RX = WORLD_W / 2 - 110, RY = WORLD_H / 2 - 95;
 
@@ -38,7 +49,7 @@ export function generateMap(options = {}) {
   } = options;
   const rng = makeRng(seed >>> 0);
   const k = Math.max(2, Math.min(4, kingdoms));
-  const per = Math.min(SIZES[size]?.perSector ?? 4, Math.floor((MAX_NODES - k - 1) / k));
+  const per = Math.min(SIZES[size]?.perSector ?? 4, perCap(k));
   const sym = symmetry(k, rng);
   const pool = types.filter((t) => TYPE_WEIGHTS[t]);
   const pickType = () => {
@@ -166,7 +177,8 @@ export function dailySetup(key) {
 }
 
 // Skirmish: a fresh map from settings and a seed.
-export function skirmishSetup({ seed, size = 'medium', rivals = 1, difficulty = 'normal' }) {
+export function skirmishSetup({ seed, size = 'medium', rivals: asked = 1, difficulty = 'normal' }) {
+  const rivals = Math.min(asked, maxRivals(size));
   const rng = makeRng(seed ^ 0x1234567);
   const list = [];
   for (let i = 0; i < rivals; i++) list.push({ personality: rng.pick(PERSONALITY_LIST), difficulty });

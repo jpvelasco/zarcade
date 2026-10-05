@@ -2,6 +2,7 @@
 // DOM-free: the page passes in `localStorage` (or null).
 import { COLORS, COLOR_UNLOCKS, EMBLEMS, EMBLEM_UNLOCKS, HEROES, HERO_ORDER } from './data.js';
 import { CAMPAIGN, starsFor } from './campaign.js';
+import { maxRivals } from './mapgen.js';
 
 export const SAVE_KEY = 'tiny-kingdoms.v1';
 
@@ -42,6 +43,7 @@ const oneOf = (v, list, d) => (list.includes(v) ? v : d);
 // type, so a hand-edited or half-written save can never crash a screen.
 function sanitize(base, data) {
   const daily = obj(data.daily), sk = obj(data.skirmish);
+  const size = oneOf(sk.size, ['small', 'medium', 'large'], base.skirmish.size);
   const goals = {};
   for (const [k, v] of Object.entries(obj(data.goals))) if (Array.isArray(v)) goals[k] = v.map(Boolean);
   return {
@@ -65,8 +67,8 @@ function sanitize(base, data) {
       ...(Number.isFinite(sk.seed) && sk.seed > 0 ? { seed: sk.seed } : {}),
       best: numbers(sk.best),
       wins: count(sk.wins),
-      size: oneOf(sk.size, ['small', 'medium', 'large'], base.skirmish.size),
-      rivals: oneOf(sk.rivals, [1, 2, 3], base.skirmish.rivals),
+      size,
+      rivals: Math.min(oneOf(sk.rivals, [1, 2, 3], base.skirmish.rivals), maxRivals(size)),
       difficulty: oneOf(sk.difficulty, ['easy', 'normal', 'hard'], base.skirmish.difficulty),
     },
     seen: { ...obj(data.seen) },

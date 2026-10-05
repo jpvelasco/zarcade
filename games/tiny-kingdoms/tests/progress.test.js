@@ -57,7 +57,7 @@ test('wrong-typed save fields are reset instead of breaking screens', () => {
   const good = defaultSave();
   good.stars.m1 = 2; good.goals.m1 = [true, false]; good.best.m1 = 88.2; good.wins = 4; good.hero = 'none';
   good.daily = { lastWin: '2026-10-01', streak: 2, bestStreak: 3, best: { '2026-10-01': 70 } };
-  good.skirmish = { ...good.skirmish, seed: 1234, size: 'large', rivals: 3, difficulty: 'hard', best: { 'large-3-hard': 200 } };
+  good.skirmish = { ...good.skirmish, seed: 1234, size: 'medium', rivals: 3, difficulty: 'hard', best: { 'medium-3-hard': 200 } };
   writeSave(store, good);
   assert.deepEqual(loadSave(store), good);
 });
@@ -147,4 +147,14 @@ test('skirmish bests per setting', () => {
   assert.equal(save.skirmish.best['small-1-easy'], 150);
   assert.equal(save.skirmish.wins, 2);
   assert.equal(formatTime(125.4), '2:05');
+});
+
+test('a saved Large skirmish with 3 rivals loads with 2', () => {
+  const store = memoryStorage();
+  const save = defaultSave();
+  save.skirmish = { ...save.skirmish, size: 'large', rivals: 3 };
+  writeSave(store, save);
+  const back = loadSave(store);
+  assert.equal(back.skirmish.size, 'large');
+  assert.equal(back.skirmish.rivals, 2);
 });

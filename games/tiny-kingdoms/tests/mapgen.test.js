@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateMap, dailySetup, skirmishSetup, dateKey, labelNodes, LETTERS } from '../src/mapgen.js';
+import { generateMap, dailySetup, skirmishSetup, dateKey, labelNodes, maxRivals, LETTERS } from '../src/mapgen.js';
 import { WORLD_W, WORLD_H, BUILDINGS } from '../src/data.js';
 
 test('the generator is deterministic', () => {
@@ -71,4 +71,26 @@ test('every building gets a unique letter, skipping the F, H, M and P hotkeys', 
   const labels = labelNodes(m.nodes);
   assert.equal(new Set(labels).size, m.nodes.length);
   for (const l of labels) assert.ok(l && !'FHMP'.includes(l));
+});
+
+test('every size offered with a rival count makes a bigger island than the size below it', () => {
+  const sizes = ['small', 'medium', 'large'];
+  assert.deepEqual(sizes.map(maxRivals), [3, 3, 2]);
+  for (let rivals = 1; rivals <= 3; rivals++) {
+    for (let i = 1; i < sizes.length; i++) {
+      if (rivals > maxRivals(sizes[i])) continue;
+      for (let seed = 1; seed <= 30; seed++) {
+        const smaller = generateMap({ seed, size: sizes[i - 1], kingdoms: rivals + 1 }).nodes.length;
+        const bigger = generateMap({ seed, size: sizes[i], kingdoms: rivals + 1 }).nodes.length;
+        assert.ok(bigger > smaller, `${sizes[i]} vs ${rivals} rivals, seed ${seed}: ${bigger} <= ${smaller}`);
+      }
+    }
+  }
+});
+
+test('a Large skirmish asked for 3 rivals gets 2', () => {
+  const s = skirmishSetup({ seed: 9, size: 'large', rivals: 3 });
+  assert.equal(s.rivals.length, 2);
+  assert.equal(s.map.kingdoms, 3);
+  assert.equal(skirmishSetup({ seed: 9, size: 'medium', rivals: 3 }).rivals.length, 3);
 });

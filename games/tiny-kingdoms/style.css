@@ -282,6 +282,9 @@ button { font-family: inherit; color: inherit; }
 .seg button { border: 0; background: #fffdf6; padding: 8px 12px; font-weight: 800; font-size: 14.5px; cursor: pointer; min-width: 52px; border-right: 2px solid rgba(59, 44, 34, 0.3); }
 .seg button:last-child { border-right: 0; }
 .seg button.on { background: var(--blue); color: #fff; }
+.seg button:disabled { background: #e8e1d2; color: rgba(59, 44, 34, 0.35); cursor: not-allowed; }
+.fit-note { margin: -2px 0 6px; font-size: 13px; }
+.fit-note:empty { display: none; }
 
 /* ------------------------------------------------------------ kingdom */
 
