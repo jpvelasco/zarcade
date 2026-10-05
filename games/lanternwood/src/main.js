@@ -25,6 +25,8 @@ const storage = (() => { try { return localStorage; } catch { return null; } })(
 const all = loadAll(storage);
 let saveWarned = false;
 function persistAll() {
+  // ?autoplay is a browser check: the autopilot must never write a real slot.
+  if (params.has('autoplay')) return;
   if (writeAll(storage, all) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
