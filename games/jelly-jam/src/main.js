@@ -25,6 +25,8 @@ const save = loadSave(storage);
 // report it once.
 let saveWarned = false;
 function persist() {
+  // ?demo plays itself: its wins must not land in the real save.
+  if (params.has('demo')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
@@ -40,7 +42,7 @@ addEventListener('storage', (event) => {
   for (const key of Object.keys(save)) delete save[key];
   Object.assign(save, fresh);
   sfx.setMuted(save.muted);
-  $('btn-mute').textContent = save.muted ? '🔇' : '🔊';
+  showMute();
   if (mode === 'title') toTitle();
   else if (mode === 'map') toMap();
 });
@@ -429,11 +431,17 @@ function resume() {
   layout();
 }
 
+function showMute() {
+  $('btn-mute').textContent = save.muted ? '🔇' : '🔊';
+  $('btn-mute').setAttribute('aria-label', save.muted ? 'Unmute' : 'Mute');
+  $('btn-mute').setAttribute('aria-pressed', String(save.muted));
+}
+
 function toggleMute() {
   save.muted = !save.muted;
   sfx.setMuted(save.muted);
   persist();
-  $('btn-mute').textContent = save.muted ? '🔇' : '🔊';
+  showMute();
   $('btn-pause-mute').textContent = `Sound: ${save.muted ? 'off' : 'on'}`;
 }
 
@@ -646,7 +654,7 @@ for (const el of document.querySelectorAll('button, .btn')) {
 }
 
 // bubbles in the backdrop are decorative; nothing to wire.
-$('btn-mute').textContent = save.muted ? '🔇' : '🔊';
+showMute();
 
 if (params.has('demo')) {
   import('./ai.js').then((ai) => {
