@@ -291,6 +291,7 @@ function updateSettingsButtons() {
   const names = { relaxed: '🐢 Days: relaxed', normal: '🕰️ Days: normal', brisk: '🐇 Days: brisk' };
   for (const b of document.querySelectorAll('[data-speed]')) b.textContent = names[settings.speed];
   $('btn-mute').textContent = settings.muted ? '🔇' : '🔊';
+  $('btn-mute').setAttribute('aria-label', settings.muted ? 'Unmute' : 'Mute');
 }
 function toggleMute() { settings.muted = !settings.muted; sound.unlock(); sound.setMuted(settings.muted); saveSettings(); updateSettingsButtons(); }
 function toggleMusic() { settings.music = !settings.music; sound.unlock(); sound.setMusic(settings.music); saveSettings(); updateSettingsButtons(); }
@@ -472,6 +473,7 @@ let loadingTicks = 0;
 function finishLoading() {
   ui = new UI({ sound, onClose: onMenuClosed, onSleep: () => sleep(false), icons: renderer.icons, portraits: renderer.portraits });
   log.event('game.ready', { hasSave: !!loadWorld(storage), reduced, coarse });
+  updateSettingsButtons();
   if (params.has('autopilot') || params.has('play')) startGame(false);
   else toTitle();
 }
