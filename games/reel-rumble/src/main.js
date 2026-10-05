@@ -30,6 +30,8 @@ const save = loadSave(storage);
 if (!WATER[save.water]) save.water = 'pond';
 let saveWarned = false;
 function persist() {
+  // ?autopilot is a browser check: its catches must not land in the real save.
+  if (params.has('autopilot')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { 'storage.available': !!storage });
