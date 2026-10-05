@@ -35,6 +35,8 @@ let endTimer = 0, accumulator = 0;
 // Saving can fail (private mode, full storage); play on and report it once.
 let saveWarned = false;
 function persist() {
+  // ?autopilot is a browser check: its runs must not land in the real save.
+  if (params.has('autopilot')) return;
   if (writeSave(storage, save) || saveWarned) return;
   saveWarned = true;
   log.warn('save.failed', { mode });
