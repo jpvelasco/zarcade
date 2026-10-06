@@ -446,6 +446,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'shard-storm',
+      title: 'Shard Storm',
+      tagline: 'Swipe the blade. Shatter the crystal storm.',
+      description: 'Crystals arc up out of the dark — sweep your glowing blade through them to shatter the storm. Chain slices for combo bonuses, crack shielded cores with a second cut, and hold off the mines before they cost your last life. Big combos drop time into slow-mo, and the date-seeded Daily Storm keeps your streak alive.',
+      genre: 'Arcade',
+      controls: ['keyboard', 'mouse', 'touch'],
+      accent: '#7df9ff',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
