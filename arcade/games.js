@@ -435,6 +435,17 @@
       needsServer: true,
       isNew: true,
     },
+    {
+      slug: 'comet-courier',
+      title: 'Comet Courier',
+      tagline: 'Slide the comet and sink it in the mailbox star.',
+      description: 'A sky-golf courier across 30 cosmic routes in five postal belts: bounce the comet off mail rocks, asteroids and wind to deliver it in as few launches as possible. Earn postmarks and comet skins, keep a daily streak, and chase rotating courier missions.',
+      genre: 'Puzzle',
+      controls: ['keyboard', 'mouse', 'touch', 'gamepad'],
+      accent: '#ffd98a',
+      needsServer: true,
+      isNew: true,
+    },
   ];
 
   const ArcadeGames = { GAMES };
