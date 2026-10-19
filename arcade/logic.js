@@ -134,6 +134,18 @@
     return 0;
   }
 
+  // Which "install the arcade" affordance, if any, to show. A browser that
+  // raises `beforeinstallprompt` gets a real button; Safari on iOS/iPadOS has
+  // no such event, so it gets the share-sheet hint. Other browsers that offer
+  // neither get nothing. Once installed (standalone) or dismissed, nothing
+  // shows.
+  function installMode({ canPrompt, ios, standalone, dismissed } = {}) {
+    if (standalone || dismissed) return null;
+    if (canPrompt) return 'button';
+    if (ios) return 'hint';
+    return null;
+  }
+
   // No keyboard? Five quick taps on the sign's coin do the same.
   function tapStreak(times, now, need = 5, within = 3000) {
     const recent = [...times, now].filter((t) => now - t <= within);
@@ -143,7 +155,7 @@
   const Arcade = {
     STORAGE_KEY, ALL, NEW, SHELVES, shelfOf, isNew, genres, filterGames, gamePath, gridMove,
     freshState, loadState, saveState, recordPlay, blockedOffline, problemSummary,
-    KONAMI, konamiStep, tapStreak,
+    KONAMI, konamiStep, tapStreak, installMode,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Arcade;

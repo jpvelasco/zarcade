@@ -40,6 +40,15 @@ cabinet gallery from `arcade/games.js`; run it whenever the manifest changes
 Glowloop can also open directly from disk. The Three.js games must be served
 over HTTP because browser ES module loading does not work from `file://`.
 
+The root `manifest.json`, the icons in `icons/`, and `sw.js` make the arcade
+installable as a mobile app ("Add to Home Screen" on iOS, the install prompt
+on Android/Chromium) and cache the arcade shell for offline relaunch. Keep
+every URL in those files relative: the site ships under a sub-path. Regenerate
+icons with `node scripts/gen-icons.mjs` after changing the mark or the
+palette; `arcade/tests/pwa.test.js` checks the sizes and purposes. The
+service worker registers on https origins and, on the dev server, only with
+`?sw=1` appended to the URL.
+
 ## Arcade
 
 The root `index.html` is the arcade: a game picker built from the manifest
