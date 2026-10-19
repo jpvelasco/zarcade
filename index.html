@@ -16,6 +16,12 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The Zarcade neon marquee above a row of game covers.">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Starlight Arcade">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/svg+xml" href="arcade/favicon.svg">
   <link rel="stylesheet" href="arcade/arcade.css">
   <script src="arcade/telemetry.js" data-service="arcade" data-arcade="index.html"></script>
@@ -78,7 +84,14 @@
       Opened from disk, so only games marked <b>works offline</b> can start.
       Run <code>npm run serve</code> and visit <code>http://localhost:8000</code> to play them all.
     </p>
-    <p class="help-row"><button class="help-link" id="btn-help" type="button">🛟 Help &amp; diagnostics</button></p>
+    <p class="help-row">
+      <button class="help-link" id="btn-help" type="button">🛟 Help &amp; diagnostics</button>
+      <button class="install hidden" id="btn-install" type="button">⬇️ Install Zarcade</button>
+    </p>
+    <p class="install-hint hidden" id="install-hint">
+      <span><b>Install on iPhone or iPad:</b> tap <b>Share</b> in the browser, then <b>Add to Home Screen</b>. It opens full-screen, like an app.</span>
+      <button type="button" id="install-hint-close" aria-label="Dismiss install hint">✕</button>
+    </p>
   </footer>
 
   <dialog class="help" id="help" aria-labelledby="help-title">

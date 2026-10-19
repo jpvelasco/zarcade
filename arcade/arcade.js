@@ -350,6 +350,48 @@
     requestAnimationFrame(pollPads);
   }
 
+  // --------------------------------------------------- install the arcade
+
+  // A browser that can offer a real install (beforeinstallprompt) gets the
+  // button; Safari on iOS/iPadOS has no such event, so it gets the
+  // share-sheet hint instead. The decision lives in logic.installMode so it
+  // can be tested without a phone.
+  const DISMISS_KEY = 'arcade.v1.installDismissed';
+  let installPrompt = null;
+  const isStandalone = matchMedia('(display-mode: standalone)').matches;
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS poses as Mac
+
+  function dismissedInstall() {
+    try { return storage?.getItem(DISMISS_KEY) === '1'; } catch (_) { return false; }
+  }
+
+  addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); // our button re-triggers the browser prompt
+    installPrompt = e;
+    if (A.installMode({ canPrompt: true, standalone: isStandalone, dismissed: dismissedInstall() }) === 'button') {
+      $('btn-install').classList.remove('hidden');
+    }
+  });
+
+  if (A.installMode({ ios: isIOS, standalone: isStandalone, dismissed: dismissedInstall() }) === 'hint') {
+    $('install-hint').classList.remove('hidden');
+  }
+
+  $('btn-install').addEventListener('click', () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then(() => {
+      installPrompt = null;
+      $('btn-install').classList.add('hidden');
+    });
+  });
+
+  $('install-hint-close').addEventListener('click', () => {
+    $('install-hint').classList.add('hidden');
+    try { storage?.setItem(DISMISS_KEY, '1'); } catch (_) { /* session only */ }
+  });
+
   // Attract mode: until someone touches something, the big screen cycles
   // through the games like a cabinet waiting for a coin.
   function startAttract() {
@@ -495,4 +537,16 @@
   select(Math.max(0, GAMES.findIndex((g) => g.slug === state.last)), { focus: false, sound: false });
   if (!state.last) startAttract();
   requestAnimationFrame(pollPads);
+
+  // ---------------------------------------------------------- service worker
+
+  // Caches the arcade shell for offline relaunch. Only deployment origins
+  // (https) register the worker; on the dev server it is opt-in with ?sw=1,
+  // and file:// has no service workers at all.
+  const swEnabled = 'serviceWorker' in navigator && (location.protocol === 'https:' || location.search.includes('sw=1'));
+  if (swEnabled) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {
+      /* The arcade works fine without the worker; the next visit retries. */
+    });
+  }
 })();

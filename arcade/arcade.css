@@ -776,3 +776,44 @@ body.launching main { transform: scale(1.06); filter: blur(3px); transition: tra
   .logo-z { animation: none; }
   .secret .bulbs { animation: none; filter: drop-shadow(0 0 5px var(--gold)) hue-rotate(140deg); }
 }
+
+/* --------------------------------------------------------- install as an app */
+
+.install {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pink);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--pink) 45%, #000), 0 0 24px color-mix(in srgb, var(--pink) 55%, transparent);
+  color: #fff;
+  font: 700 14px var(--body);
+  cursor: pointer;
+}
+.install:hover, .install:focus-visible { outline: none; filter: brightness(1.12); }
+.help-install { border: 0; background: var(--pink); color: #fff; }
+.install-hint {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 10px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 211, 92, .5);
+  border-radius: 12px;
+  background: rgba(44, 23, 102, .85);
+  color: var(--muted);
+  font-size: 12.5px;
+  text-align: left;
+}
+.install-hint b { color: #fff; }
+.install-hint code { font: 600 12px var(--mono); color: var(--cyan); }
+.install-hint button {
+  align-self: center;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+.install-hint button:hover, .install-hint button:focus-visible { color: #fff; outline: none; }

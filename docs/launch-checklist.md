@@ -41,6 +41,15 @@ Remaining:
    image, title and description.
 3. **Play it on a real phone** from the public address: the arcade, a couple of
    games, and full screen.
+4. **Install it as an app** (after the PWA change lands on `main`):
+   - Android / Chrome: open the public address, let the "Install app" prompt
+     show (or use the menu → **Install app**), and check the arcade opens
+     full-screen with no address bar.
+   - iPhone / iPad: the arcade shows a small hint in the footer — tap
+     **Share**, then **Add to Home Screen** (same flow cosmic-assault used).
+   - From the installed icon, reload with the connection off: the arcade
+     shell still opens (the service worker caches it); a game you have not
+     played before asks you to reconnect.
 
 ## Optional later
 

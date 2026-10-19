@@ -1,0 +1,32 @@
+{
+  "id": "./",
+  "name": "Starlight Arcade",
+  "short_name": "Zarcade",
+  "description": "A cabinet row of small browser games for all ages: racing, puzzles, cozy sandboxes, sports and more.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#120a2e",
+  "background_color": "#0b0620",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

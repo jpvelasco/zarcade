@@ -184,6 +184,16 @@ test('a wrong key starts the code over, but extra ups at the start still count',
   assert.equal(typeCode([...A.KONAMI, ...A.KONAMI]), 2, 'it works again and again');
 });
 
+test('installMode: button for beforeinstallprompt browsers, hint for iOS, never when installed or dismissed', () => {
+  assert.equal(A.installMode({ canPrompt: true }), 'button');
+  assert.equal(A.installMode({ ios: true }), 'hint');
+  assert.equal(A.installMode({}), null, 'desktop browsers with no prompt offer get nothing');
+  assert.equal(A.installMode({ canPrompt: true, standalone: true }), null, 'installed apps do not prompt');
+  assert.equal(A.installMode({ ios: true, standalone: true }), null);
+  assert.equal(A.installMode({ canPrompt: true, dismissed: true }), null);
+  assert.equal(A.installMode({ ios: true, dismissed: true }), null);
+});
+
 test('tapping the coin five times quickly unlocks it on touch screens', () => {
   let s = { times: [], fired: false };
   for (const t of [0, 400, 800, 1200]) {
