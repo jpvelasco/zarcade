@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2ab6f"/>
+      <stop offset="1" stop-color="#c98d55"/>
+    </linearGradient>
+    <pattern id="planks" width="160" height="40" patternUnits="userSpaceOnUse">
+      <rect width="160" height="40" fill="none"/>
+      <rect y="38" width="160" height="2" fill="#b97f4a" opacity="0.7"/>
+      <rect x="70" width="2" height="40" fill="#b97f4a" opacity="0.6"/>
+    </pattern>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6d0" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#fff6d0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="spark" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.35" stop-color="#ff7ad9"/>
+      <stop offset="1" stop-color="#ff5fd2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="sparkB" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.35" stop-color="#5ec8ff"/>
+      <stop offset="1" stop-color="#5ec8ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rainbow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff5f8f"/>
+      <stop offset="0.25" stop-color="#ffb84d"/>
+      <stop offset="0.5" stop-color="#ffe55c"/>
+      <stop offset="0.75" stop-color="#4fc3ff"/>
+      <stop offset="1" stop-color="#b47cff"/>
+    </linearGradient>
+    <!-- A top-down kart facing +x; colour from the group. -->
+    <g id="wheels" fill="#2b2438">
+      <rect x="-22" y="-24" width="17" height="10" rx="4"/>
+      <rect x="-22" y="14" width="17" height="10" rx="4"/>
+      <rect x="12" y="-22" width="17" height="10" rx="4"/>
+      <rect x="12" y="12" width="17" height="10" rx="4"/>
+    </g>
+  </defs>
+
+  <!-- Playroom floor -->
+  <rect width="800" height="500" fill="url(#floor)"/>
+  <rect width="800" height="500" fill="url(#planks)"/>
+
+  <!-- Toys around the track -->
+  <g stroke="#2a1d3a" stroke-width="3" stroke-linejoin="round">
+    <g transform="translate(92 92)">
+      <rect x="-26" y="-6" width="40" height="40" rx="7" fill="#ff5a5a"/>
+      <rect x="18" y="-6" width="40" height="40" rx="7" fill="#4fb7ff"/>
+      <rect x="-4" y="-48" width="40" height="40" rx="7" fill="#ffd84a"/>
+      <text x="-6" y="24" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="#fff" stroke="none" text-anchor="middle">A</text>
+      <text x="38" y="24" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="#fff" stroke="none" text-anchor="middle">B</text>
+      <text x="16" y="-18" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="#fff" stroke="none" text-anchor="middle">C</text>
+    </g>
+    <g transform="translate(712 418)">
+      <circle r="44" fill="#ffffff"/>
+      <path d="M0 0 L44 0 A44 44 0 0 1 22 38 Z" fill="#ff5a5a"/>
+      <path d="M0 0 L22 38 A44 44 0 0 1 -22 38 Z" fill="#ffd84a"/>
+      <path d="M0 0 L-22 38 A44 44 0 0 1 -44 0 Z" fill="#4fb7ff"/>
+      <path d="M0 0 L-44 0 A44 44 0 0 1 -22 -38 Z" fill="#6ee87d"/>
+      <path d="M0 0 L-22 -38 A44 44 0 0 1 22 -38 Z" fill="#b47cff"/>
+      <path d="M0 0 L22 -38 A44 44 0 0 1 44 0 Z" fill="#ff8a3d"/>
+      <circle r="44" fill="none"/>
+      <circle r="9" fill="#fff"/>
+    </g>
+    <g transform="translate(700 70) rotate(-20)">
+      <ellipse cx="6" cy="2" rx="34" ry="26" fill="#ffd84a"/>
+      <circle cx="-22" cy="-6" r="18" fill="#ffd84a"/>
+      <ellipse cx="-42" cy="-4" rx="10" ry="6" fill="#ff8a3d"/>
+      <circle cx="-26" cy="-12" r="3" fill="#2a1d3a" stroke="none"/>
+    </g>
+  </g>
+
+  <!-- The road: verge, walls, asphalt, kerbs, dashes -->
+  <path d="M-40 380 C 140 380 220 140 400 150 S 640 330 860 250" fill="none" stroke="#2a1d3a" stroke-width="214" stroke-linecap="round" opacity="0.18" transform="translate(6 10)"/>
+  <path d="M-40 380 C 140 380 220 140 400 150 S 640 330 860 250" fill="none" stroke="#2a1d3a" stroke-width="212"/>
+  <path d="M-40 380 C 140 380 220 140 400 150 S 640 330 860 250" fill="none" stroke="#ff5a5a" stroke-width="206" stroke-dasharray="26 26"/>
+  <path d="M-40 380 C 140 380 220 140 400 150 S 640 330 860 250" fill="none" stroke="#ffd84a" stroke-width="206" stroke-dasharray="26 26" stroke-dashoffset="26"/>
+  <path d="M-40 380 C 140 380 220 140 400 150 S 640 330 860 250" fill="none" stroke="#8fd16e" stroke-width="186"/>
+  <path d="M-40 380 C 140 380 220 140 400 150 S 640 330 860 250" fill="none" stroke="#ffffff" stroke-width="158"/>
+  <path d="M-40 380 C 140 380 220 140 400 150 S 640 330 860 250" fill="none" stroke="#ff5a5a" stroke-width="158" stroke-dasharray="20 20"/>
+  <path d="M-40 380 C 140 380 220 140 400 150 S 640 330 860 250" fill="none" stroke="#5d6b8a" stroke-width="140"/>
+  <path d="M-40 380 C 140 380 220 140 400 150 S 640 330 860 250" fill="none" stroke="#ffffff" stroke-width="5" stroke-dasharray="22 22" opacity="0.8"/>
+
+  <!-- Skid marks -->
+  <path d="M120 360 C 180 345 205 300 228 262" fill="none" stroke="#2a1d3a" stroke-width="5" opacity="0.25" stroke-linecap="round"/>
+  <path d="M138 378 C 200 360 228 312 250 272" fill="none" stroke="#2a1d3a" stroke-width="5" opacity="0.25" stroke-linecap="round"/>
+
+  <!-- Item boxes -->
+  <g stroke-width="5" stroke="url(#rainbow)" stroke-linejoin="round">
+    <g transform="translate(470 150) rotate(12)"><rect x="-20" y="-20" width="40" height="40" rx="9" fill="#ffffff" fill-opacity="0.55"/><text y="11" font-family="system-ui, sans-serif" font-weight="900" font-size="30" fill="#fff" stroke="#2a1d3a" stroke-width="2.5" text-anchor="middle" paint-order="stroke">?</text></g>
+    <g transform="translate(520 205) rotate(-8)"><rect x="-20" y="-20" width="40" height="40" rx="9" fill="#ffffff" fill-opacity="0.55"/><text y="11" font-family="system-ui, sans-serif" font-weight="900" font-size="30" fill="#fff" stroke="#2a1d3a" stroke-width="2.5" text-anchor="middle" paint-order="stroke">?</text></g>
+  </g>
+
+  <!-- A bouncy star left on the road -->
+  <g transform="translate(610 300) rotate(-10)" stroke="#b8741a" stroke-width="3.5" stroke-linejoin="round">
+    <path d="M0 -30 L9 -10 L30 -9 L14 5 L19 27 L0 16 L-19 27 L-14 5 L-30 -9 L-9 -10 Z" fill="#ffd84a"/>
+    <circle cx="-6" cy="-1" r="2.8" fill="#2a1d3a" stroke="none"/>
+    <circle cx="6" cy="-1" r="2.8" fill="#2a1d3a" stroke="none"/>
+    <path d="M-5 6 Q0 11 5 6" fill="none" stroke="#2a1d3a" stroke-width="2.5"/>
+  </g>
+
+  <!-- Drift sparks behind the lead kart -->
+  <circle cx="300" cy="210" r="22" fill="url(#spark)"/>
+  <circle cx="280" cy="236" r="16" fill="url(#spark)"/>
+  <circle cx="318" cy="246" r="18" fill="url(#spark)"/>
+  <circle cx="160" cy="320" r="14" fill="url(#sparkB)"/>
+  <circle cx="176" cy="344" r="11" fill="url(#sparkB)"/>
+
+  <!-- Bun the bunny, drifting in the lead -->
+  <g transform="translate(352 188) rotate(-38) scale(1.55)" stroke="#2a1d3a" stroke-width="2" stroke-linejoin="round">
+    <use href="#wheels" stroke="none"/>
+    <rect x="-26" y="-17" width="52" height="34" rx="13" fill="#ff6fae"/>
+    <rect x="-25" y="-3" width="50" height="2.4" fill="#ffd0e4" stroke="none"/>
+    <rect x="-25" y="1.5" width="50" height="2.4" fill="#ffd0e4" stroke="none"/>
+    <rect x="20" y="-9" width="6" height="18" rx="3" fill="#ffd0e4"/>
+    <path d="M-4 -5 Q-22 -9 -28 -3 Q-22 1 -4 5 Z" fill="#ffd0e4"/>
+    <ellipse cx="-15" cy="-8" rx="13" ry="4.5" transform="rotate(20 -15 -8)" fill="#fff4f8"/>
+    <ellipse cx="-15" cy="8" rx="13" ry="4.5" transform="rotate(-20 -15 8)" fill="#fff4f8"/>
+    <circle cx="-2" cy="0" r="13" fill="#fff4f8"/>
+    <circle cx="5" cy="-5" r="2.4" fill="#2a1d3a" stroke="none"/>
+    <circle cx="5" cy="5" r="2.4" fill="#2a1d3a" stroke="none"/>
+    <circle cx="10" cy="0" r="1.8" fill="#ff8fb5" stroke="none"/>
+  </g>
+
+  <!-- Fen the fox, chasing -->
+  <g transform="translate(190 330) rotate(-22) scale(1.4)" stroke="#2a1d3a" stroke-width="2" stroke-linejoin="round">
+    <use href="#wheels" stroke="none"/>
+    <rect x="-26" y="-17" width="52" height="34" rx="13" fill="#ff8a3d"/>
+    <rect x="-25" y="-3" width="50" height="2.4" fill="#ffd2a8" stroke="none"/>
+    <rect x="-25" y="1.5" width="50" height="2.4" fill="#ffd2a8" stroke="none"/>
+    <rect x="20" y="-9" width="6" height="18" rx="3" fill="#ffd2a8"/>
+    <path d="M-6 -11 L-20 -14 L-10 -3 Z" fill="#ff9f55"/>
+    <path d="M-6 11 L-20 14 L-10 3 Z" fill="#ff9f55"/>
+    <circle cx="-2" cy="0" r="13" fill="#ff9f55"/>
+    <ellipse cx="6" cy="0" rx="6" ry="6.5" fill="#fff3e4" stroke="none"/>
+    <circle cx="5" cy="-5" r="2.4" fill="#2a1d3a" stroke="none"/>
+    <circle cx="5" cy="5" r="2.4" fill="#2a1d3a" stroke="none"/>
+  </g>
+
+  <!-- Pip the penguin, bubble shield up -->
+  <g transform="translate(610 210) rotate(28) scale(1.35)">
+    <g stroke="#2a1d3a" stroke-width="2" stroke-linejoin="round">
+      <use href="#wheels" stroke="none"/>
+      <ellipse cx="0" cy="0" rx="27" ry="18" fill="#3d9bff"/>
+      <rect x="20" y="-9" width="6" height="18" rx="3" fill="#bfe0ff"/>
+      <circle cx="-2" cy="0" r="13" fill="#2b3550"/>
+      <ellipse cx="4" cy="0" rx="7" ry="9" fill="#ffffff" stroke="none"/>
+      <path d="M15 0 L9 -3 L9 3 Z" fill="#ffa630"/>
+      <circle cx="5" cy="-4.5" r="2.2" fill="#2a1d3a" stroke="none"/>
+      <circle cx="5" cy="4.5" r="2.2" fill="#2a1d3a" stroke="none"/>
+    </g>
+    <circle r="40" fill="#a8ecff" fill-opacity="0.22" stroke="#e6fbff" stroke-width="3"/>
+    <ellipse cx="-16" cy="-20" rx="9" ry="4" transform="rotate(-40 -16 -20)" fill="#ffffff" opacity="0.8"/>
+  </g>
+
+  <!-- Confetti -->
+  <g opacity="0.95">
+    <rect x="410" y="60" width="12" height="6" rx="2" fill="#ff5f8f" transform="rotate(30 416 63)"/>
+    <rect x="560" y="90" width="12" height="6" rx="2" fill="#4fc3ff" transform="rotate(-20 566 93)"/>
+    <rect x="250" y="110" width="12" height="6" rx="2" fill="#6ee87d" transform="rotate(50 256 113)"/>
+    <rect x="660" y="160" width="12" height="6" rx="2" fill="#ffd84a" transform="rotate(10 666 163)"/>
+    <rect x="330" y="420" width="12" height="6" rx="2" fill="#b47cff" transform="rotate(-35 336 423)"/>
+    <rect x="480" y="440" width="12" height="6" rx="2" fill="#ff8a3d" transform="rotate(25 486 443)"/>
+    <circle cx="210" cy="80" r="5" fill="#ffd84a"/>
+    <circle cx="760" cy="300" r="5" fill="#ff5f8f"/>
+    <circle cx="40" cy="250" r="5" fill="#4fc3ff"/>
+  </g>
+</svg>

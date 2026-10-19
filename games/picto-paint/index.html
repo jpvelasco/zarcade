@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#fbf3e4">
+  <meta name="description" content="Picto Paint: a cozy picture-logic game. Use the number clues to fill squares and reveal pixel pictures that come to life.">
+  <title>Picto Paint — cozy picture logic</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="picto-paint"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="stage" aria-label="Picto Paint board"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Picto Paint uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/picto-paint/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <header id="hud" class="hud hidden">
+    <div class="hud-left">
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+      <button id="btn-zoom" class="icon-btn hidden" aria-label="Zoom in" aria-pressed="false" title="Zoom (+ / −)">🔍</button>
+      <div class="hud-title">
+        <div id="hud-name" class="hud-name">Heart</div>
+        <div id="hud-sub" class="hud-sub">First Doodles · 5×5</div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div id="hud-time" class="pill time" title="Time">0:00</div>
+      <button id="btn-sound" class="icon-btn" aria-label="Mute" aria-pressed="false" title="Mute (M)">🔊</button>
+    </div>
+  </header>
+
+  <div id="hint-bubble" class="hint-bubble hidden" role="status">
+    <span class="hint-icon" aria-hidden="true">💡</span>
+    <p id="hint-text"></p>
+    <button id="btn-hint-ok" class="btn small">Got it</button>
+  </div>
+
+  <footer id="toolbar" class="toolbar hidden">
+    <button id="btn-undo" class="tool-btn" title="Undo (Z)" aria-label="Undo"><span aria-hidden="true">↶</span><b>Undo</b></button>
+    <div id="paints" class="paints" role="radiogroup" aria-label="Paint"></div>
+    <button id="btn-cross" class="tool-btn" title="Cross tool (X, T toggles)" aria-label="Cross tool" aria-pressed="false"><span aria-hidden="true">✕</span><b>Cross</b></button>
+    <button id="btn-hint" class="tool-btn" title="Hint (H)" aria-label="Hint"><span aria-hidden="true">💡</span><b>Hint</b></button>
+  </footer>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Picto Paint">
+        <svg class="logo-art" viewBox="0 0 70 70" aria-hidden="true">
+          <g id="logo-pixels"></g>
+        </svg>
+        <h1><span class="l1">Picto</span><span class="l2">Paint</span></h1>
+      </div>
+      <p class="tagline">Use the number clues to colour in squares and uncover a hidden picture. Then watch it come to life!</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-albums" class="btn">📒 Albums</button>
+          <button id="btn-daily" class="btn">🐛 Daily Critter</button>
+        </div>
+        <div class="row">
+          <button id="btn-gallery" class="btn">🖼️ Gallery</button>
+          <button id="btn-studio" class="btn">🎨 Studio</button>
+        </div>
+      </div>
+      <p id="title-stats" class="muted stats"></p>
+      <p class="controls keys-only"><b>Fill</b> click / drag · Space &nbsp; <b>Cross</b> right-click · X &nbsp; <b>Move</b> arrows &nbsp; <b>Undo</b> Z &nbsp; <b>Hint</b> H &nbsp; <b>Pause</b> Esc</p>
+      <p class="controls touch-only"><b>Tap or drag</b> to fill &nbsp; <b>Long-press</b> or ✕ to cross &nbsp; <b>Pinch</b> to zoom</p>
+    </div>
+  </section>
+
+  <section id="screen-albums" class="overlay scroll hidden">
+    <div class="sheet">
+      <div class="sheet-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Albums</h2>
+        <span id="albums-stars" class="pill">★ 0</span>
+      </div>
+      <div id="album-list" class="album-list"></div>
+    </div>
+  </section>
+
+  <section id="screen-album" class="overlay scroll hidden">
+    <div class="sheet">
+      <div class="sheet-head">
+        <button class="btn small" data-albums>← Albums</button>
+        <h2 id="album-name">Album</h2>
+        <span id="album-stars" class="pill">★ 0</span>
+      </div>
+      <p id="album-blurb" class="muted center"></p>
+      <div id="puzzle-grid" class="puzzle-grid"></div>
+    </div>
+  </section>
+
+  <section id="screen-gallery" class="overlay scroll hidden">
+    <div class="sheet">
+      <div class="sheet-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Gallery</h2>
+        <span id="gallery-count" class="pill">0</span>
+      </div>
+      <div id="gallery-body"></div>
+    </div>
+  </section>
+
+  <section id="screen-viewer" class="overlay low hidden">
+    <div class="card small viewer-card">
+      <h2 id="viewer-name">Picture</h2>
+      <p id="viewer-sub" class="muted"></p>
+      <div class="row">
+        <button id="btn-viewer-prev" class="btn small" aria-label="Previous">←</button>
+        <button id="btn-viewer-back" class="btn primary">Back to gallery</button>
+        <button id="btn-viewer-next" class="btn small" aria-label="Next">→</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-studio" class="overlay scroll hidden">
+    <div class="sheet">
+      <div class="sheet-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Studio</h2>
+        <span id="studio-stars" class="pill">★ 0</span>
+      </div>
+      <h3>Checking</h3>
+      <div class="mode-row" role="radiogroup" aria-label="Checking mode">
+        <button class="mode-btn" data-mode="helper"><b>🧸 Helper</b><span>Wrong squares get fixed gently right away. Great for kids and beginners.</span></button>
+        <button class="mode-btn" data-mode="expert"><b>🎓 Expert</b><span>No checking at all. Just you and the clues.</span></button>
+      </div>
+      <h3>Paper</h3>
+      <div id="palette-list" class="swatch-list"></div>
+      <h3>Pencil</h3>
+      <div id="pencil-list" class="swatch-list"></div>
+      <h3>Sound</h3>
+      <div class="row">
+        <button class="btn small" data-sound>Effects: on</button>
+        <button class="btn small" data-music>Music: on</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-intro" class="overlay dim hidden">
+    <div class="card intro-card">
+      <h2 id="intro-title">How to play</h2>
+      <div id="intro-body"></div>
+      <button id="btn-intro" class="btn primary">Let's paint!</button>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-sub" class="muted">Your picture will wait for you.</p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Start over</button>
+        <button id="btn-pause-album" class="btn">Album</button>
+        <div class="row">
+          <button id="btn-mode" class="btn small">Helper: on</button>
+          <button class="btn small" data-sound>Effects: on</button>
+          <button class="btn small" data-music>Music: on</button>
+        </div>
+        <button class="btn" data-title>Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay low hidden">
+    <div class="card results-card">
+      <h2 id="res-title">It's a Heart!</h2>
+      <div id="res-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <div id="res-lines" class="res-lines"></div>
+      <div id="res-unlocks" class="res-unlocks"></div>
+      <div class="col">
+        <button id="btn-next" class="btn primary">Next picture →</button>
+        <div class="row">
+          <button id="btn-res-album" class="btn">Album</button>
+          <button id="btn-replay" class="btn">Play again</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

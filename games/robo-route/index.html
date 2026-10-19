@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#173247">
+  <meta name="description" content="Robo Route: a coding puzzle game. Snap command tiles into a program, press Run, and watch Bolt the robot follow it. Loops, procedures and conditions across 48 levels.">
+  <title>Robo Route — program Bolt the robot</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="robo-route"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body class="titling">
+  <canvas id="board" aria-label="The board: Bolt the robot, blocks, lamps and batteries"></canvas>
+
+  <section id="file-warning" class="overlay dim hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Robo Route uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/robo-route/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- HUD over the board -->
+  <header id="hud" class="hidden">
+    <div class="hud-left">
+      <button id="btn-map" class="icon-btn" aria-label="Level map" title="Level map (Q)"><span aria-hidden="true">◀</span></button>
+      <div class="level-badge" id="level-badge">
+        <b id="level-num">1-1</b><span id="level-name">Hello, Bolt!</span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-view" class="icon-btn" aria-label="Turn the camera (V)" title="Turn the camera (V)"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 13a10 10 0 0 1 18-3" fill="none" stroke-width="3.4" stroke-linecap="round"/><path d="M25 4v7h-7" fill="none" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 20l8 4 8-4-8-4z" fill="#1d2a3a" stroke="none"/></svg></button>
+      <button id="btn-mute" class="icon-btn" aria-label="Mute" aria-pressed="false" title="Sound (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+  </header>
+  <div id="bubble" class="bubble hidden" aria-live="polite"></div>
+
+  <!-- Program panel -->
+  <section id="panel" class="hidden" aria-label="Program">
+    <div class="palette-row">
+      <div id="palette" class="palette" role="group" aria-label="Command tiles"></div>
+      <div id="brushes" class="brushes hidden" role="group" aria-label="Colour brushes"></div>
+    </div>
+    <div id="strips" class="strips"></div>
+    <div class="goal-row">
+      <div id="goal" class="goal" aria-live="off"></div>
+      <div class="par" id="par-pill" title="Use this many tiles or fewer for 3 stars">
+        <span class="par-stars" aria-hidden="true">★★★</span><span>≤ <b id="par-n">3</b></span>
+      </div>
+      <button id="btn-hint" class="hint-btn" aria-label="Hint (H)" title="Hint (H)"></button>
+    </div>
+    <div id="controls" class="controls">
+      <button id="btn-reset" class="ctl" aria-label="Reset (X)" title="Reset Bolt (X)"></button>
+      <button id="btn-run" class="ctl run" aria-label="Run (Space)" title="Run (Space)"></button>
+      <button id="btn-step" class="ctl" aria-label="Step (S)" title="Step one tile (S)"></button>
+      <button id="btn-speed" class="ctl speed" aria-label="Speed (T)" title="Speed (T)">1×</button>
+      <button id="btn-clear" class="ctl" aria-label="Clear the program" title="Clear the program"></button>
+    </div>
+  </section>
+
+  <!-- Editor panel -->
+  <section id="editor" class="hidden" aria-label="Level editor">
+    <div class="ed-top">
+      <button id="ed-back" class="icon-btn" aria-label="Back to the map" title="Back">◀</button>
+      <input id="ed-name" type="text" maxlength="18" placeholder="Name your level" aria-label="Level name" autocomplete="off">
+    </div>
+    <div class="ed-tools" id="ed-tools" role="group" aria-label="Building tools"></div>
+    <div class="ed-row">
+      <span class="ed-label">Size</span>
+      <button class="mini" data-size="w-">−</button><b id="ed-w">5</b><button class="mini" data-size="w+">+</button>
+      <span class="ed-x">×</span>
+      <button class="mini" data-size="h-">−</button><b id="ed-h">5</b><button class="mini" data-size="h+">+</button>
+    </div>
+    <div class="ed-row">
+      <span class="ed-label">Tiles</span>
+      <div class="ed-ops" id="ed-ops" role="group" aria-label="Allowed tiles"></div>
+    </div>
+    <div class="ed-row">
+      <span class="ed-label">Main</span>
+      <button class="mini" data-lim="main-">−</button><b id="ed-main">10</b><button class="mini" data-lim="main+">+</button>
+      <span class="ed-label">P1</span>
+      <button class="mini" data-lim="p1-">−</button><b id="ed-p1">0</b><button class="mini" data-lim="p1+">+</button>
+    </div>
+    <p class="ed-status" id="ed-status" aria-live="polite"></p>
+    <div class="ed-actions">
+      <button id="ed-test" class="btn primary">▶ Test it</button>
+      <button id="ed-share" class="btn">Share</button>
+      <button id="ed-new" class="btn">New</button>
+      <button id="ed-mine" class="btn">My levels</button>
+    </div>
+  </section>
+
+  <div id="ghost" class="ghost hidden" aria-hidden="true"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- Title -->
+  <section id="screen-title" class="overlay title-overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <canvas id="title-bolt" width="200" height="170" aria-hidden="true"></canvas>
+      <h1 class="logo" aria-label="Robo Route"><span class="w1">Robo</span> <span class="w2">Route</span></h1>
+      <p class="tagline">Snap tiles into a program, press Run, and help Bolt light up every lamp.</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Let's code!</button>
+        <div class="row">
+          <button id="btn-title-daily" class="btn">☀️ Daily</button>
+          <button id="btn-title-garage" class="btn">🎨 Garage</button>
+          <button id="btn-title-bugs" class="btn">🐞 Bugs</button>
+          <button id="btn-title-editor" class="btn">🛠️ Build</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>🔊 Sound on</button>
+          <button class="btn small" data-music>🎵 Music on</button>
+        </div>
+      </div>
+      <p id="title-best" class="best"></p>
+      <p class="controls keys-only"><b>Click</b> or <b>drag</b> tiles · <b>Space</b> runs · <b>S</b> steps · <b>Esc</b> pauses</p>
+      <p class="controls touch-only"><b>Tap</b> or <b>drag</b> tiles in · <b>tap</b> a tile to take it out</p>
+    </div>
+  </section>
+
+  <!-- World map -->
+  <section id="screen-map" class="overlay map-overlay hidden" aria-labelledby="map-title">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="map-card">
+      <div class="map-head">
+        <button id="map-prev" class="icon-btn" aria-label="Previous world">◀</button>
+        <div class="map-title">
+          <h2 id="map-title">Tinker Yard</h2>
+          <p id="map-sub">Sequences · ★ 0/30</p>
+        </div>
+        <button id="map-next" class="icon-btn" aria-label="Next world">▶</button>
+      </div>
+      <div class="world-dots" id="world-dots" role="tablist" aria-label="Worlds"></div>
+      <div class="nodes" id="nodes"></div>
+      <div class="map-foot">
+        <button id="map-daily" class="btn gold">☀️ Daily Circuit <small id="map-streak"></small></button>
+        <button id="map-garage" class="btn">🎨 Garage</button>
+        <button id="map-bugs" class="btn">🐞 Bugs <small id="map-bugcount"></small></button>
+        <button id="map-editor" class="btn">🛠️ Build</button>
+        <button id="map-title-btn" class="btn">🏠</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Result -->
+  <section id="screen-result" class="overlay dim hidden" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <div class="card result-card">
+      <div class="result-stars" id="result-stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <h2 id="result-title">All lit up!</h2>
+      <p id="result-line" class="result-line"></p>
+      <div id="result-extra" class="result-extra"></div>
+      <div class="row">
+        <button id="result-next" class="btn primary">Next ▶</button>
+        <button id="result-again" class="btn">Try for fewer tiles</button>
+        <button id="result-map" class="btn">Map</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="screen-pause" class="overlay dim hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+    <div class="card small">
+      <h2 id="pause-title">Paused</h2>
+      <p class="muted">Bolt is taking a little break.</p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <div class="row">
+          <button class="btn small" data-sound>🔊 Sound on</button>
+          <button class="btn small" data-music>🎵 Music on</button>
+        </div>
+        <button id="btn-help" class="btn">How to play</button>
+        <button id="btn-pause-map" class="btn">Level map</button>
+        <button id="btn-pause-title" class="btn">Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sheets: garage, bugs, help, hint, teach, codes -->
+  <section id="screen-sheet" class="overlay dim hidden" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="card sheet" id="sheet-card">
+      <div class="sheet-head">
+        <h2 id="sheet-title">Title</h2>
+        <button class="close-btn" id="sheet-close" aria-label="Close">✕</button>
+      </div>
+      <div id="sheet-body" class="sheet-body"></div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

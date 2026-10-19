@@ -1,0 +1,7 @@
+{
+  "name": "shard-storm",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Shard Storm: a neon slice game for the Starlight Arcade."
+}

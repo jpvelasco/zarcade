@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#140c3a">
+  <meta name="description" content="Cartoon mini golf across the solar system: putt a glowing ball through whimsical space holes.">
+  <title>Moonshot Mini Golf — putt across the solar system</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="moonshot-golf"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Moonshot Mini Golf course. Drag back from anywhere and release to putt."></canvas>
+
+  <header id="hud" class="hud hidden">
+    <div class="hud-card hud-hole">
+      <span id="hud-world" class="hud-world">Moon Base</span>
+      <span class="hud-line"><b id="hud-num">Hole 1</b><span id="hud-name" class="hud-name"></span></span>
+    </div>
+    <div class="hud-card hud-score" aria-live="polite">
+      <div><small>Par</small><b id="hud-par">2</b></div>
+      <div><small>Strokes</small><b id="hud-strokes">0</b></div>
+    </div>
+    <div class="hud-buttons">
+      <button id="btn-mute" class="icon-btn" aria-label="Sound on" title="Sound (M)"></button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="banner" class="banner hidden" aria-live="polite">
+    <div id="banner-top" class="banner-top"></div>
+    <div id="banner-name" class="banner-name"></div>
+    <div id="banner-tip" class="banner-tip"></div>
+  </div>
+
+  <section id="screen-title" class="screen">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <svg class="logo-art" viewBox="0 0 220 120" aria-hidden="true">
+        <defs>
+          <radialGradient id="lp" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff2b3"/><stop offset="0.55" stop-color="#ffb85c"/><stop offset="1" stop-color="#e0673a"/></radialGradient>
+          <radialGradient id="lb" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#ffd35a"/></radialGradient>
+          <radialGradient id="lg" r="50%"><stop offset="0" stop-color="#fff5aa" stop-opacity="0.9"/><stop offset="1" stop-color="#fff5aa" stop-opacity="0"/></radialGradient>
+        </defs>
+        <ellipse cx="110" cy="64" rx="96" ry="20" fill="none" stroke="#b78bff" stroke-width="7" stroke-opacity="0.55" transform="rotate(-12 110 64)"/>
+        <circle cx="110" cy="60" r="40" fill="url(#lp)"/>
+        <path d="M74 44q36 10 72 0" stroke="#fff" stroke-opacity="0.35" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M71 64q39 10 78 0" stroke="#c4502c" stroke-opacity="0.35" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M18 82a96 20 -12 0 0 184 -38" fill="none" stroke="#e7d8ff" stroke-width="7" stroke-linecap="round" transform="rotate(0)"/>
+        <circle cx="178" cy="28" r="22" fill="url(#lg)"/>
+        <circle cx="178" cy="28" r="8" fill="url(#lb)"/>
+        <path d="M150 42q-10 10-24 12" stroke="#fff5aa" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round" fill="none"/>
+        <line x1="36" y1="18" x2="36" y2="52" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        <path d="M36 18l20 6-20 7z" fill="#ff5d8f"/>
+        <ellipse cx="36" cy="53" rx="9" ry="3" fill="#1a1233"/>
+      </svg>
+      <h1 class="logo"><span class="logo-main">Moonshot</span><span class="logo-sub">Mini Golf</span></h1>
+      <p class="tagline">Putt a glowing ball through 18 holes across the solar system.</p>
+      <div class="row">
+        <button id="btn-play" class="btn primary">Play</button>
+      </div>
+      <p id="title-stars" class="muted"></p>
+      <ul class="how">
+        <li><b>Drag back</b> from anywhere, then let go to putt</li>
+        <li class="keys-only"><b>Keys:</b> ← → aim, hold <kbd>Space</kbd> for power</li>
+        <li class="keys-only"><b>Gamepad:</b> stick aims, hold <kbd>A</kbd></li>
+        <li class="touch-only">Pull further for a harder putt. Pull back to the start to cancel.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="screen-worlds" class="screen hidden">
+    <div class="worlds-wrap">
+      <div class="worlds-head">
+        <button id="btn-worlds-back" class="btn ghost">← Back</button>
+        <h2>Pick a world</h2>
+        <span id="worlds-stars" class="pill"></span>
+      </div>
+      <div id="world-list" class="world-list"></div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="screen dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-where" class="muted"></p>
+      <div class="stack">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-retry" class="btn">Retry hole</button>
+        <button id="btn-pause-map" class="btn">World map</button>
+        <button id="btn-pause-sound" class="btn">Sound: on</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-card" class="screen dim hidden">
+    <div class="card scorecard">
+      <p id="card-kicker" class="kicker"></p>
+      <h2 id="card-title"></h2>
+      <div id="card-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <p id="card-detail" class="muted"></p>
+      <div class="table-wrap"><table id="card-table" class="sc-table"></table></div>
+      <div class="row">
+        <button id="btn-card-retry" class="btn">Retry hole</button>
+        <button id="btn-card-next" class="btn primary">Next hole →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="screen dim hidden">
+    <div class="card scorecard">
+      <p id="res-kicker" class="kicker"></p>
+      <h2 id="res-title"></h2>
+      <p id="res-score" class="big"></p>
+      <p id="res-detail" class="muted"></p>
+      <div class="table-wrap"><table id="res-table" class="sc-table"></table></div>
+      <p id="res-unlock" class="unlock hidden"></p>
+      <div id="res-buttons" class="row"></div>
+    </div>
+  </section>
+
+  <script src="src/physics.js"></script>
+  <script src="src/play.js"></script>
+  <script src="src/rules.js"></script>
+  <script src="src/holes.js"></script>
+  <script src="src/autoputt.js"></script>
+  <script src="src/audio.js"></script>
+  <script src="src/render.js"></script>
+  <script src="src/perf.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>

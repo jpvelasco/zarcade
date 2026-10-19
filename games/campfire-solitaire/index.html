@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b0f2a">
+  <meta name="description" content="Campfire Solitaire: cozy TriPeaks under the stars. Play cards one up or one down, build streaks and light up the night sky.">
+  <title>Campfire Solitaire — cards under the stars</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="campfire-solitaire"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="table" aria-label="Campfire Solitaire card table"></canvas>
+
+  <section id="file-warning" class="overlay dim hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Campfire Solitaire uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/campfire-solitaire/</code></p>
+      <a class="btn" href="../../index.html">← Arcade</a>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud" class="hud off">
+    <div class="hud-left">
+      <div class="hud-pill" id="hud-title"><span><span id="hud-name">Level 1</span><span id="hud-layout" class="wide-only"></span></span><b id="hud-score">0</b></div>
+      <div class="hud-goals">
+        <span id="hud-streak" class="chip" title="Streak goal">🔥 <b>0</b>/<i>4</i></span>
+        <span id="hud-solo" class="chip on" title="No undo or hints yet">✋ Solo</span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+  </div>
+  <button id="btn-undo" class="tool-btn off" aria-label="Undo" title="Undo (U)"><span aria-hidden="true">↶</span><small>Undo</small></button>
+  <button id="btn-hint" class="tool-btn off" aria-label="Hint" title="Hint (H)"><span aria-hidden="true">💡</span><small>Hint</small></button>
+  <div id="banner" class="banner hidden" aria-hidden="true"></div>
+  <div id="toast" class="toast hidden" role="status"></div>
+  <div id="sr-status" class="sr-only" aria-live="polite"></div>
+  <!-- Lays out every emoji once at load, so the first deal never waits on font fallback. -->
+  <div class="glyph-warm" aria-hidden="true">🔥✋💡↶❚❚🔇🔊🎵🌙🃏🗺️🎒🎁★☆✓·×→←</div>
+
+  <section id="screen-title" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Campfire Solitaire">
+        <div class="logo-art" aria-hidden="true">
+          <span class="fan c1">7<i>♥</i></span>
+          <span class="fan c2">8<i>♠</i></span>
+          <span class="fan c3">9<i>♦</i></span>
+          <span class="flame"></span>
+        </div>
+        <h1><span class="l1">Campfire</span><span class="l2">Solitaire</span></h1>
+      </div>
+      <p class="tagline">Play cards one up or one down, build a streak, and light up the night sky.</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-daily" class="btn grow daily-btn">🌙 Daily Deal</button>
+          <button id="btn-quick" class="btn grow">🃏 Quick Deal</button>
+        </div>
+        <div class="row">
+          <button id="btn-map" class="btn grow">🗺️ Trail Map</button>
+          <button id="btn-gear" class="btn grow">🎒 Camp Gear</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>🔊 Sound on</button>
+          <button class="btn small" data-music>🎵 Music on</button>
+        </div>
+      </div>
+      <p id="title-stats" class="muted stats"></p>
+      <p class="controls keys-only"><b>Play</b> click a card · arrows/Tab + Enter &nbsp; <b>Draw</b> D &nbsp; <b>Undo</b> U &nbsp; <b>Hint</b> H &nbsp; <b>Pause</b> Esc &nbsp; <b>Mute</b> M</p>
+      <p class="controls touch-only"><b>Tap</b> a card one up or one down from the fire pile · <b>tap the stock</b> to draw</p>
+    </div>
+  </section>
+
+  <section id="screen-map" class="overlay dim hidden">
+    <div class="card wide map-card">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Trail Map</h2>
+        <span id="map-stars" class="pill">★ 0</span>
+      </div>
+      <div id="map-body" class="map-body"></div>
+    </div>
+  </section>
+
+  <section id="screen-gear" class="overlay dim hidden">
+    <div class="card wide gear-card">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Camp Gear</h2>
+        <span id="gear-count" class="pill"></span>
+      </div>
+      <h3 class="gear-h">Card backs <small>tap one to use it</small></h3>
+      <div id="gear-backs" class="gear-grid backs"></div>
+      <h3 class="gear-h">Around the campfire</h3>
+      <div id="gear-decor" class="gear-grid decor"></div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-sub" class="muted"></p>
+      <ul id="pause-goals" class="goals"></ul>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-pause-again" class="btn">Deal again</button>
+        <button id="btn-pause-map" class="btn">Trail map</button>
+        <div class="row">
+          <button class="btn small grow" data-sound>🔊 Sound on</button>
+          <button class="btn small grow" data-music>🎵 Music on</button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-won" class="overlay hidden">
+    <div class="card result-card">
+      <h2 id="won-title">Camp cleared!</h2>
+      <p id="won-sub" class="muted"></p>
+      <div id="won-stars" class="stars" aria-hidden="true"></div>
+      <p id="won-score" class="big-score"></p>
+      <p id="won-best" class="best hidden">New best!</p>
+      <div id="won-lines" class="res-lines"></div>
+      <div id="won-unlocks" class="unlocks"></div>
+      <div class="col result-buttons">
+        <button id="btn-next" class="btn primary">Next level →</button>
+        <div class="row">
+          <button id="btn-won-again" class="btn grow">Deal again</button>
+          <button id="btn-won-map" class="btn grow">Trail map</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-stuck" class="overlay hidden">
+    <div class="card result-card small">
+      <h2>Out of cards!</h2>
+      <p id="stuck-sub" class="muted"></p>
+      <div class="col result-buttons">
+        <button id="btn-stuck-undo" class="btn primary">↶ Undo a move</button>
+        <div class="row">
+          <button id="btn-stuck-again" class="btn grow">Deal again</button>
+          <button id="btn-stuck-map" class="btn grow">Trail map</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

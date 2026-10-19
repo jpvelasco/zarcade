@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6fc1f2"/>
+      <stop offset="0.52" stop-color="#bfe4ff"/>
+      <stop offset="1" stop-color="#ffe7c4"/>
+    </linearGradient>
+    <linearGradient id="farHill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9dc4de"/>
+      <stop offset="1" stop-color="#b9d8ea"/>
+    </linearGradient>
+    <linearGradient id="midHill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8ec47c"/>
+      <stop offset="1" stop-color="#6fae60"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9ad96a"/>
+      <stop offset="1" stop-color="#5fa94a"/>
+    </linearGradient>
+    <linearGradient id="warm" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffd38a" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#fff4d8" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff8dc"/>
+      <stop offset="0.45" stop-color="#ffe9a8" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffdf6"/>
+      <stop offset="1" stop-color="#ffeec9"/>
+    </linearGradient>
+    <linearGradient id="paperUnder" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0dcb4"/>
+      <stop offset="1" stop-color="#dcc294"/>
+    </linearGradient>
+    <g id="cloud">
+      <circle cx="26" cy="20" r="14" fill="#ffffff" opacity="0.95"/>
+      <circle cx="46" cy="14" r="18" fill="#ffffff" opacity="0.95"/>
+      <circle cx="68" cy="21" r="14" fill="#ffffff" opacity="0.95"/>
+      <circle cx="46" cy="26" r="16" fill="#ffffff" opacity="0.95"/>
+    </g>
+    <g id="house">
+      <rect x="6" y="26" width="58" height="52" rx="4" fill="#f8e7ca" stroke="#c49a6a" stroke-width="3"/>
+      <path d="M0 29 L35 2 L70 29 Z" fill="#d4694f" stroke="#a24a37" stroke-width="3"/>
+      <rect x="48" y="4" width="9" height="22" rx="2" fill="#b2563f" stroke="#83382a" stroke-width="2.5"/>
+      <rect x="24" y="38" width="22" height="22" rx="3" fill="#fff3c0" stroke="#9a7a4a" stroke-width="2.5"/>
+      <path d="M35 38 V60 M24 49 H46" stroke="#9a7a4a" stroke-width="2"/>
+    </g>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <circle cx="668" cy="84" r="96" fill="url(#sun)"/>
+  <circle cx="668" cy="84" r="31" fill="#fff6d8"/>
+
+  <!-- Far ridges -->
+  <path d="M0 268 L70 214 L132 248 L206 186 L286 240 L352 206 L430 252 L500 212 L578 250 L660 208 L740 246 L800 220 L800 330 L0 330 Z" fill="url(#farHill)"/>
+  <path d="M206 186 L176 218 L240 218 Z" fill="#edf6ff" opacity="0.9"/>
+  <path d="M660 208 L634 236 L690 236 Z" fill="#edf6ff" opacity="0.85"/>
+
+  <!-- Mid hills -->
+  <path d="M0 316 C96 286 150 320 228 306 C312 290 372 324 456 312 C540 300 604 328 688 314 C742 305 776 314 800 308 L800 420 L0 420 Z" fill="url(#midHill)"/>
+
+  <use href="#cloud" x="86" y="56" opacity="0.9"/>
+  <use href="#cloud" x="330" y="34" opacity="0.75" transform="scale(1.18) translate(-40, -6)"/>
+  <use href="#cloud" x="548" y="120" opacity="0.7"/>
+
+  <!-- Warm columns rising from the chimneys -->
+  <path d="M138 404 C120 320 140 250 150 198 L214 198 C224 250 244 320 226 404 Z" fill="url(#warm)"/>
+  <path d="M452 408 C436 338 452 282 462 236 L518 236 C528 282 544 338 528 408 Z" fill="url(#warm)" opacity="0.8"/>
+  <g fill="#fff2cf" opacity="0.95">
+    <circle cx="174" cy="296" r="6"/>
+    <circle cx="196" cy="252" r="5"/>
+    <circle cx="166" cy="224" r="4"/>
+    <circle cx="486" cy="330" r="5.5"/>
+    <circle cx="502" cy="286" r="4.5"/>
+    <circle cx="478" cy="256" r="3.6"/>
+  </g>
+
+  <!-- The valley floor -->
+  <path d="M0 414 C130 398 220 424 340 416 C470 406 560 428 680 418 C740 412 776 418 800 414 L800 500 L0 500 Z" fill="url(#grass)"/>
+
+  <!-- Town -->
+  <use href="#house" x="112" y="330" transform="scale(1.02) translate(-2, 0)"/>
+  <use href="#house" x="196" y="346" transform="scale(0.88) translate(26, 42)"/>
+  <use href="#house" x="438" y="352" transform="scale(0.94) translate(26, 20)"/>
+  <use href="#house" x="520" y="364" transform="scale(0.8) translate(128, 86)"/>
+
+  <!-- Washing line between two houses -->
+  <path d="M186 356 Q244 384 300 358" stroke="#7d6e5c" stroke-width="3" fill="none"/>
+  <g>
+    <rect x="206" y="370" width="13" height="19" rx="2" fill="#ff9ec4"/>
+    <rect x="232" y="377" width="13" height="19" rx="2" fill="#9be8ff"/>
+    <rect x="258" y="375" width="13" height="19" rx="2" fill="#ffe08a"/>
+  </g>
+
+  <!-- A ring to thread -->
+  <g transform="translate(560 214)">
+    <ellipse rx="52" ry="50" fill="none" stroke="#ffffff" stroke-width="8" opacity="0.92"/>
+    <ellipse rx="44" ry="42" fill="none" stroke="#bfe6ff" stroke-width="3.4" opacity="0.9"/>
+    <circle cx="0" cy="-50" r="4.6" fill="#eaf6ff"/>
+    <circle cx="45" cy="-22" r="4.6" fill="#eaf6ff"/>
+    <circle cx="45" cy="22" r="4.6" fill="#eaf6ff"/>
+    <circle cx="0" cy="50" r="4.6" fill="#eaf6ff"/>
+    <circle cx="-45" cy="22" r="4.6" fill="#eaf6ff"/>
+    <circle cx="-45" cy="-22" r="4.6" fill="#eaf6ff"/>
+  </g>
+
+  <!-- The plane's trail -->
+  <g fill="#ffffff">
+    <circle cx="142" cy="236" r="3" opacity="0.2"/>
+    <circle cx="176" cy="228" r="3.6" opacity="0.26"/>
+    <circle cx="212" cy="218" r="4.2" opacity="0.33"/>
+    <circle cx="250" cy="208" r="4.8" opacity="0.4"/>
+    <circle cx="288" cy="199" r="5.4" opacity="0.48"/>
+    <circle cx="326" cy="192" r="6" opacity="0.56"/>
+  </g>
+
+  <!-- The paper plane -->
+  <g transform="translate(392 182) rotate(-9)">
+    <ellipse cx="4" cy="86" rx="40" ry="8" fill="#20304a" opacity="0.1"/>
+    <path d="M-62 34 L66 2 L-56 -4 Z" fill="url(#paperUnder)" stroke="#bb9d6f" stroke-width="3"/>
+    <path d="M-60 -26 L66 2 L-54 -2 Z" fill="url(#paper)" stroke="#c9a978" stroke-width="3"/>
+    <path d="M-56 -3 L64 2" stroke="#d8bb8c" stroke-width="2.6"/>
+    <path d="M-50 -16 L34 2 M-40 -10 L22 2" stroke="#efd9ad" stroke-width="2"/>
+  </g>
+
+  <!-- A letter slipping into the air -->
+  <g transform="translate(486 270) rotate(14)">
+    <rect x="-18" y="-13" width="36" height="26" rx="3" fill="#fffaf0" stroke="#d9b98a" stroke-width="2.6"/>
+    <path d="M-18 -12 L0 3 L18 -12" fill="none" stroke="#d9b98a" stroke-width="2.4"/>
+    <rect x="5" y="-9" width="10" height="7" rx="1.5" fill="#ff9ec4"/>
+  </g>
+
+  <!-- The mailbox on its mown green -->
+  <g transform="translate(694 404)">
+    <rect x="-70" y="6" width="150" height="12" rx="6" fill="#c0efa0" opacity="0.9"/>
+    <rect x="-3" y="-34" width="8" height="42" rx="3" fill="#8a6a46"/>
+    <rect x="-24" y="-62" width="50" height="34" rx="11" fill="#5aa7d8" stroke="#2f6f99" stroke-width="3.4"/>
+    <rect x="-18" y="-48" width="38" height="18" rx="5" fill="#79c2ea"/>
+    <rect x="-11" y="-42" width="24" height="8" rx="3" fill="#2f6f99"/>
+    <rect x="25" y="-72" width="4" height="18" rx="2" fill="#b9835a"/>
+    <path d="M29 -71 L45 -63 L29 -55 Z" fill="#ff6f7d" stroke="#c2404f" stroke-width="2.4"/>
+  </g>
+
+  <!-- Flowers and tufts in the foreground -->
+  <g>
+    <path d="M58 462 q-4 -16 2 -26" stroke="#4f9a4a" stroke-width="4" fill="none"/>
+    <circle cx="60" cy="432" r="8" fill="#ff9ec4"/>
+    <circle cx="60" cy="432" r="3.4" fill="#fff3b0"/>
+    <path d="M330 470 q-3 -14 1 -24" stroke="#4f9a4a" stroke-width="4" fill="none"/>
+    <circle cx="331" cy="442" r="7.4" fill="#ffe08a"/>
+    <circle cx="331" cy="442" r="3" fill="#fff8e0"/>
+    <g stroke="#4f9a4a" stroke-width="4" fill="none" stroke-linecap="round">
+      <path d="M150 486 q-6 -16 -2 -26"/>
+      <path d="M162 486 q2 -18 8 -26"/>
+      <path d="M520 484 q-6 -16 -1 -24"/>
+      <path d="M532 486 q3 -16 9 -24"/>
+      <path d="M612 492 q-5 -14 0 -22"/>
+    </g>
+  </g>
+</svg>

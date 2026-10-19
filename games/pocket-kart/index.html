@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#2b1a5e">
+  <meta name="description" content="Pocket Kart: a top-down kart racer for all ages. Drift for turbos, grab item boxes and win cup trophies with cartoon critters on toy-world tracks.">
+  <title>Pocket Kart — critter kart racing</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="pocket-kart"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Pocket Kart race track"></canvas>
+
+  <section id="file-warning" class="overlay dim hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Pocket Kart uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/pocket-kart/</code></p>
+      <a class="btn" href="../../index.html">Back to arcade</a>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- ============================================================ HUD -->
+  <div id="hud" class="hud hidden">
+    <div class="hud-left">
+      <div id="hud-place" class="place" aria-live="polite"><b>1</b><sup>st</sup></div>
+      <div class="hud-col">
+        <div id="hud-lap" class="lap">Lap 1/3</div>
+        <div id="hud-time" class="time">0:00.00</div>
+      </div>
+      <div id="hud-item" class="item-slot empty" aria-label="No item"><canvas class="icon" width="96" height="96"></canvas><i class="uses"></i></div>
+    </div>
+    <div class="hud-buttons">
+      <button id="btn-mute" class="hud-btn" type="button" aria-label="Mute" title="Sound (M)">🔊</button>
+      <button id="btn-pause" class="hud-btn" type="button" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+  </div>
+  <div id="banner" class="banner" aria-live="polite"></div>
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <div id="intro" class="intro hidden"><small id="intro-sub"></small><b id="intro-name"></b></div>
+
+  <div id="touch" class="touch hidden" aria-hidden="true">
+    <div id="steer-base" class="steer-base"><i id="steer-knob"></i></div>
+    <p class="touch-hint">Drag anywhere to steer</p>
+    <div class="touch-right">
+      <button id="tb-item" class="touch-btn item empty" type="button"><canvas class="icon" width="96" height="96"></canvas><small>ITEM</small></button>
+      <button id="tb-drift" class="touch-btn drift" type="button"><span>DRIFT</span></button>
+    </div>
+  </div>
+
+  <!-- ============================================================ title -->
+  <section id="screen-title" class="overlay title-screen hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="title-wrap">
+      <div class="logo" aria-label="Pocket Kart">
+        <span class="logo-pocket">Pocket</span>
+        <span class="logo-kart">Kart</span>
+      </div>
+      <p class="tagline">Drift, zoom and bounce with your critter crew!</p>
+      <div class="menu-grid">
+        <button id="btn-gp" class="btn primary big">🏆 Grand Prix</button>
+        <button id="btn-tt" class="btn">⏱️ Time Trial</button>
+        <button id="btn-daily" class="btn"><span>📅 Daily Dash</span><small id="daily-badge" class="badge"></small></button>
+        <button id="btn-garage" class="btn">🧸 Garage</button>
+        <button id="btn-trophies" class="btn">🏅 Trophies</button>
+        <button id="btn-options" class="btn">⚙️ Options</button>
+      </div>
+      <p id="title-best" class="muted"></p>
+      <p class="controls keys-only"><b>Steer</b> ← → · <b>Go</b> ↑ · <b>Drift</b> Space · <b>Item</b> X · <b>Pause</b> Esc</p>
+      <p class="controls touch-only"><b>Drag</b> to steer · hold <b>DRIFT</b> · tap <b>ITEM</b></p>
+    </div>
+  </section>
+
+  <!-- ============================================================ grand prix -->
+  <section id="screen-gp" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Grand Prix</h2>
+        <span class="pill" id="gp-trophies"></span>
+      </div>
+      <div class="class-row" role="radiogroup" aria-label="Speed">
+        <button class="btn seg" data-class="cosy" role="radio">🐢 Cosy</button>
+        <button class="btn seg" data-class="zippy" role="radio">🐇 Zippy</button>
+        <button class="btn seg" data-class="turbo" role="radio">🚀 Turbo</button>
+      </div>
+      <p id="class-blurb" class="muted center"></p>
+      <div id="gp-continue" class="continue hidden"></div>
+      <div id="cup-list" class="cup-list"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ garage -->
+  <section id="screen-garage" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Garage</h2>
+        <span class="pill" id="garage-count"></span>
+      </div>
+      <h3>Racer</h3>
+      <div id="racer-grid" class="racer-grid"></div>
+      <p id="racer-info" class="muted center"></p>
+      <h3>Kart</h3>
+      <div id="kart-grid" class="kart-grid"></div>
+      <div class="row sticky-go"><button id="btn-garage-go" class="btn primary">Let's race! →</button></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ time trial -->
+  <section id="screen-tt" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Time Trial</h2>
+        <span class="pill" id="tt-medals"></span>
+      </div>
+      <p class="muted center">Three laps on your own, with a Triple Turbo. Race the ghost of your best lap!</p>
+      <div id="tt-list" class="tt-list"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ daily -->
+  <section id="screen-daily" class="overlay dim hidden">
+    <div class="card">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Daily Dash</h2>
+        <span class="pill" id="daily-date"></span>
+      </div>
+      <p class="muted">A brand-new track every day. Same track for everyone today!</p>
+      <canvas id="daily-map" class="daily-map" width="240" height="160" aria-hidden="true"></canvas>
+      <h3 id="daily-name"></h3>
+      <p id="daily-streak" class="streak"></p>
+      <p id="daily-best" class="muted"></p>
+      <div class="row"><button id="btn-daily-go" class="btn primary big">Race today's track</button></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ trophies -->
+  <section id="screen-trophies" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Trophy Shelf</h2>
+        <span class="pill" id="shelf-count"></span>
+      </div>
+      <div id="shelf" class="shelf"></div>
+      <h3>Time trial medals</h3>
+      <div id="medal-grid" class="medal-grid"></div>
+      <p id="shelf-stats" class="muted center"></p>
+    </div>
+  </section>
+
+  <!-- ============================================================ options -->
+  <section id="screen-options" class="overlay dim hidden">
+    <div class="card">
+      <div class="card-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Options</h2>
+        <span></span>
+      </div>
+      <div class="col options">
+        <button class="btn toggle" data-opt="sound"></button>
+        <button class="btn toggle" data-opt="music"></button>
+        <button class="btn toggle" data-opt="camera"></button>
+        <button class="btn toggle" data-opt="autoGo"></button>
+        <button class="btn toggle" data-opt="easyDrift"></button>
+      </div>
+      <p class="muted small-print">Auto-go keeps your kart moving without holding ↑. Easy drift (touch) starts a drift when you hold a hard turn.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ loading -->
+  <section id="screen-loading" class="overlay dim hidden">
+    <div class="card small">
+      <h2 id="loading-title">Building the track…</h2>
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="loading-sub" class="muted"></p>
+    </div>
+  </section>
+
+  <!-- ============================================================ pause -->
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart race</button>
+        <div class="row">
+          <button class="btn toggle" data-opt="sound"></button>
+          <button class="btn toggle" data-opt="music"></button>
+        </div>
+        <button class="btn toggle" data-opt="camera"></button>
+        <button id="btn-quit" class="btn">Quit to menu</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ results -->
+  <section id="screen-results" class="overlay dim hidden">
+    <div class="card">
+      <h2 id="res-title"></h2>
+      <p id="res-sub" class="muted"></p>
+      <table class="standings"><tbody id="res-table"></tbody></table>
+      <p id="res-extra" class="muted"></p>
+      <div class="col">
+        <button id="btn-res-next" class="btn primary">Next race →</button>
+        <button id="btn-res-quit" class="btn">Save and quit</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-cup" class="overlay dim hidden">
+    <div class="card">
+      <div id="cup-trophy" class="big-trophy" aria-hidden="true"></div>
+      <h2 id="cup-title"></h2>
+      <p id="cup-sub" class="muted"></p>
+      <div id="cup-podium" class="podium"></div>
+      <div id="cup-unlocks" class="unlocks"></div>
+      <div class="col">
+        <button id="btn-cup-again" class="btn primary">Race this cup again</button>
+        <button id="btn-cup-cups" class="btn">All cups</button>
+        <button class="btn" data-title>Title screen</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-ttresult" class="overlay dim hidden">
+    <div class="card">
+      <h2 id="ttr-title"></h2>
+      <p id="ttr-sub" class="muted"></p>
+      <p id="ttr-time" class="big-time"></p>
+      <div id="ttr-medal" class="medal-line"></div>
+      <div id="ttr-laps" class="res-lines"></div>
+      <div id="ttr-unlocks" class="unlocks"></div>
+      <div class="col">
+        <button id="btn-ttr-retry" class="btn primary">Try again</button>
+        <button id="btn-ttr-tracks" class="btn">Pick a track</button>
+        <button class="btn" data-title>Title screen</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#cfe8b8">
+  <meta name="description" content="Riverlight: a calm tile-turning puzzle. Turn the stepping stones so a glowing stream reaches every flower.">
+  <title>Riverlight — a calm garden of streams</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="riverlight"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body data-season="spring">
+  <canvas id="garden" aria-label="Riverlight garden"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Riverlight uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/riverlight/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <header id="hud" class="hud hidden">
+    <div class="hud-left">
+      <div id="hud-season" class="hud-season">Spring Meadow</div>
+      <div id="hud-name" class="hud-name">First Trickle</div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-sound" class="icon-btn" aria-label="Mute" aria-pressed="false" title="Mute (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+  </header>
+
+  <footer id="bar" class="bar hidden">
+    <button id="btn-undo" class="bar-btn" title="Undo (Z)"><span aria-hidden="true">↶</span><b>Undo</b></button>
+    <button id="btn-reset" class="bar-btn" title="Reset (R)"><span aria-hidden="true">⟲</span><b>Reset</b></button>
+    <div class="bar-moves">
+      <div id="bar-moves" class="moves">0 moves</div>
+      <div id="bar-stars" class="target">★★★ within 10</div>
+    </div>
+    <button id="btn-hint" class="bar-btn" title="Hint (H)"><span aria-hidden="true">💡</span><b>Hint</b></button>
+  </footer>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Riverlight">
+        <svg class="logo-stream" viewBox="0 0 320 60" aria-hidden="true">
+          <path d="M6 40 C 60 4, 110 60, 160 30 S 260 4, 314 26" fill="none" stroke="#bfe6fb" stroke-width="16" stroke-linecap="round"/>
+          <path d="M6 40 C 60 4, 110 60, 160 30 S 260 4, 314 26" fill="none" stroke="#4fb2ec" stroke-width="8" stroke-linecap="round"/>
+          <path d="M6 40 C 60 4, 110 60, 160 30 S 260 4, 314 26" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 14" class="logo-shimmer"/>
+        </svg>
+        <h1>Riverlight</h1>
+      </div>
+      <p class="tagline">Turn the stepping stones and guide a glowing stream to every flower. No timers, no rush.</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-map" class="btn">Garden map</button>
+          <button id="btn-zen" class="btn">Zen garden</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>Effects: on</button>
+          <button class="btn small" data-music>Music: on</button>
+        </div>
+      </div>
+      <p id="title-progress" class="muted"></p>
+      <p class="controls">
+        <b>Turn</b> tap / click · Space / E &nbsp; <b>Turn back</b> right-click / long-press · Q &nbsp;
+        <b>Move</b> arrows / WASD &nbsp; <b>Undo</b> Z &nbsp; <b>Hint</b> H &nbsp; <b>Pause</b> Esc / P
+      </p>
+    </div>
+  </section>
+
+  <section id="screen-map" class="overlay scroll hidden">
+    <div class="map-wrap">
+      <div class="map-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Garden map</h2>
+        <span id="map-stars" class="pill">★ 0</span>
+      </div>
+      <div id="map-seasons" class="map-seasons"></div>
+    </div>
+  </section>
+
+  <section id="screen-intro" class="overlay dim hidden">
+    <div class="card small intro-card">
+      <div id="intro-icon" class="intro-icon" aria-hidden="true">💧</div>
+      <h2 id="intro-title">Bring the water home</h2>
+      <p id="intro-text"></p>
+      <button id="btn-intro" class="btn primary">Let's go</button>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p class="muted">The garden will wait for you.</p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Reset garden</button>
+        <button id="btn-pause-map" class="btn">Garden map</button>
+        <div class="row">
+          <button class="btn small" data-sound>Effects: on</button>
+          <button class="btn small" data-music>Music: on</button>
+        </div>
+        <button class="btn" data-title>Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay low hidden">
+    <div class="card results-card">
+      <h2 id="res-title">The garden is in bloom!</h2>
+      <div id="res-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <p id="res-sub" class="muted"></p>
+      <div class="col">
+        <button id="btn-next" class="btn primary">Next garden →</button>
+        <div class="row">
+          <button id="btn-admire" class="btn">Admire 🌸</button>
+          <button id="btn-replay" class="btn">Replay</button>
+          <button id="btn-res-map" class="btn">Map</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="photo-bar" class="photo-bar hidden">
+    <span id="photo-caption">Spring Meadow · First Trickle</span>
+    <button id="btn-photo-save" class="btn small">Save picture</button>
+    <button id="btn-photo-back" class="btn small primary">Done</button>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

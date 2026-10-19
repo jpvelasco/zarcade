@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb37a"/>
+      <stop offset="0.6" stop-color="#ffd9a0"/>
+      <stop offset="1" stop-color="#fff1c9"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fcb5a"/>
+      <stop offset="1" stop-color="#5aa845"/>
+    </linearGradient>
+    <radialGradient id="lens" cx="0.4" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#bfe6ff" stop-opacity="0.45"/>
+    </radialGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6b0"/>
+      <stop offset="1" stop-color="#fff6b0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g stroke="#3a2a35" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <rect width="800" height="500" fill="url(#sky)" stroke="none"/>
+    <circle cx="650" cy="90" r="90" fill="url(#sun)" stroke="none"/>
+    <circle cx="650" cy="90" r="44" fill="#ffe28a" stroke="none"/>
+    <g fill="#fff" stroke="none" opacity="0.9">
+      <path d="M90 90a26 26 0 0 1 30-26a32 32 0 0 1 58 6a24 24 0 0 1 10 46h-92a22 22 0 0 1-6-26z"/>
+      <path d="M430 60a20 20 0 0 1 24-20a26 26 0 0 1 46 6a18 18 0 0 1 8 36h-72a18 18 0 0 1-6-22z"/>
+    </g>
+    <path d="M0 300q120-60 240-20t260-10t300 0v240H0z" fill="#b9d98a" stroke="none"/>
+    <!-- houses -->
+    <g>
+      <rect x="40" y="210" width="110" height="100" rx="6" fill="#ffe0b0"/>
+      <path d="M28 214L95 160L162 214z" fill="#c9673a"/>
+      <rect x="80" y="250" width="30" height="60" rx="4" fill="#a8763a"/>
+      <rect x="560" y="196" width="120" height="114" rx="6" fill="#efe6ff"/>
+      <path d="M546 200L620 140L694 200z" fill="#a97ae0"/>
+      <rect x="600" y="240" width="40" height="70" rx="20" fill="#7a4a8a"/>
+      <rect x="690" y="226" width="96" height="84" rx="6" fill="#e0f0d0"/>
+      <path d="M680 230L738 186L796 230z" fill="#5a8a3a"/>
+    </g>
+    <!-- bakery -->
+    <rect x="200" y="150" width="230" height="160" rx="8" fill="#fff1d6"/>
+    <path d="M184 156L315 92L446 156z" fill="#c9673a"/>
+    <g stroke-width="3">
+      <path d="M200 176h46v24q-23 14-46 0z" fill="#ff9fb2"/><path d="M246 176h46v24q-23 14-46 0z" fill="#fff"/>
+      <path d="M292 176h46v24q-23 14-46 0z" fill="#ff9fb2"/><path d="M338 176h46v24q-23 14-46 0z" fill="#fff"/>
+      <path d="M384 176h46v24q-23 14-46 0z" fill="#ff9fb2"/>
+    </g>
+    <rect x="220" y="222" width="100" height="62" rx="8" fill="#bfe3ff"/>
+    <rect x="350" y="226" width="56" height="84" rx="8" fill="#c9875a"/>
+    <rect x="0" y="300" width="800" height="200" fill="url(#grass)" stroke="none"/>
+    <!-- path with paw prints -->
+    <path d="M330 300q-60 100-150 200h300q-40-100-70-200z" fill="#e9d4b0" stroke="none"/>
+    <g fill="#8a5a32" stroke="none">
+      <g transform="translate(372 330) rotate(-10)"><ellipse cx="0" cy="4" rx="8" ry="6.5"/><circle cx="-8" cy="-6" r="3"/><circle cx="-2" cy="-10" r="3"/><circle cx="5" cy="-9" r="3"/><circle cx="10" cy="-4" r="3"/></g>
+      <g transform="translate(352 372) rotate(-20) scale(1.2)"><ellipse cx="0" cy="4" rx="8" ry="6.5"/><circle cx="-8" cy="-6" r="3"/><circle cx="-2" cy="-10" r="3"/><circle cx="5" cy="-9" r="3"/><circle cx="10" cy="-4" r="3"/></g>
+      <g transform="translate(372 420) rotate(-5) scale(1.4)"><ellipse cx="0" cy="4" rx="8" ry="6.5"/><circle cx="-8" cy="-6" r="3"/><circle cx="-2" cy="-10" r="3"/><circle cx="5" cy="-9" r="3"/><circle cx="10" cy="-4" r="3"/></g>
+      <g transform="translate(336 470) rotate(-18) scale(1.6)"><ellipse cx="0" cy="4" rx="8" ry="6.5"/><circle cx="-8" cy="-6" r="3"/><circle cx="-2" cy="-10" r="3"/><circle cx="5" cy="-9" r="3"/><circle cx="10" cy="-4" r="3"/></g>
+    </g>
+    <!-- pie on a crate -->
+    <rect x="96" y="372" width="108" height="92" rx="6" fill="#d9a65a"/>
+    <path d="M100 376L200 460M200 376L100 460" stroke="#a8763a" stroke-width="6"/>
+    <rect x="96" y="372" width="108" height="92" rx="6" fill="none"/>
+    <ellipse cx="150" cy="368" rx="54" ry="14" fill="#e9e2f0"/>
+    <path d="M104 362q46-48 92 0q-46 16-92 0z" fill="#e9a35a"/>
+    <path d="M128 346l8 12M148 340l8 14M168 346l8 12" stroke="#a8652a" stroke-width="3"/>
+    <!-- bunny peeking from a bush -->
+    <g transform="translate(690 384)">
+      <ellipse cx="-14" cy="-92" rx="12" ry="34" fill="#f3e6d8" transform="rotate(-10 -14 -92)"/>
+      <ellipse cx="-14" cy="-92" rx="6" ry="24" fill="#ff9fb2" stroke="none" transform="rotate(-10 -14 -92)"/>
+      <ellipse cx="16" cy="-92" rx="12" ry="34" fill="#f3e6d8" transform="rotate(12 16 -92)"/>
+      <ellipse cx="16" cy="-92" rx="6" ry="24" fill="#ff9fb2" stroke="none" transform="rotate(12 16 -92)"/>
+      <ellipse cx="0" cy="-40" rx="40" ry="36" fill="#f3e6d8"/>
+      <ellipse cx="-14" cy="-44" rx="5" ry="7" fill="#3a2a35" stroke="none"/>
+      <ellipse cx="14" cy="-44" rx="5" ry="7" fill="#3a2a35" stroke="none"/>
+      <circle cx="-12" cy="-47" r="2" fill="#fff" stroke="none"/><circle cx="16" cy="-47" r="2" fill="#fff" stroke="none"/>
+      <path d="M-5 -30q5 4 10 0" fill="#ff9fb2" stroke-width="2.5"/>
+      <ellipse cx="0" cy="-20" rx="5" ry="6" fill="#7a2b3a" stroke-width="2.5"/>
+      <g fill="#4fae4a"><circle cx="-56" cy="10" r="40"/><circle cx="0" cy="-2" r="44"/><circle cx="56" cy="10" r="40"/><circle cx="0" cy="26" r="44"/></g>
+    </g>
+    <!-- Pip -->
+    <g transform="translate(500 330)">
+      <ellipse cx="0" cy="166" rx="70" ry="12" fill="#3a5a30" opacity="0.25" stroke="none"/>
+      <path d="M-40 60q-28 70-14 104q54 16 108 0q14-34-14-104z" fill="#c9a46a"/>
+      <path d="M-26 62l26 46l26-46" fill="#a8865a"/>
+      <circle cx="0" cy="122" r="5" fill="#7a5a32" stroke="none"/><circle cx="0" cy="142" r="5" fill="#7a5a32" stroke="none"/>
+      <ellipse cx="-30" cy="166" rx="22" ry="11" fill="#a8763a"/><ellipse cx="30" cy="166" rx="22" ry="11" fill="#a8763a"/>
+      <ellipse cx="-62" cy="0" rx="24" ry="50" fill="#7a4a28" transform="rotate(16 -62 0)"/>
+      <ellipse cx="62" cy="0" rx="24" ry="50" fill="#7a4a28" transform="rotate(-16 62 0)"/>
+      <circle cx="0" cy="-20" r="62" fill="#c98a4a"/>
+      <path d="M-11 -82q11 36 3 62h16q-8-26 3-62z" fill="#fff6ea" stroke="none"/>
+      <ellipse cx="0" cy="12" rx="38" ry="27" fill="#fff6ea" stroke="none"/>
+      <ellipse cx="-24" cy="-28" rx="8" ry="10.5" fill="#3a2a35" stroke="none"/>
+      <ellipse cx="24" cy="-28" rx="8" ry="10.5" fill="#3a2a35" stroke="none"/>
+      <circle cx="-21" cy="-32" r="3.2" fill="#fff" stroke="none"/><circle cx="27" cy="-32" r="3.2" fill="#fff" stroke="none"/>
+      <ellipse cx="0" cy="-4" rx="14" ry="10" fill="#3a2a35" stroke="none"/>
+      <path d="M-12 14q12 12 24 0"/>
+      <ellipse cx="7" cy="22" rx="7" ry="9" fill="#ff8fa3" stroke-width="3"/>
+      <ellipse cx="-40" cy="-6" rx="11" ry="7" fill="#ff7890" opacity="0.35" stroke="none"/>
+      <ellipse cx="40" cy="-6" rx="11" ry="7" fill="#ff7890" opacity="0.35" stroke="none"/>
+      <!-- deerstalker -->
+      <path d="M-60 -56a60 40 0 0 1 120 0z" fill="#a8865a"/>
+      <path d="M-60 -56q-24 6-20 18l26-10zM60 -56q24 6 20 18l-26-10z" fill="#8a6a42"/>
+      <path d="M-40 -78l28 22M-16 -90l30 34M10 -94l30 38" stroke="#7a5a32" stroke-width="3" opacity="0.5"/>
+      <circle cx="0" cy="-96" r="8" fill="#8a6a42"/>
+      <!-- magnifier -->
+      <g transform="translate(-118 112) rotate(-35)">
+        <rect x="-8" y="44" width="16" height="64" rx="7" fill="#7a4a28"/>
+        <circle cx="0" cy="0" r="48" fill="url(#lens)" stroke="#c99a3a" stroke-width="10"/>
+        <path d="M-26 -18a32 32 0 0 1 22-22" stroke="#fff" stroke-width="5" fill="none"/>
+      </g>
+      <ellipse cx="-58" cy="110" rx="14" ry="12" fill="#c98a4a"/>
+    </g>
+    <!-- sparkles -->
+    <g fill="#fff6b0" stroke="none">
+      <path d="M392 404l5 12l12 5l-12 5l-5 12l-5-12l-12-5l12-5z"/>
+      <path d="M232 120l4 9l9 4l-9 4l-4 9l-4-9l-9-4l9-4z"/>
+      <path d="M720 286l4 9l9 4l-9 4l-4 9l-4-9l-9-4l9-4z"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <radialGradient id="space" cx=".7" cy=".3" r="1">
+      <stop offset="0" stop-color="#3a1f7a"/>
+      <stop offset=".5" stop-color="#140c3a"/>
+      <stop offset="1" stop-color="#070b1f"/>
+    </radialGradient>
+    <radialGradient id="nebula" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ff4fa3" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#ff4fa3" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="planet" cx=".35" cy=".35" r=".75">
+      <stop offset="0" stop-color="#9ff7ff"/>
+      <stop offset=".5" stop-color="#3fa4ff"/>
+      <stop offset="1" stop-color="#1a2a7a"/>
+    </radialGradient>
+    <radialGradient id="moon" cx=".35" cy=".35" r=".75">
+      <stop offset="0" stop-color="#ffe7a8"/>
+      <stop offset="1" stop-color="#c86a3a"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="800" height="500" fill="url(#space)"/>
+  <ellipse cx="200" cy="140" rx="260" ry="120" fill="url(#nebula)"/>
+  <g fill="#fff">
+    <circle cx="40" cy="40" r="1.5"/><circle cx="130" cy="260" r="1.2"/><circle cx="300" cy="60" r="1.8"/>
+    <circle cx="380" cy="200" r="1"/><circle cx="460" cy="30" r="1.4"/><circle cx="520" cy="420" r="1.5"/>
+    <circle cx="700" cy="460" r="1.2"/><circle cx="760" cy="30" r="1.6"/><circle cx="60" cy="440" r="1.8"/>
+    <circle cx="250" cy="390" r="1.2"/><circle cx="600" cy="330" r="1"/>
+  </g>
+  <circle cx="620" cy="150" r="110" fill="url(#planet)"/>
+  <ellipse cx="620" cy="150" rx="180" ry="30" fill="none" stroke="#ffd35c" stroke-width="8" opacity=".8" transform="rotate(-18 620 150)"/>
+  <circle cx="150" cy="380" r="44" fill="url(#moon)"/>
+  <!-- space burger sign -->
+  <g transform="translate(160 150)" filter="url(#glow)">
+    <rect x="-70" y="-26" width="140" height="52" rx="26" fill="#2a0f3a" stroke="#ffd35c" stroke-width="4"/>
+    <path d="M-50 2 a20 14 0 0 1 40 0z" fill="#ffb347"/><rect x="-50" y="4" width="40" height="5" fill="#7a3a1a"/><rect x="-50" y="11" width="40" height="5" rx="2" fill="#ffb347"/>
+    <text x="4" y="8" font-family="Futura, Trebuchet MS, sans-serif" font-weight="800" font-size="16" fill="#ffd35c">BURGER</text>
+  </g>
+  <!-- enemy fighter -->
+  <g transform="translate(470 250)" filter="url(#glow)">
+    <path d="M0 -20 L26 12 L0 4 L-26 12Z" fill="#2a2a3a" stroke="#ff3b5c" stroke-width="3"/>
+    <circle r="5" fill="#ff3b5c"/>
+  </g>
+  <!-- lasers -->
+  <g stroke="#7cff9b" stroke-width="6" stroke-linecap="round" filter="url(#glow)">
+    <path d="M345 330 L430 270"/><path d="M395 342 L470 290"/>
+  </g>
+  <!-- player jet -->
+  <g transform="translate(330 380)" filter="url(#glow)">
+    <path d="M0 -60 L22 10 L70 34 L70 46 L18 36 L10 54 L-10 54 L-18 36 L-70 46 L-70 34 L-22 10Z" fill="#e9eeff"/>
+    <path d="M0 -40 L10 -4 L-10 -4Z" fill="#5ef2ff"/>
+    <path d="M-70 34 L-22 10 L-18 36Z M70 34 L22 10 L18 36Z" fill="#8f7bff"/>
+    <path d="M-8 56 L0 92 L8 56Z" fill="#ffd35c"/>
+  </g>
+</svg>

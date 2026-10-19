@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b7fa6">
+  <meta name="description" content="Letter Lagoon: swipe bubbly letters to spell words and rescue sea critters for your reef aquarium.">
+  <title>Letter Lagoon — spell words, rescue sea critters</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="letter-lagoon"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="sea" aria-hidden="true"></canvas>
+
+  <!-- Pinch the crab, reused by the title and play screens. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="crab-shell" cx="45%" cy="35%" r="70%">
+        <stop offset="0" stop-color="#ff9f80"/>
+        <stop offset="0.55" stop-color="#ff5a4a"/>
+        <stop offset="1" stop-color="#d93838"/>
+      </radialGradient>
+      <symbol id="crab" viewBox="0 0 200 160">
+        <g class="crab-legs" stroke="#b92a2f" stroke-width="9" stroke-linecap="round" fill="none">
+          <path d="M58 104 Q30 112 22 136"/><path d="M62 114 Q40 128 38 150"/><path d="M70 120 Q60 138 62 154"/>
+          <path d="M142 104 Q170 112 178 136"/><path d="M138 114 Q160 128 162 150"/><path d="M130 120 Q140 138 138 154"/>
+        </g>
+        <g class="crab-claw crab-claw-l">
+          <path d="M60 88 Q40 72 34 52" stroke="#d93838" stroke-width="11" stroke-linecap="round" fill="none"/>
+          <path d="M34 54 C6 50 2 18 22 10 C26 26 36 30 44 30 C46 18 56 10 64 16 C62 32 56 52 34 54Z" fill="url(#crab-shell)" stroke="#8f1f27" stroke-width="4" stroke-linejoin="round"/>
+        </g>
+        <g class="crab-claw crab-claw-r">
+          <path d="M140 88 Q160 72 166 52" stroke="#d93838" stroke-width="11" stroke-linecap="round" fill="none"/>
+          <path d="M166 54 C194 50 198 18 178 10 C174 26 164 30 156 30 C154 18 144 10 136 16 C138 32 144 52 166 54Z" fill="url(#crab-shell)" stroke="#8f1f27" stroke-width="4" stroke-linejoin="round"/>
+        </g>
+        <path d="M84 62 L80 34 M116 62 L120 34" stroke="#b92a2f" stroke-width="7" stroke-linecap="round"/>
+        <ellipse cx="100" cy="96" rx="58" ry="36" fill="url(#crab-shell)" stroke="#8f1f27" stroke-width="4"/>
+        <ellipse cx="86" cy="80" rx="20" ry="7" fill="#ffd1c2" opacity="0.6"/>
+        <g class="crab-eyes">
+          <circle cx="80" cy="30" r="14" fill="#fff" stroke="#8f1f27" stroke-width="4"/>
+          <circle cx="120" cy="30" r="14" fill="#fff" stroke="#8f1f27" stroke-width="4"/>
+          <circle cx="83" cy="32" r="6.5" fill="#1c2340"/><circle cx="123" cy="32" r="6.5" fill="#1c2340"/>
+          <circle cx="85" cy="29" r="2.4" fill="#fff"/><circle cx="125" cy="29" r="2.4" fill="#fff"/>
+        </g>
+        <circle cx="70" cy="104" r="8" fill="#ff9cb0" opacity="0.7"/><circle cx="130" cy="104" r="8" fill="#ff9cb0" opacity="0.7"/>
+        <path d="M86 104 Q100 118 114 104" stroke="#6b1520" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <path d="M70 120 Q100 132 130 120" stroke="#b92a2f" stroke-width="3" fill="none" opacity="0.5"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- ------------------------------------------------------------ title -->
+  <section id="screen-title" class="screen">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="title-wrap">
+      <h1 class="logo" aria-label="Letter Lagoon">
+        <span class="logo-row" data-word="Letter"></span>
+        <span class="logo-row small" data-word="Lagoon"></span>
+      </h1>
+      <p class="tagline">Spell words to pop the bubbles and set the sea critters free!</p>
+      <div class="title-crab">
+        <svg class="crab" viewBox="0 0 200 160"><use href="#crab"/></svg>
+        <p id="title-speech" class="speech">Hi, I'm Pinch! Want to spell with me?</p>
+      </div>
+      <div class="title-buttons">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <button id="btn-daily" class="btn sun">Daily puzzle</button>
+        <div class="row">
+          <button id="btn-map" class="btn">Reef map</button>
+          <button id="btn-aquarium" class="btn">Aquarium</button>
+        </div>
+        <div class="row">
+          <button id="btn-relax" class="btn small toggle" aria-pressed="false">Relax mode: off</button>
+          <button id="btn-title-mute" class="btn small toggle" aria-pressed="true">Sound: on</button>
+        </div>
+      </div>
+      <p id="title-progress" class="muted progress"></p>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------------- map -->
+  <section id="screen-map" class="screen hidden">
+    <header class="bar">
+      <button class="btn small" data-to-title>← Title</button>
+      <h2>Reef map</h2>
+      <p id="map-stars" class="pill"></p>
+    </header>
+    <div id="map-scroll" class="map-scroll"><div id="map-list" class="map-list"></div></div>
+  </section>
+
+  <!-- --------------------------------------------------------- aquarium -->
+  <section id="screen-aquarium" class="screen hidden">
+    <header class="bar">
+      <button class="btn small" data-to-title>← Title</button>
+      <h2>Your aquarium</h2>
+      <p id="aq-count" class="pill"></p>
+    </header>
+    <p id="aq-empty" class="aq-empty hidden">No critters yet! Spell words to rescue them and they will swim here.</p>
+    <div id="aq-shelf" class="aq-shelf"></div>
+  </section>
+
+  <!-- ------------------------------------------------------------- play -->
+  <section id="screen-play" class="screen hidden">
+    <header id="hud" class="hud">
+      <div class="hud-left">
+        <button id="btn-pause" class="icon-btn" aria-label="Pause">☰</button>
+        <div class="level-name"><b id="hud-level">Level 1</b><span id="hud-zone">Sandy Shallows</span></div>
+      </div>
+      <div class="hud-right">
+        <span id="hud-bonus" class="pill bonus-pill" title="Bonus words">✦ <b>0</b></span>
+        <span id="hud-coins" class="pill coin-pill" title="Coins"><i class="coin" aria-hidden="true"></i><b>0</b></span>
+        <button id="btn-mute" class="icon-btn" aria-label="Toggle sound">♪</button>
+      </div>
+    </header>
+    <div class="play-grid">
+      <div class="play-board">
+        <div id="rescue" class="rescue" aria-label="Critters to rescue"></div>
+        <div id="board-wrap" class="board-wrap"><div id="board" class="board" role="grid" aria-label="Crossword"></div></div>
+      </div>
+      <div class="play-controls">
+        <div class="pinch-row">
+          <svg class="crab small" viewBox="0 0 200 160" aria-hidden="true"><use href="#crab"/></svg>
+          <p id="speech" class="speech" aria-live="polite">Swipe the bubbles to spell a word!</p>
+        </div>
+        <div id="gloss" class="gloss hidden" aria-live="polite"><b></b><span></span></div>
+        <div class="preview-row">
+          <div id="preview" class="preview" aria-live="polite"></div>
+        </div>
+        <div class="wheel-row">
+          <button id="btn-shuffle" class="round-btn" aria-label="Shuffle the letters"><span>⟲</span><em>Shuffle</em></button>
+          <div id="wheel" class="wheel" aria-label="Letter wheel">
+            <svg id="trace" class="trace" aria-hidden="true"><polyline points=""/><line x1="0" y1="0" x2="0" y2="0"/></svg>
+          </div>
+          <button id="btn-hint" class="round-btn" aria-label="Hint: reveal a letter"><span>💡</span><em id="hint-cost">15</em></button>
+        </div>
+        <p class="keys-tip">Swipe or tap letters · or type, then <kbd>Enter</kbd> · <kbd>Space</kbd> shuffles · <kbd>?</kbd> hint</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ pause -->
+  <section id="screen-pause" class="screen overlay hidden">
+    <div class="card">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart level</button>
+        <button id="btn-pause-mute" class="btn">Sound: on</button>
+        <button id="btn-pause-map" class="btn">Reef map</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- results -->
+  <section id="screen-results" class="screen overlay hidden">
+    <div class="card results">
+      <h2 id="res-title">All critters rescued!</h2>
+      <div id="res-stars" class="stars" aria-hidden="true"><i>★</i><i>★</i><i>★</i></div>
+      <p id="res-relax" class="muted hidden">Relax mode: no stars, just splashing.</p>
+      <div id="res-critters" class="res-critters"></div>
+      <div id="res-lines" class="lines"></div>
+      <div id="res-buttons" class="col"></div>
+    </div>
+  </section>
+
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <script type="module" src="src/main.js"></script>
+  <noscript><p style="padding:2rem;color:#fff">Letter Lagoon needs JavaScript.</p></noscript>
+</body>
+</html>

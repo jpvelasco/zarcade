@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#3fa4f5">
+  <meta name="description" content="Dino Dash: a three-lane dinosaur runner. Dodge logs, geysers and pterodactyls, scoop amber, and run from a goofy volcano.">
+  <title>Dino Dash — run, little dino, run!</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="dino-dash"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Dino Dash playfield"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Dino Dash uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/dino-dash/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- In-run HUD. The top centre stays clear for the full-screen pill. -->
+  <div id="hud" class="hud hidden" aria-live="off">
+    <div class="hud-left">
+      <div class="hud-score"><span id="hud-score">0</span></div>
+      <div class="hud-row">
+        <span id="hud-dist" class="chip">0 m</span>
+        <span id="hud-mult" class="chip mult" title="Score multiplier">×1</span>
+      </div>
+      <div id="hud-powers" class="hud-powers"></div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-buttons">
+        <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+        <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+      </div>
+      <div class="chip amber-chip"><span class="amber-gem" aria-hidden="true"></span><span id="hud-coins">0</span></div>
+      <div id="hud-daily" class="chip daily-chip hidden"></div>
+    </div>
+    <div id="hud-lavvy" class="lavvy-warn hidden">Lavvy's right behind you!</div>
+  </div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo">
+        <canvas id="title-dino" class="title-dino" width="160" height="200" aria-hidden="true"></canvas>
+        <h1 aria-label="Dino Dash"><span class="l1">Dino</span><span class="l2">Dash</span></h1>
+      </div>
+      <p class="tagline">Run, little dino, run! Old Rumbles is burping lava again.</p>
+      <div class="title-stats">
+        <span class="pill best-pill" id="title-best">Best: —</span>
+        <span class="pill amber-pill"><span class="amber-gem" aria-hidden="true"></span><span id="title-coins">0</span></span>
+      </div>
+      <div class="missions" id="title-missions"></div>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Run!</button>
+        <button id="btn-daily" class="btn daily-btn"><span class="daily-name">Daily Dash</span><span id="daily-sub" class="daily-sub"></span></button>
+        <div class="row">
+          <button id="btn-shop" class="btn">🦕 Dinos &amp; hats</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>🔊 Sound on</button>
+          <button class="btn small" data-music>🎵 Music on</button>
+        </div>
+      </div>
+      <p class="controls keys-only"><b>← →</b> lanes &nbsp; <b>↑ / Space</b> jump &nbsp; <b>↓</b> roll &nbsp; <b>Esc</b> pause</p>
+      <p class="controls touch-only"><b>Swipe</b> ← → to change lanes, ↑ to jump, ↓ to roll</p>
+    </div>
+  </section>
+
+  <section id="screen-shop" class="overlay dim hidden">
+    <div class="card wide shop-card">
+      <div class="shop-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Dinos &amp; hats</h2>
+        <span class="pill amber-pill"><span class="amber-gem" aria-hidden="true"></span><span id="shop-coins">0</span></span>
+      </div>
+      <div class="shop-body">
+        <div class="shop-preview">
+          <canvas id="shop-dino" width="200" height="250" aria-hidden="true"></canvas>
+          <p id="shop-preview-name" class="preview-name"></p>
+        </div>
+        <div class="shop-main">
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" data-tab="dino" aria-selected="true">Dinos</button>
+            <button class="tab" role="tab" data-tab="hat" aria-selected="false">Hats</button>
+            <button class="tab" role="tab" data-tab="boost" aria-selected="false">Boosts</button>
+          </div>
+          <div id="shop-grid" class="shop-grid"></div>
+        </div>
+      </div>
+      <p id="shop-msg" class="muted center shop-msg"></p>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="missions" id="pause-missions"></div>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Keep running</button>
+        <button id="btn-restart" class="btn">Restart run</button>
+        <div class="row">
+          <button class="btn small" data-sound>🔊 Sound on</button>
+          <button class="btn small" data-music>🎵 Music on</button>
+        </div>
+        <button class="btn" id="btn-pause-title">Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-over" class="overlay dim hidden">
+    <div class="card over-card">
+      <h2 id="over-title">Lavvy caught you!</h2>
+      <p id="over-sub" class="muted">Big warm lava hug. (It tickles.)</p>
+      <div id="over-badge" class="badge hidden">New best!</div>
+      <div class="over-stats">
+        <div><span class="stat-num" id="over-dist">0 m</span><span class="stat-label">distance</span></div>
+        <div><span class="stat-num" id="over-score">0</span><span class="stat-label">score</span></div>
+        <div><span class="stat-num amber-num" id="over-coins">0</span><span class="stat-label">amber</span></div>
+      </div>
+      <p id="over-best" class="muted"></p>
+      <p id="over-daily" class="daily-result hidden"></p>
+      <div class="missions" id="over-missions"></div>
+      <div class="col">
+        <button id="btn-again" class="btn primary big">Run again</button>
+        <div class="row">
+          <button id="btn-over-shop" class="btn">🦕 Dinos &amp; hats</button>
+          <button class="btn" data-title>Title</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

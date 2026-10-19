@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Starhopper: Fly a jet fighter from planet to planet, blast the Obsidian Armada, and grab a snack at the Space Burger drive-thru.">
+  <meta name="theme-color" content="#070b1f">
+  <title>Starhopper — hop across an endless galaxy</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
+  <script src="telemetry.js" data-service="starhopper"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="scene" aria-label="Starhopper 3D view"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>This 3D game has to be served by a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/starhopper/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud" class="hidden">
+    <div id="hud-flash" class="flash"></div>
+    <div id="hud-reticle" class="reticle" aria-hidden="true"></div>
+    <div id="hud-lock" class="lock" aria-hidden="true"></div>
+    <div class="hud-top">
+      <span id="hud-planet" class="planet-name"></span>
+      <div class="progress"><div id="hud-progress"></div><span class="dest">🪐</span></div>
+      <span class="stat">✨ <b id="hud-dust">0</b></span>
+      <span class="stat score"><b id="hud-score">0</b></span>
+    </div>
+    <div id="hud-boss" class="boss hidden"><span>ARMADA BATTLESHIP</span><div class="bar"><div id="hud-boss-fill"></div></div></div>
+    <div id="hud-combo" class="combo"></div>
+    <div id="hud-toast" class="toast"></div>
+    <div id="hud-center" class="center-text"></div>
+    <div class="hud-bottom">
+      <div class="meters">
+        <div class="meter"><span class="label">SHIELD</span><div class="bar"><div id="hud-shield" class="fill shield"></div></div></div>
+        <div class="meter"><span class="label">HULL</span><div class="bar"><div id="hud-hull" class="fill hull"></div></div></div>
+        <div class="meter"><span class="label">BOOST</span><div class="bar thin"><div id="hud-boost" class="fill boost"></div></div></div>
+      </div>
+      <canvas id="hud-radar" class="radar" width="170" height="170"></canvas>
+      <div class="weapons"><div id="hud-cannon"></div><div id="hud-missiles"></div></div>
+    </div>
+    <div class="hud-buttons">
+      <button id="btn-view" class="icon-btn" aria-label="Switch camera view" title="Switch view (C)">🎥</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+  </div>
+
+  <div id="touch" class="hidden">
+    <div id="stick-zone" aria-label="Steer by dragging"></div>
+    <div id="stick-knob"></div>
+    <div class="touch-right">
+      <button class="tbtn small" data-key="roll" aria-label="Barrel roll">🌀</button>
+      <button class="tbtn small" data-key="boost" aria-label="Boost">🔥</button>
+      <button class="tbtn" data-key="missile" aria-label="Missile">🚀</button>
+    </div>
+  </div>
+
+  <section id="screen-title" class="overlay left hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <h1 class="logo">Star<span>hopper</span></h1>
+      <p class="tagline">Hop from planet to planet across an endless galaxy.</p>
+      <div class="row">
+        <button id="btn-play" class="btn primary">Galaxy map</button>
+        <button id="btn-hangar" class="btn">Hangar</button>
+      </div>
+      <p class="controls touch-only">
+        <b>Drag</b> on the left to fly · your cannons fire by themselves · <b>🚀</b> missile · <b>🔥</b> boost · <b>🌀</b> barrel roll
+      </p>
+      <p class="controls keys-only">
+        <b>Fly</b> WASD / arrows · <b>Fire</b> Space · <b>Missile</b> F · <b>Boost</b> Shift · <b>Roll</b> Q / E · <b>View</b> C · <b>Pause</b> Esc
+      </p>
+      <p id="title-dust" class="muted"></p>
+    </div>
+  </section>
+
+  <section id="screen-galaxy" class="overlay hidden">
+    <div class="card wide">
+      <h2>Galaxy map</h2>
+      <div id="galaxy-map" class="galaxy"></div>
+      <div class="galaxy-foot">
+        <div id="planet-info" class="planet-info"></div>
+        <div class="row">
+          <button class="btn" data-back>← Back</button>
+          <button id="btn-launch" class="btn primary">Launch →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-hangar" class="overlay right hidden">
+    <div class="card">
+      <h2>Hangar</h2>
+      <p class="coins-line">✨ <b id="hangar-dust">0</b> stardust</p>
+      <div id="upgrade-list" class="upgrade-list"></div>
+      <h3>Paint</h3>
+      <div id="paint-list" class="paint-list"></div>
+      <div class="row">
+        <button class="btn" data-back>← Back</button>
+        <button id="btn-hangar-launch" class="btn primary">Galaxy map →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-shop" class="overlay hidden">
+    <div class="card shop">
+      <h2 class="shop-title">🍔 Space Burger</h2>
+      <p class="muted">Welcome to the drive-thru, pilot! What can we get you?</p>
+      <p class="coins-line">✨ <b id="shop-dust">0</b> stardust</p>
+      <p id="shop-status" class="muted"></p>
+      <div id="menu-list" class="menu-list"></div>
+      <div class="row"><button id="btn-leave-shop" class="btn primary">Back to space →</button></div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="row">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart</button>
+        <button id="btn-mute" class="btn">Sound: on</button>
+        <button id="btn-quit" class="btn">Galaxy map</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay left hidden">
+    <div class="card">
+      <h2 id="res-title"></h2>
+      <div id="res-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <p id="res-score" class="big"></p>
+      <div id="res-lines" class="res-lines"></div>
+      <div id="res-buttons" class="row"></div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

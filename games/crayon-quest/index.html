@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#fbf6e6">
+  <meta name="description" content="Crayon Quest: a kid-friendly doodle deckbuilder. Climb the sketchbook tower, draft crayon cards, collect stickers and scribble out silly monsters.">
+  <title>Crayon Quest — a doodle deckbuilder</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="crayon-quest"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <svg id="defs" width="0" height="0" aria-hidden="true" focusable="false"></svg>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <section id="file-warning" class="layer modal hidden">
+    <div class="sheet">
+      <h2>One quick step</h2>
+      <p>Crayon Quest uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/crayon-quest/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- Title -->
+  <section id="screen-title" class="layer screen hidden" aria-label="Title">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="title-wrap">
+      <div class="title-art" aria-hidden="true">
+        <div id="title-monster-a" class="doodle boil title-mon a"></div>
+        <div id="title-hero" class="doodle boil title-hero"></div>
+        <div id="title-monster-b" class="doodle boil title-mon b"></div>
+      </div>
+      <h1 id="logo" class="logo" aria-label="Crayon Quest"></h1>
+      <p class="tagline">Climb the sketchbook tower, draw new cards, and scribble out silly monsters!</p>
+      <div class="title-buttons">
+        <button id="btn-continue" class="btn primary big hidden" data-act="continue">Continue run</button>
+        <button id="btn-new" class="btn primary big" data-act="heroes">New run</button>
+        <button id="btn-daily" class="btn daily" data-act="daily"><span class="daily-main">Daily Page</span><span id="daily-sub" class="daily-sub"></span></button>
+        <div class="row">
+          <button class="btn" data-act="album" id="btn-album">Album</button>
+          <button class="btn" data-act="history">Runs</button>
+          <button class="btn" data-act="help">How to play</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-act="sound" data-sound>Sound: on</button>
+          <button class="btn small" data-act="music" data-music>Music: on</button>
+        </div>
+      </div>
+      <p id="title-best" class="muted center"></p>
+    </div>
+  </section>
+
+  <!-- Hero select -->
+  <section id="screen-heroes" class="layer screen hidden" aria-label="Pick a hero">
+    <div class="screen-head">
+      <button class="btn small" data-act="title">← Back</button>
+      <h2>Pick your hero</h2>
+      <span></span>
+    </div>
+    <div id="hero-list" class="hero-list"></div>
+    <div class="hero-foot">
+      <label class="toggle"><input type="checkbox" id="gentle"> <span>Gentle mode <small>(monsters have less HP)</small></span></label>
+      <button id="btn-start" class="btn primary big" data-act="start">Start climbing!</button>
+    </div>
+  </section>
+
+  <!-- Map -->
+  <section id="screen-map" class="layer screen hidden" aria-label="Map">
+    <header class="topbar" id="map-top"></header>
+    <div class="map-head">
+      <h2 id="map-title"></h2>
+      <p id="map-hint" class="muted"></p>
+    </div>
+    <div id="map" class="map"></div>
+    <div id="map-legend" class="map-legend" aria-hidden="true"></div>
+  </section>
+
+  <!-- Battle -->
+  <section id="screen-battle" class="layer screen hidden" aria-label="Battle">
+    <header class="topbar" id="battle-top"></header>
+    <div id="arena" class="arena">
+      <div id="scene" class="scene" aria-hidden="true"></div>
+      <div id="caption" class="caption" aria-live="polite"></div>
+      <div id="hero-spot" class="fighter hero-spot"></div>
+      <div id="enemies" class="enemies"></div>
+      <div id="turn-banner" class="turn-banner hidden"></div>
+    </div>
+    <div id="hand-area" class="hand-area">
+      <div class="hand-side left">
+        <div id="energy" class="energy" title="Energy: cards cost this much to play"></div>
+        <button id="pile-draw" class="pile" data-act="piles" title="Draw pile (V)"></button>
+      </div>
+      <div id="hand" class="hand" role="group" aria-label="Your cards"></div>
+      <div class="hand-side right">
+        <button id="btn-end" class="btn end-turn" data-act="endturn">End turn</button>
+        <button id="pile-discard" class="pile" data-act="piles" title="Discard pile"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal (rooms, deck, pause, results, album, history) -->
+  <section id="modal" class="layer modal hidden" role="dialog" aria-modal="true">
+    <div id="modal-sheet" class="sheet"></div>
+  </section>
+  <section id="modal2" class="layer modal top hidden" role="dialog" aria-modal="true">
+    <div id="modal2-sheet" class="sheet"></div>
+  </section>
+
+  <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

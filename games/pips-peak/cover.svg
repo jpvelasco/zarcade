@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="Pip the sprout leaping between floating islands under a sunrise">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22366e"/>
+      <stop offset="0.34" stop-color="#6fa8e4"/>
+      <stop offset="0.62" stop-color="#ffc98d"/>
+      <stop offset="1" stop-color="#ffe6ae"/>
+    </linearGradient>
+    <radialGradient id="sunDisc" cx="0.42" cy="0.38" r="0.68">
+      <stop offset="0" stop-color="#fffef6"/>
+      <stop offset="0.55" stop-color="#ffefb4"/>
+      <stop offset="1" stop-color="#ffd275"/>
+    </radialGradient>
+    <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbe6" stop-opacity="1"/>
+      <stop offset="0.3" stop-color="#ffe6a4" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#ffc46e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rock" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a6140"/>
+      <stop offset="1" stop-color="#452e1f"/>
+    </linearGradient>
+    <linearGradient id="rockFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8b9ccb"/>
+      <stop offset="1" stop-color="#4a5680"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2fbb0"/>
+      <stop offset="0.5" stop-color="#8fd45c"/>
+      <stop offset="1" stop-color="#4b9a37"/>
+    </linearGradient>
+    <linearGradient id="fall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eafeff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#9ee6ff" stop-opacity="0.1"/>
+    </linearGradient>
+    <linearGradient id="grassTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8ce77a"/>
+      <stop offset="1" stop-color="#43a25c"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2b4a" stop-opacity="0"/>
+      <stop offset="1" stop-color="#16203c" stop-opacity="0.72"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#sky)"/>
+
+  <!-- sunrise, low and warm -->
+  <g>
+    <circle cx="600" cy="292" r="260" fill="url(#sunGlow)"/>
+    <circle cx="600" cy="292" r="76" fill="url(#sunDisc)"/>
+  </g>
+
+  <!-- distant snowy peaks -->
+  <path d="M0 344 104 226l76 82 62-62 98 112 84-78 136 148 106-102 134 144v130H0z" fill="url(#rockFar)" opacity="0.5"/>
+  <path d="M104 226l42 46-82 40zM366 248l40 44-78 36z" fill="#f2f8ff" opacity="0.7"/>
+
+  <!-- clouds -->
+  <g fill="#ffffff" opacity="0.6">
+    <ellipse cx="112" cy="116" rx="46" ry="16"/><ellipse cx="150" cy="106" rx="32" ry="22"/><ellipse cx="184" cy="116" rx="26" ry="14"/>
+    <ellipse cx="700" cy="88" rx="50" ry="16"/><ellipse cx="664" cy="80" rx="30" ry="20"/>
+    <ellipse cx="560" cy="150" rx="34" ry="12"/>
+  </g>
+
+  <!-- back island with a waterfall -->
+  <g>
+    <path d="M520 402c26 74 68 100 120 100s94-26 120-100z" fill="url(#rock)"/>
+    <ellipse cx="640" cy="400" rx="120" ry="26" fill="url(#grassTop)"/>
+    <ellipse cx="640" cy="392" rx="112" ry="20" fill="#6ed072"/>
+    <path d="M612 402h32l-8 98h-18z" fill="url(#fall)"/>
+    <g fill="#2f7a52">
+      <path d="M556 390q6-24 16-28 6 20-2 30z"/><path d="M712 388q8-22 18-24 4 18-4 28z"/>
+    </g>
+  </g>
+
+  <!-- stepping island, middle -->
+  <g>
+    <path d="M320 292c14 50 38 70 80 70s66-20 80-70z" fill="url(#rock)"/>
+    <ellipse cx="400" cy="290" rx="80" ry="19" fill="url(#grassTop)"/>
+    <ellipse cx="400" cy="283" rx="73" ry="14" fill="#6ed072"/>
+    <!-- golden acorn -->
+    <g transform="translate(400 236)">
+      <circle cx="0" cy="2" r="30" fill="#ffe9a8" opacity="0.32"/>
+      <ellipse cx="0" cy="6" rx="14" ry="17" fill="#f4b73f"/>
+      <ellipse cx="-5" cy="4" rx="4" ry="6" fill="#ffe9a8" opacity="0.85"/>
+      <rect x="-15" y="-12" width="30" height="15" rx="6" fill="#8a5a22"/>
+      <rect x="-2.5" y="-21" width="5" height="10" rx="2.5" fill="#6d4318"/>
+    </g>
+  </g>
+
+  <!-- main island, left -->
+  <g>
+    <path d="M18 376c24 92 74 124 154 124s130-38 154-124z" fill="url(#rock)"/>
+    <path d="M64 408q32 36 70 42-42 8-80-18z" fill="#35230f" opacity="0.4"/>
+    <ellipse cx="172" cy="374" rx="154" ry="32" fill="url(#grassTop)"/>
+    <ellipse cx="172" cy="366" rx="146" ry="26" fill="#6ed072"/>
+    <!-- springy mushroom -->
+    <rect x="92" y="330" width="18" height="34" rx="8" fill="#f8ebd6"/>
+    <path d="M62 334a39 28 0 0 1 78 0z" fill="#ff6f91"/>
+    <ellipse cx="82" cy="322" rx="7" ry="5" fill="#fff1f6"/><ellipse cx="114" cy="316" rx="5" ry="3.6" fill="#fff1f6"/>
+    <!-- bloomed checkpoint flower -->
+    <path d="M238 362v-40" stroke="#4f9e57" stroke-width="7" stroke-linecap="round"/>
+    <ellipse cx="252" cy="344" rx="11" ry="5" fill="#4f9e57" transform="rotate(-18 252 344)"/>
+    <g fill="#ff8fc0"><circle cx="238" cy="302" r="11"/><circle cx="219" cy="314" r="11"/><circle cx="257" cy="314" r="11"/><circle cx="226" cy="334" r="11"/><circle cx="250" cy="334" r="11"/></g>
+    <circle cx="238" cy="318" r="9" fill="#ffe680"/>
+    <!-- beetle -->
+    <g transform="translate(300 346)">
+      <ellipse cx="0" cy="0" rx="23" ry="17" fill="#c4703a"/>
+      <path d="M-23 -2a23 17 0 0 1 46 0z" fill="#8f4a22"/>
+      <path d="M0 -17v32" stroke="#5e2f14" stroke-width="2.4"/>
+      <circle cx="15" cy="-4" r="5.5" fill="#fff"/><circle cx="17" cy="-4" r="2.6" fill="#23180f"/>
+      <path d="M14 -14l8-9" stroke="#4a3320" stroke-width="2.6" stroke-linecap="round"/>
+      <g stroke="#4a3320" stroke-width="3" stroke-linecap="round"><path d="M-10 15v6M0 16v6M10 15v6"/></g>
+    </g>
+  </g>
+
+  <!-- seeds trailing Pip's arc -->
+  <g>
+    <g fill="#ffd45e">
+      <ellipse cx="252" cy="258" rx="9" ry="12"/><ellipse cx="288" cy="214" rx="9" ry="12"/>
+      <ellipse cx="330" cy="182" rx="9" ry="12"/><ellipse cx="514" cy="196" rx="9" ry="12"/>
+      <ellipse cx="552" cy="230" rx="9" ry="12"/>
+    </g>
+    <g fill="#fff6cf" opacity="0.9">
+      <ellipse cx="249" cy="253" rx="3" ry="4.4"/><ellipse cx="285" cy="209" rx="3" ry="4.4"/>
+      <ellipse cx="327" cy="177" rx="3" ry="4.4"/><ellipse cx="511" cy="191" rx="3" ry="4.4"/>
+      <ellipse cx="549" cy="225" rx="3" ry="4.4"/>
+    </g>
+  </g>
+
+  <!-- Pip, mid leap: the hero of the frame -->
+  <g transform="translate(414 154) rotate(-7) scale(1.75)">
+    <!-- feet -->
+    <ellipse cx="-11" cy="26" rx="9" ry="6" fill="#e8b866"/>
+    <ellipse cx="11" cy="29" rx="9" ry="6" fill="#e8b866"/>
+    <!-- body -->
+    <path d="M-30 14q-9-56 30-60 39 4 30 60Q0 32-30 14z" fill="url(#body)"/>
+    <!-- leaf arms -->
+    <ellipse cx="-36" cy="-10" rx="16" ry="8" fill="#6fc24d" transform="rotate(-40 -36 -10)"/>
+    <ellipse cx="36" cy="-18" rx="16" ry="8" fill="#7ed957" transform="rotate(36 36 -18)"/>
+    <!-- sprout -->
+    <path d="M0 -46v-18" stroke="#4f9e3a" stroke-width="6" stroke-linecap="round"/>
+    <ellipse cx="-14" cy="-68" rx="15" ry="8" fill="#7ed957" transform="rotate(-32 -14 -68)"/>
+    <ellipse cx="15" cy="-74" rx="14" ry="7.5" fill="#b4ee72" transform="rotate(30 15 -74)"/>
+    <!-- face -->
+    <ellipse cx="-10" cy="-20" rx="7.5" ry="9" fill="#fffdf4"/>
+    <ellipse cx="10" cy="-20" rx="7.5" ry="9" fill="#fffdf4"/>
+    <circle cx="-8.5" cy="-19" r="3.8" fill="#2a3d22"/>
+    <circle cx="11.5" cy="-19" r="3.8" fill="#2a3d22"/>
+    <circle cx="-10" cy="-22" r="1.6" fill="#fff"/><circle cx="10" cy="-22" r="1.6" fill="#fff"/>
+    <ellipse cx="-19" cy="-7" rx="6" ry="3.6" fill="#ff96aa" opacity="0.5"/>
+    <ellipse cx="19" cy="-7" rx="6" ry="3.6" fill="#ff96aa" opacity="0.5"/>
+    <path d="M-6 -7q6 8 13 0" stroke="#2a3d22" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- sparkles -->
+  <g stroke="#fff6cf" stroke-width="3.4" stroke-linecap="round" opacity="0.9">
+    <path d="M196 132v20M185 142h22"/>
+    <path d="M478 96v16M470 104h16"/>
+    <path d="M712 186v14M705 193h14"/>
+  </g>
+
+  <!-- foreground: grass blades and a soft floor for an overlaid title -->
+  <rect x="0" y="360" width="800" height="140" fill="url(#floor)"/>
+  <g fill="#2b6f4c">
+    <path d="M0 500q34-66 58-82-8 50-26 82z"/>
+    <path d="M34 500q26-46 44-56-6 34-18 56z"/>
+    <path d="M800 500q-30-74-54-92 6 56 22 92z"/>
+    <path d="M764 500q-22-52-38-64 4 38 14 64z"/>
+  </g>
+</svg>

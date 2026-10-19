@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd6e0"/>
+      <stop offset="1" stop-color="#2f8cb8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.35" r="0.6">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <g id="soldierB">
+      <ellipse cx="0" cy="9" rx="8" ry="2.6" fill="#1e3020" opacity="0.25"/>
+      <circle r="8.5" fill="#3d7fe0" stroke="#3b2c22" stroke-width="2"/>
+      <path d="M-8 -1 A8.5 8.5 0 0 1 8 -1 Z" fill="#cfd6e0" stroke="#3b2c22" stroke-width="2"/>
+      <circle cx="-2.8" cy="2" r="1.2" fill="#3b2c22"/><circle cx="2.8" cy="2" r="1.2" fill="#3b2c22"/>
+    </g>
+    <g id="soldierR">
+      <ellipse cx="0" cy="9" rx="8" ry="2.6" fill="#1e3020" opacity="0.25"/>
+      <circle r="8.5" fill="#e2483d" stroke="#3b2c22" stroke-width="2"/>
+      <path d="M-8 -1 A8.5 8.5 0 0 1 8 -1 Z" fill="#cfd6e0" stroke="#3b2c22" stroke-width="2"/>
+      <circle cx="-2.8" cy="2" r="1.2" fill="#3b2c22"/><circle cx="2.8" cy="2" r="1.2" fill="#3b2c22"/>
+    </g>
+    <g id="island">
+      <ellipse cx="0" cy="6" rx="128" ry="74" fill="#a8eee6" opacity="0.55"/>
+      <ellipse cx="0" cy="4" rx="114" ry="64" fill="#ffffff" opacity="0.85"/>
+      <ellipse cx="0" cy="10" rx="108" ry="60" fill="#d7b878"/>
+      <ellipse cx="0" cy="2" rx="108" ry="60" fill="#f4e0a6"/>
+      <ellipse cx="0" cy="2" rx="94" ry="50" fill="#5ea845"/>
+      <ellipse cx="0" cy="-3" rx="94" ry="50" fill="#83cc5c"/>
+      <ellipse cx="-22" cy="-16" rx="54" ry="26" fill="#b2e481" opacity="0.5"/>
+    </g>
+    <g id="tree">
+      <ellipse cx="0" cy="3" rx="12" ry="4" fill="#1e3020" opacity="0.22"/>
+      <rect x="-2.5" y="-9" width="5" height="12" fill="#7a5235" stroke="#3b2c22" stroke-width="1.5"/>
+      <circle cy="-17" r="11" fill="#3f9a4a" stroke="#3b2c22" stroke-width="1.8"/>
+      <circle cx="-4" cy="-21" r="4" fill="#ffffff" opacity="0.25"/>
+    </g>
+  </defs>
+  <rect width="800" height="500" fill="url(#sea)"/>
+  <rect width="800" height="500" fill="url(#glow)"/>
+  <g stroke="#ffffff" stroke-opacity="0.5" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M60 300 q10 -6 20 0 q10 -6 20 0"/><path d="M380 440 q10 -6 20 0 q10 -6 20 0"/>
+    <path d="M700 120 q10 -6 20 0 q10 -6 20 0"/><path d="M360 110 q10 -6 20 0 q10 -6 20 0"/>
+    <path d="M610 460 q10 -6 20 0 q10 -6 20 0"/><path d="M80 470 q10 -6 20 0 q10 -6 20 0"/>
+  </g>
+
+  <!-- Left island with the blue castle -->
+  <use href="#island" transform="translate(170 300) scale(1.25)"/>
+  <!-- Right island with the red castle -->
+  <use href="#island" transform="translate(640 210) scale(1.15)"/>
+  <!-- Little middle island with a windmill -->
+  <use href="#island" transform="translate(420 395) scale(0.62)"/>
+
+  <use href="#tree" transform="translate(70 300)"/>
+  <use href="#tree" transform="translate(250 360) scale(0.9)"/>
+  <use href="#tree" transform="translate(730 190) scale(0.9)"/>
+  <use href="#tree" transform="translate(560 250)"/>
+  <g fill="#ffffff"><circle cx="110" cy="345" r="3"/><circle cx="122" cy="352" r="3"/><circle cx="680" cy="262" r="3"/><circle cx="694" cy="255" r="3"/></g>
+  <g fill="#ffe066"><circle cx="116" cy="340" r="2.5"/><circle cx="688" cy="268" r="2.5"/></g>
+
+  <!-- Blue castle -->
+  <g transform="translate(170 300)" stroke="#3b2c22" stroke-width="3" stroke-linejoin="round">
+    <ellipse cx="0" cy="14" rx="72" ry="13" fill="#1e3020" opacity="0.2" stroke="none"/>
+    <rect x="-46" y="-56" width="92" height="70" fill="#efe6d4"/>
+    <rect x="-66" y="-76" width="32" height="90" fill="#efe6d4"/>
+    <rect x="34" y="-76" width="32" height="90" fill="#efe6d4"/>
+    <path d="M-72 -76 L-50 -122 L-28 -76 Z" fill="#3d7fe0"/>
+    <path d="M28 -76 L50 -122 L72 -76 Z" fill="#3d7fe0"/>
+    <rect x="-22" y="-98" width="44" height="112" fill="#efe6d4"/>
+    <path d="M-26 -98 h10 v-10 h10 v10 h12 v-10 h10 v10 h10" fill="none"/>
+    <path d="M-12 14 V-8 A12 12 0 0 1 12 -8 V14 Z" fill="#5e3d25"/>
+    <path d="M-14 -88 H14 V-56 L0 -64 L-14 -56 Z" fill="#3d7fe0"/>
+    <path d="M-8 -70 V-82 L-4 -76 L0 -86 L4 -76 L8 -82 V-70 Z" fill="#fff8e8" stroke-width="1.5"/>
+    <line x1="0" y1="-108" x2="0" y2="-140"/>
+    <path d="M0 -140 Q14 -146 28 -138 L24 -131 L28 -124 Q14 -130 0 -124 Z" fill="#3d7fe0"/>
+  </g>
+  <g transform="translate(170 330)">
+    <rect x="-28" y="0" width="56" height="30" rx="15" fill="#3d7fe0" stroke="#3b2c22" stroke-width="3"/>
+    <text x="0" y="23" text-anchor="middle" font-family="ui-rounded, system-ui, sans-serif" font-weight="900" font-size="22" fill="#ffffff">42</text>
+  </g>
+
+  <!-- Red castle -->
+  <g transform="translate(640 205) scale(0.85)" stroke="#3b2c22" stroke-width="3" stroke-linejoin="round">
+    <ellipse cx="0" cy="14" rx="72" ry="13" fill="#1e3020" opacity="0.2" stroke="none"/>
+    <rect x="-46" y="-56" width="92" height="70" fill="#efe6d4"/>
+    <rect x="-66" y="-76" width="32" height="90" fill="#efe6d4"/>
+    <rect x="34" y="-76" width="32" height="90" fill="#efe6d4"/>
+    <path d="M-72 -76 L-50 -122 L-28 -76 Z" fill="#e2483d"/>
+    <path d="M28 -76 L50 -122 L72 -76 Z" fill="#e2483d"/>
+    <rect x="-22" y="-98" width="44" height="112" fill="#efe6d4"/>
+    <path d="M-12 14 V-8 A12 12 0 0 1 12 -8 V14 Z" fill="#5e3d25"/>
+    <path d="M-14 -88 H14 V-56 L0 -64 L-14 -56 Z" fill="#e2483d"/>
+    <line x1="0" y1="-98" x2="0" y2="-130"/>
+    <path d="M0 -130 Q14 -136 28 -128 L24 -121 L28 -114 Q14 -120 0 -114 Z" fill="#e2483d"/>
+  </g>
+  <g transform="translate(640 228)">
+    <rect x="-24" y="0" width="48" height="27" rx="13.5" fill="#e2483d" stroke="#3b2c22" stroke-width="3"/>
+    <text x="0" y="21" text-anchor="middle" font-family="ui-rounded, system-ui, sans-serif" font-weight="900" font-size="20" fill="#ffffff">18</text>
+  </g>
+
+  <!-- Windmill -->
+  <g transform="translate(420 392)" stroke="#3b2c22" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M-17 10 L17 10 L12 -38 L-12 -38 Z" fill="#fff6e2"/>
+    <path d="M-16 -36 Q0 -62 16 -36 Z" fill="#bdb5a6"/>
+    <g transform="translate(0 -40) rotate(20)" fill="#fbf3df">
+      <rect x="2" y="-4" width="34" height="8"/><rect x="-36" y="-4" width="34" height="8"/>
+      <rect x="-4" y="2" width="8" height="34"/><rect x="-4" y="-36" width="8" height="34"/>
+      <circle r="4" fill="#7b7365"/>
+    </g>
+  </g>
+  <g transform="translate(420 410)">
+    <rect x="-20" y="0" width="40" height="24" rx="12" fill="#f6f1e6" stroke="#8a8170" stroke-width="2.5"/>
+    <text x="0" y="18.5" text-anchor="middle" font-family="ui-rounded, system-ui, sans-serif" font-weight="900" font-size="17" fill="#4a4236">12</text>
+  </g>
+
+  <!-- Marching line and squads -->
+  <path d="M250 300 L560 225" stroke="#3d7fe0" stroke-width="5" stroke-dasharray="6 12" stroke-linecap="round" opacity="0.7"/>
+  <path d="M580 250 L470 370" stroke="#e2483d" stroke-width="5" stroke-dasharray="6 12" stroke-linecap="round" opacity="0.6"/>
+  <!-- Blue boat squad on the water -->
+  <g transform="translate(395 262)" stroke="#3b2c22" stroke-width="2.5" stroke-linejoin="round">
+    <ellipse cx="0" cy="16" rx="36" ry="6" fill="#ffffff" opacity="0.5" stroke="none"/>
+    <path d="M-34 0 H34 Q30 14 18 14 H-18 Q-30 14 -34 0 Z" fill="#9a6a43"/>
+    <line x1="0" y1="0" x2="0" y2="-44"/>
+    <path d="M2 -42 Q26 -28 24 -6 H2 Z" fill="#3d7fe0"/>
+    <use href="#soldierB" transform="translate(-20 -4)"/><use href="#soldierB" transform="translate(-6 -6)"/><use href="#soldierB" transform="translate(18 -5)"/>
+  </g>
+  <g transform="translate(395 196)">
+    <rect x="-20" y="0" width="40" height="24" rx="12" fill="#1f4f9e" stroke="#fff8e8" stroke-width="2"/>
+    <text x="0" y="18" text-anchor="middle" font-family="ui-rounded, system-ui, sans-serif" font-weight="900" font-size="16" fill="#ffffff">21</text>
+  </g>
+  <!-- Blue soldiers leaving the castle -->
+  <use href="#soldierB" transform="translate(262 300)"/><use href="#soldierB" transform="translate(276 290)"/>
+  <use href="#soldierB" transform="translate(268 312)"/><use href="#soldierB" transform="translate(284 302)"/>
+  <!-- Red soldiers marching on the right island -->
+  <use href="#soldierR" transform="translate(560 270)"/><use href="#soldierR" transform="translate(548 282)"/>
+  <use href="#soldierR" transform="translate(572 284)"/><use href="#soldierR" transform="translate(560 296)"/>
+</svg>

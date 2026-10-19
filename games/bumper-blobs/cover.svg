@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd6f0"/>
+      <stop offset="1" stop-color="#ff8fc8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.62" r="0.6">
+      <stop offset="0" stop-color="#fff4fb" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#fff4fb" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="top" cx="0.38" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#fff3d2"/>
+      <stop offset="0.6" stop-color="#ffe8b0"/>
+      <stop offset="1" stop-color="#f7c86e"/>
+    </radialGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a5228"/>
+      <stop offset="0.45" stop-color="#d69a55"/>
+      <stop offset="1" stop-color="#7a4520"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0.35" cy="0.25" r="0.7">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#2a0040" stop-opacity="0.25"/>
+    </radialGradient>
+    <g id="eyes">
+      <ellipse cx="-13" cy="0" rx="8" ry="9.5" fill="#fff"/><ellipse cx="13" cy="0" rx="8" ry="9.5" fill="#fff"/>
+      <ellipse cx="-11" cy="2" rx="4.6" ry="5.4" fill="#1d1030"/><ellipse cx="15" cy="2" rx="4.6" ry="5.4" fill="#1d1030"/>
+      <circle cx="-13" cy="-1" r="1.6" fill="#fff"/><circle cx="13" cy="-1" r="1.6" fill="#fff"/>
+    </g>
+  </defs>
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <rect width="800" height="500" fill="url(#glow)"/>
+  <!-- clouds -->
+  <g fill="#ffffff" opacity="0.6">
+    <circle cx="80" cy="110" r="34"/><circle cx="118" cy="96" r="42"/><circle cx="160" cy="114" r="30"/>
+    <circle cx="640" cy="80" r="30"/><circle cx="680" cy="66" r="40"/><circle cx="724" cy="84" r="28"/>
+    <circle cx="40" cy="440" r="40"/><circle cx="760" cy="430" r="46"/><circle cx="710" cy="452" r="30"/>
+  </g>
+  <!-- distant islands -->
+  <g opacity="0.75">
+    <ellipse cx="120" cy="250" rx="34" ry="11" fill="#ffe0b0"/><path d="M86 250 Q120 290 154 250 Z" fill="#c9813d"/>
+    <ellipse cx="690" cy="230" rx="26" ry="9" fill="#ffe0b0"/><path d="M664 230 Q690 262 716 230 Z" fill="#c9813d"/>
+  </g>
+  <!-- arena -->
+  <path d="M130 300 L130 340 A270 112 0 0 0 670 340 L670 300 Z" fill="url(#side)"/>
+  <path d="M130 300 A270 112 0 0 0 670 300 L670 316 Q650 350 630 330 Q600 372 570 345 Q530 386 500 352 Q460 396 420 358 Q380 398 345 356 Q300 392 268 350 Q232 380 205 340 Q172 362 150 330 Q138 330 130 316 Z" fill="#fff6dc"/>
+  <ellipse cx="400" cy="300" rx="270" ry="112" fill="url(#top)"/>
+  <ellipse cx="400" cy="300" rx="266" ry="109" fill="none" stroke="#fff6dc" stroke-width="6"/>
+  <!-- sprinkles -->
+  <g stroke-width="5" stroke-linecap="round">
+    <path d="M210 290 l12 -4" stroke="#ff5a7e"/><path d="M262 340 l10 5" stroke="#4aa3ff"/><path d="M300 262 l12 2" stroke="#7fdc45"/>
+    <path d="M520 268 l11 -5" stroke="#ffad2e"/><path d="M580 320 l12 3" stroke="#a874ff"/><path d="M470 360 l10 -6" stroke="#3fdcc0"/>
+    <path d="M360 372 l12 2" stroke="#ff7ad6"/><path d="M620 290 l9 6" stroke="#ffe14d"/><path d="M180 322 l11 4" stroke="#a874ff"/>
+    <path d="M430 240 l12 -2" stroke="#ff5a7e"/><path d="M330 226 l10 5" stroke="#ffad2e"/><path d="M560 236 l11 3" stroke="#4aa3ff"/>
+  </g>
+  <!-- shadows -->
+  <g fill="#3a1050" opacity="0.2">
+    <ellipse cx="300" cy="318" rx="48" ry="15"/><ellipse cx="455" cy="300" rx="42" ry="13"/><ellipse cx="560" cy="350" rx="36" ry="11"/>
+  </g>
+  <!-- impact burst -->
+  <g transform="translate(378 248)">
+    <path d="M0 -58 L12 -20 L50 -34 L24 -4 L60 16 L18 18 L28 56 L0 28 L-26 58 L-20 18 L-60 22 L-24 -2 L-52 -36 L-12 -20 Z" fill="#ffe14d" stroke="#ffffff" stroke-width="5" stroke-linejoin="round"/>
+  </g>
+  <!-- strawberry blob, squashed from the hit -->
+  <g transform="translate(300 300)">
+    <path d="M-62 14 C-70 -40 -30 -68 4 -64 C40 -60 58 -30 50 14 Q0 26 -62 14 Z" fill="#ff5a7e" stroke="#c22a54" stroke-width="5"/>
+    <path d="M-62 14 C-70 -40 -30 -68 4 -64 C40 -60 58 -30 50 14 Q0 26 -62 14 Z" fill="url(#shine)"/>
+    <ellipse cx="-30" cy="-42" rx="12" ry="6" fill="#fff" opacity="0.8" transform="rotate(-30 -30 -42)"/>
+    <g transform="translate(-2 -24)">
+      <path d="M-22 -2 l14 5 M22 -2 l-14 5" stroke="#1d1030" stroke-width="4" stroke-linecap="round"/>
+      <path d="M-20 -8 l12 6 l-12 6 M20 -8 l-12 6 l12 6" fill="none" stroke="#1d1030" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <ellipse cx="0" cy="18" rx="8" ry="10" fill="#1d1030"/>
+    </g>
+    <!-- top hat -->
+    <g transform="translate(-6 -64) rotate(-14)">
+      <ellipse cx="0" cy="2" rx="28" ry="7" fill="#2b2440"/><rect x="-16" y="-34" width="32" height="36" fill="#2b2440"/><rect x="-16" y="-10" width="32" height="7" fill="#ff5a7e"/>
+    </g>
+  </g>
+  <!-- blueberry blob, stretched mid-dash -->
+  <g transform="translate(456 286) rotate(8)">
+    <path d="M-48 14 C-58 -36 -24 -66 10 -62 C44 -58 60 -30 54 14 Q0 26 -48 14 Z" fill="#4aa3ff" stroke="#1f63c2" stroke-width="5"/>
+    <path d="M-48 14 C-58 -36 -24 -66 10 -62 C44 -58 60 -30 54 14 Q0 26 -48 14 Z" fill="url(#shine)"/>
+    <ellipse cx="-18" cy="-42" rx="11" ry="6" fill="#fff" opacity="0.8" transform="rotate(-30 -18 -42)"/>
+    <use href="#eyes" transform="translate(-4 -24)"/>
+    <path d="M-28 -40 l16 6 M20 -40 l-16 6" stroke="#1d1030" stroke-width="4" stroke-linecap="round"/>
+    <path d="M-12 -4 Q0 6 14 -4" fill="none" stroke="#1d1030" stroke-width="4" stroke-linecap="round"/>
+    <!-- party hat -->
+    <g transform="translate(6 -62) rotate(10)">
+      <path d="M-18 4 L2 -40 L18 4 Z" fill="#ff4fa3" stroke="#2a1640" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M-11 -10 L12 -7 M-5 -24 L8 -22" stroke="#ffe14d" stroke-width="4"/>
+      <circle cx="2" cy="-42" r="6" fill="#ffe14d"/>
+    </g>
+  </g>
+  <!-- speed lines -->
+  <g stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.85">
+    <path d="M540 250 l50 6"/><path d="M548 272 l60 4"/><path d="M536 292 l40 6"/>
+  </g>
+  <!-- lime blob watching -->
+  <g transform="translate(560 346)">
+    <path d="M-38 10 C-44 -30 -18 -50 2 -48 C26 -46 42 -26 38 10 Q0 18 -38 10 Z" fill="#7fdc45" stroke="#3f9a1e" stroke-width="5"/>
+    <path d="M-38 10 C-44 -30 -18 -50 2 -48 C26 -46 42 -26 38 10 Q0 18 -38 10 Z" fill="url(#shine)"/>
+    <g transform="translate(0 -20) scale(0.8)"><use href="#eyes"/></g>
+    <ellipse cx="0" cy="-2" rx="6" ry="7" fill="#5a1030"/>
+    <g transform="translate(14 -44)"><circle cx="0" cy="0" r="5" fill="#ffd23a"/><g fill="#fff"><circle cx="0" cy="-8" r="5"/><circle cx="8" cy="-2" r="5"/><circle cx="5" cy="7" r="5"/><circle cx="-5" cy="7" r="5"/><circle cx="-8" cy="-2" r="5"/></g><circle cx="0" cy="0" r="4.5" fill="#ffd23a"/></g>
+  </g>
+  <!-- mango blob falling off the far edge -->
+  <g transform="translate(180 206) rotate(-24)">
+    <path d="M-26 8 C-30 -24 -12 -38 2 -36 C18 -34 30 -20 26 8 Q0 16 -26 8 Z" fill="#ffad2e" stroke="#c46d00" stroke-width="4"/>
+    <path d="M-26 8 C-30 -24 -12 -38 2 -36 C18 -34 30 -20 26 8 Q0 16 -26 8 Z" fill="url(#shine)"/>
+    <path d="M-14 -20 l8 4 l-8 4 M14 -20 l-8 4 l8 4" fill="none" stroke="#1d1030" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <ellipse cx="0" cy="-2" rx="5" ry="6" fill="#1d1030"/>
+  </g>
+  <!-- droplets and confetti -->
+  <g>
+    <circle cx="352" cy="200" r="7" fill="#ff5a7e"/><circle cx="408" cy="190" r="6" fill="#4aa3ff"/><circle cx="336" cy="232" r="5" fill="#ff5a7e"/>
+    <circle cx="420" cy="214" r="5" fill="#4aa3ff"/><circle cx="380" cy="176" r="4" fill="#fff"/>
+    <rect x="250" y="150" width="14" height="7" rx="2" fill="#a874ff" transform="rotate(20 257 153)"/>
+    <rect x="520" y="140" width="14" height="7" rx="2" fill="#3fdcc0" transform="rotate(-30 527 143)"/>
+    <rect x="460" y="120" width="12" height="6" rx="2" fill="#ffe14d" transform="rotate(50 466 123)"/>
+    <rect x="300" y="120" width="12" height="6" rx="2" fill="#ff7ad6" transform="rotate(-15 306 123)"/>
+    <rect x="620" y="180" width="12" height="6" rx="2" fill="#ff5a7e" transform="rotate(35 626 183)"/>
+  </g>
+</svg>

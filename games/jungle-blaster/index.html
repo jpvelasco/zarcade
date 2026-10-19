@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120a1e">
+  <meta name="description" content="A retro 2600-style run-and-gun jungle adventure: swing on vines, hop the crocs, grab the treasure and blast giant bosses.">
+  <title>Jungle Blaster 2600 — retro run-and-gun jungle adventure</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="jungle-blaster"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game" width="320" height="180" aria-label="Jungle Blaster 2600. A pixel-art jungle with a runner, vines, crocodiles and robot raiders."></canvas>
+    <div id="crt" class="crt" aria-hidden="true"></div>
+  </div>
+
+  <a class="arcade-link" id="arcade-link" href="../../index.html">← Arcade</a>
+
+  <section id="screen-title" class="overlay title-screen">
+    <div class="card title-card">
+      <div class="logo" aria-label="Jungle Blaster 2600">
+        <span class="logo-top">JUNGLE</span>
+        <span class="logo-main">BLASTER</span>
+        <span class="logo-badge">2600</span>
+      </div>
+      <p class="tagline">Swing, hop and blast your way through six wild stages to stop the robot invasion!</p>
+      <div class="row">
+        <button id="btn-adventure" class="button primary" data-default>Adventure<small>Hearts, checkpoints, endless continues</small></button>
+        <button id="btn-arcade" class="button">Arcade<small>3 lives. One hit. High scores.</small></button>
+      </div>
+      <div class="row small-row">
+        <button id="btn-players" class="button quiet" aria-pressed="false">Players: 1</button>
+        <button id="btn-stages" class="button quiet">Stage select</button>
+        <button id="btn-scores" class="button quiet">High scores</button>
+        <button id="btn-options" class="button quiet">Options</button>
+      </div>
+      <p id="title-progress" class="muted"></p>
+      <ul class="howto">
+        <li><b>Move / aim</b> Arrows or WASD <span class="sep">·</span> <b>Jump</b> Z, J or Space <span class="sep">·</span> <b>Shoot</b> X or K <span class="sep">·</span> <b>Bomb</b> C or L</li>
+        <li>Hold jump to go higher <span class="sep">·</span> jump to grab vines, jump again to let go</li>
+        <li>Gamepad: stick to move, <b>A</b> jump, <b>X/B</b> shoot, <b>Y</b> bomb, <b>Start</b> pause</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="screen-stages" class="overlay hidden">
+    <div class="card wide">
+      <p class="eyebrow">Adventure</p>
+      <h2>Pick a stage</h2>
+      <div id="stage-list" class="stage-list"></div>
+      <div class="row">
+        <button id="btn-stages-back" class="button primary">Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-scores" class="overlay hidden">
+    <div class="card">
+      <p class="eyebrow">Hall of fame</p>
+      <h2>High scores</h2>
+      <ol id="score-table" class="score-table"></ol>
+      <div class="row">
+        <button id="btn-scores-back" class="button primary">Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-options" class="overlay hidden">
+    <div class="card">
+      <p class="eyebrow">Set it up your way</p>
+      <h2>Options</h2>
+      <div class="row stack" id="options-list">
+        <button class="button toggle" data-setting="crt">CRT glow &amp; scanlines</button>
+        <button class="button toggle" data-setting="retro">2600 mode (chunky pixels)</button>
+        <button class="button toggle" data-setting="shake">Screen shake</button>
+        <button class="button toggle" data-setting="music">Music</button>
+        <button class="button toggle" data-setting="sound">Sound</button>
+      </div>
+      <p class="muted">Two players: P1 uses WASD + F jump, G shoot, H bomb. P2 uses the arrows + , jump, . shoot, / bomb — or plug in gamepads.</p>
+      <div class="row">
+        <button id="btn-options-back" class="button primary">Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay hidden">
+    <div class="card small">
+      <p class="eyebrow" id="pause-stage">Stage 1</p>
+      <h2>Paused</h2>
+      <div class="row stack">
+        <button id="btn-resume" class="button primary">Resume</button>
+        <button id="btn-restart" class="button">Restart stage</button>
+        <button class="button toggle" data-setting="crt">CRT glow &amp; scanlines</button>
+        <button class="button toggle" data-setting="retro">2600 mode</button>
+        <button class="button toggle" data-setting="sound">Sound</button>
+        <button id="btn-quit" class="button">Quit to title</button>
+        <a class="button" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-clear" class="overlay hidden">
+    <div class="card small result-card">
+      <p class="eyebrow" id="clear-stage">Stage 1 · Jungle</p>
+      <h2 id="clear-title">Stage clear!</h2>
+      <div class="tally">
+        <div><span>Time bonus</span><b id="clear-time">0</b></div>
+        <div><span>Treasure</span><b id="clear-treasure">0</b></div>
+        <div><span>No-hit bonus</span><b id="clear-flawless">0</b></div>
+        <div class="total"><span>Score</span><b id="clear-score">0</b></div>
+      </div>
+      <p id="clear-note" class="muted"></p>
+      <div class="row">
+        <button id="btn-next" class="button primary">Next stage →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-over" class="overlay hidden">
+    <div class="card small">
+      <p class="eyebrow">Out of lives</p>
+      <h2>Game over</h2>
+      <p class="big" id="over-count">9</p>
+      <p id="over-note" class="muted">Continue from the last checkpoint?</p>
+      <div class="row">
+        <button id="btn-continue" class="button primary">Continue</button>
+        <button id="btn-giveup" class="button">Give up</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-name" class="overlay hidden">
+    <div class="card small">
+      <p class="eyebrow" id="name-rank">New high score!</p>
+      <h2 id="name-score">0</h2>
+      <p class="muted">Enter your initials</p>
+      <div class="initials" id="initials">
+        <div class="slot"><button class="nudge" data-slot="0" data-dir="-1" aria-label="Previous letter">▲</button><b>A</b><button class="nudge" data-slot="0" data-dir="1" aria-label="Next letter">▼</button></div>
+        <div class="slot"><button class="nudge" data-slot="1" data-dir="-1" aria-label="Previous letter">▲</button><b>A</b><button class="nudge" data-slot="1" data-dir="1" aria-label="Next letter">▼</button></div>
+        <div class="slot"><button class="nudge" data-slot="2" data-dir="-1" aria-label="Previous letter">▲</button><b>A</b><button class="nudge" data-slot="2" data-dir="1" aria-label="Next letter">▼</button></div>
+      </div>
+      <div class="row">
+        <button id="btn-name-ok" class="button primary">Save</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-victory" class="overlay hidden">
+    <div class="card small result-card">
+      <p class="eyebrow">The mothership is down</p>
+      <h2>You saved the jungle!</h2>
+      <p class="tagline">The robots are gone, the parrots are singing, and the treasure is yours.</p>
+      <p class="big" id="victory-score">0</p>
+      <div class="row">
+        <button id="btn-victory" class="button primary">Hooray!</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="touch" class="touch hidden">
+    <div class="touch-stick" id="touch-stick" aria-label="Move and aim"><div class="knob" id="touch-knob"></div></div>
+    <button class="touch-pause" id="touch-pause" aria-label="Pause">❚❚</button>
+    <div class="touch-buttons">
+      <button class="touch-button bomb" data-hold="bomb" aria-label="Bomb">BOMB</button>
+      <button class="touch-button fire" data-hold="shoot" aria-label="Fire">FIRE</button>
+      <button class="touch-button jump" data-hold="jump" aria-label="Jump">JUMP</button>
+    </div>
+  </div>
+  <button class="hud-sound hidden" id="hud-sound" title="Sound (M)" aria-label="Mute">🔊</button>
+  <p class="rotate-hint" aria-hidden="true"><span>📱</span> Turn your phone sideways for a bigger jungle</p>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

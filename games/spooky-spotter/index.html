@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#1a1430">
+  <meta name="description" content="Spooky Spotter: a friendly haunted-mansion hidden object game. Search seven cluttered rooms for the ghosts' lost things, spot the difference, hunt silhouettes and wake Hollowhush Manor back up.">
+  <title>Spooky Spotter — find the ghosts' lost things</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="spooky-spotter"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body class="titling">
+  <canvas id="game" aria-label="A cluttered room in Hollowhush Manor"></canvas>
+
+  <section id="file-warning" class="overlay dim hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Spooky Spotter uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/spooky-spotter/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <div class="pill" id="pill-room">
+        <span class="pi" aria-hidden="true">🏚️</span>
+        <span class="pt"><b id="hud-room">Room</b><small id="hud-mode">Find</small></span>
+      </div>
+      <div class="pill" id="pill-found" title="Things found">
+        <span class="pi" aria-hidden="true">🔍</span>
+        <span class="pt"><b id="hud-found">0</b><small id="hud-total">of 6</small></span>
+      </div>
+      <div class="pill small" id="pill-time" title="Time">
+        <span class="pi" aria-hidden="true">⏱️</span>
+        <span class="pt"><b id="hud-time">0s</b></span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+    <div class="hud-tools">
+      <button id="btn-lantern" class="lantern ready" title="Hint lantern (H)">
+        <span class="lamp" aria-hidden="true">🏮</span>
+        <span class="ll">Lantern</span>
+      </button>
+      <div class="zoomers">
+        <button id="btn-zoom-in" class="icon-btn" aria-label="Zoom in" title="Zoom in (+)">＋</button>
+        <button id="btn-zoom-out" class="icon-btn" aria-label="Zoom out" title="Zoom out (−)">－</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- The list of things to find -->
+  <aside id="tray" class="hidden" aria-label="Things to find">
+    <h2 class="tray-title">Lost things</h2>
+    <div id="list" class="list" aria-live="polite"></div>
+  </aside>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- Title -->
+  <section id="screen-title" class="overlay title-overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <h1 class="logo" aria-label="Spooky Spotter"><span class="w1">Spooky</span><span class="w2">Spotter</span></h1>
+      <p class="tagline">Seven cluttered rooms. Nine shy ghosts. One teddy, one teacup, one stripy sock and a great deal of dust.</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Knock on the door</button>
+        <p id="next-hint" class="next-hint"></p>
+        <div class="row">
+          <button id="btn-title-album" class="btn">👻 Album</button>
+          <button id="btn-title-cabinet" class="btn">🔮 Curios</button>
+          <button id="btn-title-help" class="btn">？ How to play</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>🔊 Sound on</button>
+          <button class="btn small" data-music>🎵 Music on</button>
+        </div>
+      </div>
+      <p id="title-best" class="best"></p>
+      <p class="controls keys-only"><b>Click</b> what you spot · <b>drag</b> to look around · <b>wheel</b> to lean in · <b>H</b> lantern · <b>Esc</b> pauses</p>
+      <p class="controls touch-only"><b>Tap</b> what you spot · <b>drag</b> to look around · <b>pinch</b> to lean in</p>
+    </div>
+  </section>
+
+  <!-- Mansion map -->
+  <section id="screen-map" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card map-card">
+      <div class="sheet-head">
+        <h2>Hollowhush Manor</h2>
+        <div class="head-tools">
+          <button id="btn-map-album" class="btn small">👻</button>
+          <button id="btn-map-cabinet" class="btn small">🔮</button>
+          <button id="btn-map-help" class="btn small">？</button>
+          <button id="btn-map-title" class="btn small">Title</button>
+        </div>
+      </div>
+      <div id="map-body" class="sheet-body"></div>
+    </div>
+  </section>
+
+  <!-- Album / cabinet / help -->
+  <section id="screen-sheet" class="overlay dim hidden" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="card sheet">
+      <div class="sheet-head">
+        <h2 id="sheet-title">Title</h2>
+        <button class="close-btn" id="sheet-close" aria-label="Close">✕</button>
+      </div>
+      <div id="sheet-body" class="sheet-body"></div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section id="screen-result" class="overlay dim hidden" role="dialog" aria-modal="true">
+    <div class="card result-card">
+      <div id="result-body"></div>
+      <div class="row">
+        <button id="result-next" class="btn primary">Next</button>
+        <button id="result-again" class="btn">Again</button>
+        <button id="result-map" class="btn">Map</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="screen-pause" class="overlay dim hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+    <div class="card small">
+      <h2 id="pause-title">Paused</h2>
+      <p id="pause-stats" class="muted"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Keep looking</button>
+        <div class="row">
+          <button class="btn" data-sound>🔊 Sound on</button>
+          <button class="btn" data-music>🎵 Music on</button>
+        </div>
+        <button id="btn-pause-help" class="btn">How to play</button>
+        <button id="btn-pause-map" class="btn">Mansion map</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

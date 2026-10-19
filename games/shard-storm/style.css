@@ -1,0 +1,431 @@
+/* Shard Storm — a neon crystal storm to slice. */
+:root {
+  --bg: #060917;
+  --card: #101a3a;
+  --card-2: #16244e;
+  --ink: #eaf2ff;
+  --muted: #93a4d6;
+  --accent: #7df9ff;
+  --accent-2: #b08bff;
+  --good: #8affc1;
+  --bad: #ff5a4e;
+  --warn: #ffb347;
+  --gold: #ffd159;
+  --frost: #cdf3ff;
+  --cluster: #9affd8;
+  --btn: #1d2c5e;
+  --btn-hover: #27397a;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+body.no-cursor, body.no-cursor * { cursor: none !important; }
+
+#game {
+  position: fixed;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}
+#game.playing { cursor: none; }
+
+.hidden { display: none !important; }
+
+/* ------------------------------------------------------------ hud */
+
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+#hud button { pointer-events: auto; }
+
+.hud-top {
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+.hud-pill {
+  background: rgba(9, 14, 38, 0.78);
+  border: 1px solid rgba(125, 249, 255, 0.25);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+#hud-score { color: var(--accent); font-size: 15px; font-variant-numeric: tabular-nums; }
+.hud-combo { color: var(--good); }
+.hud-daily {
+  color: var(--muted);
+  position: relative;
+  overflow: hidden;
+}
+.hud-daily::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(125, 249, 255, 0.14);
+  transform: scaleX(var(--pct, 0%));
+  transform-origin: left center;
+  transition: transform 0.3s ease;
+}
+.hud-daily > * { position: relative; }
+.hud-spacer { flex: 1; }
+
+/* Lives are three elements, lit or dark: nothing to miscount. */
+.hud-lives {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 0 2px;
+}
+.hud-lives i {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--bad);
+  box-shadow: 0 0 10px rgba(255, 90, 78, 0.8);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.hud-lives i.spent {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+  transform: scale(0.72);
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(125, 249, 255, 0.3);
+  background: rgba(9, 14, 38, 0.78);
+  color: var(--ink);
+  font-size: 15px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+.icon-btn:hover { background: var(--btn-hover); }
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The two meters sit in the bottom corners, over the storm floor. The field
+   fills the whole window, so crystals pass behind them as they rise and fall;
+   only the Storm Break button takes pointer input. */
+.hud-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 12px;
+}
+.meter {
+  position: relative;
+  overflow: hidden;
+  width: min(42vw, 190px);
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 249, 255, 0.28);
+  background: rgba(9, 14, 38, 0.8);
+  font-family: inherit;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.meter-fill {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(var(--pct, 0));
+  transform-origin: left center;
+  transition: transform 0.18s linear;
+}
+.meter-label {
+  position: relative;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
+.meter-label b { font-weight: 800; opacity: 0.65; }
+
+.meter.surge .meter-fill { background: linear-gradient(90deg, rgba(125, 249, 255, 0.5), rgba(255, 179, 71, 0.75)); }
+.meter.surge.warn { border-color: rgba(255, 90, 78, 0.75); }
+.meter.surge.warn .meter-fill { background: linear-gradient(90deg, rgba(255, 179, 71, 0.8), rgba(255, 90, 78, 0.95)); }
+.meter.surge.warn .meter-label { color: #fff; }
+@media not (prefers-reduced-motion: reduce) {
+  .meter.surge.warn { animation: surge-pulse 0.6s ease-in-out infinite alternate; }
+}
+@keyframes surge-pulse {
+  from { box-shadow: 0 0 0 rgba(255, 90, 78, 0); }
+  to { box-shadow: 0 0 18px rgba(255, 90, 78, 0.75); }
+}
+
+.meter.break { cursor: default; color: var(--ink); }
+.meter.break .meter-fill { background: linear-gradient(90deg, rgba(125, 249, 255, 0.35), rgba(176, 139, 255, 0.6)); }
+.meter.break:not([disabled]) {
+  cursor: pointer;
+  border-color: var(--accent);
+  color: #062733;
+}
+.meter.break:not([disabled]) .meter-fill { background: linear-gradient(180deg, #a5fbff, #3fd3e8); }
+.meter.break:not([disabled]) .meter-label { color: #062733; text-shadow: none; }
+.meter.break:not([disabled]):active { transform: scale(0.97); }
+.meter.break:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media not (prefers-reduced-motion: reduce) {
+  .meter.break:not([disabled]) { animation: ready-pulse 0.9s ease-in-out infinite alternate; }
+}
+@keyframes ready-pulse {
+  from { box-shadow: 0 0 0 rgba(125, 249, 255, 0); }
+  to { box-shadow: 0 0 20px rgba(125, 249, 255, 0.8); }
+}
+
+/* ------------------------------------------------------------ overlays */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: max(18px, env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));
+  z-index: 10;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.overlay.dim { background: rgba(4, 6, 18, 0.5); backdrop-filter: blur(2px); }
+.overlay > .arcade-link {
+  position: absolute;
+  top: calc(14px + env(safe-area-inset-top));
+  left: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+}
+.overlay > .arcade-link:hover { text-decoration: underline; }
+
+.card {
+  background: linear-gradient(180deg, var(--card-2), var(--card));
+  border: 1px solid rgba(125, 249, 255, 0.22);
+  border-radius: 22px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 26px 28px;
+  width: min(430px, 100%);
+  text-align: center;
+  margin: auto;
+  flex: 0 0 auto;
+}
+.card.small { width: min(340px, 100%); }
+.card h2 { margin: 0 0 10px; font-size: 24px; letter-spacing: 0.01em; }
+
+.muted { color: var(--muted); font-size: 14px; }
+.row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.col { display: flex; flex-direction: column; gap: 10px; align-items: stretch; margin-top: 14px; }
+
+.btn {
+  appearance: none;
+  border: 1px solid rgba(125, 249, 255, 0.3);
+  background: var(--btn);
+  color: var(--ink);
+  border-radius: 13px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+.btn:hover { background: var(--btn-hover); }
+.btn:active { transform: scale(0.97); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.primary {
+  background: linear-gradient(180deg, #a5fbff, #3fd3e8);
+  border-color: transparent;
+  color: #062733;
+  box-shadow: 0 6px 18px rgba(90, 230, 255, 0.35);
+}
+.btn.primary:hover { background: linear-gradient(180deg, #c4fdff, #55dff2); }
+.btn.big { font-size: 17px; padding: 13px 20px; }
+.btn.ghost { background: transparent; border-color: rgba(125, 249, 255, 0.2); color: var(--muted); }
+.btn.ghost:hover { background: rgba(125, 249, 255, 0.08); color: var(--ink); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+a.btn { display: block; }
+
+/* ------------------------------------------------------------ title */
+
+.title-card { position: relative; }
+.logo h1 { margin: 0; font-size: 42px; line-height: 1.05; display: flex; flex-direction: column; }
+.logo .l1 {
+  color: var(--ink);
+  text-shadow: 0 0 24px rgba(125, 249, 255, 0.55);
+}
+.logo .l2 {
+  background: linear-gradient(90deg, #7df9ff, #b08bff, #ff7ad9);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 14px rgba(125, 249, 255, 0.45));
+}
+.tagline { color: var(--muted); font-size: 14.5px; margin: 10px auto 0; max-width: 36ch; }
+
+/* What the storm throws, so nothing in play is a surprise. */
+.legend {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px 14px;
+  grid-template-columns: 1fr 1fr;
+  background: rgba(4, 8, 24, 0.45);
+  border: 1px solid rgba(125, 249, 255, 0.14);
+  border-radius: 14px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: left;
+}
+.legend li { display: flex; align-items: center; gap: 7px; }
+.legend li:last-child { grid-column: 1 / -1; }
+.chip {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  background: var(--accent);
+  box-shadow: 0 0 9px currentColor;
+  color: var(--accent);
+}
+.chip.gem { clip-path: polygon(50% 0, 100% 35%, 79% 100%, 21% 100%, 0 35%); }
+.chip.cluster { background: var(--cluster); color: var(--cluster); border-radius: 4px; }
+.chip.frost { background: var(--frost); color: var(--frost); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.chip.gold { background: var(--gold); color: var(--gold); clip-path: polygon(50% 0, 61% 35%, 100% 35%, 68% 57%, 79% 100%, 50% 74%, 21% 100%, 32% 57%, 0 35%, 39% 35%); }
+.chip.mine { background: var(--bad); color: var(--bad); border-radius: 50%; }
+
+#title-best { margin-top: 14px; }
+#title-best:not(:empty) { color: var(--accent); font-weight: 700; }
+#title-daily { font-weight: 700; }
+.controls { margin-top: 14px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.controls b { color: var(--ink); }
+.touch-only { display: none; }
+@media (pointer: coarse) {
+  .keys-only { display: none; }
+  .touch-only { display: block; }
+  span.keys-only, b.keys-only { display: none; }
+}
+
+/* ------------------------------------------------------------ results */
+
+.big-score { font-size: 30px; font-weight: 800; color: var(--accent); margin: 4px 0 10px; text-shadow: 0 0 18px rgba(125, 249, 255, 0.4); }
+.res-lines { margin: 8px 0 4px; }
+.res-lines div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 2px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.res-lines b { color: var(--ink); }
+.gold {
+  background: linear-gradient(90deg, #ffd159, #ff9d5e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+#over-best.new-best { color: var(--gold); font-weight: 800; font-size: 16px; }
+.celebrate {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--good);
+  animation: celebrate-pop 0.5s ease;
+}
+@keyframes celebrate-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .celebrate { animation: none; }
+}
+
+/* ------------------------------------------------------------ file warning */
+
+#file-warning .card { border-color: rgba(255, 90, 78, 0.5); }
+#file-warning code { background: rgba(125, 249, 255, 0.12); padding: 2px 6px; border-radius: 6px; color: #cfeaff; }
+
+/* ------------------------------------------------------------ small screens */
+
+@media (max-width: 480px) {
+  .card { padding: 20px 18px; border-radius: 18px; }
+  .logo h1 { font-size: 34px; }
+  .hud-pill { font-size: 11.5px; padding: 5px 10px; }
+  #hud-score { font-size: 14px; }
+  .big-score { font-size: 26px; }
+  /* The full-screen pill drops into the top centre, so on a narrow screen the
+     top row keeps only the score and the two buttons; combo, the daily
+     progress and lives sit on a second row just below the pill. */
+  .hud-top {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    grid-template-areas:
+      "score . mute pause"
+      "combo daily lives lives";
+    gap: 6px;
+    padding: 0 10px;
+  }
+  #hud-score { grid-area: score; justify-self: start; }
+  #hud-combo { grid-area: combo; justify-self: start; }
+  #hud-daily { grid-area: daily; justify-self: start; }
+  #hud-lives { grid-area: lives; justify-self: end; padding-right: 4px; }
+  #btn-mute { grid-area: mute; }
+  #btn-pause { grid-area: pause; }
+  .hud-spacer { display: none; }
+  .icon-btn { width: 36px; height: 36px; border-radius: 10px; font-size: 14px; }
+  .hud-lives { gap: 4px; }
+  .hud-lives i { width: 11px; height: 11px; }
+}
+
+/* Phone landscape: the cards have to fit 390 px of height, buttons included. */
+@media (max-height: 460px) {
+  .overlay { padding: 10px 14px; justify-content: flex-start; }
+  .card { padding: 14px 18px; border-radius: 16px; }
+  .card h2 { font-size: 19px; margin-bottom: 6px; }
+  .logo h1 { font-size: 26px; }
+  .tagline { font-size: 12.5px; margin-top: 6px; }
+  .legend { display: none; }
+  .col { margin-top: 9px; gap: 7px; }
+  .btn { padding: 8px 14px; font-size: 13px; }
+  .btn.big { padding: 10px 16px; font-size: 15px; }
+  .controls { margin-top: 8px; font-size: 11.5px; }
+  #title-best, #title-daily { margin: 6px 0 0; font-size: 12.5px; }
+  .big-score { font-size: 22px; margin: 2px 0 6px; }
+  .res-lines div { padding: 2px; font-size: 12.5px; }
+  .meter { height: 30px; width: min(34vw, 170px); }
+  .hud-bottom { bottom: calc(6px + env(safe-area-inset-bottom)); }
+}

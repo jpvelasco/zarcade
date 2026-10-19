@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#060917"/>
+      <stop offset="0.6" stop-color="#0c1436"/>
+      <stop offset="1" stop-color="#16244e"/>
+    </linearGradient>
+    <linearGradient id="gem" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a5fbff"/>
+      <stop offset="0.5" stop-color="#59f2ff"/>
+      <stop offset="1" stop-color="#3fd3e8"/>
+    </linearGradient>
+    <linearGradient id="gem2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e0b3ff"/>
+      <stop offset="0.5" stop-color="#b08bff"/>
+      <stop offset="1" stop-color="#8f5fe0"/>
+    </linearGradient>
+    <linearGradient id="gem3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="0.5" stop-color="#ffd159"/>
+      <stop offset="1" stop-color="#ff9d5e"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7df9ff" stop-opacity="0"/>
+      <stop offset="0.35" stop-color="#7df9ff"/>
+      <stop offset="0.65" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#b08bff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#7df9ff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#7df9ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="goldGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffd159" stop-opacity="0.5"/>
+      <stop offset="0.55" stop-color="#ffd159" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#ffd159" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#sky)"/>
+
+  <!-- stars -->
+  <g fill="#cfe0ff">
+    <circle cx="80" cy="70" r="1.6" opacity="0.9"/>
+    <circle cx="180" cy="40" r="1.2" opacity="0.6"/>
+    <circle cx="300" cy="90" r="1.4" opacity="0.8"/>
+    <circle cx="430" cy="50" r="1.1" opacity="0.5"/>
+    <circle cx="560" cy="110" r="1.6" opacity="0.9"/>
+    <circle cx="660" cy="60" r="1.3" opacity="0.7"/>
+    <circle cx="740" cy="140" r="1.5" opacity="0.8"/>
+    <circle cx="120" cy="200" r="1.2" opacity="0.5"/>
+    <circle cx="700" cy="240" r="1.4" opacity="0.7"/>
+    <circle cx="60" cy="330" r="1.3" opacity="0.6"/>
+    <circle cx="760" cy="380" r="1.2" opacity="0.5"/>
+    <circle cx="240" cy="420" r="1.5" opacity="0.7"/>
+    <circle cx="520" cy="440" r="1.3" opacity="0.6"/>
+  </g>
+
+  <!-- background storm glow at the bottom -->
+  <ellipse cx="400" cy="560" rx="420" ry="180" fill="url(#glow)" opacity="0.6"/>
+
+  <!-- the big blade swipe -->
+  <g transform="rotate(-18 400 250)">
+    <rect x="60" y="246" width="680" height="8" rx="4" fill="url(#blade)"/>
+    <rect x="120" y="240" width="560" height="20" rx="10" fill="#ffffff" opacity="0.12"/>
+    <circle cx="560" cy="250" r="26" fill="#ffffff" opacity="0.9"/>
+    <circle cx="560" cy="250" r="40" fill="#7df9ff" opacity="0.25"/>
+  </g>
+
+  <!-- shards -->
+  <g>
+    <g transform="translate(250 200) rotate(18)">
+      <path d="M0 -46 L38 -12 L24 42 L-24 42 L-38 -12 Z" fill="url(#gem)"/>
+      <path d="M0 -46 L24 42 L38 -12 Z" fill="#ffffff" opacity="0.35"/>
+      <g stroke="#ffffff" stroke-opacity="0.55" stroke-width="2">
+        <line x1="0" y1="0" x2="0" y2="-46"/>
+        <line x1="0" y1="0" x2="38" y2="-12"/>
+        <line x1="0" y1="0" x2="-38" y2="-12"/>
+        <line x1="0" y1="0" x2="24" y2="42"/>
+        <line x1="0" y1="0" x2="-24" y2="42"/>
+      </g>
+    </g>
+    <g transform="translate(540 190) rotate(-14) scale(0.72)">
+      <path d="M0 -46 L38 -12 L24 42 L-24 42 L-38 -12 Z" fill="url(#gem2)"/>
+      <path d="M0 -46 L24 42 L38 -12 Z" fill="#ffffff" opacity="0.35"/>
+    </g>
+    <!-- the golden shard: the prize, a six-point star, never a gem -->
+    <g transform="translate(640 320) rotate(14) scale(0.66)">
+      <circle r="76" fill="url(#goldGlow)"/>
+      <path d="M0 -46 L10.5 -18.2 L39.8 -23 L21 0 L39.8 23 L10.5 18.2 L0 46 L-10.5 18.2 L-39.8 23 L-21 0 L-39.8 -23 L-10.5 -18.2 Z" fill="url(#gem3)"/>
+      <circle r="28" fill="none" stroke="#fff0be" stroke-opacity="0.8" stroke-width="3"/>
+      <circle r="12" fill="#ffffff" opacity="0.95"/>
+    </g>
+    <!-- a cluster: a shell packed with the shards it bursts into -->
+    <g transform="translate(150 350) rotate(-16) scale(0.62)">
+      <path d="M46 0 L28 28 L0 46 L-28 28 L-46 0 L-28 -28 L0 -46 L28 -28 Z"
+            fill="#08102244" stroke="#9affd8" stroke-width="4" stroke-linejoin="round"/>
+      <g fill="url(#gem)">
+        <path d="M0 -46 L38 -12 L24 42 L-24 42 L-38 -12 Z" transform="translate(16 16) scale(0.33)"/>
+        <path d="M0 -46 L38 -12 L24 42 L-24 42 L-38 -12 Z" transform="translate(-16 16) scale(0.33)"/>
+        <path d="M0 -46 L38 -12 L24 42 L-24 42 L-38 -12 Z" transform="translate(-16 -16) scale(0.33)"/>
+        <path d="M0 -46 L38 -12 L24 42 L-24 42 L-38 -12 Z" transform="translate(16 -16) scale(0.33)"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- a spiky mine -->
+  <g transform="translate(410 360)">
+    <path d="M0 -34 L10 -18 L28 -22 L22 -6 L34 8 L16 10 L14 28 L0 16 L-14 28 L-16 10 L-34 8 L-22 -6 L-28 -22 L-10 -18 Z"
+          fill="#2a0d14" stroke="#ff3b4e" stroke-width="3" stroke-linejoin="round"/>
+    <circle r="12" fill="#ff3b4e"/>
+    <circle r="5" cx="-4" cy="-5" fill="#ffffff" opacity="0.85"/>
+  </g>
+
+  <!-- cracked shell ring -->
+  <g transform="translate(330 300)" opacity="0.9">
+    <circle r="34" fill="none" stroke="#6ff0ff" stroke-width="4" stroke-dasharray="20 14" opacity="0.8"/>
+    <circle r="24" fill="url(#gem)" opacity="0.9"/>
+  </g>
+
+  <!-- shard shards (spark bits) -->
+  <g fill="#ffffff">
+    <path d="M300 160 l4 -10 l4 10 l10 4 l-10 4 l-4 10 l-4 -10 l-10 -4 Z" opacity="0.9"/>
+    <path d="M590 120 l3 -8 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 Z" opacity="0.8"/>
+    <path d="M470 240 l3 -7 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 Z" opacity="0.85"/>
+    <path d="M190 260 l2 -6 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 Z" opacity="0.7"/>
+  </g>
+
+  <!-- bottom wave hint -->
+  <g opacity="0.6">
+    <path d="M0 470 Q 100 450 200 468 T 400 470 T 600 468 T 800 470 L 800 500 L 0 500 Z" fill="#0c1436"/>
+    <path d="M0 482 Q 120 466 240 480 T 480 482 T 720 478 L 800 484 L 800 500 L 0 500 Z" fill="#16244e"/>
+  </g>
+</svg>

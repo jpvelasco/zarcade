@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-label="Campfire Solitaire favicon">
+  <defs>
+    <radialGradient id="fl" cx="0.5" cy="0.75" r="0.6">
+      <stop offset="0" stop-color="#fff6c8"/>
+      <stop offset="0.45" stop-color="#ffc24d"/>
+      <stop offset="1" stop-color="#ff6a2a"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0b0f2a"/>
+  <circle cx="50" cy="13" r="2" fill="#fff6d8"/>
+  <circle cx="12" cy="10" r="1.4" fill="#fff6d8"/>
+  <g transform="rotate(-14 32 40)">
+    <rect x="13" y="12" width="22" height="31" rx="3.5" fill="#fffaf0" stroke="#7a5c3a" stroke-width="1.2"/>
+    <text x="17" y="26" font-family="system-ui, sans-serif" font-weight="900" font-size="13" fill="#d6334a">7</text>
+  </g>
+  <g transform="rotate(12 32 40)">
+    <rect x="29" y="12" width="22" height="31" rx="3.5" fill="#fffaf0" stroke="#7a5c3a" stroke-width="1.2"/>
+    <text x="33" y="26" font-family="system-ui, sans-serif" font-weight="900" font-size="13" fill="#22304a">8</text>
+  </g>
+  <path d="M32 36 C40 44 40 52 32 56 C24 52 24 44 32 36 Z" fill="url(#fl)"/>
+  <rect x="20" y="54" width="24" height="4" rx="2" fill="#7d4a2a" transform="rotate(-10 32 56)"/>
+  <rect x="20" y="54" width="24" height="4" rx="2" fill="#6b3f24" transform="rotate(10 32 56)"/>
+</svg>

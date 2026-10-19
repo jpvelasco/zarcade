@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b0620">
+  <meta name="description" content="Comet Courier: a sky-golf puzzle. Slide a little comet across the cosmic post office and sink it into the mailbox star in as few launches as possible.">
+  <title>Comet Courier — deliver by starlight</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="comet-courier"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Comet Courier playfield"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Comet Courier uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/comet-courier/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud" class="hidden">
+    <div id="hud-title" class="hud-pill"></div>
+    <div id="hud-shots" class="hud-pill"></div>
+    <div id="hud-letters" class="hud-pill"></div>
+    <div class="hud-spacer"></div>
+    <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+    <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+  </div>
+
+  <section id="screen-title" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Comet Courier">
+        <span class="logo-comet" aria-hidden="true"></span>
+        <h1><span class="l1">Comet</span><span class="l2">Courier</span></h1>
+      </div>
+      <p class="tagline">Sweep up every letter, then sink your comet into the mailbox star — in as few launches as you can.</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-levels" class="btn grow">Routes</button>
+          <button id="btn-stamps" class="btn grow">Postmarks</button>
+        </div>
+        <div class="row">
+          <button class="btn grow" data-sound>Sound: on</button>
+          <button class="btn grow" data-music>Music: on</button>
+        </div>
+      </div>
+      <p id="title-stats" class="muted"></p>
+      <p class="controls keys-only">
+        <b>Aim</b> drag the comet, or ← → / A D &nbsp; <b>Charge</b> hold Space &nbsp; <b>Launch</b> release &nbsp; <b>Restart</b> R &nbsp; <b>Pause</b> Esc<br>
+        The dotted line is where your shot goes. Green rings show the letters it will sweep up.
+      </p>
+      <p class="controls touch-only">
+        <b>Drag</b> back from the comet to aim, <b>release</b> to launch &nbsp; <b>❚❚</b> pauses<br>
+        The dotted line is where your shot goes.
+      </p>
+    </div>
+  </section>
+
+  <section id="screen-levels" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card wide levels-card">
+      <div class="levels-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Routes</h2>
+        <span id="levels-stars" class="pill"></span>
+      </div>
+      <div id="level-list" class="level-list"></div>
+      <div class="missions-box">
+        <h3 class="gallery-h">Tonight's missions</h3>
+        <div id="mission-list" class="mission-list"></div>
+      </div>
+      <p id="levels-info" class="muted center">Pick a route to deliver</p>
+    </div>
+  </section>
+
+  <section id="screen-stamps" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card wide levels-card">
+      <div class="levels-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Postmark gallery</h2>
+        <span id="stamps-count" class="pill"></span>
+      </div>
+      <h3 class="gallery-h">Comet skins</h3>
+      <div id="skin-row" class="skin-row"></div>
+      <h3 class="gallery-h">Stamps</h3>
+      <div id="stamp-grid" class="stamp-grid"></div>
+      <div class="row end">
+        <button id="btn-stamps-title" class="btn" data-title>Title</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart delivery</button>
+        <button id="btn-pause-levels" class="btn">Routes</button>
+        <div class="row">
+          <button class="btn" data-sound>Sound: on</button>
+          <button class="btn" data-music>Music: on</button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-win" class="overlay hidden">
+    <div class="card">
+      <h2 id="win-title">Delivered!</h2>
+      <p id="win-sub" class="muted"></p>
+      <div id="win-stars" class="stars" aria-hidden="true"></div>
+      <p id="win-score" class="big-score"></p>
+      <div id="win-lines" class="res-lines"></div>
+      <p id="win-hint" class="muted hint hidden"></p>
+      <div id="win-celebrate" class="celebrate hidden"></div>
+      <div class="col">
+        <button id="btn-next" class="btn primary">Next route →</button>
+        <button id="btn-win-retry" class="btn">Retry</button>
+        <button id="btn-win-levels" class="btn">Routes</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-victory" class="overlay dim hidden">
+    <div class="card">
+      <h2 class="rainbow">Every route is shining!</h2>
+      <p class="muted">The whole constellation post office thanks you, courier.</p>
+      <p id="victory-score" class="big-score"></p>
+      <div id="victory-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-victory-levels" class="btn primary">Routes</button>
+        <button class="btn" data-title>Title</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

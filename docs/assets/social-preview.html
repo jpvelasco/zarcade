@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  Source for social-preview.png, the 1200×630 card shown when a Zarcade link
+  is shared (Open Graph / Twitter tags in index.html, and GitHub's repo
+  "Social preview" setting). To rebuild it: `npm run serve`, open
+  http://localhost:8000/docs/assets/social-preview.html in a 1200×630 window
+  at 1× zoom, and save a PNG screenshot over social-preview.png.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Zarcade social preview</title>
+  <style>
+    html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+    body {
+      /* Picks up exactly where the banner's sky ends (#2c1356 at 360px). */
+      background: linear-gradient(180deg, #2c1356 57.1%, #140a30 100%);
+      font-family: Futura, "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+      color: #fff4e6;
+    }
+    .banner { display: block; width: 1200px; height: 360px; }
+    .tagline {
+      margin: 6px 0 0;
+      text-align: center;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .tagline b { color: #ffd35c; }
+    .row { display: flex; justify-content: center; gap: 16px; margin-top: 30px; }
+    .row img {
+      width: 180px;
+      height: 112.5px;
+      border-radius: 14px;
+      box-shadow: 0 0 0 3px #3b2285, 0 10px 24px rgba(0, 0, 0, 0.45);
+    }
+  </style>
+</head>
+<body>
+  <img class="banner" src="zarcade-banner.svg" alt="">
+  <p class="tagline">Free browser games for all ages · <b>no installs, no ads</b></p>
+  <div class="row">
+    <img src="../../games/pocket-kart/cover.svg" alt="">
+    <img src="../../games/lanternwood/cover.svg" alt="">
+    <img src="../../games/jelly-jam/cover.svg" alt="">
+    <img src="../../games/pixel-pond/cover.svg" alt="">
+    <img src="../../games/hoop-heroes/cover.svg" alt="">
+    <img src="../../games/campfire-solitaire/cover.svg" alt="">
+  </div>
+</body>
+</html>

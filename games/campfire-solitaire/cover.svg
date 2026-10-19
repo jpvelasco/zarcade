@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" aria-label="Campfire Solitaire cover: three peaks of cards under a starry sky, with a campfire, a tent and the Big Dipper">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#070a1f"/>
+      <stop offset="0.55" stop-color="#141b4a"/>
+      <stop offset="1" stop-color="#3d2c62"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16241f"/>
+      <stop offset="1" stop-color="#0b1410"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffdf7"/>
+      <stop offset="1" stop-color="#f0e5cd"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffb35c" stop-opacity="0.6"/>
+      <stop offset="0.5" stop-color="#ff8a3d" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#ff8a3d" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="flameOuter" cx="0.5" cy="0.85" r="0.75">
+      <stop offset="0" stop-color="#ffe9a0"/>
+      <stop offset="0.45" stop-color="#ff9a3c"/>
+      <stop offset="1" stop-color="#e2461f"/>
+    </radialGradient>
+    <radialGradient id="flameInner" cx="0.5" cy="0.8" r="0.7">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffe27a"/>
+    </radialGradient>
+    <radialGradient id="moonHalo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff1c4" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#fff1c4" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="plaid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <rect width="24" height="24" fill="#a3302f"/>
+      <rect x="0" y="0" width="10" height="24" fill="#184230" opacity="0.62"/>
+      <rect x="0" y="0" width="24" height="10" fill="#184230" opacity="0.62"/>
+      <rect x="4" y="0" width="1.4" height="24" fill="#f0c86e" opacity="0.6"/>
+      <rect x="0" y="4" width="24" height="1.4" fill="#f0c86e" opacity="0.6"/>
+    </pattern>
+    <g id="back">
+      <rect width="62" height="87" rx="7" fill="#f7efdc" stroke="#6b4a2e" stroke-opacity="0.5"/>
+      <rect x="5" y="5" width="52" height="77" rx="4" fill="url(#plaid)"/>
+    </g>
+    <path id="heart" d="M0 9 C-2 7 -10 3 -10 -3 C-10 -9 -3 -10 0 -5 C3 -10 10 -9 10 -3 C10 3 2 7 0 9 Z"/>
+    <path id="spade" d="M0 -10 C-2 -7 -10 -3 -10 2 C-10 7 -3 8 -1 4 L-3 10 L3 10 L1 4 C3 8 10 7 10 2 C10 -3 2 -7 0 -10 Z"/>
+    <path id="diamond" d="M0 -10 Q3 -4 8 0 Q3 4 0 10 Q-3 4 -8 0 Q-3 -4 0 -10 Z"/>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#sky)"/>
+
+  <!-- stars -->
+  <g fill="#fff6dc">
+    <circle cx="40" cy="40" r="1.4"/><circle cx="120" cy="90" r="1"/><circle cx="210" cy="30" r="1.6"/>
+    <circle cx="300" cy="70" r="1"/><circle cx="380" cy="24" r="1.3"/><circle cx="470" cy="60" r="1"/>
+    <circle cx="560" cy="34" r="1.5"/><circle cx="620" cy="110" r="1"/><circle cx="700" cy="60" r="1.2"/>
+    <circle cx="760" cy="140" r="1"/><circle cx="60" cy="160" r="1.1"/><circle cx="160" cy="200" r="0.9"/>
+    <circle cx="740" cy="230" r="1"/><circle cx="20" cy="250" r="1"/><circle cx="350" cy="140" r="0.8"/>
+  </g>
+
+  <!-- moon -->
+  <circle cx="690" cy="90" r="70" fill="url(#moonHalo)"/>
+  <circle cx="690" cy="90" r="26" fill="#fff1c4"/>
+  <circle cx="703" cy="82" r="23" fill="#0c1233"/>
+
+  <!-- the Big Dipper, lit -->
+  <g stroke="#a0ffe1" stroke-opacity="0.7" stroke-width="2" fill="none" stroke-linecap="round">
+    <polyline points="70,70 112,58 150,80 186,74 214,110 270,110 262,72 214,74"/>
+  </g>
+  <g fill="#e9fff6">
+    <circle cx="70" cy="70" r="4"/><circle cx="112" cy="58" r="4"/><circle cx="150" cy="80" r="4"/>
+    <circle cx="186" cy="74" r="4.5"/><circle cx="214" cy="110" r="4"/><circle cx="270" cy="110" r="4"/><circle cx="262" cy="72" r="4"/>
+  </g>
+
+  <!-- mountains and pines -->
+  <path d="M0 330 L90 250 L170 310 L260 230 L360 320 L450 260 L560 330 L650 240 L740 300 L800 270 L800 360 L0 360 Z" fill="#1a1f45"/>
+  <rect y="350" width="800" height="150" fill="url(#ground)"/>
+  <g fill="#0e1a1a">
+    <path d="M20 360 L48 270 L76 360 Z"/><path d="M60 360 L95 250 L130 360 Z"/><path d="M118 360 L140 300 L162 360 Z"/>
+    <path d="M640 360 L670 280 L700 360 Z"/><path d="M690 360 L730 240 L770 360 Z"/><path d="M752 360 L780 290 L808 360 Z"/>
+  </g>
+
+  <!-- string lanterns -->
+  <path d="M0 150 Q400 230 800 150" fill="none" stroke="#2a2433" stroke-width="2"/>
+  <g>
+    <circle cx="90" cy="168" r="6" fill="#ffcf6b"/><circle cx="190" cy="184" r="6" fill="#ff8f6b"/>
+    <circle cx="300" cy="194" r="6" fill="#9fe6ff"/><circle cx="500" cy="194" r="6" fill="#c6ff8f"/>
+    <circle cx="610" cy="184" r="6" fill="#ffb3e6"/><circle cx="710" cy="168" r="6" fill="#ffcf6b"/>
+  </g>
+
+  <!-- three peaks of cards -->
+  <g transform="translate(183 120)">
+    <use href="#back" x="62"/><use href="#back" x="186"/><use href="#back" x="310"/>
+    <use href="#back" x="31" y="40"/><use href="#back" x="93" y="40"/><use href="#back" x="155" y="40"/>
+    <use href="#back" x="217" y="40"/><use href="#back" x="279" y="40"/><use href="#back" x="341" y="40"/>
+    <g transform="translate(0 80)">
+      <rect width="62" height="87" rx="7" fill="url(#face)" stroke="#6b4a2e" stroke-opacity="0.5"/>
+      <text x="8" y="27" font-family="system-ui, sans-serif" font-weight="900" font-size="24" fill="#d6334a">6</text>
+      <use href="#heart" transform="translate(36 58) scale(1.5)" fill="#d6334a"/>
+    </g>
+    <g transform="translate(62 80)">
+      <rect width="62" height="87" rx="7" fill="url(#face)" stroke="#6b4a2e" stroke-opacity="0.5"/>
+      <text x="8" y="27" font-family="system-ui, sans-serif" font-weight="900" font-size="24" fill="#22304a">9</text>
+      <use href="#spade" transform="translate(36 58) scale(1.5)" fill="#22304a"/>
+    </g>
+    <use href="#back" x="124" y="80"/>
+    <use href="#back" x="186" y="80"/>
+    <g transform="translate(248 80)">
+      <rect width="62" height="87" rx="7" fill="url(#face)" stroke="#6b4a2e" stroke-opacity="0.5"/>
+      <text x="8" y="27" font-family="system-ui, sans-serif" font-weight="900" font-size="24" fill="#d6334a">8</text>
+      <use href="#diamond" transform="translate(36 58) scale(1.5)" fill="#d6334a"/>
+    </g>
+    <g transform="translate(310 80)">
+      <rect width="62" height="87" rx="7" fill="url(#face)" stroke="#6b4a2e" stroke-opacity="0.5"/>
+      <text x="8" y="27" font-family="system-ui, sans-serif" font-weight="900" font-size="24" fill="#22304a">K</text>
+      <circle cx="36" cy="57" r="17" fill="#e2e9f6"/>
+      <circle cx="25" cy="47" r="5" fill="#7a4b2e"/><circle cx="47" cy="47" r="5" fill="#7a4b2e"/>
+      <circle cx="36" cy="58" r="12" fill="#8e5a37"/>
+      <ellipse cx="36" cy="63" rx="6" ry="4.5" fill="#ecc9a2"/>
+      <circle cx="31" cy="55" r="1.5" fill="#2a1a10"/><circle cx="41" cy="55" r="1.5" fill="#2a1a10"/>
+      <path d="M29 44 L29 39 L32.5 42 L36 37 L39.5 42 L43 39 L43 44 Z" fill="#f4c64e"/>
+    </g>
+    <g transform="translate(372 80)">
+      <rect width="62" height="87" rx="7" fill="url(#face)" stroke="#6b4a2e" stroke-opacity="0.5"/>
+      <text x="8" y="27" font-family="system-ui, sans-serif" font-weight="900" font-size="24" fill="#22304a">A</text>
+      <circle cx="36" cy="58" r="14" fill="#f4c64e" opacity="0.3"/>
+      <use href="#spade" transform="translate(36 58) scale(1.5)" fill="#22304a"/>
+    </g>
+  </g>
+
+  <!-- a card flying to the fire, with sparks -->
+  <g transform="translate(470 330) rotate(14)">
+    <rect width="62" height="87" rx="7" fill="url(#face)" stroke="#6b4a2e" stroke-opacity="0.5"/>
+    <text x="8" y="27" font-family="system-ui, sans-serif" font-weight="900" font-size="24" fill="#d6334a">7</text>
+    <use href="#heart" transform="translate(36 58) scale(1.5)" fill="#d6334a"/>
+  </g>
+
+  <!-- tent -->
+  <path d="M60 470 L130 360 L200 470 Z" fill="#d9622b"/>
+  <path d="M130 360 L200 470 L160 470 Z" fill="#b44a1f"/>
+  <path d="M112 470 L130 410 L148 470 Z" fill="#ffd27a"/>
+  <path d="M130 360 L130 344 L146 349 L130 354" fill="#ffe36b" stroke="#3a1d0d" stroke-width="2"/>
+
+  <!-- campfire -->
+  <ellipse cx="400" cy="440" rx="190" ry="110" fill="url(#glow)"/>
+  <path d="M400 330 C432 368 446 404 430 440 C420 462 380 462 370 440 C354 404 368 368 400 330 Z" fill="url(#flameOuter)"/>
+  <path d="M374 380 C390 400 392 424 382 444 C372 446 362 436 362 420 C362 404 368 392 374 380 Z" fill="#ff8a3d" opacity="0.9"/>
+  <path d="M426 384 C440 404 440 428 428 444 C418 444 412 432 414 418 C416 404 420 394 426 384 Z" fill="#ff8a3d" opacity="0.9"/>
+  <path d="M400 384 C414 404 418 424 410 440 C404 450 396 450 390 440 C382 424 386 404 400 384 Z" fill="url(#flameInner)"/>
+  <g stroke-linecap="round" stroke-width="16">
+    <line x1="340" y1="470" x2="455" y2="438" stroke="#6b3f24"/>
+    <line x1="460" y1="470" x2="345" y2="438" stroke="#7d4a2a"/>
+  </g>
+  <g fill="#6d6a80">
+    <ellipse cx="322" cy="470" rx="16" ry="10"/><ellipse cx="350" cy="478" rx="14" ry="9" fill="#5d5a6e"/>
+    <ellipse cx="450" cy="478" rx="14" ry="9" fill="#5d5a6e"/><ellipse cx="478" cy="470" rx="16" ry="10"/>
+  </g>
+  <g fill="#ffd27a">
+    <circle cx="380" cy="300" r="3"/><circle cx="420" cy="286" r="2.5"/><circle cx="404" cy="262" r="2"/>
+    <circle cx="446" cy="316" r="2.5"/><circle cx="360" cy="320" r="2"/><circle cx="480" cy="300" r="2"/>
+  </g>
+
+  <!-- guitar -->
+  <g transform="translate(690 470) rotate(-22)">
+    <rect x="-4" y="-104" width="8" height="64" fill="#5a3a22"/>
+    <rect x="-7" y="-116" width="14" height="14" fill="#3a2414"/>
+    <ellipse cx="0" cy="-34" rx="22" ry="20" fill="#d98b3a"/>
+    <ellipse cx="0" cy="-14" rx="28" ry="22" fill="#e39a48"/>
+    <circle cx="0" cy="-28" r="6" fill="#3a2414"/>
+  </g>
+
+  <!-- fireflies -->
+  <g fill="#d6ff9a" opacity="0.9">
+    <circle cx="250" cy="400" r="3"/><circle cx="560" cy="380" r="2.5"/><circle cx="600" cy="430" r="3"/><circle cx="220" cy="450" r="2.5"/>
+  </g>
+</svg>

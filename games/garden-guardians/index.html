@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Garden Guardians: A cozy tower defense: plant sunflower cannons, pea pods and mushroom mages along winding garden paths to stop snack-hungry bugs before they reach Grandma's picnic.">
+  <meta name="theme-color" content="#8fcb60">
+  <title>Garden Guardians — save Grandma's picnic</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="garden-guardians"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header id="hud" class="hud hidden" aria-label="Garden status">
+      <div class="hud-stats">
+        <div class="stat" title="Coins"><i class="ico coin" aria-hidden="true"></i><b id="hud-coins">0</b><span class="sr">coins</span></div>
+        <div class="stat" title="Picnic baskets left"><i class="ico basket" aria-hidden="true"></i><b id="hud-baskets">10</b><span class="sub">/<span id="hud-baskets-max">10</span></span><span class="sr">baskets</span></div>
+        <div class="stat wave" title="Wave"><span class="sub">Wave</span> <b id="hud-wave">0/12</b></div>
+      </div>
+      <div class="hud-next" id="hud-next" aria-live="polite"><span class="label">Next</span><span id="hud-next-text"></span></div>
+      <div class="hud-actions">
+        <button id="btn-wave" class="btn wave-btn" title="Start the next wave (Space)">Start wave</button>
+        <button id="btn-speed" class="icon-btn" title="Game speed (F)" aria-label="Toggle speed">1×</button>
+        <button id="btn-sound" class="icon-btn" title="Sound (M)" aria-label="Mute" aria-pressed="false">♪</button>
+        <button id="btn-pause" class="icon-btn" title="Pause (Esc)" aria-label="Pause">❚❚</button>
+      </div>
+    </header>
+
+    <main id="board">
+      <canvas id="game" aria-label="Garden board"></canvas>
+      <div id="toast" class="toast" aria-live="polite"></div>
+      <div id="banner" class="banner"></div>
+    </main>
+
+    <aside id="panel" class="panel hidden">
+      <section id="build-panel">
+        <h3 id="build-title">Plant a defender</h3>
+        <div id="build-list" class="build-list"></div>
+        <p id="build-hint" class="hint"></p>
+      </section>
+      <section id="info-panel" class="info hidden" aria-live="polite">
+        <div class="info-head">
+          <canvas id="info-icon" class="info-icon" width="64" height="64"></canvas>
+          <div>
+            <h3 id="info-name"></h3>
+            <p id="info-role" class="muted"></p>
+          </div>
+          <button id="btn-close-info" class="icon-btn small" aria-label="Close">✕</button>
+        </div>
+        <p id="info-stats" class="stats"></p>
+        <div id="info-targeting" class="seg" role="group" aria-label="Targeting"></div>
+        <div class="info-actions">
+          <button id="btn-upgrade" class="btn primary"></button>
+          <button id="btn-sell" class="btn"></button>
+        </div>
+        <p id="info-next" class="hint"></p>
+      </section>
+    </aside>
+  </div>
+
+  <section id="screen-title" class="overlay hidden">
+    <div class="card title-card">
+      <a class="arcade-link" href="../../index.html">← Arcade</a>
+      <p class="kicker">A cozy tower defense</p>
+      <h1 class="logo"><span class="w1">Garden</span> <span class="w2">Guardians</span></h1>
+      <p class="tagline">Plant sunflower cannons, pea pods and mushroom mages to stop the snack-hungry bug parade before it reaches Grandma's picnic!</p>
+      <div class="row">
+        <button id="btn-play" class="btn primary big">Play</button>
+      </div>
+      <p id="title-progress" class="muted"></p>
+      <p class="controls keys-only"><b>Click</b> grass to plant · <b>Click</b> a plant to upgrade · <b>1–7</b> pick a plant · <b>Arrows + Enter</b> plant without a mouse · <b>Space</b> next wave · <b>F</b> speed · <b>Esc</b> pause</p>
+      <p class="controls touch-only"><b>Tap</b> the grass beside the path, then pick a plant · <b>Tap</b> a plant to upgrade it · <b>Start wave</b> sends the bugs</p>
+    </div>
+  </section>
+
+  <section id="screen-maps" class="overlay hidden">
+    <div class="card wide">
+      <div class="maps-head">
+        <button class="btn" data-back>← Back</button>
+        <h2>Choose a garden</h2>
+        <span id="maps-stars" class="stars-total"></span>
+      </div>
+      <div id="map-list" class="map-list"></div>
+      <div id="roster" class="roster"></div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-info" class="muted"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart garden</button>
+        <div class="row tight">
+          <button id="btn-mute" class="btn">Sound: on</button>
+          <button id="btn-music" class="btn">Music: on</button>
+        </div>
+        <button id="btn-quit" class="btn">Choose garden</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay hidden">
+    <div class="card">
+      <h2 id="res-title"></h2>
+      <div id="res-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <p id="res-sub" class="big"></p>
+      <div id="res-lines" class="res-lines"></div>
+      <div id="res-buttons" class="row"></div>
+    </div>
+  </section>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card small">
+      <h2>One quick step</h2>
+      <p>This game uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/garden-guardians/</code></p>
+      <a class="btn" href="../../index.html">← Arcade</a>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

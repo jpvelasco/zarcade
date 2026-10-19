@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120a2e">
+  <meta name="description" content="Starlight Arcade: a cabinet row of small browser games for all ages.">
+  <title>Starlight Arcade</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Zarcade">
+  <meta property="og:title" content="Zarcade · Starlight Arcade">
+  <meta property="og:description" content="Free browser games for all ages: racing, puzzles, cozy sandboxes, sports and more. No installs, no ads.">
+  <meta property="og:url" content="https://jpvelasco.github.io/zarcade/">
+  <meta property="og:image" content="https://jpvelasco.github.io/zarcade/docs/assets/social-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The Zarcade neon marquee above a row of game covers.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/svg+xml" href="arcade/favicon.svg">
+  <link rel="stylesheet" href="arcade/arcade.css">
+  <script src="arcade/telemetry.js" data-service="arcade" data-arcade="index.html"></script>
+  <script src="arcade/fullscreen.js"></script>
+</head>
+<body>
+  <div class="carpet" aria-hidden="true"></div>
+  <div class="haze" aria-hidden="true"></div>
+
+  <header class="marquee">
+    <div class="sign">
+      <span class="bulbs" aria-hidden="true"></span>
+      <h1 class="logo">
+        <span class="logo-top">Starlight</span>
+        <span class="logo-main">Arcade</span>
+      </h1>
+      <p class="sign-sub"><span class="coin" aria-hidden="true"></span>Free play · All ages · <span id="game-count"></span></p>
+    </div>
+    <button id="btn-mute" class="mute" type="button" aria-pressed="false" aria-label="Mute arcade sounds">
+      <span class="mute-on" aria-hidden="true">♪</span><span class="mute-off" aria-hidden="true">✕</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="stage" id="stage" aria-label="Selected game">
+      <div class="crt">
+        <div class="crt-glass">
+          <img id="stage-cover" alt="" width="800" height="500">
+          <span class="scan" aria-hidden="true"></span>
+          <span class="press" aria-hidden="true">Press start</span>
+        </div>
+      </div>
+      <div class="stage-info">
+        <p class="stage-genre" id="stage-genre"></p>
+        <h2 class="stage-title" id="stage-title"></h2>
+        <p class="stage-desc" id="stage-desc"></p>
+        <ul class="stage-controls" id="stage-controls" aria-label="Controls"></ul>
+        <div class="stage-actions">
+          <a class="play" id="stage-play" href="#">
+            <span class="play-icon" aria-hidden="true">▶</span> Play
+          </a>
+          <p class="stage-meta" id="stage-meta"></p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="filters" id="filters" aria-label="Filter games by genre"></nav>
+
+    <ul class="row" id="row" aria-label="Games"></ul>
+  </main>
+
+  <footer class="footer">
+    <p class="keys">
+      <kbd>←</kbd><kbd>→</kbd> choose <span class="dot">·</span>
+      <kbd>Enter</kbd> play <span class="dot">·</span>
+      🎮 gamepads welcome <span class="dot">·</span>
+      every game has a <b>← Arcade</b> button to come back
+    </p>
+    <p class="offline hidden" id="offline">
+      Opened from disk, so only games marked <b>works offline</b> can start.
+      Run <code>npm run serve</code> and visit <code>http://localhost:8000</code> to play them all.
+    </p>
+    <p class="help-row"><button class="help-link" id="btn-help" type="button">🛟 Help &amp; diagnostics</button></p>
+  </footer>
+
+  <dialog class="help" id="help" aria-labelledby="help-title">
+    <form method="dialog" class="help-card">
+      <header class="help-head">
+        <h2 id="help-title">Help &amp; diagnostics</h2>
+        <button class="help-close" value="close" aria-label="Close">✕</button>
+      </header>
+      <p class="help-intro">If a game misbehaves, its log below shows what happened. Copy the report and send it to whoever looks after the arcade. Logs stay on this device unless you switch on sending.</p>
+      <ul class="help-games" id="help-games"></ul>
+      <div class="help-actions">
+        <button type="button" class="help-btn primary" id="btn-copy-report">Copy report</button>
+        <button type="button" class="help-btn" id="btn-clear-logs">Clear logs</button>
+      </div>
+      <fieldset class="help-send">
+        <legend>Send logs (OpenTelemetry)</legend>
+        <label class="help-toggle"><input type="checkbox" id="send-logs"> Send logs to a collector</label>
+        <label class="help-endpoint">Collector URL
+          <input id="otlp-endpoint" type="url" placeholder="http://localhost:8000" spellcheck="false">
+        </label>
+        <p class="help-note">The dev server (<code>npm run serve</code>) collects logs at <code>/v1/logs</code> into <code>logs/telemetry.ndjson</code>. Any OTLP/HTTP collector works too, such as <code>http://localhost:4318</code>.</p>
+      </fieldset>
+      <p class="help-status" id="help-status" role="status"></p>
+    </form>
+  </dialog>
+
+  <div class="toast hidden" id="toast" role="status"></div>
+  <div class="launch" id="launch" aria-hidden="true"><span></span></div>
+
+  <script src="arcade/games.js"></script>
+  <script src="arcade/logic.js"></script>
+  <script src="arcade/arcade.js"></script>
+</body>
+</html>

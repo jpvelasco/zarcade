@@ -1,0 +1,12 @@
+{
+  "name": "zarcade",
+  "private": true,
+  "description": "Zarcade: a boardwalk arcade of small browser games for all ages, plus the Starlight Arcade page to pick between them.",
+  "scripts": {
+    "test": "node --test arcade/tests/*.test.js scripts/tests/*.test.mjs games/*/tests/*.test.js",
+    "serve": "node scripts/serve.mjs",
+    "sync-telemetry": "node scripts/sync-telemetry.mjs",
+    "readme": "node scripts/readme.mjs"
+  },
+  "license": "MIT"
+}

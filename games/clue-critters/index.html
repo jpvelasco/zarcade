@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#2d2a4a">
+  <meta name="description" content="Clue Critters: a cozy detective game. Help Detective Pip the beagle find clues, talk to animal suspects and solve the mysteries of Whiskerton village.">
+  <title>Clue Critters — cozy mysteries in Whiskerton</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="clue-critters"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body class="menu">
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div id="spots" class="spots hidden" aria-label="Places to search"></div>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Clue Critters uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/clue-critters/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- ============================================================ case HUD -->
+  <header id="hud" class="hud hidden">
+    <div class="hud-left">
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+      <div class="hud-title">
+        <b id="hud-case">The Prize Pie</b>
+        <span id="hud-clues">Clues 0/5</span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-hint" class="icon-btn" aria-label="Hint" title="Hint (H)">💡</button>
+      <button id="btn-mute" class="icon-btn" aria-label="Sound on" title="Sound (M)">🔊</button>
+    </div>
+  </header>
+
+  <div id="place-note" class="place-note hidden" aria-live="polite"></div>
+
+  <nav id="bar" class="bar hidden" aria-label="Case">
+    <div id="place-tabs" class="place-tabs" role="tablist" aria-label="Places"></div>
+    <div class="bar-actions">
+      <button id="btn-board" class="btn board-btn"><span aria-hidden="true">📒</span> Clue board <span id="board-badge" class="badge hidden">0</span></button>
+      <button id="btn-accuse" class="btn accuse-btn"><span aria-hidden="true">🔎</span> Solve it!</button>
+    </div>
+  </nav>
+
+  <!-- ============================================================= dialogs -->
+  <section id="dlg" class="overlay dialog-layer hidden" role="dialog" aria-modal="true" aria-labelledby="dlg-name">
+    <div class="dialog card">
+      <div id="dlg-art" class="dlg-art"></div>
+      <div class="dlg-body">
+        <h3 id="dlg-name">Bramble</h3>
+        <div id="dlg-lines" class="dlg-lines"></div>
+        <div class="row end">
+          <button id="dlg-say" class="btn small say-btn" aria-label="Read aloud">🔈 Read</button>
+          <button id="dlg-ok" class="btn primary">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="board" class="overlay sheet-layer hidden" role="dialog" aria-modal="true" aria-labelledby="board-title">
+    <div class="sheet card">
+      <div class="sheet-head">
+        <h2 id="board-title">Clue board</h2>
+        <div class="row">
+          <button id="board-hint" class="btn small">💡 Hint</button>
+          <button id="board-close" class="btn small" aria-label="Close clue board">✕</button>
+        </div>
+      </div>
+      <p id="board-tip" class="tip"></p>
+      <div class="board-body">
+        <div class="grid-wrap">
+          <div id="grid-tabs" class="seg hidden" role="tablist">
+            <button data-cat="place" class="seg-btn on" role="tab">Where?</button>
+            <button data-cat="thing" class="seg-btn" role="tab">What?</button>
+          </div>
+          <div id="grid" class="grid" role="grid" aria-label="Clue grid"></div>
+          <p class="legend"><span>Tap a box:</span> <b class="x">✗</b> no · <b class="y">✓</b> yes</p>
+        </div>
+        <div class="notes-wrap">
+          <h3>Notebook</h3>
+          <ol id="notes" class="notes"></ol>
+          <p id="notes-more" class="muted"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="accuse" class="overlay sheet-layer hidden" role="dialog" aria-modal="true" aria-labelledby="accuse-title">
+    <div class="sheet card accuse-card">
+      <div class="sheet-head">
+        <h2 id="accuse-title">Who did it?</h2>
+        <button id="accuse-close" class="btn small" aria-label="Close">✕</button>
+      </div>
+      <p id="accuse-ask" class="muted center"></p>
+      <h3>Who?</h3>
+      <div id="pick-who" class="picks" role="radiogroup" aria-label="Who"></div>
+      <h3>Where were they?</h3>
+      <div id="pick-where" class="picks" role="radiogroup" aria-label="Where"></div>
+      <h3>What did they have?</h3>
+      <div id="pick-what" class="picks" role="radiogroup" aria-label="What"></div>
+      <p id="accuse-msg" class="accuse-msg" aria-live="assertive"></p>
+      <div class="row center">
+        <button id="accuse-go" class="btn primary big" disabled>👉 That’s it!</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== reveal -->
+  <section id="reveal" class="overlay reveal-layer hidden" aria-live="polite">
+    <div id="reveal-bubble" class="bubble">
+      <b id="reveal-name"></b>
+      <p id="reveal-line"></p>
+    </div>
+    <div id="reveal-stamp" class="stamp" aria-hidden="true">CASE CLOSED</div>
+    <button id="reveal-next" class="btn primary big reveal-next">Yay! →</button>
+  </section>
+
+  <section id="screen-result" class="overlay dim hidden">
+    <div class="card result-card">
+      <h2 id="result-title">Case solved!</h2>
+      <div id="result-stars" class="stars" aria-label="Stars"></div>
+      <p id="result-sub" class="muted center"></p>
+      <div id="result-rank" class="rank-box"></div>
+      <div id="result-unlocks" class="unlocks"></div>
+      <div class="col">
+        <button id="result-next" class="btn primary big">Next case →</button>
+        <div class="row center">
+          <button id="result-book" class="btn">📁 Case files</button>
+          <button id="result-title-btn" class="btn">🏠 Title</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== intro -->
+  <section id="screen-intro" class="overlay dim hidden">
+    <div class="card intro-card">
+      <div class="folder-tab">CASE FILE</div>
+      <div id="intro-art" class="intro-art"></div>
+      <h2 id="intro-title">The Prize Pie</h2>
+      <p id="intro-text" class="intro-text"></p>
+      <p id="intro-ask" class="intro-ask"></p>
+      <div id="intro-cast" class="intro-cast"></div>
+      <p class="muted center small-print">Everyone has moved since. Find out where they were!</p>
+      <div class="row center">
+        <button id="intro-say" class="btn say-btn">🔈 Read</button>
+        <button id="intro-go" class="btn primary big">Let’s go! 🔍</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== menus -->
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="title-wrap">
+      <div class="logo" aria-label="Clue Critters">
+        <span class="logo-1">Clue</span><span class="logo-2">Critters</span>
+      </div>
+      <p class="tagline">Help Detective Pip solve the cozy mysteries of Whiskerton!</p>
+      <div id="title-rank" class="rank-box"></div>
+      <div class="col title-buttons">
+        <button id="btn-story" class="btn primary big">📖 Story</button>
+        <button id="btn-daily" class="btn big daily-btn">📅 Daily mystery <span id="daily-badge" class="badge"></span></button>
+        <button id="btn-endless" class="btn">♾️ Endless cases</button>
+        <div class="row center">
+          <button id="btn-book" class="btn small">📁 Case files</button>
+          <button id="btn-friends" class="btn small">🐾 Friends</button>
+          <button id="btn-wardrobe" class="btn small">🎩 Wardrobe</button>
+          <button id="btn-settings" class="btn small" aria-label="Settings">⚙️</button>
+        </div>
+      </div>
+      <p class="controls keys-only"><b>Click</b> or <b>Tab</b> + <b>Enter</b> · <b>1–5</b> places · <b>B</b> clue board · <b>S</b> solve · <b>H</b> hint · <b>Esc</b> pause</p>
+      <p class="controls touch-only"><b>Tap</b> things to search them · <b>tap</b> critters to talk</p>
+    </div>
+  </section>
+
+  <section id="screen-story" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="sheet-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Story</h2>
+        <span id="story-stars" class="pill"></span>
+      </div>
+      <div id="story-list" class="story-list"></div>
+    </div>
+  </section>
+
+  <section id="screen-endless" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="sheet-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Endless cases</h2>
+        <span class="pill">♾️</span>
+      </div>
+      <p class="muted center">A brand-new mystery every time. Pick how tricky!</p>
+      <div id="endless-list" class="endless-list"></div>
+    </div>
+  </section>
+
+  <section id="screen-book" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="sheet-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Case files</h2>
+        <span id="book-count" class="pill"></span>
+      </div>
+      <div id="book-list" class="book-list"></div>
+    </div>
+  </section>
+
+  <section id="screen-friends" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="sheet-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Friends album</h2>
+        <span id="friends-count" class="pill"></span>
+      </div>
+      <div id="friends-list" class="friends-list"></div>
+    </div>
+  </section>
+
+  <section id="screen-wardrobe" class="overlay dim hidden">
+    <div class="card wide">
+      <div class="sheet-head">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Pip’s wardrobe</h2>
+        <span class="pill">🎩</span>
+      </div>
+      <div class="wardrobe">
+        <div id="wardrobe-pip" class="wardrobe-pip"></div>
+        <div class="wardrobe-lists">
+          <h3>Hats</h3>
+          <div id="hat-list" class="outfits"></div>
+          <h3>Coats</h3>
+          <div id="coat-list" class="outfits"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-settings" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Settings</h2>
+      <div class="col">
+        <button class="btn" data-sound>Sound: on</button>
+        <button class="btn" data-music>Music: on</button>
+        <button class="btn" data-speech>Read aloud: off</button>
+        <button class="btn primary" data-back>Done</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Keep sleuthing</button>
+        <button id="btn-pause-board" class="btn">📒 Clue board</button>
+        <div class="row center">
+          <button class="btn small" data-sound>Sound: on</button>
+          <button class="btn small" data-music>Music: on</button>
+          <button class="btn small" data-speech>Read aloud: off</button>
+        </div>
+        <button id="btn-quit" class="btn">🏠 Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4fc0ff"/>
+      <stop offset="0.7" stop-color="#a8e6ff"/>
+      <stop offset="1" stop-color="#e8fbff"/>
+    </linearGradient>
+    <radialGradient id="ball" cx="0.35" cy="0.3" r="0.75">
+      <stop offset="0" stop-color="#ffb070"/>
+      <stop offset="1" stop-color="#d9561a"/>
+    </radialGradient>
+    <radialGradient id="flame" cx="0.5" cy="0.7" r="0.6">
+      <stop offset="0" stop-color="#fff2a0"/>
+      <stop offset="0.5" stop-color="#ffa63a" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ff4a1a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="court" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2554a"/>
+      <stop offset="1" stop-color="#c8402f"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <g fill="#fff" opacity="0.95">
+    <circle cx="110" cy="80" r="30"/><circle cx="145" cy="72" r="38"/><circle cx="185" cy="86" r="28"/>
+    <circle cx="620" cy="60" r="22"/><circle cx="648" cy="52" r="30"/><circle cx="680" cy="64" r="22"/>
+  </g>
+  <path d="M0 290 Q200 250 400 285 T800 280 V340 H0 Z" fill="#8fd37a"/>
+  <g fill="#2f8a3c">
+    <circle cx="60" cy="250" r="55"/><circle cx="130" cy="265" r="45"/><circle cx="700" cy="245" r="60"/><circle cx="770" cy="270" r="45"/><circle cx="560" cy="265" r="40"/><circle cx="250" cy="270" r="42"/>
+  </g>
+  <rect y="300" width="800" height="200" fill="#5fbf4a"/>
+  <g stroke="#e1e8f0" stroke-opacity="0.6" stroke-width="2">
+    <path d="M0 230 L800 230 M0 330 L800 330"/>
+  </g>
+  <path d="M120 500 L300 370 H500 L680 500 Z" fill="url(#court)"/>
+  <path d="M0 500 L0 420 L300 370 M800 420 L500 370 M800 500 V420" stroke="#fff" stroke-width="6" fill="none"/>
+  <rect y="365" width="800" height="8" fill="#fff"/>
+  <!-- hoop -->
+  <rect x="392" y="190" width="16" height="180" fill="#2f6fd6"/>
+  <rect x="300" y="70" width="200" height="130" rx="6" fill="#fff" stroke="#e2554a" stroke-width="9"/>
+  <rect x="362" y="118" width="76" height="58" fill="none" stroke="#e2554a" stroke-width="6"/>
+  <path d="M352 188 L366 250 H434 L448 188" fill="none" stroke="#fff" stroke-width="4"/>
+  <path d="M352 188 L380 250 M370 188 L398 250 M390 188 L410 250 M410 188 L392 250 M430 188 L402 250 M448 188 L420 250 M362 220 H438" stroke="#fff" stroke-width="3" fill="none"/>
+  <ellipse cx="400" cy="188" rx="50" ry="10" fill="none" stroke="#ff5a1f" stroke-width="7"/>
+  <!-- flaming ball arcing in -->
+  <path d="M140 420 Q240 40 380 140" fill="none" stroke="#ffd23f" stroke-width="6" stroke-dasharray="4 16" stroke-linecap="round" opacity="0.9"/>
+  <ellipse cx="410" cy="128" rx="58" ry="66" fill="url(#flame)"/>
+  <circle cx="404" cy="146" r="34" fill="url(#ball)" stroke="#3a1a08" stroke-width="3"/>
+  <path d="M404 112 V180 M370 146 H438 M380 120 Q396 146 380 172 M428 120 Q412 146 428 172" stroke="#3a1a08" stroke-width="3" fill="none"/>
+  <!-- confetti -->
+  <g>
+    <rect x="300" y="40" width="12" height="6" fill="#ff4f6d" transform="rotate(30 306 43)"/>
+    <rect x="510" y="60" width="12" height="6" fill="#ffd23f" transform="rotate(-20 516 63)"/>
+    <rect x="540" y="130" width="12" height="6" fill="#3fb6ff" transform="rotate(50 546 133)"/>
+    <rect x="270" y="140" width="12" height="6" fill="#4fd16b" transform="rotate(-40 276 143)"/>
+    <rect x="470" y="30" width="12" height="6" fill="#b98bff" transform="rotate(10 476 33)"/>
+  </g>
+  <!-- Ace from behind -->
+  <g transform="translate(120 330)">
+    <path d="M-20 170 Q-24 60 60 50 Q144 60 140 170 Z" fill="#e9b77a"/>
+    <path d="M10 170 L18 92 Q60 108 102 92 L110 170 Z" fill="#ffcf3a"/>
+    <path d="M18 92 Q60 108 102 92" stroke="#2f6fd6" stroke-width="6" fill="none"/>
+    <text x="60" y="150" font-family="ui-rounded, system-ui, sans-serif" font-weight="900" font-size="40" fill="#2f6fd6" text-anchor="middle">7</text>
+    <circle cx="60" cy="26" r="40" fill="#e9b77a"/>
+    <ellipse cx="22" cy="34" rx="13" ry="28" fill="#9a5a2a" transform="rotate(16 22 34)"/>
+    <ellipse cx="98" cy="34" rx="13" ry="28" fill="#9a5a2a" transform="rotate(-16 98 34)"/>
+    <path d="M22 10 Q60 22 98 10 V20 Q60 32 22 20 Z" fill="#2f6fd6"/>
+    <path d="M106 70 Q140 20 150 -10" stroke="#e9b77a" stroke-width="20" stroke-linecap="round" fill="none"/>
+  </g>
+  <!-- a rival bunny peeking -->
+  <g transform="translate(660 360)">
+    <ellipse cx="-14" cy="-58" rx="12" ry="34" fill="#f6f1f7"/><ellipse cx="18" cy="-58" rx="12" ry="34" fill="#f6f1f7"/>
+    <ellipse cx="-14" cy="-56" rx="6" ry="24" fill="#ffb3cc"/><ellipse cx="18" cy="-56" rx="6" ry="24" fill="#ffb3cc"/>
+    <path d="M-60 140 Q-60 40 2 40 Q64 40 64 140 Z" fill="#ff8fb8"/>
+    <circle cx="2" cy="0" r="44" fill="#f6f1f7"/>
+    <circle cx="-14" cy="-6" r="8" fill="#fff"/><circle cx="18" cy="-6" r="8" fill="#fff"/>
+    <circle cx="-12" cy="-4" r="5" fill="#1b1530"/><circle cx="20" cy="-4" r="5" fill="#1b1530"/>
+    <ellipse cx="2" cy="12" rx="6" ry="4" fill="#ff7fa8"/>
+    <path d="M-6 20 Q2 28 10 20" stroke="#5a3040" stroke-width="3" fill="none"/>
+  </g>
+</svg>

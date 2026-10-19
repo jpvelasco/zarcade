@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b0620">
+  <meta name="description" content="Comet Crush: a neon breakout adventure. Bounce a comet off your ship to smash crystal bricks and save the constellations.">
+  <title>Comet Crush — save the constellations</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="comet-crush"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Comet Crush playfield"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Comet Crush uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/comet-crush/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <div id="hud-buttons" class="hud-buttons hidden">
+    <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+    <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+  </div>
+
+  <section id="screen-title" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Comet Crush">
+        <span class="logo-comet" aria-hidden="true"></span>
+        <h1><span class="l1">Comet</span><span class="l2">Crush</span></h1>
+      </div>
+      <p class="tagline">Bounce your comet, smash the crystal bricks, and save the constellations!</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-levels" class="btn">Constellations</button>
+          <button class="btn" data-sound>Sound: on</button>
+          <button class="btn" data-music>Music: on</button>
+        </div>
+      </div>
+      <p id="title-best" class="muted"></p>
+      <p class="controls keys-only">
+        <b>Move</b> mouse · ← → / A D · stick &nbsp; <b>Launch / fire</b> click · Space · A &nbsp; <b>Pause</b> Esc / P &nbsp; <b>Mute</b> M
+      </p>
+      <p class="controls touch-only">
+        <b>Drag</b> anywhere to move your ship &nbsp; <b>Tap</b> to launch &nbsp; <b>❚❚</b> pauses
+      </p>
+    </div>
+  </section>
+
+  <section id="screen-levels" class="overlay dim hidden">
+    <div class="card wide levels-card">
+      <div class="levels-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Constellations</h2>
+        <span id="levels-stars" class="pill"></span>
+      </div>
+      <div id="level-grid" class="level-grid"></div>
+      <p id="levels-info" class="muted center"></p>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart level</button>
+        <button id="btn-pause-levels" class="btn">Constellations</button>
+        <div class="row">
+          <button class="btn" data-sound>Sound: on</button>
+          <button class="btn" data-music>Music: on</button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-clear" class="overlay hidden">
+    <div class="card">
+      <h2 id="clear-title">Level clear!</h2>
+      <p id="clear-sub" class="muted"></p>
+      <div id="clear-stars" class="stars" aria-hidden="true"></div>
+      <p id="clear-score" class="big-score"></p>
+      <div id="clear-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-next" class="btn primary">Next level →</button>
+        <button id="btn-clear-levels" class="btn">Constellations</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-over" class="overlay dim hidden">
+    <div class="card">
+      <h2>Out of ships!</h2>
+      <p class="muted">No worries, pilot. Pick up right where you left off.</p>
+      <p id="over-score" class="big-score"></p>
+      <p id="over-best" class="muted"></p>
+      <div class="col">
+        <button id="btn-continue" class="btn primary">Continue →</button>
+        <button id="btn-over-levels" class="btn">Constellations</button>
+        <button class="btn" data-title>Title screen</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-victory" class="overlay dim hidden">
+    <div class="card">
+      <h2 class="rainbow">Every constellation is shining!</h2>
+      <p class="muted">You beat the Kraken Queen and saved the whole sky. Superstar!</p>
+      <p id="victory-score" class="big-score"></p>
+      <div id="victory-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-victory-levels" class="btn primary">Constellations</button>
+        <button class="btn" data-title>Title screen</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

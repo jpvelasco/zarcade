@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#2a1a10">
+  <meta name="description" content="Mole Miner: help Momo the mole drill down from the meadow to the Ancient Core. Dig gems, upgrade your pod and fill the museum.">
+  <title>Mole Miner — dig to the Ancient Core</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="mole-miner"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Mole Miner mine view"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Mole Miner uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/mole-miner/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- In-play HUD -->
+  <div id="hud" class="hud hidden">
+    <div class="gauges">
+      <div class="gauge fuel" id="g-fuel"><span class="g-icon" aria-hidden="true">⛽</span><div class="bar"><i></i></div><b class="g-num"></b></div>
+      <div class="gauge hull" id="g-hull"><span class="g-icon" aria-hidden="true">🛡️</span><div class="bar"><i></i></div><b class="g-num"></b></div>
+      <div id="goal" class="goal-chip hidden"></div>
+    </div>
+    <div class="stats">
+      <div class="stat-row">
+        <span class="chip" id="s-coins" title="Coins"><i class="coin" aria-hidden="true"></i> <b>0</b></span>
+        <span class="chip" id="s-cargo" title="Cargo hold">🎒 <b>0/8</b></span>
+      </div>
+      <div class="stat-row">
+        <span class="chip depth" id="s-depth" title="Depth">⬇ <b>0 m</b></span>
+        <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+        <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+      </div>
+    </div>
+    <div id="depthbar" class="depthbar" aria-hidden="true"><div class="db-best"></div><div class="db-pod"></div></div>
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+    <div id="warn" class="warn hidden"></div>
+    <button id="btn-base" class="btn primary base-btn hidden">🔧 Workshop <kbd class="keys-only">E</kbd></button>
+  </div>
+
+  <!-- Touch controls (coarse pointers only) -->
+  <div id="touch" class="touch hidden" aria-hidden="true">
+    <div id="dpad" class="dpad">
+      <span class="d up">▲</span><span class="d left">◀</span><span class="d right">▶</span><span class="d down">▼</span>
+    </div>
+    <button id="btn-fly" class="fly" tabindex="-1">▲<small>Fly</small></button>
+  </div>
+
+  <!-- Title -->
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo">
+        <div class="logo-art" id="logo-art"></div>
+        <h1><span class="l1">Mole</span> <span class="l2">Miner</span></h1>
+      </div>
+      <p class="tagline">Drill down with Momo, scoop up gems, upgrade your pod and dig all the way to the Ancient Core!</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <button id="btn-daily" class="btn daily-btn">☀️ Daily Dig <span id="daily-streak" class="pill"></span></button>
+        <div class="row">
+          <button id="btn-title-museum" class="btn">🦴 Museum</button>
+          <button id="btn-title-paints" class="btn">🎨 Paints</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>🔊 Sound on</button>
+          <button class="btn small" data-music>🎵 Music on</button>
+        </div>
+      </div>
+      <p id="title-best" class="best-line"></p>
+      <p class="controls keys-only"><b>Drive & drill</b> ← → ↓ / A D S &nbsp; <b>Fly</b> ↑ / W / Space &nbsp; <b>Workshop</b> E &nbsp; <b>Pause</b> Esc</p>
+      <p class="controls touch-only"><b>D-pad</b> drives and drills &nbsp; <b>Fly</b> lifts you up &nbsp; Land on the pad to sell</p>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p id="pause-info" class="muted"></p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-pause-shop" class="btn">🔧 Workshop</button>
+        <button id="btn-call" class="btn"><span class="worm-ico" aria-hidden="true"></span> Call Wiggles home</button>
+        <button id="btn-daily-restart" class="btn">↻ Restart daily dig</button>
+        <div class="row">
+          <button class="btn small" data-sound>🔊 Sound on</button>
+          <button class="btn small" data-music>🎵 Music on</button>
+        </div>
+        <button class="btn" data-title>Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Workshop: upgrades, museum, paints, records -->
+  <section id="screen-shop" class="overlay dim hidden">
+    <div class="card wide shop-card">
+      <div class="shop-head">
+        <h2 id="shop-title">Workshop</h2>
+        <span id="shop-coins" class="pill coins-pill"><i class="coin" aria-hidden="true"></i> 0</span>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab" data-tab="upgrades" role="tab">🔧 Upgrades</button>
+        <button class="tab" data-tab="museum" role="tab">🦴 Museum</button>
+        <button class="tab" data-tab="paints" role="tab">🎨 Paints</button>
+        <button class="tab" data-tab="records" role="tab">🏆 Records</button>
+      </div>
+      <div id="shop-body" class="shop-body"></div>
+      <div class="col shop-foot">
+        <button id="btn-shop-close" class="btn primary">Back to digging</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Wiggles the worm -->
+  <section id="screen-rescue" class="overlay dim hidden">
+    <div class="card small">
+      <div class="worm-art worm-ico" aria-hidden="true"></div>
+      <h2 id="rescue-title">Out of fuel!</h2>
+      <p id="rescue-text" class="muted"></p>
+      <div class="col">
+        <button id="btn-tow" class="btn primary">Thanks, Wiggles!</button>
+        <button id="btn-tow-cancel" class="btn hidden">Not now</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- The core -->
+  <section id="screen-core" class="overlay dim hidden">
+    <div class="card">
+      <div class="core-art" aria-hidden="true"></div>
+      <h2 class="rainbow">You found the Ancient Core!</h2>
+      <p class="muted" id="core-text"></p>
+      <div class="col">
+        <button id="btn-core-ok" class="btn primary">Keep digging</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Daily dig -->
+  <section id="screen-daily" class="overlay dim hidden">
+    <div class="card">
+      <h2>☀️ Daily Dig</h2>
+      <p id="daily-date" class="muted"></p>
+      <div class="daily-goal" id="daily-goal"></div>
+      <p class="muted">Everyone digs the same little mine today with a loaner pod. One tank of fuel, one trip. Land back on the pad to finish.</p>
+      <div id="daily-stats" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-daily-go" class="btn primary big">Start digging</button>
+        <button class="btn" data-title>← Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-daily-end" class="overlay dim hidden">
+    <div class="card">
+      <h2 id="de-title">Goal complete!</h2>
+      <p id="de-sub" class="muted"></p>
+      <div id="de-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-de-retry" class="btn primary">Dig again</button>
+        <button class="btn" data-title>Title screen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- First-time tips -->
+  <section id="screen-help" class="overlay dim hidden">
+    <div class="card">
+      <h2>Welcome, Momo!</h2>
+      <div class="tips">
+        <div class="tip-row"><span>⬇</span><p><b>Drill</b> down and sideways. You can't drill up.</p></div>
+        <div class="tip-row"><span>▲</span><p><b>Fly</b> with the propeller. It burns fuel faster.</p></div>
+        <div class="tip-row"><span>💎</span><p>Scoop up <b>gems</b>, then land on the <b>wooden pad</b> to sell, refuel and repair.</p></div>
+        <div class="tip-row"><span>🔧</span><p>Spend coins in the <b>Workshop</b> to dig harder rock.</p></div>
+        <div class="tip-row"><span><span class="worm-ico" aria-hidden="true"></span></span><p>Run out of fuel? <b>Wiggles</b> the worm tows you home.</p></div>
+      </div>
+      <p class="controls keys-only">← → ↓ drive & drill · ↑ fly · E workshop · Esc pause</p>
+      <p class="controls touch-only">D-pad drives & drills · Fly button lifts you up</p>
+      <div class="col"><button id="btn-help-ok" class="btn primary big">Let's dig!</button></div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

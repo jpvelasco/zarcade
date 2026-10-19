@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#060917">
+  <meta name="description" content="Shard Storm: swipe a neon blade through rising crystals, hold back the storm surge, and spend a charged Storm Break before it costs you a life.">
+  <title>Shard Storm — slice the storm</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="shard-storm"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Shard Storm playfield"></canvas>
+
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <span id="hud-score" class="hud-pill">0</span>
+      <span id="hud-combo" class="hud-pill hud-combo hidden"></span>
+      <span class="hud-spacer"></span>
+      <span id="hud-daily" class="hud-pill hud-daily hidden"></span>
+      <span id="hud-lives" class="hud-lives" role="img" aria-label="3 lives left">
+        <i></i><i></i><i></i>
+      </span>
+      <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+    <div class="hud-bottom">
+      <div id="hud-surge" class="meter surge" role="img" aria-label="Storm surge 0%">
+        <span class="meter-fill"></span>
+        <span class="meter-label">Surge</span>
+      </div>
+      <button id="btn-break" class="meter break" disabled aria-label="Storm Break, not ready">
+        <span class="meter-fill"></span>
+        <span class="meter-label">Storm&nbsp;Break<b class="keys-only"> · Space</b></span>
+      </button>
+    </div>
+  </div>
+
+  <section id="screen-title" class="overlay dim hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Shard Storm">
+        <h1><span class="l1">Shard</span><span class="l2">Storm</span></h1>
+      </div>
+      <p class="tagline">Slice the crystals before they fall back. Every one you miss feeds the surge — and a full surge costs a life.</p>
+      <ul class="legend">
+        <li><span class="chip gem"></span>Crystal — slice it</li>
+        <li><span class="chip cluster"></span>Cluster — bursts into four</li>
+        <li><span class="chip frost"></span>Frost — slows the storm, cuts surge</li>
+        <li><span class="chip gold"></span>Gold — big points, a life back</li>
+        <li><span class="chip mine"></span>Mine — let it fall</li>
+      </ul>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <button id="btn-daily" class="btn">Daily Storm</button>
+        <div class="row">
+          <button class="btn" data-sound>Sound on</button>
+          <button class="btn" data-music>Music on</button>
+        </div>
+      </div>
+      <p id="title-best" class="muted"></p>
+      <p id="title-daily" class="muted"></p>
+      <p class="controls keys-only">
+        <b>Slice</b> move the mouse &nbsp; <b>Storm Break</b> Space &nbsp; <b>Pause</b> Esc / P &nbsp; <b>Mute</b> M
+      </p>
+      <p class="controls touch-only">
+        <b>Swipe</b> anywhere to slice &nbsp; <b>Storm Break</b> tap the bar or use two fingers &nbsp; <b>❚❚</b> pauses
+      </p>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p class="muted">Missed crystals feed the surge. Spend a charged Storm Break before it fills.</p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-restart" class="btn">Restart run</button>
+        <div class="row">
+          <button class="btn" data-sound>Sound on</button>
+          <button class="btn" data-music>Music on</button>
+        </div>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-over" class="overlay dim hidden">
+    <div class="card">
+      <h2 id="over-title">The storm won… this time.</h2>
+      <p id="over-why" class="muted">Go again.</p>
+      <p id="over-score" class="big-score">0</p>
+      <p id="over-best" class="muted"></p>
+      <div id="over-lines" class="res-lines"></div>
+      <div class="col">
+        <button id="btn-again" class="btn primary">Slice again →</button>
+        <button id="btn-again-daily" class="btn">Daily Storm</button>
+        <button class="btn" data-title>Title screen</button>
+        <a class="btn ghost" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-dailydone" class="overlay hidden">
+    <div class="card">
+      <h2 class="gold">Storm cleared!</h2>
+      <p class="muted">The daily storm is yours. Come back tomorrow to keep the streak alive.</p>
+      <p id="done-streak" class="celebrate"></p>
+      <p id="done-score" class="big-score"></p>
+      <div class="col">
+        <button id="btn-home" class="btn primary">Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Shard Storm uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/shard-storm/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

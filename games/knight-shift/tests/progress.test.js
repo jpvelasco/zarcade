@@ -1,0 +1,87 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { SAVE_KEY, defaultSave, loadSave, writeSave, recordResult, unrecordResult, recordPuzzle, puzzleUnlocked, nextPuzzle, puzzleStarsTotal, botsBeaten } from '../src/progress.js';
+import { PUZZLES } from '../src/puzzles.js';
+
+function memory(initial = {}) {
+  const data = { ...initial };
+  return { getItem: (k) => (k in data ? data[k] : null), setItem: (k, v) => { data[k] = String(v); }, data };
+}
+
+test('the save key is namespaced', () => assert.equal(SAVE_KEY, 'knight-shift.v1'));
+
+test('missing, corrupt or blocked storage gives a fresh save', () => {
+  assert.deepEqual(loadSave(memory()), defaultSave());
+  assert.deepEqual(loadSave(memory({ [SAVE_KEY]: '{oops' })), defaultSave());
+  assert.deepEqual(loadSave(null), defaultSave());
+  const blocked = { getItem() { throw new Error('denied'); }, setItem() { throw new Error('denied'); } };
+  assert.deepEqual(loadSave(blocked), defaultSave());
+  assert.equal(writeSave(blocked, defaultSave()), false);
+});
+
+test('saves round-trip and junk values are dropped', () => {
+  const store = memory();
+  const save = defaultSave();
+  save.settings.theme = 'space';
+  save.puzzles[PUZZLES[0].id] = 3;
+  save.current = { setup: { mode: 'classic' }, moves: ['e2e4'], opponent: 2, human: 0 };
+  recordResult(save, 'owl', 'w');
+  assert.equal(writeSave(store, save), true);
+  assert.deepEqual(loadSave(store), save);
+  store.setItem(SAVE_KEY, JSON.stringify({ settings: { theme: 'lava', sound: 'yes' }, puzzles: { nope: 3, [PUZZLES[1].id]: 7 }, stats: { owl: { w: -4 } }, current: { moves: 'x' } }));
+  const clean = loadSave(store);
+  assert.equal(clean.settings.theme, 'wood');
+  assert.equal(clean.settings.sound, true);
+  assert.deepEqual(clean.puzzles, {});
+  assert.equal(clean.stats.owl.w, 0);
+  assert.equal(clean.current, null);
+});
+
+test('a damaged game in progress is dropped, a good one kept', () => {
+  const load = (current) => loadSave(memory({ [SAVE_KEY]: JSON.stringify({ current, puzzles: { 'back-rank': 2 } }) }));
+  const good = { setup: { mode: 'classic', fen: '6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1' }, moves: [], opponent: 0, human: 0 };
+  assert.deepEqual(load(good).current, good);
+  for (const bad of [
+    { ...good, setup: { ...good.setup, mode: 'zzz' } },
+    { ...good, setup: 'classic' },
+    { ...good, setup: [] },
+    { ...good, setup: null },
+    { ...good, moves: [5] },
+    { ...good, moves: 'e2e4' },
+  ]) {
+    const s = load(bad);
+    assert.equal(s.current, null, JSON.stringify(bad));
+    assert.equal(s.puzzles['back-rank'], 2, 'the rest of the save survives');
+  }
+});
+
+test('an undone result comes back off the record', () => {
+  const s = defaultSave();
+  assert.equal(recordResult(s, 'pip', 'l'), false);
+  assert.equal(unrecordResult(s, 'pip', 'l'), true);
+  assert.deepEqual(s.stats.pip, { w: 0, l: 0, d: 0 });
+  assert.equal(unrecordResult(s, 'pip', 'l'), false, 'never below zero');
+  assert.equal(unrecordResult(s, 'nobody', 'w'), false);
+  assert.equal(recordResult(s, 'pip', 'w'), true, 'the real first win still counts as first');
+});
+
+test('results and puzzle progress', () => {
+  const save = defaultSave();
+  assert.equal(recordResult(save, 'pip', 'w'), true, 'first win');
+  assert.equal(recordResult(save, 'pip', 'w'), false);
+  recordResult(save, 'pip', 'l');
+  assert.deepEqual(save.stats.pip, { w: 2, l: 1, d: 0 });
+  assert.equal(botsBeaten(save), 1);
+  assert.equal(puzzleUnlocked(save, 0), true);
+  assert.equal(puzzleUnlocked(save, 1), false);
+  assert.deepEqual(recordPuzzle(save, PUZZLES[0].id, 2), { first: true, better: true });
+  assert.deepEqual(recordPuzzle(save, PUZZLES[0].id, 1), { first: false, better: false });
+  assert.equal(save.puzzles[PUZZLES[0].id], 2);
+  assert.equal(puzzleUnlocked(save, 1), true);
+  assert.equal(nextPuzzle(save), 1);
+  assert.equal(puzzleStarsTotal(save), 2);
+  // A puzzle solved out of order stays open.
+  recordPuzzle(save, PUZZLES[5].id, 3);
+  assert.equal(puzzleUnlocked(save, 5), true);
+  assert.equal(puzzleUnlocked(save, 4), false);
+});

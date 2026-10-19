@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#bfe9ff">
+  <meta name="description" content="Tiny Trains: lay wooden toy track so every coloured train reaches its station. 48 puzzles, a daily delivery, train skins and a sandbox.">
+  <title>Tiny Trains — a toy-train track puzzle</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="tiny-trains"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body data-theme="meadow">
+  <canvas id="stage" aria-label="Tiny Trains diorama"></canvas>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Tiny Trains uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/tiny-trains/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <header id="hud" class="hud hidden">
+    <div class="hud-left">
+      <div id="hud-world" class="hud-world">Toybox Meadow · 1</div>
+      <div id="hud-name" class="hud-name">First Toot</div>
+      <div id="hud-pieces" class="hud-pieces">0 pieces</div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-undo" class="icon-btn" aria-label="Undo" title="Undo (Z)">↶</button>
+      <button id="btn-hint" class="icon-btn" aria-label="Hint" title="Hint (H)">💡</button>
+      <button id="btn-sound" class="icon-btn" aria-label="Mute" aria-pressed="false" title="Mute (M)">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+    </div>
+  </header>
+
+  <footer id="bar" class="bar hidden">
+    <div id="tools" class="tools" role="toolbar" aria-label="Track pieces"></div>
+    <div id="colors" class="colors hidden" role="toolbar" aria-label="Colours"></div>
+    <div class="go-wrap">
+      <button id="btn-fast" class="fast-btn hidden" aria-label="Speed" title="Speed (F)">⏩</button>
+      <button id="btn-go" class="go-btn" title="Go! (G or Enter)">Go!</button>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <section id="screen-title" class="overlay hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <div class="logo" aria-label="Tiny Trains">
+        <svg class="logo-train" viewBox="0 0 220 70" aria-hidden="true">
+          <rect x="6" y="58" width="208" height="8" rx="4" fill="#e9c38b" stroke="#9a6634" stroke-width="2"/>
+          <g class="logo-chug">
+            <rect x="120" y="22" width="56" height="30" rx="10" fill="#e8504a"/>
+            <rect x="158" y="10" width="28" height="42" rx="6" fill="#a8302c"/>
+            <rect x="163" y="16" width="18" height="14" rx="4" fill="#bfe9ff"/>
+            <rect x="128" y="8" width="12" height="16" rx="3" fill="#33302e"/>
+            <circle cx="132" cy="56" r="7" fill="#2d2d36"/><circle cx="152" cy="56" r="7" fill="#2d2d36"/><circle cx="174" cy="56" r="8" fill="#2d2d36"/>
+            <circle cx="124" cy="35" r="3" fill="#fff"/><circle cx="124" cy="35" r="1.5" fill="#222"/>
+            <rect x="40" y="28" width="66" height="24" rx="7" fill="#3f86e0"/>
+            <circle cx="56" cy="28" r="9" fill="#ffd6a5"/><circle cx="78" cy="28" r="9" fill="#ffc8dd"/>
+            <path d="M47 26 a9 9 0 0 1 18 0z" fill="#ffd43b"/><path d="M69 26 a9 9 0 0 1 18 0z" fill="#69db7c"/>
+            <circle cx="52" cy="56" r="6" fill="#2d2d36"/><circle cx="94" cy="56" r="6" fill="#2d2d36"/>
+            <rect x="104" y="40" width="18" height="4" rx="2" fill="#5a4636"/>
+          </g>
+          <circle class="logo-puff a" cx="134" cy="4" r="6" fill="#fff"/>
+          <circle class="logo-puff b" cx="126" cy="0" r="4" fill="#fff"/>
+        </svg>
+        <h1>Tiny Trains</h1>
+      </div>
+      <p class="tagline">Lay the wooden track, press <b>Go</b>, and help every little train toot its way home.</p>
+      <div class="col">
+        <button id="btn-play" class="btn primary big">Play</button>
+        <div class="row">
+          <button id="btn-map" class="btn">🗺️ Levels</button>
+          <button id="btn-daily" class="btn">📅 Daily</button>
+        </div>
+        <div class="row">
+          <button id="btn-shed" class="btn">🚂 Train Shed</button>
+          <button id="btn-sandbox" class="btn">🧰 Sandbox</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-sound>Sound: on</button>
+          <button class="btn small" data-music>Music: on</button>
+        </div>
+      </div>
+      <p id="title-progress" class="muted progress"></p>
+      <p class="controls">
+        <b>Draw track</b> drag · <b>Place</b> tap · <b>Turn</b> tap again / Space · <b>Remove</b> right-click / long-press / X
+        · <b>Go</b> G · <b>Undo</b> Z · <b>Hint</b> H · <b>Pause</b> Esc
+      </p>
+    </div>
+  </section>
+
+  <section id="screen-map" class="overlay scroll hidden">
+    <div class="sheet">
+      <div class="sheet-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Levels</h2>
+        <span id="map-stars" class="pill">★ 0</span>
+      </div>
+      <div id="map-worlds" class="worlds"></div>
+    </div>
+  </section>
+
+  <section id="screen-shed" class="overlay scroll hidden">
+    <div class="sheet">
+      <div class="sheet-head">
+        <button class="btn small" data-title>← Back</button>
+        <h2>Train Shed</h2>
+        <span id="shed-count" class="pill">1 / 12</span>
+      </div>
+      <p class="muted center">Pick the engine that pulls your trains. Earn stars and finish worlds to collect more!</p>
+      <div id="shed-grid" class="shed-grid"></div>
+    </div>
+  </section>
+
+  <section id="screen-daily" class="overlay dim hidden">
+    <div class="card small">
+      <div class="intro-icon" aria-hidden="true">📅</div>
+      <h2>Daily Delivery</h2>
+      <p id="daily-date" class="muted"></p>
+      <p id="daily-streak" class="streak"></p>
+      <p id="daily-best" class="muted"></p>
+      <div class="col">
+        <button id="btn-daily-go" class="btn primary big">Lay today's track</button>
+        <button class="btn" data-title>← Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-intro" class="overlay dim hidden">
+    <div class="card small intro-card">
+      <div id="intro-icon" class="intro-icon" aria-hidden="true">🌼</div>
+      <h2 id="intro-title">Lay the track!</h2>
+      <p id="intro-text"></p>
+      <button id="btn-intro" class="btn primary">Let's go!</button>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="overlay dim hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <p class="muted">The trains will wait for you.</p>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-clear" class="btn">Clear the track</button>
+        <button id="btn-pause-map" class="btn">Levels</button>
+        <div class="row">
+          <button class="btn small" data-sound>Sound: on</button>
+          <button class="btn small" data-music>Music: on</button>
+        </div>
+        <button class="btn" data-title>Title screen</button>
+        <a class="btn" href="../../index.html">Back to arcade</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-fail" class="overlay low hidden">
+    <div class="card fail-card">
+      <h2 id="fail-title">Bonk!</h2>
+      <p id="fail-text"></p>
+      <div class="row">
+        <button id="btn-fix" class="btn primary">🔧 Fix track</button>
+        <button id="btn-rewatch" class="btn">↻ Watch again</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-results" class="overlay low hidden">
+    <div class="card results-card">
+      <h2 id="res-title">All aboard!</h2>
+      <div id="res-stars" class="stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <p id="res-sub" class="muted"></p>
+      <p id="res-best" class="best hidden">New best!</p>
+      <div id="res-unlock" class="unlock hidden">
+        <canvas id="res-unlock-art" width="150" height="70"></canvas>
+        <div><b>New engine!</b><br><span id="res-unlock-name"></span></div>
+      </div>
+      <div class="col">
+        <button id="btn-next" class="btn primary">Next level →</button>
+        <div class="row">
+          <button id="btn-replay" class="btn">Try fewer pieces</button>
+          <button id="btn-res-map" class="btn">Levels</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

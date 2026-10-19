@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#7cc8f5">
+  <meta name="description" content="Pixel Pond: a cozy falling-sand garden. Paint with sand, water, seeds and lava, and watch your garden come alive.">
+  <title>Pixel Pond — a cozy falling-sand garden</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="telemetry.js" data-service="pixel-pond"></script>
+  <script src="fullscreen.js"></script>
+</head>
+<body>
+  <main id="app" class="app">
+    <div id="stage" class="stage">
+      <canvas id="garden" aria-label="Pixel Pond garden. Paint with the elements in the tray."></canvas>
+    </div>
+
+    <nav id="tray" class="tray hidden" aria-label="Paint tray">
+      <div class="tools" role="toolbar" aria-label="Tools">
+        <button id="tool-eraser" class="tool" aria-pressed="false" title="Eraser (E)"><span class="ico ico-px" data-icon="eraser"></span><b>Eraser</b></button>
+        <button id="tool-size" class="tool" title="Brush size ([ and ])"><span class="ico size-dot"><i></i></span><b id="size-label">Size</b></button>
+        <button id="tool-brush" class="tool" title="Brush (B)"><span class="ico brush-ico" id="brush-ico">🖌️</span><b id="brush-label">Round</b></button>
+        <button id="tool-undo" class="tool" title="Undo (Z)" disabled><span class="ico">↶</span><b>Undo</b></button>
+        <button id="tool-save" class="tool" title="Save to gallery"><span class="ico">📷</span><b>Save</b></button>
+        <button id="tool-clear" class="tool" title="Clear the garden"><span class="ico">🧹</span><b>Clear</b></button>
+      </div>
+      <div id="palette" class="palette" role="radiogroup" aria-label="Elements"></div>
+    </nav>
+
+    <div id="hud" class="hud hidden">
+      <div class="hud-left">
+        <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+        <div id="goal-chip" class="goal-chip hidden" role="status">
+          <span id="goal-icon" class="chip-ico ico-px"></span>
+          <span class="chip-text"><b id="goal-title"></b><span id="goal-progress"></span></span>
+        </div>
+      </div>
+      <div class="hud-right">
+        <button id="btn-sky" class="icon-btn" aria-label="Make it night" title="Day / night (T)">🌙</button>
+        <button id="btn-mute" class="icon-btn" aria-label="Mute" title="Sound (M)">🔊</button>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  </main>
+
+  <section id="file-warning" class="overlay hidden">
+    <div class="card">
+      <h2>One quick step</h2>
+      <p>Pixel Pond uses JavaScript modules, so it needs a tiny local web server.</p>
+      <p>From the repo folder, run <code>npm run serve</code>, then open<br><code>http://localhost:8000/games/pixel-pond/</code></p>
+    </div>
+  </section>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').classList.remove('hidden');
+  </script>
+
+  <!-- ------------------------------------------------------------ title -->
+  <section id="screen-title" class="overlay title-screen hidden">
+    <a class="arcade-link" href="../../index.html">← Arcade</a>
+    <div class="card title-card">
+      <h1 class="logo" aria-label="Pixel Pond">
+        <span class="l-sand">P</span><span class="l-water">i</span><span class="l-leaf">x</span><span class="l-flower">e</span><span class="l-lava">l</span>
+        <span class="gap"></span>
+        <span class="l-water">P</span><span class="l-moss">o</span><span class="l-sand">n</span><span class="l-flower">d</span>
+      </h1>
+      <p class="tagline">Paint with sand, water and seeds, then watch your garden come alive.</p>
+      <button id="btn-play" class="btn primary big">Play</button>
+      <div class="row">
+        <button id="btn-free" class="btn">🎨 Free play</button>
+        <button id="btn-daily" class="btn">📅 <span id="daily-label">Today</span></button>
+      </div>
+      <div class="row">
+        <button id="btn-goals" class="btn">🎯 Goals</button>
+        <button id="btn-gallery" class="btn">🖼️ Gallery</button>
+        <button id="btn-collection" class="btn">📖 Finds</button>
+      </div>
+      <p id="title-stats" class="stats"></p>
+      <button class="btn small ghost" data-sound>🔊 Sound on</button>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ goals -->
+  <section id="screen-goals" class="overlay hidden">
+    <div class="card wide">
+      <header class="bar">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Goals</h2>
+        <span id="goals-count" class="pill"></span>
+      </header>
+      <div id="goal-grid" class="grid goal-grid"></div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ collection -->
+  <section id="screen-collection" class="overlay hidden">
+    <div class="card wide">
+      <header class="bar">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Finds</h2>
+        <span id="finds-count" class="pill"></span>
+      </header>
+      <div id="find-grid" class="grid find-grid"></div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ gallery -->
+  <section id="screen-gallery" class="overlay hidden">
+    <div class="card wide">
+      <header class="bar">
+        <button class="btn small" data-back>← Back</button>
+        <h2>Gallery</h2>
+        <span id="gallery-count" class="pill"></span>
+      </header>
+      <div id="gallery-grid" class="grid gallery-grid"></div>
+      <p id="gallery-empty" class="muted center hidden">No gardens yet. Press 📷 Save in the tray to keep one here.</p>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ goal intro -->
+  <section id="screen-intro" class="overlay hidden">
+    <div class="card small intro-card">
+      <span id="intro-icon" class="big-ico ico-px"></span>
+      <p id="intro-kicker" class="kicker"></p>
+      <h2 id="intro-title"></h2>
+      <p id="intro-text"></p>
+      <p id="intro-tip" class="tip"></p>
+      <p id="intro-reward" class="reward"></p>
+      <div class="col">
+        <button id="btn-go" class="btn primary big">Let's go!</button>
+        <button class="btn small" data-back>Back</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ pause -->
+  <section id="screen-pause" class="overlay hidden">
+    <div class="card small">
+      <h2>Paused</h2>
+      <div class="col">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <div class="row">
+          <button id="btn-pause-goals" class="btn">🎯 Goals</button>
+          <button id="btn-pause-gallery" class="btn">🖼️ Gallery</button>
+          <button id="btn-pause-finds" class="btn">📖 Finds</button>
+        </div>
+        <div class="row">
+          <button id="btn-theme" class="btn">🌅 Sky: Meadow</button>
+          <button id="btn-rainbow" class="btn hidden">🌈 Rainbow: off</button>
+          <button class="btn" data-sound>🔊 Sound on</button>
+        </div>
+        <div class="row">
+          <button id="btn-pause-title" class="btn">🏠 Main menu</button>
+          <a class="btn" href="../../index.html">Back to arcade</a>
+        </div>
+      </div>
+      <p class="keys keys-only"><b>1–9, 0, F</b> elements · <b>E</b> eraser · <b>[ ]</b> size · <b>B</b> brush · <b>Z</b> undo · <b>T</b> day/night · <b>M</b> sound · arrows + <b>Space</b> paint</p>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ complete -->
+  <section id="screen-complete" class="overlay soft hidden">
+    <div class="card small complete-card">
+      <p class="kicker" id="complete-kicker">Goal complete!</p>
+      <h2 id="complete-title"></h2>
+      <div id="complete-reward" class="reward-box hidden">
+        <span id="reward-icon" class="big-ico ico-px"></span>
+        <div><b id="reward-name"></b><p id="reward-text"></p></div>
+      </div>
+      <p id="complete-text" class="muted"></p>
+      <div class="col">
+        <button id="btn-keep" class="btn primary">Keep playing</button>
+        <div class="row">
+          <button id="btn-next" class="btn">Next goal →</button>
+          <button id="btn-complete-goals" class="btn">🎯 Goals</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ confirm -->
+  <section id="screen-confirm" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-text">
+    <div class="card small">
+      <h2 id="confirm-text">Are you sure?</h2>
+      <p id="confirm-sub" class="muted"></p>
+      <div class="row">
+        <button id="btn-confirm-no" class="btn primary">No, keep it</button>
+        <button id="btn-confirm-yes" class="btn danger">Yes</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
