@@ -59,6 +59,15 @@ test('every game has an entry page, a cover, and a way back to the arcade', () =
   }
 });
 
+test('every page locks pinch-zoom out during play', () => {
+  for (const file of ['index.html', ...GAMES.map((g) => A.gamePath(g.slug))]) {
+    const html = fs.readFileSync(path.join(ROOT, file), 'utf8');
+    const vp = html.match(/<meta name="viewport"[^>]*>/);
+    assert.ok(vp, `${file} has a viewport meta`);
+    assert.match(vp[0], /user-scalable=no/, `${file} forbids pinch-zoom during play`);
+  }
+});
+
 test('every page is ready to be shared: language, viewport, title, description, icon', () => {
   for (const file of ['index.html', ...GAMES.map((g) => A.gamePath(g.slug))]) {
     const html = fs.readFileSync(path.join(ROOT, file), 'utf8');
