@@ -272,9 +272,11 @@ errors.
 
 ### Going live
 
-Zarcade runs locally for now. The steps to publish it (GitHub Pages, the link
-preview address, the repo's social preview image) are in
-[`docs/launch-checklist.md`](docs/launch-checklist.md).
+Zarcade is live on GitHub Pages at
+<https://jpvelasco.github.io/zarcade/>, deployed from the `main` branch. Every
+link is relative, so the arcade and its games work from that sub-path. The
+remaining launch steps (the repo's social preview image and checks on real
+devices) are tracked in [`docs/launch-checklist.md`](docs/launch-checklist.md).
 
 ### License
 
