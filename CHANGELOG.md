@@ -4,7 +4,7 @@ All notable changes to Starlight Arcade are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.1] - 2026-10-23
 
 ### Fixed
 
@@ -47,5 +47,5 @@ The first tagged release of the arcade and its games, as deployed to
 - Pinch-zoom is locked during play on the ten pages that still allowed it
   (#364).
 
-[Unreleased]: https://github.com/jpvelasco/zarcade/compare/v1.0.0...HEAD
+[1.0.1]: https://github.com/jpvelasco/zarcade/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/jpvelasco/zarcade/releases/tag/v1.0.0
