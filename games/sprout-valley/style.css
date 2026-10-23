@@ -149,7 +149,7 @@ body.reduced .logo-sprout i { animation: none; }
 .howto div > b { display: block; font-size: 16px; margin-bottom: 2px; }
 .intro-card { text-align: center; }
 /* Short screens scroll the how-to; the start button stays in reach. */
-.intro-card #btn-intro-go { position: sticky; bottom: 0; z-index: 1; }
+.intro-card .intro-go { position: sticky; bottom: 0; z-index: 1; }
 .intro-card .howto { text-align: left; }
 
 /* ------------------------------------------------------------ panels */
