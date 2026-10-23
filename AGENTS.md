@@ -57,6 +57,14 @@ in `arcade/games.js`, styled by `arcade/arcade.css`, and tested by
 games never depend on arcade files, except for their intentionally copied
 shared browser files.
 
+On desktop (Fullscreen API plus a fine pointer), the arcade opens games in
+a full-window `#game-frame` on its own page instead of navigating, so full
+screen survives switching games; the URL carries `?play=<slug>`, so reload
+and the Back button work. Inside the frame, the shared `fullscreen.js` drives
+the arcade's full screen and turns any link back to the arcade into a
+message that closes the frame. Phones and tablets navigate between pages as
+before, and every game still works when opened directly.
+
 The manifest and the direct child folders of `games/` must have an exact
 one-to-one match. Keep each entry's slug, supported controls, accent, and
 `needsServer` value accurate. A game that uses ES modules must have
