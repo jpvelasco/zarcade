@@ -6,8 +6,42 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const zlib = require('node:zlib');
 
 const ROOT = path.join(__dirname, '..', '..');
+
+// Decodes the unfiltered RGBA PNGs that scripts/gen-icons.mjs writes.
+function pngPixels(file) {
+  const b = fs.readFileSync(file);
+  const { width, height } = pngSize(file);
+  const idat = [];
+  for (let at = 8; at < b.length;) {
+    const len = b.readUInt32BE(at);
+    if (b.toString('ascii', at + 4, at + 8) === 'IDAT') idat.push(b.subarray(at + 8, at + 8 + len));
+    at += len + 12;
+  }
+  const raw = zlib.inflateSync(Buffer.concat(idat));
+  const stride = width * 4 + 1;
+  for (let y = 0; y < height; y++) assert.equal(raw[y * stride], 0, `${file} rows are unfiltered`);
+  const at = (x, y) => [...raw.subarray(y * stride + 1 + x * 4, y * stride + 4 + x * 4)];
+  return { width, height, at };
+}
+
+// The mark's bounding box: pixels that differ from their row's background
+// (the gradient is vertical, so x = 0 is always background).
+function markBox(file) {
+  const { width, height, at } = pngPixels(file);
+  const box = { left: width, right: 0, top: height, bottom: 0, reach: 0 };
+  for (let y = 0; y < height; y++) {
+    const bg = at(0, y);
+    for (let x = 0; x < width; x++) {
+      if (at(x, y).reduce((d, c, i) => d + Math.abs(c - bg[i]), 0) <= 30) continue;
+      Object.assign(box, { left: Math.min(box.left, x), right: Math.max(box.right, x), top: Math.min(box.top, y), bottom: Math.max(box.bottom, y) });
+      box.reach = Math.max(box.reach, Math.hypot(x + 0.5 - width / 2, y + 0.5 - height / 2) / (width / 2));
+    }
+  }
+  return { ...box, cx: (box.left + box.right) / 2, cy: (box.top + box.bottom) / 2 };
+}
 
 function pngSize(file) {
   const b = fs.readFileSync(file);
@@ -45,6 +79,15 @@ test('manifest icons exist at the sizes declared, with any + maskable purposes',
   assert.deepEqual(purposes.get('maskable'), ['512x512'], 'maskable is a 512 file of its own');
 });
 
+test('the maskable icon keeps its mark centred inside the 80% safe zone', () => {
+  const plain = markBox(path.join(ROOT, 'icons', 'icon-512.png'));
+  const mask = markBox(path.join(ROOT, 'icons', 'icon-512-maskable.png'));
+  for (const [name, box] of [['icon-512', plain], ['icon-512-maskable', mask]]) {
+    assert.ok(Math.abs(box.cx - 256) <= 4 && Math.abs(box.cy - 256) <= 4, `${name} mark is centred, not at (${box.cx}, ${box.cy})`);
+  }
+  assert.ok(mask.reach <= 0.8 * 0.8 + 0.02, `the maskable mark is the plain mark shrunk to 80% (reaches ${mask.reach.toFixed(2)} of the radius)`);
+});
+
 test('the apple-touch-icon is a 180×180 square', () => {
   const png = pngSize(path.join(ROOT, 'icons', 'apple-touch-icon.png'));
   assert.deepEqual([png.width, png.height], [180, 180], 'iOS sizes it down from 180');
@@ -66,6 +109,7 @@ test('the arcade page wires up the install button, the iOS hint, and the worker'
   const js = fs.readFileSync(path.join(ROOT, 'arcade', 'arcade.js'), 'utf8');
   for (const id of ['btn-install', 'install-hint', 'install-hint-close']) assert.ok(html.includes(`id="${id}"`), `#${id} is in the page`);
   assert.ok(js.includes("beforeinstallprompt"), 'the custom prompt is captured');
+  assert.ok(js.includes("'appinstalled'"), 'installing from the browser menu hides the button and hint too');
   assert.ok(js.includes('installMode'), 'the affordance choice goes through the testable helper');
   assert.ok(js.includes('serviceWorker.register'), 'the offline shell registers on http(s)');
 });

@@ -378,14 +378,20 @@
     $('install-hint').classList.remove('hidden');
   }
 
+  function hideInstall() {
+    installPrompt = null;
+    $('btn-install').classList.add('hidden');
+    $('install-hint').classList.add('hidden');
+  }
+
   $('btn-install').addEventListener('click', () => {
     if (!installPrompt) return;
     installPrompt.prompt();
-    installPrompt.userChoice.then(() => {
-      installPrompt = null;
-      $('btn-install').classList.add('hidden');
-    });
+    installPrompt.userChoice.then(hideInstall);
   });
+
+  // Installed from the browser's own menu instead of our button.
+  addEventListener('appinstalled', hideInstall);
 
   $('install-hint-close').addEventListener('click', () => {
     $('install-hint').classList.add('hidden');

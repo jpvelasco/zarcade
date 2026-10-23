@@ -149,7 +149,7 @@ function render(size, scale) {
           let cr = C.top[0] + (C.bottom[0] - C.top[0]) * t;
           let cg = C.top[1] + (C.bottom[1] - C.top[1]) * t;
           let cb = C.top[2] + (C.bottom[2] - C.top[2]) * t;
-          const m = markColor(px / scale, py / scale);
+          const m = markColor((px - size / 2) / scale + 256, (py - size / 2) / scale + 256);
           if (m) { cr = m[0]; cg = m[1]; cb = m[2]; }
           r += cr;
           g += cg;
@@ -166,8 +166,8 @@ function render(size, scale) {
   return rows;
 }
 
-// size is the pixel size; k shrinks the 512-space art (0.8 = the maskable
-// safe zone). The background gradient always fills the whole square.
+// size is the pixel size; k shrinks the 512-space art about its centre (0.8 =
+// the maskable safe zone). The background gradient always fills the whole square.
 function emit(name, size, k = 1) {
   const scale = (size * k) / 512;
   const file = join(OUT, name);

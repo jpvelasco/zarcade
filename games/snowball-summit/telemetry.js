@@ -366,6 +366,11 @@
         logger.warn('resource failed to load', { 'url.full': event.target && (event.target.src || event.target.href) });
         return;
       }
+      // A ResizeObserver loop notice is benign: layout settles next frame.
+      if (!event.error && /ResizeObserver loop/.test(event.message)) {
+        logger.warn('resize observer loop', { 'exception.message': event.message });
+        return;
+      }
       crash(event.error || new Error(event.message), `${event.filename || ''}:${event.lineno || 0}`);
     }, true);
     win.addEventListener('unhandledrejection', (event) => {
