@@ -133,7 +133,9 @@ test('every game ships an identical copy, loaded before its own scripts', () => 
   }
 });
 
-test('in a browser it boots itself, shows one crash screen, and keeps crashed live', () => {
+// Boots telemetry.js in a fake page; returns its window, error listeners
+// and the crash screens it appended.
+function bootInPage() {
   const vm = require('node:vm');
   const listeners = {};
   const appended = [];
@@ -162,7 +164,11 @@ test('in a browser it boots itself, shows one crash screen, and keeps crashed li
   document.defaultView = window;
   const source = fs.readFileSync(path.join(ROOT, 'arcade', 'telemetry.js'), 'utf8');
   vm.runInNewContext(source, { window, URLSearchParams, URL, Date, Math, JSON, Object, Array, String, Number, Promise });
-  const Telemetry = window.Telemetry;
+  return { Telemetry: window.Telemetry, listeners, appended, storage };
+}
+
+test('in a browser it boots itself, shows one crash screen, and keeps crashed live', () => {
+  const { Telemetry, listeners, appended, storage } = bootInPage();
   assert.equal(Telemetry.log.service, 'demo-game');
   assert.equal(Telemetry.crashed, false);
   const frame = Telemetry.guard(() => { throw new Error('in frame'); }, 'frame');
@@ -174,6 +180,19 @@ test('in a browser it boots itself, shows one crash screen, and keeps crashed li
   assert.equal(JSON.parse(storage.data['demo-game.v1.log']).at(-1).severity, 'FATAL');
   listeners.unhandledrejection({ reason: new Error('audio blocked') });
   assert.equal(Telemetry.log.recentErrors().at(-1).severity, 'ERROR');
+});
+
+test('a ResizeObserver loop notice is logged, not shown as a crash', () => {
+  const { Telemetry, listeners, appended } = bootInPage();
+  // Browsers report this through window.onerror with no error object; it is
+  // benign (layout settles next frame) and must not stop play.
+  listeners.error({ message: 'ResizeObserver loop completed with undelivered notifications.', error: null });
+  listeners.error({ message: 'ResizeObserver loop limit exceeded', error: null });
+  assert.equal(Telemetry.crashed, false);
+  assert.equal(appended.length, 0, 'no crash screen');
+  assert.equal(Telemetry.log.recentErrors().length, 0);
+  listeners.error({ message: 'Uncaught TypeError: x is undefined', error: new TypeError('x is undefined') });
+  assert.equal(Telemetry.crashed, true, 'real errors still crash');
 });
 
 test('a link can only point telemetry at this site or a local collector', () => {
