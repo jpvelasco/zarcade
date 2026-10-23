@@ -658,10 +658,12 @@ function frame(now) {
   const pauseKey = input.consume('pause');
   const bagKey = input.consume('bag');
   const mapKey = input.consume('map');
-  if (mode === 'play' && game && (game.mode === 'play' || game.mode === 'fishing')) {
+  if (mode === 'play' && game) {
+    // Pause works in every game mode, like the HUD button; bag and map only while exploring.
+    const exploring = game.mode === 'play' || game.mode === 'fishing';
     if (pauseKey) pause();
-    else if (bagKey) openBag();
-    else if (mapKey) openMap();
+    else if (bagKey && exploring) openBag();
+    else if (mapKey && exploring) openMap();
   } else if (mode !== 'play') {
     if (pauseKey || input.consume('back')) back();
     if (bagKey && mode === 'bag') back();

@@ -59,6 +59,29 @@ test('every game has an entry page, a cover, and a way back to the arcade', () =
   }
 });
 
+// Screens a touch player once got stuck on, with no back or arcade control.
+// An installed iPhone app has no browser back button, so each needs its own.
+const ESCAPE_HATCHES = {
+  'clue-critters': ['screen-intro'],
+  'globe-gp': ['screen-loading'],
+  glowloop: ['results'],
+  'jungle-blaster': ['screen-clear'],
+  'keyboard-knights': ['screen-who'],
+  'sprout-valley': ['screen-intro', 'screen-night'],
+};
+
+test('screens that once trapped touch players offer a way back', () => {
+  for (const [slug, ids] of Object.entries(ESCAPE_HATCHES)) {
+    const html = fs.readFileSync(path.join(ROOT, A.gamePath(slug)), 'utf8');
+    for (const id of ids) {
+      const start = html.indexOf(`id="${id}"`);
+      assert.ok(start > 0, `${slug} has #${id}`);
+      const section = html.slice(start, html.indexOf('</section>', start));
+      assert.match(section, /href="\.\.\/\.\.\/index\.html"|data-back/, `${slug} #${id} has an arcade link or a back button`);
+    }
+  }
+});
+
 test('every page locks pinch-zoom out during play', () => {
   for (const file of ['index.html', ...GAMES.map((g) => A.gamePath(g.slug))]) {
     const html = fs.readFileSync(path.join(ROOT, file), 'utf8');
