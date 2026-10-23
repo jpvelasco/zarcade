@@ -111,7 +111,6 @@
   </section>
 
   <section id="screen-intro" class="overlay dim hidden">
-    <a class="arcade-link" href="../../index.html">← Arcade</a>
     <div class="card wide intro-card">
       <h2>Welcome to Sprout Valley!</h2>
       <p class="muted">Grandpa's old farm is yours now. The soil is good, the neighbors are kind, and every season brings something new.</p>
@@ -125,7 +124,10 @@
       </div>
       <p class="controls touch-line"><b>Stick</b> walk &nbsp; <b>Use</b> your tool &nbsp; <b>💬</b> talk, open or pick up &nbsp; <b>Tap a tile</b> to walk there and use your tool &nbsp; <b>🎒</b> bag &nbsp; <b>📔</b> journal &nbsp; <b>❚❚</b> pause</p>
       <p class="controls keys-line"><b>Keyboard</b> WASD move · Space use · E talk · 1–9 belt · I bag · J journal · Esc pause &nbsp; <b>Mouse</b> click a tile to use your tool there, right-click to talk &nbsp; <b>Touch</b> stick + Use / 💬 buttons, or tap a tile &nbsp; <b>Gamepad</b> stick, A use, X talk, LB/RB belt</p>
-      <button id="btn-intro-go" class="btn primary big">Let's farm!</button>
+      <div class="row intro-go">
+        <a class="btn" href="../../index.html">← Arcade</a>
+        <button id="btn-intro-go" class="btn primary big">Let's farm!</button>
+      </div>
     </div>
   </section>
 
@@ -148,12 +150,14 @@
   </section>
 
   <section id="screen-night" class="overlay night hidden">
-    <a class="arcade-link" href="../../index.html">← Arcade</a>
     <div class="card night-card">
       <div class="moon" aria-hidden="true"></div>
       <h2 id="night-title">Sweet dreams!</h2>
       <div id="night-body"></div>
-      <button id="btn-morning" class="btn primary big">Good morning! ☀️</button>
+      <div class="row">
+        <a class="btn" href="../../index.html">← Arcade</a>
+        <button id="btn-morning" class="btn primary big">Good morning! ☀️</button>
+      </div>
     </div>
   </section>
 
