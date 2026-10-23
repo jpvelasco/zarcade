@@ -226,6 +226,29 @@ test('installMode: button for beforeinstallprompt browsers, hint for iOS, never 
   assert.equal(A.installMode({ ios: true, dismissed: true }), null);
 });
 
+test('frameMode: games open in the arcade frame only where full screen and a fine pointer exist', () => {
+  assert.equal(A.frameMode({ fullscreen: true, finePointer: true }), true);
+  assert.equal(A.frameMode({ fullscreen: true, finePointer: false }), false, 'phones and tablets keep page navigation');
+  assert.equal(A.frameMode({ fullscreen: false, finePointer: true }), false);
+  assert.equal(A.frameMode(), false);
+});
+
+test('playGame reads ?play= and only accepts a game from the manifest', () => {
+  assert.equal(A.playGame('?play=glowloop', GAMES).slug, 'glowloop');
+  assert.equal(A.playGame('?sw=1&play=dino-dash', GAMES).slug, 'dino-dash');
+  for (const search of ['', '?play=', '?play=nope', '?play=../../x', '?play=glowloop/../x', '?play=https://evil.example/']) {
+    assert.equal(A.playGame(search, GAMES), null, `${search} opens nothing`);
+  }
+});
+
+test('withPlay sets or clears ?play= and keeps the other parameters', () => {
+  assert.equal(A.withPlay('', 'glowloop'), '?play=glowloop');
+  assert.equal(A.withPlay('?sw=1', 'glowloop'), '?sw=1&play=glowloop');
+  assert.equal(A.withPlay('?sw=1&play=glowloop', 'dino-dash'), '?sw=1&play=dino-dash');
+  assert.equal(A.withPlay('?play=glowloop&sw=1', null), '?sw=1');
+  assert.equal(A.withPlay('?play=glowloop', null), '');
+});
+
 test('tapping the coin five times quickly unlocks it on touch screens', () => {
   let s = { times: [], fired: false };
   for (const t of [0, 400, 800, 1200]) {

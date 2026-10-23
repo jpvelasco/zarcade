@@ -11,6 +11,12 @@
 // click or key press on any arcade page enters it again, until they turn it
 // off with the pill or Esc. Leaving a page never turns the preference off.
 //
+// On desktop the arcade opens games in a full-window frame (see
+// arcade/arcade.js), so full screen belongs to the arcade page and survives
+// switching games. A framed game drives the arcade's full screen, and its
+// links back to the arcade close the frame instead of loading the arcade
+// inside it.
+//
 // The canonical copy lives in arcade/fullscreen.js; every game keeps an
 // identical copy (`npm run sync-telemetry` refreshes the shared files).
 (function (root) {
@@ -19,6 +25,8 @@
   const PREF_KEY = 'arcade.v1.fullscreen';
   const REVEAL_PX = 72; // how close to the top edge the pointer must come
   const HIDE_MS = 1600;
+  const FRAME_NAME = 'zarcade-game'; // the arcade names its game frame this
+  const BACK_MESSAGE = 'zarcade:arcade'; // a framed game asking to go back
 
   // The preference logic, separate from the DOM so tests can drive it.
   // `wanted` is the player's choice; `active` is whether the page is in full
@@ -89,22 +97,46 @@
     };
   }
 
+  // The arcade window hosting this page in its game frame, or null when the
+  // page runs on its own (or someone else frames it).
+  function framedBy(win) {
+    if (win.name !== FRAME_NAME || win.parent === win) return null;
+    try {
+      return win.parent.document ? win.parent : null;
+    } catch (_) {
+      return null; // cross-origin parent
+    }
+  }
+
+  // Does this link lead to the arcade page itself (any query or hash)?
+  function isArcadeUrl(href, arcadeHref) {
+    try {
+      const page = (u) => `${u.origin}${u.pathname.replace(/index\.html$/, '')}`;
+      return page(new URL(href)) === page(new URL(arcadeHref));
+    } catch (_) {
+      return false;
+    }
+  }
+
   // ------------------------------------------------------------ browser side
 
-  function api(doc) {
+  // `signal` removes the listeners again: a framed game listens on the
+  // arcade's document, which outlives the frame.
+  function api(doc, signal) {
     const el = doc.documentElement;
+    const on = signal ? { signal } : false;
     return {
       supported: !!(doc.fullscreenEnabled || doc.webkitFullscreenEnabled) && !!(el.requestFullscreen || el.webkitRequestFullscreen),
       element: () => doc.fullscreenElement || doc.webkitFullscreenElement || null,
       enter: () => (el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : el.webkitRequestFullscreen()),
       exit: () => (doc.exitFullscreen ? doc.exitFullscreen() : doc.webkitExitFullscreen()),
       onChange: (fn) => {
-        doc.addEventListener('fullscreenchange', fn);
-        doc.addEventListener('webkitfullscreenchange', fn);
+        doc.addEventListener('fullscreenchange', fn, on);
+        doc.addEventListener('webkitfullscreenchange', fn, on);
       },
       onError: (fn) => {
-        doc.addEventListener('fullscreenerror', fn);
-        doc.addEventListener('webkitfullscreenerror', fn);
+        doc.addEventListener('fullscreenerror', fn, on);
+        doc.addEventListener('webkitfullscreenerror', fn, on);
       },
     };
   }
@@ -131,7 +163,10 @@
 
   function boot(win) {
     const doc = win.document;
-    const fs = api(doc);
+    const arcade = framedBy(win);
+    // In the arcade's frame, full screen is the arcade page's.
+    const stop = arcade && new win.AbortController();
+    const fs = api(arcade ? arcade.document : doc, stop && stop.signal);
     if (!fs.supported) return { supported: false };
     let storage = null;
     try {
@@ -226,6 +261,18 @@
       if (link && !link.target && !event.defaultPrevented) state.leave();
     });
 
+    if (arcade) {
+      win.addEventListener('pagehide', () => stop.abort());
+      doc.addEventListener('click', (event) => {
+        const link = event.target && event.target.closest && event.target.closest('a[href]');
+        if (!link || event.button || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        if (!isArcadeUrl(link.href, arcade.location.href)) return;
+        event.preventDefault();
+        arcade.postMessage({ type: BACK_MESSAGE }, win.location.origin);
+      }, true);
+    }
+
+    if (fs.element()) state.changed(true); // a framed game opening in full screen
     label();
     const mount = () => doc.body.append(host);
     if (doc.body) mount();
@@ -233,7 +280,7 @@
     return { supported: true, state, pill };
   }
 
-  const Fullscreen = { PREF_KEY, REVEAL_PX, createState };
+  const Fullscreen = { PREF_KEY, REVEAL_PX, FRAME_NAME, BACK_MESSAGE, createState, framedBy, isArcadeUrl };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = Fullscreen;

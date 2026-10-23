@@ -152,10 +152,32 @@
     return recent.length >= need ? { times: [], fired: true } : { times: recent, fired: false };
   }
 
+  // On desktop, games open in a full-window frame inside the arcade page, so
+  // full screen survives switching games (it ends whenever the full-screen
+  // page unloads). Phones and tablets navigate between pages as before.
+  function frameMode({ fullscreen, finePointer } = {}) {
+    return !!(fullscreen && finePointer);
+  }
+
+  // The game named by ?play=<slug>, if it is one of ours.
+  function playGame(search, games) {
+    const slug = new URLSearchParams(search).get('play');
+    return games.find((g) => g.slug === slug) || null;
+  }
+
+  // The query string with ?play= set to `slug`, or removed when it is null.
+  function withPlay(search, slug) {
+    const params = new URLSearchParams(search);
+    if (slug) params.set('play', slug);
+    else params.delete('play');
+    const query = params.toString();
+    return query ? `?${query}` : '';
+  }
+
   const Arcade = {
     STORAGE_KEY, ALL, NEW, SHELVES, shelfOf, isNew, genres, filterGames, gamePath, gridMove,
     freshState, loadState, saveState, recordPlay, blockedOffline, problemSummary,
-    KONAMI, konamiStep, tapStreak, installMode,
+    KONAMI, konamiStep, tapStreak, installMode, frameMode, playGame, withPlay,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Arcade;

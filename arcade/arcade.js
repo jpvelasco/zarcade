@@ -245,25 +245,91 @@
     document.body.style.setProperty('--accent', game.accent);
     $('launch').style.setProperty('--accent', game.accent);
     document.body.classList.add('launching');
-    setTimeout(() => location.assign(A.gamePath(game.slug)), reducedMotion.matches ? 0 : 520);
+    setTimeout(() => (useFrame ? openGame(game) : location.assign(A.gamePath(game.slug))), reducedMotion.matches ? 0 : 520);
   }
+
+  // ------------------------------------------------------------ game frame
+
+  // On desktop, games open in a full-window frame on this page, so full
+  // screen (which ends whenever the full-screen page unloads) survives
+  // switching games. The arcade URL carries ?play=<slug> so reload and the
+  // Back button work; a framed game's links back to the arcade post
+  // BACK_MESSAGE instead of navigating (fullscreen.js).
+  const FS = window.ArcadeFullscreen || {};
+  const useFrame = !offline && A.frameMode({ fullscreen: FS.supported, finePointer: matchMedia('(pointer: fine)').matches });
+  const arcadeTitle = document.title;
+  let frame = null;
+  const playHref = (slug) => A.withPlay(location.search, slug) || location.pathname;
+
+  function openGame(game, { push = true } = {}) {
+    if (frame) frame.remove();
+    stopAttract();
+    frame = document.createElement('iframe');
+    frame.id = 'game-frame';
+    frame.name = FS.FRAME_NAME;
+    frame.title = game.title;
+    frame.allow = 'fullscreen; autoplay; gamepad';
+    frame.src = A.gamePath(game.slug);
+    frame.addEventListener('load', (e) => e.target.contentWindow.focus());
+    document.body.append(frame);
+    document.body.classList.add('playing');
+    document.title = `${game.title} · ${arcadeTitle}`;
+    if (push) history.pushState({ play: game.slug }, '', playHref(game.slug));
+  }
+
+  function closeGame() {
+    if (!frame) return;
+    frame.remove();
+    frame = null;
+    resetLaunch();
+    document.body.classList.remove('playing');
+    document.title = arcadeTitle;
+    refreshAfterPlay({ focus: true });
+  }
+
+  // Our own history entry goes back (popstate closes the frame); a game
+  // opened straight from a ?play= link has none to go back to.
+  function leaveGame() {
+    if (history.state && history.state.play) history.back();
+    else {
+      closeGame();
+      history.replaceState(null, '', playHref(null));
+    }
+  }
+
+  addEventListener('message', (e) => {
+    if (!frame || e.source !== frame.contentWindow || e.origin !== location.origin) return;
+    if (e.data && e.data.type === FS.BACK_MESSAGE) leaveGame();
+  });
+
+  addEventListener('popstate', () => {
+    const game = A.playGame(location.search, GAMES);
+    if (game && useFrame) openGame(game, { push: false });
+    else closeGame();
+  });
 
   // Coming back with the browser Back button can restore this page from
   // the back/forward cache mid-launch, so reset it.
   addEventListener('pageshow', (e) => {
+    resetLaunch();
+    if (e.persisted) refreshAfterPlay();
+  });
+
+  function resetLaunch() {
     launching = false;
     padPrev = null;
     document.body.classList.remove('launching');
-    if (e.persisted) {
-      state = A.loadState(storage);
-      // The game just played may no longer be new, which can empty the New
-      // shelf or drop its chip, so rebuild the chips too.
-      if (!A.genres(GAMES, state.plays).includes(genre)) genre = A.ALL;
-      buildFilters();
-      buildRow();
-      select(current, { focus: false, sound: false });
-    }
-  });
+  }
+
+  // The game just played may no longer be new, which can empty the New
+  // shelf or drop its chip, so rebuild the chips too.
+  function refreshAfterPlay({ focus = false } = {}) {
+    state = A.loadState(storage);
+    if (!A.genres(GAMES, state.plays).includes(genre)) genre = A.ALL;
+    buildFilters();
+    buildRow();
+    select(current, { focus, sound: false });
+  }
 
   // ------------------------------------------------------------- controls
 
@@ -292,7 +358,7 @@
   };
 
   addEventListener('keydown', (e) => {
-    if (e.altKey || e.metaKey || e.ctrlKey || $('help').open) return;
+    if (frame || e.altKey || e.metaKey || e.ctrlKey || $('help').open) return;
     secretStep = A.konamiStep(secretStep, e.code);
     if (secretStep === A.KONAMI.length) { secretStep = 0; revealSecret(); }
     const inFilters = e.target.closest && e.target.closest('.filters');
@@ -328,7 +394,7 @@
   let padRepeat = 0;
   function pollPads(now) {
     const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
-    if (pads.length && !$('help').open) {
+    if (pads.length && !frame && !$('help').open) {
       const p = pads[0];
       const b = (i) => !!(p.buttons[i] && p.buttons[i].pressed);
       const ax = p.axes[0] || 0, ay = p.axes[1] || 0;
@@ -541,7 +607,10 @@
   buildFilters();
   buildRow();
   select(Math.max(0, GAMES.findIndex((g) => g.slug === state.last)), { focus: false, sound: false });
-  if (!state.last) startAttract();
+  const startGame = A.playGame(location.search, GAMES);
+  if (startGame && useFrame) openGame(startGame, { push: false });
+  else if (startGame) location.replace(A.gamePath(startGame.slug));
+  else if (!state.last) startAttract();
   requestAnimationFrame(pollPads);
 
   // ---------------------------------------------------------- service worker
